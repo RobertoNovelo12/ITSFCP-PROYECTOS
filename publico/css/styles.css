@@ -1,8 +1,15 @@
-  :root {
-      --color-primario: #1363EB;
-      --tamanio-fuente-base: 16px;
-      --borde-menu: #E5E7EB;
-    }
+:root {
+    --color-primario: #11376b;
+    --hover-boton: #274a83;
+    --tamanio-fuente-base: 16px;
+    --borde-menu: #E5E7EB;
+    --fondo-web: #F9FAFB;
+    --fondo-inputs: #FFFFFF;
+    --color-placeholder: #6B7280;
+    --color-boton-secundario: #E5E7EB;
+    --color-texto-secundario: #6B7280;
+    --color-texto-principal: #111827;
+}
 
 * {
     margin: 0;
@@ -45,6 +52,11 @@ body {
     border: 1px solid #ddd;
     border-radius: 4px;
     width: 200px;
+}
+
+.search-box:focus {
+    outline: none;
+    border-color: var(--color-primario);
 }
 
 .login-btn {
@@ -175,4 +187,218 @@ body {
 .support-menu {
     margin-top: auto;
     padding-top: 40px;
+}
+
+/* REGISTRO */
+.header-log-reg {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+
+.home-btn {
+    background: var(--color-boton-secundario);
+    color: var(--color-texto-secundario);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.home-btn:hover {
+    background: #d1d5db;
+}
+
+.body-register {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container-register {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 12px;
+    padding: 40px;
+}
+
+.toggle-btn {
+    background: var(--color-boton-secundario);
+    color: var(--color-texto-secundario);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.toggle-btn:hover {
+    background: #d1d5db;
+}
+
+.link {
+    text-align: center;
+    color: var(--color-primario);
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+.title-log-reg {
+    color: var(--color-texto-principal);
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* INPUT GROUP CON FLOATING LABEL */
+.input-group {
+    position: relative;
+    width: 100%;
+}
+
+.input-field {
+    width: 100%;
+    padding: 16px 16px 8px 16px;
+    background: var(--fondo-web);
+    border: 1px solid var(--borde-menu);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--color-texto-principal);
+    transition: all 0.2s;
+}
+
+
+.input-field:focus {
+    outline: none;
+    border-color: var(--color-primario);
+}
+
+/* Floating Label */
+.floating-label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-placeholder);
+    font-size: 14px;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    background: var(--fondo-web);
+    padding: 0 4px;
+}
+
+.input-field:focus + .floating-label,
+.input-field:not(:placeholder-shown) + .floating-label {
+    top: 0;
+    font-size: 12px;
+    color: var(--color-primario);
+    transform: translateY(-50%);
+}
+
+/* Cuando solo tiene contenido (sin focsu) */
+.input-field:not(:placeholder-shown) + .floating-label {
+    color: var(--color-texto-secundario);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--color-primario);
+    color: var(--fondo-inputs);
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+}
+
+.submit-btn:hover {
+    background: var(--hover-boton);
+}
+
+.terms {
+    text-align: center;
+    color: var(--color-texto-secundario);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.terms strong {
+    color: var(--color-texto-principal);
+}
+
+/* PARA LA FECHA DE NACIMIENTO */
+
+.date-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.date-label {
+    color: var(--color-texto-principal);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.date-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr;
+    gap: 12px;
+}
+
+.date-field {
+    margin: 0;
+}
+
+/* Ocultar flechas de los inputs numéricos en Chrome, Safari, Edge */
+.date-field::-webkit-outer-spin-button,
+.date-field::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Ocultar flechas en Firefox */
+.date-field[type=number] {
+    -moz-appearance: textfield;
 }

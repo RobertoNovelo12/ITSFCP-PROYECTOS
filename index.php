@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITSFCP/PROYECTOS</title>
-    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./publico/css/styles.css">
 </head>
 <body>
-    <?php include 'header.php'; ?>
-
+    <?php include './publico/incluido/header.php'; ?>
     <div class="container">
         <?php include 'sidebar.php'; ?>
         
@@ -36,7 +35,7 @@
                     </div>
 
                     <div class="image-container">
-                        <img class="image-container" src="./img/home-img.webp" alt="" srcset="">
+                        <img class="image-container" src="./publico/img/home-img.webp" alt="" srcset="">
                     </div>
                 </div>
 
