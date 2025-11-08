@@ -38,7 +38,6 @@ if (isset($_POST['login'])) {
     if ($resultado->num_rows === 1) {
         $usuario = $resultado->fetch_assoc();
 
-        // Si aún no usas password_hash:
         if ($clave === $usuario['contraseña']) {
             $_SESSION['id_usuario'] = $usuario['id_usuario'];
             $_SESSION['nombre'] = $usuario['nombre'];
