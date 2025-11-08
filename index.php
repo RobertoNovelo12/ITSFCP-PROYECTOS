@@ -1,3 +1,24 @@
+<?php
+session_start();
+
+if (isset($_SESSION['rol'])) {
+    $base_url = "/ITSFCP-PROYECTOS/";
+    switch ($_SESSION['rol']) {
+        case 'Estudiante':
+            header("Location: {$base_url}Vistas/proyectos/alumno.php");
+            break;
+        case 'Profesor':
+        case 'Investigador':
+            header("Location: {$base_url}Vistas/proyectos/profesor.php");
+            break;
+        case 'Supervisor':
+            header("Location: {$base_url}Vistas/proyectos/supervisor.php");
+            break;
+    }
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
