@@ -18,33 +18,33 @@
         <div class="content">
             <div class="title-log-reg">Crear cuenta</div>
 
-            <form class="form" action="#" method="POST">
+            <form class="form" action="./publico/config/register_.php" method="POST">
                 <!-- nombre completo -->
                 <div class="input-group">
-                    <input type="text" id="nombre" class="input-field" placeholder=" " required>
+                    <input type="text" id="nombre" name="nombre" class="input-field" placeholder=" " required>
                     <label for="nombre" class="floating-label">Nombre(s)</label>
                 </div>
 
                 <div class="name-group">
                     <div class="input-group">
-                        <input type="text" id="apellido-paterno" class="input-field" placeholder=" " required>
+                        <input type="text" id="apellido-paterno" name="apellido_paterno" class="input-field" placeholder=" " required>
                         <label for="apellido-paterno" class="floating-label">Apellido paterno</label>
                     </div>
                     <div class="input-group">
-                        <input type="text" id="apellido-materno" class="input-field" placeholder=" " required>
+                        <input type="text" id="apellido-materno" name="apellido_materno" class="input-field" placeholder=" " required>
                         <label for="apellido-materno" class="floating-label">Apellido materno</label>
                     </div>
                 </div>
 
                 <!-- CURP -->
                 <div class="input-group">
-                    <input type="text" id="curp" class="input-field" placeholder=" " maxlength="18" required>
+                    <input type="text" id="curp" name="curp" class="input-field" placeholder=" " maxlength="18" required>
                     <label for="curp" class="floating-label">CURP</label>
                 </div>
 
                 <!-- correo -->
                 <div class="input-group">
-                    <input type="email" id="email-register" class="input-field" placeholder=" " required>
+                    <input type="email" id="email-register" name="correo" class="input-field" placeholder=" " required>
                     <label for="email-register" class="floating-label">Correo electrónico</label>
                 </div>
                 
@@ -53,15 +53,15 @@
                     <label class="date-label">Fecha de nacimiento</label>
                     <div class="date-inputs">
                         <div class="input-group">
-                            <input type="number" id="day" class="input-field date-field" placeholder=" " min="1" max="31" required>
+                            <input type="number" id="day" name="dia" class="input-field date-field" placeholder=" " min="1" max="31" required>
                             <label for="day" class="floating-label">Día</label>
                         </div>
                         <div class="input-group">
-                            <input type="number" id="month" class="input-field date-field" placeholder=" " min="1" max="12" required>
+                            <input type="number" id="month" name="mes" class="input-field date-field" placeholder=" " min="1" max="12" required>
                             <label for="month" class="floating-label">Mes</label>
                         </div>
                         <div class="input-group">
-                            <input type="number" id="year" class="input-field date-field" placeholder=" " min="1900" max="2024" required>
+                            <input type="number" id="year" name="anio" class="input-field date-field" placeholder=" " min="1900" max="2024" required>
                             <label for="year" class="floating-label">Año</label>
                         </div>
                     </div>
@@ -71,7 +71,7 @@
                 <div class="dual-select-group">
                     <div class="select-wrapper">
                         <label class="select-label">Género</label>
-                        <select id="genero" class="role-select" required>
+                        <select id="genero" name="genero" class="role-select" required>
                             <option value="">Seleccionar</option>
                             <option value="masculino">Masculino</option>
                             <option value="femenino">Femenino</option>
@@ -80,7 +80,7 @@
                     </div>
                     <div class="select-wrapper">
                         <label class="select-label">Estado</label>
-                        <select id="estado" class="role-select" required>
+                        <select id="estado" name="estado" class="role-select" required>
                             <option value="">Seleccionar</option>
                             <option value="aguascalientes">Aguascalientes</option>
                             <option value="baja-california">Baja California</option>
@@ -119,17 +119,22 @@
                 </div>
 
                 <!-- Contraseñas -->
-                <div class="input-group">
+                    <div class="input-group">
                     <input type="password" id="password" name="contraseña" class="input-field" placeholder=" " required>
                     <label for="password" class="floating-label">Contraseña</label>
-                    <img src="./publico/icons/solar_eye-closed-broken.webp" alt="Mostrar contraseña" id="togglePassword" class="toggle-password">
+                    <span class="toggle-password-wrapper">
+                        <img src="./publico/icons/solar_eye-closed-broken.webp" alt="Mostrar contraseña" id="togglePassword" class="toggle-password">
+                    </span>
                     </div>
 
                     <div class="input-group">
-                        <input type="password" id="confirmar" name="confirmar" class="input-field" placeholder=" " required>
-                        <label for="confirmar" class="floating-label">Confirmar contraseña</label>
+                    <input type="password" id="confirmar" name="confirmar" class="input-field" placeholder=" " required>
+                    <label for="confirmar" class="floating-label">Confirmar contraseña</label>
+                    <span class="toggle-password-wrapper">
                         <img src="./publico/icons/solar_eye-closed-broken.webp" alt="Mostrar contraseña" id="toggleConfirm" class="toggle-password">
+                    </span>
                     </div>
+
 
 
                 <div class="terms">

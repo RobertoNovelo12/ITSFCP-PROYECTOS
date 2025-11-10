@@ -44,14 +44,13 @@ if (isset($_SESSION['rol'])) {
                     <label for="email" class="floating-label">Correo electrónico</label>
                 </div>
 
-                <div class="input-group">
-                <input type="password" id="password" name="contraseña" class="input-field" placeholder=" " required>
-                <label for="password" class="floating-label">Contraseña</label>
-                <img src="./publico/icons/solar_eye-closed-broken.webp" 
-                    alt="Mostrar contraseña" 
-                    id="togglePassword" 
-                    class="toggle-password">
-            </div>
+                    <div class="input-group">
+                    <input type="password" id="password" name="contraseña" class="input-field" placeholder=" " required>
+                    <label for="password" class="floating-label">Contraseña</label>
+                    <span class="toggle-password-wrapper">
+                        <img src="./publico/icons/solar_eye-closed-broken.webp" alt="Mostrar contraseña" id="togglePassword" class="toggle-password">
+                    </span>
+                    </div>
 
 
                 <button type="submit" name="login" class="submit-btn">Iniciar sesión</button>

@@ -3,16 +3,17 @@ session_start();
 
 if (isset($_SESSION['rol'])) {
     $base_url = "/ITSFCP-PROYECTOS/";
-    switch ($_SESSION['rol']) {
-        case 'Estudiante':
-            header("Location: {$base_url}Vistas/proyectos/alumno.php");
+
+    switch (strtolower($_SESSION['rol'])) {
+        case 'alumno':
+            header("Location: {$base_url}Vistas/usuarios/alumno.php");
             break;
-        case 'Profesor':
-        case 'Investigador':
-            header("Location: {$base_url}Vistas/proyectos/profesor.php");
+        case 'profesor':
+        case 'investigador':
+            header("Location: {$base_url}Vistas/usuarios/profesor.php");
             break;
-        case 'Supervisor':
-            header("Location: {$base_url}Vistas/proyectos/supervisor.php");
+        case 'supervisor':
+            header("Location: {$base_url}Vistas/usuarios/supervisor.php");
             break;
     }
     exit;

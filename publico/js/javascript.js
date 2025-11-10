@@ -5,20 +5,34 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupPasswordToggle(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
+        const wrapper = icon?.parentElement;
 
-        if (!input || !icon) return;
+        if (!input || !icon || !wrapper) return;
 
-        icon.addEventListener("click", () => {
+        wrapper.addEventListener("click", (e) => {
+            e.preventDefault();
+            
+            // Toggle password visibility
             const isPassword = input.type === "password";
             input.type = isPassword ? "text" : "password";
             icon.src = isPassword ? eyeOpen : eyeClosed;
             icon.alt = isPassword ? "Ocultar contraseña" : "Mostrar contraseña";
+
+            // Re-enfocar el input
+            input.focus();
+
+            // Activar animación de ripple
+            wrapper.classList.add("ripple");
+            
+            setTimeout(() => {
+                wrapper.classList.remove("ripple");
+            }, 500);
         });
     }
 
-    // 🔸 Contraseña principal
+    // Contraseña principal
     setupPasswordToggle("password", "togglePassword");
 
-    // 🔸 Confirmar contraseña
+    // Confirmar contraseña
     setupPasswordToggle("confirmar", "toggleConfirm");
 });
