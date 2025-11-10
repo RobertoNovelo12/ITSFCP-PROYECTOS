@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     } else {
-        echo "❌ Rol no encontrado en la base de datos.";
+        echo "rol no encontrado en la base de datos.";
     }
 }
 ?>
