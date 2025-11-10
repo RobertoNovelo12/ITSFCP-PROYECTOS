@@ -47,6 +47,12 @@
                     <input type="email" id="email-register" name="correo" class="input-field" placeholder=" " required>
                     <label for="email-register" class="floating-label">Correo electrónico</label>
                 </div>
+
+                <!-- telefono -->
+                <div class="input-group">
+                    <input type="number" id="phone-register" name="telefono" class="input-field date-field" placeholder=" " pattern="[0-9]{10}" maxlength="10" required>
+                    <label for="phone-register" class="floating-label">Número de telefono</label>
+                </div>
                 
                 <!-- fecha de nacimiento -->
                 <div class="date-group">

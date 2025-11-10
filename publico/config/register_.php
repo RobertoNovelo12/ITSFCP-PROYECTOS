@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $apellido_materno = trim($_POST['apellido_materno']);
     $curp = trim($_POST['curp']);
     $correo = trim($_POST['correo']);
+    $telefono = trim($_POST['telefono']);
     $dia = (int)$_POST['dia'];
     $mes = (int)$_POST['mes'];
     $anio = (int)$_POST['anio'];
@@ -29,10 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // isnertar usuario
     $stmt = $conn->prepare("INSERT INTO usuarios 
-        (curp, correo_institucional, fecha_nacimiento, password_hash, nombre, apellido_paterno, apellido_materno, genero, estado_usuario, fecha_registro) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())");
+        (curp, correo_institucional, fecha_nacimiento, password_hash, nombre, apellido_paterno, apellido_materno, genero, telefono, estado_usuario, fecha_registro) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())");
 
-    $stmt->bind_param("ssssssss", $curp, $correo, $fecha_nacimiento, $password_hash, $nombre, $apellido_paterno, $apellido_materno, $genero);
+    $stmt->bind_param("sssssssss", $curp, $correo, $fecha_nacimiento, $password_hash, $nombre, $apellido_paterno, $apellido_materno, $genero, $telefono);
 
     if ($stmt->execute()) {
         $id_usuario = $conn->insert_id;
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['correo'] = $correo;
 
         // Redirigir a creación de perfil
-        header("Location: /ITSFCP-PROYECTOS/vistas/usuarios/crear_perfil.php");
+        header("Location: /ITSFCP-PROYECTOS/Vistas/usuarios/crear_perfil.php");
         exit;
     } else {
         echo "Error al registrar usuario: " . $conn->error;

@@ -4,19 +4,25 @@ session_start();
 // Si ya hay sesión activa, redirige según rol
 if (isset($_SESSION['rol'])) {
     $base_url = "/ITSFCP-PROYECTOS/";
-    switch ($_SESSION['rol']) {
-        case 'Estudiante':
-            header("Location: {$base_url}Vistas/proyectos/alumno.php");
-            break;
-        case 'Profesor':
-        case 'Investigador':
-            header("Location: {$base_url}Vistas/proyectos/profesor.php");
-            break;
-        case 'Supervisor':
-            header("Location: {$base_url}Vistas/proyectos/supervisor.php");
-            break;
+    $rol = strtolower($_SESSION['rol']);
+
+    switch ($rol) {
+        case 'alumno':
+            header("Location: {$base_url}Vistas/usuarios/alumno.php");
+            exit;
+        case 'profesor':
+            header("Location: {$base_url}Vistas/usuarios/profesor.php");
+            exit;
+        case 'administrador':
+            header("Location: {$base_url}Vistas/usuarios/supervisor.php");
+            exit;
+        case 'invitado':
+            header("Location: {$base_url}Vistas/usuarios/supervisor.php");
+            exit;
+        default:
+            header("Location: {$base_url}index.php");
+            exit;
     }
-    exit;
 }
 ?>
 

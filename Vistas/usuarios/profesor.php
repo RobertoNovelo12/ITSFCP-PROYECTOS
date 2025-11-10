@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['rol']) || ($_SESSION['rol'] !== 'Investigador' && $_SESSION['rol'] !== 'Profesor')) {
-    header("Location: ../../../login.php");
+if (!isset($_SESSION['rol']) || !in_array(strtolower($_SESSION['rol']), ['profesor', 'investigador'])) {
+    header("Location: /ITSFCP-PROYECTOS/login.php");
     exit;
 }
 ?>
