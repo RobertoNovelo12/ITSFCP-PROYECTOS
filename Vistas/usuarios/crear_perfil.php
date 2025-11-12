@@ -87,7 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: usuario.php?rol={$rol_nombre}");
         exit;
     } else {
+<<<<<<< HEAD
         echo "<script>alert('❌ Rol no encontrado en la base de datos.');</script>";
+=======
+        echo "rol no encontrado en la base de datos.";
+>>>>>>> 9493312d059e1b18f71326c6f71d52201fcd87ca
     }
 }
 ?>
