@@ -1,28 +1,49 @@
-<div class="sidebar">
-    <div class="menu-item active">
-        <span class="menu-icon"><img src="./publico/icons/home.svg" alt=""></span>
-        <span>Inicio</span>
-    </div>
-    <div class="menu-item">
-        <span class="menu-icon"><img src="./publico/icons/proyects.svg" alt=""></span>
-        <span>Proyectos</span>
-    </div>
-    <div class="menu-item">
-        <span class="menu-icon"><img src="./publico/icons/iconoir--learning.svg" alt=""></span>
-        <span>Conocer más</span>
-    </div>
-    <div class="border-top"></div>
-    <div class="menu-item">
-        <span class="menu-icon"><img src="./publico/icons/documentation.svg" alt=""></span>
-        <span>Documentación</span>
-    </div>
+<?php
+if (!isset($_SESSION)) session_start();
 
-    <div class="menu-bottom">
-        <div class="support-menu">
-            <div class="menu-item">
-                <span class="menu-icon"><img src="./publico/icons/support.svg" alt=""></span>
-                <span>Soporte</span>
-            </div>
+$rol = strtolower($_SESSION["rol"] ?? "");
+
+// SEGÚN EL ROL
+$menus = [];
+
+if ($rol === "alumno") {
+    $menus = [
+        "Principal", "Dashboard", "Proyectos", "Seguimiento", "Tareas",
+        "Calendario", "Reportes", "Solicitudes", "Documentos",
+        "Plan de trabajo", "Constancias", "Soporte", "Ajustes"
+    ];
+}
+
+elseif ($rol === "profesor" || $rol === "investigador") {
+    $menus = [
+        "Principal", "Dashboard", "Proyectos", "Seguimiento", "Tareas",
+        "Calendario", "Reportes", "Mis alumnos", "Solicitudes",
+        "Documentos", "Plan de trabajo", "Constancias", "Soporte", "Ajustes"
+    ];
+}
+
+elseif ($rol === "supervisor") {
+    $menus = [
+        "Principal", "Dashboard", "Proyectos", "Tareas", "Calendario",
+        "Reportes", "Otros", "Usuarios", "Línea de investigación",
+        "Temática", "Subtemática", "Área de conocimiento",
+        "Subárea de conocimiento", "Ajuste de constancias",
+        "Período", "Instituto", "Carreras", "Soporte", "Ajustes"
+    ];
+}
+?>
+
+<div class="sidebar">
+
+    <?php foreach ($menus as $item): ?>
+        <div class="menu-item">
+            <span class="menu-icon">
+                <!-- ICONOS -->
+                <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(' ', '_', $item)) ?>.svg">
+            </span>
+
+            <span><?= $item ?></span>
         </div>
-    </div>
+    <?php endforeach; ?>
+
 </div>

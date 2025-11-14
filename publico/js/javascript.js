@@ -109,4 +109,24 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+  // Dropdown de perfil (header)
+  const profileBtn = document.getElementById("userProfileBtn");
+  const profileDropdown = document.getElementById("profileDropdown");
+
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener("click", () => {
+      const visible = profileDropdown.style.display === "block";
+      profileDropdown.style.display = visible ? "none" : "block";
+    });
+
+    // Cerrar si se hace clic fuera
+    document.addEventListener("click", (e) => {
+      if (
+        !profileBtn.contains(e.target) &&
+        !profileDropdown.contains(e.target)
+      ) {
+        profileDropdown.style.display = "none";
+      }
+    });
+  }
 });

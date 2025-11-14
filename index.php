@@ -32,7 +32,7 @@ if (isset($_SESSION['rol'])) {
 <body>
     <?php include './publico/incluido/header.php'; ?>
     <div class="container">
-        <?php include 'sidebar.php'; ?>
+        <?php include 'sidebar_publico.php'; ?>
         
             <div class="main-content">
                 <h1 class="title">Sistema web responsive para gestión de proyectos en Instituto Tecnológico Superior

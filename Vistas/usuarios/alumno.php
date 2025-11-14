@@ -20,11 +20,10 @@ if (strtolower($_SESSION['rol']) !== 'alumno') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel del Estudiante</title>
+    <link rel="stylesheet" href="/ITSFCP-PROYECTOS/publico/css/styles.css">
 </head>
 <body>
-    <h1>Bienvenido, <?= htmlspecialchars($_SESSION['nombre']) ?> 👋</h1>
-    <p>Tu rol es: <strong><?= htmlspecialchars($_SESSION['rol']) ?></strong></p>
-
-    <a href="/ITSFCP-PROYECTOS/logout.php">Cerrar sesión</a>
+<?php include __DIR__ . '/../../publico/incluido/header.php'; ?>
+<?php include __DIR__ . '/../../sidebar.php'; ?>
 </body>
 </html>
