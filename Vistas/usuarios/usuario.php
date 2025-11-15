@@ -3,7 +3,7 @@ session_start();
 
 // Si no hay sesión, redirigir
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../../login.php");
+    header("Location: ../ITSFCP-PROYECTOS/login.php");
     exit;
 }
 

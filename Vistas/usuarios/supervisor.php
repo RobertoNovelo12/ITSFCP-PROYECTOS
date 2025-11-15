@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'Supervisor') {
-    header("Location: ../../../login.php");
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'supervisor') {
+    header("Location: ../ITSFCP-PROYECTOS/login.php");
     exit;
 }
 ?>
@@ -16,5 +16,8 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'Supervisor') {
 <body>
 <?php include __DIR__ . '/../../publico/incluido/header.php'; ?>
 <?php include __DIR__ . '/../../sidebar.php'; ?>
+    <div class="main-content">
+        <h1 class="title">Panel de Supervisor</h1>
+    </div>
 </body>
 </html>

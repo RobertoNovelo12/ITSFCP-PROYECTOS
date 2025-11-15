@@ -4,7 +4,7 @@ include("../../publico/config/conexion.php");
 
 // Si no hay sesión, redirigir al login
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../../login.php");
+    header("Location: /ITSFCP-PROYECTOS/login.php");
     exit;
 }
 

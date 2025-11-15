@@ -1,10 +1,9 @@
 <?php
 session_start();
-include("../../publico/config/conexion.php");
+require_once(__DIR__ . "/conexion.php");
 
-// Verificar sesion activa
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../../login.php");
+    header("Location: /ITSFCP-PROYECTOS/login.php");
     exit;
 }
 
@@ -17,39 +16,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $rol) {
 
         case 'alumno':
             $stmt = $conn->prepare("INSERT INTO usuarios_alumnos 
-                (usuario_id, matricula, carrera, area_conocimiento, subarea_conocimiento) 
+                (usuario_id, matricula, carrera, area_conocimiento, subarea_conocimiento)
                 VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("issss", 
-                $id_usuario, 
-                $_POST['matricula'], 
-                $_POST['carrera'], 
-                $_POST['area'], 
-                $_POST['subarea']
-            );
+            $stmt->bind_param("issss", $id_usuario, $_POST['matricula'], $_POST['carrera'], $_POST['area'], $_POST['subarea']);
             $stmt->execute();
-            break;
+        break;
 
         case 'profesor':
             $stmt = $conn->prepare("INSERT INTO usuarios_profesores 
-                (usuario_id, area_conocimiento, subarea_conocimiento, nivel_sni, grado_estudio, linea_investigacion, rfc) 
+                (usuario_id, area_conocimiento, subarea_conocimiento, nivel_sni, grado_estudio, linea_investigacion, rfc)
                 VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("issssss", 
-                $id_usuario, 
-                $_POST['area'], 
-                $_POST['subarea'], 
-                $_POST['nivel_sni'], 
-                $_POST['grado'], 
-                $_POST['linea'], 
-                $_POST['rfc']
-            );
+            $stmt->bind_param("issssss", $id_usuario, $_POST['area'], $_POST['subarea'], $_POST['nivel_sni'], $_POST['grado'], $_POST['linea'], $_POST['rfc']);
             $stmt->execute();
-            break;
+        break;
 
         case 'supervisor':
-            // Manejo del archivo PDF
+
             $ruta_archivo = "";
             if (!empty($_FILES['solicitud_pdf']['name'])) {
-                $destino = __DIR__ . "/../../publico/docs/solicitudes/";
+
+                $destino = __DIR__ . "/../docs/solicitudes/";
+                if (!is_dir($destino)) mkdir($destino, 0755, true);
 
                 $nombre_pdf = uniqid("solicitud_") . ".pdf";
                 $ruta_final = $destino . $nombre_pdf;
@@ -60,29 +47,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $rol) {
             }
 
             $stmt = $conn->prepare("INSERT INTO usuarios_supervisores 
-                (usuario_id, departamento, cargo, rfc, solicitud_pdf) 
+                (usuario_id, departamento, cargo, rfc, solicitud_pdf)
                 VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("issss", 
-                $id_usuario, 
-                $_POST['departamento'], 
-                $_POST['cargo'], 
-                $_POST['rfc'], 
-                $ruta_archivo
-            );
+            $stmt->bind_param("issss", $id_usuario, $_POST['departamento'], $_POST['cargo'], $_POST['rfc'], $ruta_archivo);
             $stmt->execute();
-            break;
-
-        default:
-            echo "<script>alert('rol no reconocido.'); window.history.back();</script>";
-            exit;
+        break;
     }
 
-    $conn->query("UPDATE usuarios SET estado_usuario = 0 WHERE id_usuarios = $id_usuario");
+    // ACTIVAR usuario correctamente
+    $stmt2 = $conn->prepare("UPDATE usuarios SET estado_usuario = 1 WHERE id_usuarios = ?");
+    $stmt2->bind_param("i", $id_usuario);
+    $stmt2->execute();
 
-    echo "<script>alert('solicitud enviada correctamente.'); window.location.href='../../index.php';</script>";
-    exit;
-} else {
-    echo "<script>alert('solicitud incalida o incompleta.'); window.history.back();</script>";
+    echo "<script>alert('Solicitud enviada correctamente.'); window.location.href='/ITSFCP-PROYECTOS/index.php';</script>";
     exit;
 }
+
+echo "<script>alert('Solicitud inválida.'); window.history.back();</script>";
+exit;
 ?>

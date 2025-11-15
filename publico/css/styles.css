@@ -9,20 +9,29 @@
   --color-boton-secundario: #e5e7eb;
   --color-texto-secundario: #6b7280;
   --color-texto-principal: #111827;
-  --fondo-avatar: #CAE4CA;
-  --color-avatar: #6B7280;
+  --fondo-avatar: #cae4ca;
+  --color-avatar: #6b7280;
 }
 
+/* ====================================================
+   RESET Y ESTILOS GLOBALES
+   ==================================================== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   background-color: #f9fafb;
+  position: relative;
 }
 
 ::selection {
@@ -30,7 +39,9 @@ body {
   color: var(--fondo-web);
 }
 
-/* Header principal */
+/* ====================================================
+   HEADER PRINCIPAL
+   ==================================================== */
 .header {
   position: fixed;
   top: 0;
@@ -51,7 +62,6 @@ body {
   cursor: pointer;
 }
 
-/* Contenedor derecho del header */
 .header-right {
   display: flex;
   gap: 16px;
@@ -74,7 +84,7 @@ body {
   border-color: var(--color-primario);
 }
 
-/* Botón de iniciar sesión (cuando no hay usuario) */
+/* Botones del header */
 .login-btn {
   background-color: var(--color-primario);
   color: white;
@@ -89,7 +99,6 @@ body {
   gap: 8px;
 }
 
-/* Botón icono */
 .icon-btn {
   width: 36px;
   height: 36px;
@@ -109,19 +118,18 @@ body {
   object-fit: contain;
 }
 
-/* Wrapper del perfil */
+/* Avatar y perfil */
 .profile-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
+  gap: 8px;
+  padding: 6px 8px;
   border: 1px solid var(--borde-menu);
   border-radius: 999px;
   cursor: pointer;
   background: var(--fondo-inputs);
 }
 
-/* Imagen de avatar si existe */
 .avatar-img {
   width: 36px;
   height: 36px;
@@ -130,7 +138,6 @@ body {
   display: inline-block;
 }
 
-/* Inicial (cuando no hay imagen) */
 .avatar-initial {
   width: 36px;
   height: 36px;
@@ -145,7 +152,6 @@ body {
   text-transform: uppercase;
 }
 
-/* Flecha desplegable junto al avatar */
 .avatar-arrow {
   width: 24px;
   height: 24px;
@@ -153,91 +159,66 @@ body {
   opacity: 0.9;
 }
 
-
 .notif-icon {
-    width: 40px; 
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notif-icon img {
-    width: 28px;    
-    height: 28px;
-    object-fit: contain;
-}
-
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: 50px;
-    background: #fff;
-    border: 1px solid var(--borde-menu);
-    cursor: pointer;
-}
-
-.user-avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.user-avatar-generated {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--fondo-avatar);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: bold;
-    color: #4b5563;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .dropdown-icon {
-    width: 22px;
-    height: 22px;
+  width: 22px;
+  height: 22px;
 }
-
 
 /* Dropdown del perfil */
 .profile-dropdown {
-    position: absolute;
-    top: 70px;
-    right: 40px;
-    background: #fff;
-    border: 1px solid var(--borde-menu);
-    border-radius: 14px;
-    padding: 8px 0;
-    width: 160px;
-    display: none; /* Oculto por defecto */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
-    z-index: 200;
+  position: absolute;
+  top: 70px;
+  right: 40px;
+  background: #fff;
+  border: 1px solid var(--borde-menu);
+  border-radius: 14px;
+  padding: 8px 0;
+  width: 160px;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 200;
+}
+
+.profile-dropdown.open {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .profile-dropdown a {
-    display: block;
-    padding: 10px 18px;
-    font-size: 15px;
-    text-decoration: none;
-    color: var(--color-texto-principal);
+  display: block;
+  padding: 10px 18px;
+  font-size: 15px;
+  text-decoration: none;
+  color: var(--color-texto-principal);
 }
 
 .profile-dropdown a:hover {
-    background: #f3f4f6;
+  background: #f3f4f6;
 }
 
 .logout-btn {
-    color: #b91c1c !important;
-    font-weight: 600;
+  color: #b91c1c !important;
+  font-weight: 600;
 }
 
+/* ====================================================
+   SIDEBAR Y NAVEGACIÓN
+   ==================================================== */
 .container {
   display: flex;
   min-height: calc(100vh - 80px);
@@ -249,14 +230,55 @@ body {
   left: 0;
   width: 220px;
   margin-left: 10px;
-  height: calc(100% - 80px);
+  height: calc(100vh - 80px);
   padding: 20px 10px;
   border-right: 1px solid var(--borde-menu);
-
   display: flex;
   flex-direction: column;
+  overflow-y: overlay; /* Scrollbar no ocupa espacio */
+  overflow-x: hidden;
+  z-index: 50;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
+/* Fallback para navegadores que no soportan overlay */
+@supports not (overflow-y: overlay) {
+  .sidebar {
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  
+  .sidebar::-webkit-scrollbar {
+    width: 6px;
+    position: absolute;
+  }
+}
+
+/* Scrollbar personalizado */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+/* Items del menú */
 .menu-item {
   padding: 10px 10px;
   display: flex;
@@ -264,29 +286,18 @@ body {
   gap: 10px;
   cursor: pointer;
   transition: background-color 0.2s;
-}
-
-.border-top {
-  width: 100%;
-  height: 1px;
-  background-color: var(--borde-menu);
-  margin: 10px 0 10px 0;
-}
-
-.menu-bottom {
-  margin-top: auto;
+  flex-shrink: 0;
+  min-height: 40px;
 }
 
 .menu-item:hover {
   background-color: #f0f0f0;
   border-radius: 10px;
-  padding: 10px 10px;
 }
 
 .menu-item.active {
   background-color: #e5e7eb;
   border-radius: 10px;
-  padding: 10px 10px;
 }
 
 .menu-icon {
@@ -295,13 +306,87 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
+
 .menu-icon img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
+.sidebar .menu-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+/* Submenús desplegables */
+.submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.submenu.open {
+  max-height: 1000px;
+}
+
+.submenu .menu-item {
+  padding-left: 50px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.submenu.open .menu-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown-btn {
+  position: relative;
+}
+
+.dropdown-arrow {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  transition: transform 0.25s ease-in-out;
+  flex-shrink: 0;
+}
+
+.dropdown-open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Footer del sidebar */
+.menu-footer {
+  padding-top: 20px;
+  border-top: 1px solid var(--borde-menu);
+  padding-bottom: 10px;
+  margin-top: auto; /* Empuja al final cuando hay espacio */
+  flex-shrink: 0;
+}
+
+.border-top {
+  width: 100%;
+  height: 1px;
+  background-color: var(--borde-menu);
+  margin: 10px 0 10px 0;
+  flex-shrink: 0;
+}
+
+.support-menu {
+  margin-top: auto;
+  padding-top: 40px;
+}
+
+/* ====================================================
+   CONTENIDO PRINCIPAL
+   ==================================================== */
 .main-content {
   flex: 1;
   padding: 40px;
@@ -350,11 +435,9 @@ body {
   margin: 15px;
 }
 
-.support-menu {
-  margin-top: auto;
-  padding-top: 40px;
-}
-/* REGISTRO */
+/* ====================================================
+   FORMULARIOS - LOGIN Y REGISTRO
+   ==================================================== */
 .header-log-reg {
   position: fixed;
   top: 20px;
@@ -386,6 +469,23 @@ body {
   background: #d1d5db;
 }
 
+.toggle-btn {
+  background: var(--color-boton-secundario);
+  color: var(--color-texto-secundario);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.toggle-btn:hover {
+  background: #d1d5db;
+}
+
 .body-register {
   position: relative;
   display: flex;
@@ -404,26 +504,8 @@ body {
   padding: 40px;
 }
 
-/* Contenedor extendido para formulario de registro */
 .container-register-extended {
   max-width: 520px;
-}
-
-.toggle-btn {
-  background: var(--color-boton-secundario);
-  color: var(--color-texto-secundario);
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-  text-decoration: none;
-}
-
-.toggle-btn:hover {
-  background: #d1d5db;
 }
 
 .link {
@@ -460,7 +542,7 @@ body {
   gap: 16px;
 }
 
-/* INPUT GROUP CON FLOATING LABEL */
+/* Inputs con floating labels */
 .input-group {
   position: relative;
   width: 100%;
@@ -482,7 +564,6 @@ body {
   border-color: var(--color-primario);
 }
 
-/* Floating Label */
 .floating-label {
   position: absolute;
   left: 16px;
@@ -504,12 +585,74 @@ body {
   transform: translateY(-50%);
 }
 
-/* Cuando solo tiene contenido (sin focus) */
 .input-field:not(:placeholder-shown) + .floating-label {
   color: var(--color-texto-secundario);
 }
 
-/* Grupo de apellidos en dos columnas */
+/* Toggle de contraseña */
+.toggle-password-wrapper {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  z-index: 2;
+  overflow: visible;
+}
+
+.toggle-password {
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  user-select: none;
+}
+
+.toggle-password-wrapper:active .toggle-password {
+  transform: scale(0.9) rotate(-10deg);
+  filter: brightness(0.8);
+}
+
+.toggle-password-wrapper::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  background: rgba(42, 115, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-password-wrapper.ripple::after {
+  animation: rippleExpand 0.5s ease-out;
+}
+
+@keyframes rippleExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.6;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Grupos de inputs */
 .name-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -517,7 +660,6 @@ body {
   width: 100%;
 }
 
-/* Grupo de selects duales (Género y Estado) */
 .dual-select-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -537,7 +679,6 @@ body {
   font-weight: 500;
 }
 
-/* Select personalizado */
 .role-select {
   width: 100%;
   padding: 12px 16px;
@@ -566,6 +707,41 @@ body {
   border-color: var(--color-primario);
 }
 
+/* Fecha de nacimiento */
+.date-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-label {
+  color: var(--color-texto-principal);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.date-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr;
+  gap: 12px;
+}
+
+.date-field {
+  margin: 0;
+}
+
+.date-field::-webkit-outer-spin-button,
+.date-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.date-field[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Botones */
 .submit-btn {
   width: 100%;
   padding: 12px;
@@ -599,42 +775,9 @@ body {
   text-decoration: underline;
 }
 
-/* PARA LA FECHA DE NACIMIENTO */
-.date-group {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.date-label {
-  color: var(--color-texto-principal);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.date-inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr;
-  gap: 12px;
-}
-
-.date-field {
-  margin: 0;
-}
-
-/* Ocultar flechas de los inputs numéricos */
-.date-field::-webkit-outer-spin-button,
-.date-field::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.date-field[type="number"] {
-  -moz-appearance: textfield;
-}
-
-/* AVATAR DE PERFIL */
+/* ====================================================
+   PERFIL Y AVATAR
+   ==================================================== */
 .container-perfil {
   width: 100%;
   max-width: 480px;
@@ -716,121 +859,9 @@ body {
   display: none;
 }
 
-/* ANIMACIONES */
-
-.submit-btn:active,
-.login-btn:active,
-.home-btn:active,
-.toggle-btn:active {
-  transform: scale(95%);
-}
-
-.submit-btn,
-.login-btn,
-.toggle-btn,
-.home-btn {
-  transition: all 0.1s ease-in-out;
-}
-
-/* Contenedor del icono */
-.toggle-password-wrapper {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  z-index: 2;
-  overflow: visible;
-}
-
-/* Imagen del ojo */
-.toggle-password {
-  width: 22px;
-  height: 22px;
-  pointer-events: none;
-  transition: transform 0.2s ease, filter 0.2s ease;
-  user-select: none;
-}
-
-/* Presionado (efecto de hundirse y girar) */
-.toggle-password-wrapper:active .toggle-password {
-  transform: scale(0.9) rotate(-10deg);
-  filter: brightness(0.8);
-}
-
-/* Onda circular - siempre del mismo tamaño */
-.toggle-password-wrapper::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 20px;
-  height: 20px;
-  background: rgba(42, 115, 255, 0.3);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Clase para activar la animación */
-.toggle-password-wrapper.ripple::after {
-  animation: rippleExpand 0.5s ease-out;
-}
-
-@keyframes rippleExpand {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0.6;
-  }
-  60% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.3;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0;
-  }
-}
-
-/* MODAL */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.modal-content {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-  max-width: 400px;
-  text-align: center;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.modal-content h2 {
-  color: #2e7d32;
-  margin-bottom: 1rem;
-}
-
-.modal-content p {
-  margin-bottom: 1.5rem;
-  color: #333;
-  line-height: 1.4;
-}
-
+/* ====================================================
+   MODAL
+   ==================================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -878,4 +909,21 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ====================================================
+   ANIMACIONES Y EFECTOS
+   ==================================================== */
+.submit-btn,
+.login-btn,
+.toggle-btn,
+.home-btn {
+  transition: all 0.1s ease-in-out;
+}
+
+.submit-btn:active,
+.login-btn:active,
+.home-btn:active,
+.toggle-btn:active {
+  transform: scale(95%);
 }
