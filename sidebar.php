@@ -1,7 +1,12 @@
 <?php
-if (!isset($_SESSION)) session_start();
+if (!isset($_SESSION))
+    session_start();
 
 $rol = strtolower($_SESSION["rol"] ?? "");
+
+/* ====================================================
+   CONFIGURACIÓN DE MENÚS POR ROL
+   ==================================================== */
 
 if ($rol === "alumno") {
 
@@ -86,11 +91,16 @@ if ($rol === "alumno") {
 <div class="sidebar">
     <!-- CONTENIDO PRINCIPAL DEL MENÚ -->
     <div class="sidebar-main">
+        <!-- Botón para colapsar/expandir sidebar -->
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
+            <img src="/ITSFCP-PROYECTOS/publico/icons/sidebar.svg" alt="Toggle">
+        </button>
         <!-- MENÚ PRINCIPAL (primero siempre) -->
         <?php foreach ($mainMenu as $item): ?>
-            <div class="menu-item">
+            <div class="menu-item" data-tooltip="<?= $item ?>">
                 <span class="menu-icon">
-                    <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $item)) ?>.svg">
+                    <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $item)) ?>.svg"
+                        alt="<?= $item ?>">
                 </span>
                 <span><?= $item ?></span>
             </div>
@@ -98,19 +108,20 @@ if ($rol === "alumno") {
 
         <!-- SUBMENÚ PROYECTOS -->
         <?php if (isset($submenuProyectos)): ?>
-            <div class="menu-item dropdown-btn" id="btnProyectos">
+            <div class="menu-item dropdown-btn" id="btnProyectos" data-tooltip="Proyectos">
                 <span class="menu-icon">
-                    <img src="/ITSFCP-PROYECTOS/publico/icons/proyectos.svg">
+                    <img src="/ITSFCP-PROYECTOS/publico/icons/proyectos.svg" alt="Proyectos">
                 </span>
                 <span>Proyectos</span>
-                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg">
+                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg" alt="Expandir">
             </div>
 
             <div class="submenu" id="submenuProyectos">
                 <?php foreach ($submenuProyectos as $sub): ?>
-                    <div class="menu-item sub-item">
+                    <div class="menu-item sub-item" data-tooltip="<?= $sub ?>">
                         <span class="menu-icon">
-                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg">
+                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg"
+                                alt="<?= $sub ?>">
                         </span>
                         <span><?= $sub ?></span>
                     </div>
@@ -121,9 +132,10 @@ if ($rol === "alumno") {
         <!-- MENÚS INTERMEDIOS -->
         <?php if (isset($middleMenu)):
             foreach ($middleMenu as $item): ?>
-                <div class="menu-item">
+                <div class="menu-item" data-tooltip="<?= $item ?>">
                     <span class="menu-icon">
-                        <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $item)) ?>.svg">
+                        <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $item)) ?>.svg"
+                            alt="<?= $item ?>">
                     </span>
                     <span><?= $item ?></span>
                 </div>
@@ -132,19 +144,20 @@ if ($rol === "alumno") {
 
         <!-- SUBMENÚ MIS ALUMNOS -->
         <?php if (isset($submenuMisAlumnos)): ?>
-            <div class="menu-item dropdown-btn" id="btnMisAlumnos">
+            <div class="menu-item dropdown-btn" id="btnMisAlumnos" data-tooltip="Mis alumnos">
                 <span class="menu-icon">
-                    <img src="/ITSFCP-PROYECTOS/publico/icons/mis_alumnos.svg">
+                    <img src="/ITSFCP-PROYECTOS/publico/icons/mis_alumnos.svg" alt="Mis alumnos">
                 </span>
                 <span>Mis alumnos</span>
-                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg">
+                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg" alt="Expandir">
             </div>
 
             <div class="submenu" id="submenuMisAlumnos">
                 <?php foreach ($submenuMisAlumnos as $sub): ?>
-                    <div class="menu-item sub-item">
+                    <div class="menu-item sub-item" data-tooltip="<?= $sub ?>">
                         <span class="menu-icon">
-                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg">
+                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg"
+                                alt="<?= $sub ?>">
                         </span>
                         <span><?= $sub ?></span>
                     </div>
@@ -154,17 +167,18 @@ if ($rol === "alumno") {
 
         <!-- VER MÁS -->
         <?php if (isset($submenuVerMas)): ?>
-            <div class="menu-item dropdown-btn" id="btnVerMas">
+            <div class="menu-item dropdown-btn" id="btnVerMas" data-tooltip="Ver más">
                 <span class="menu-icon">-</span>
                 <span>Ver más</span>
-                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg">
+                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg" alt="Expandir">
             </div>
 
             <div class="submenu" id="submenuVerMas">
                 <?php foreach ($submenuVerMas as $sub): ?>
-                    <div class="menu-item sub-item">
+                    <div class="menu-item sub-item" data-tooltip="<?= $sub ?>">
                         <span class="menu-icon">
-                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg">
+                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg"
+                                alt="<?= $sub ?>">
                         </span>
                         <span><?= $sub ?></span>
                     </div>
@@ -177,9 +191,10 @@ if ($rol === "alumno") {
     <div class="menu-footer">
         <?php if (isset($footerMenus)):
             foreach ($footerMenus as $item): ?>
-                <div class="menu-item">
+                <div class="menu-item" data-tooltip="<?= $item ?>">
                     <span class="menu-icon">
-                        <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $item)) ?>.svg">
+                        <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $item)) ?>.svg"
+                            alt="<?= $item ?>">
                     </span>
                     <span><?= $item ?></span>
                 </div>

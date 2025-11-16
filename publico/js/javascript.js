@@ -101,58 +101,125 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-/* --- Módulo 4: Dropdown del perfil --- */
-const profileBtn = document.getElementById("userProfileBtn");
-const profileDropdown = document.getElementById("profileDropdown");
+  /* --- Módulo 4: Dropdown del perfil --- */
+  const profileBtn = document.getElementById("userProfileBtn");
+  const profileDropdown = document.getElementById("profileDropdown");
 
-if (profileBtn && profileDropdown) {
-  profileBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // evitar que el document click cierre inmediatamente
-    profileDropdown.classList.toggle("open");
-  });
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle("open");
+    });
 
-  // cerrar si se hace clic fuera
+    document.addEventListener("click", (e) => {
+      if (
+        !profileBtn.contains(e.target) &&
+        !profileDropdown.contains(e.target)
+      ) {
+        profileDropdown.classList.remove("open");
+      }
+    });
+  }
+
+  /* --- Módulo 5: Sidebar y submenús MEJORADO --- */
+  function setupSubmenu(btnId, submenuId) {
+    const btn = document.getElementById(btnId);
+    const submenu = document.getElementById(submenuId);
+    if (!btn || !submenu) return;
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      
+      const isSidebarCollapsed = document.body.classList.contains("sidebar-collapsed");
+      const isCurrentlyOpen = submenu.classList.contains("open");
+
+      // Si el sidebar está COLAPSADO: solo un submenú abierto a la vez
+      if (isSidebarCollapsed) {
+        // Cerrar todos los otros submenús
+        document.querySelectorAll(".submenu").forEach((s) => {
+          if (s !== submenu) {
+            s.classList.remove("open");
+          }
+        });
+        document.querySelectorAll(".dropdown-btn").forEach((b) => {
+          if (b !== btn) {
+            b.classList.remove("dropdown-open");
+          }
+        });
+
+        // Toggle del submenú actual
+        submenu.classList.toggle("open");
+        btn.classList.toggle("dropdown-open");
+
+        // Posicionar el submenú flotante
+        if (!isCurrentlyOpen) {
+          const btnRect = btn.getBoundingClientRect();
+          submenu.style.top = `${btnRect.top}px`;
+        }
+      } else {
+        // Si el sidebar está EXPANDIDO: permitir múltiples submenús abiertos
+        submenu.classList.toggle("open");
+        btn.classList.toggle("dropdown-open");
+      }
+    });
+  }
+
+  setupSubmenu("btnProyectos", "submenuProyectos");
+  setupSubmenu("btnVerMas", "submenuVerMas");
+  setupSubmenu("btnMisAlumnos", "submenuMisAlumnos");
+
+  /* --- Módulo 6: Toggle del Sidebar --- */
+  const sidebarToggle = document.getElementById("sidebarToggle");
+
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener("click", () => {
+      document.body.classList.toggle("sidebar-collapsed");
+
+      // Cerrar todos los submenús al cambiar de modo
+      document.querySelectorAll(".submenu").forEach((s) => {
+        s.classList.remove("open");
+        s.style.top = ""; 
+      });
+      document.querySelectorAll(".dropdown-btn").forEach((b) => {
+        b.classList.remove("dropdown-open");
+      });
+    });
+  }
+
+  /* --- Cerrar submenús al hacer clic fuera --- */
   document.addEventListener("click", (e) => {
-    if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-      profileDropdown.classList.remove("open");
+    const isSidebarCollapsed = document.body.classList.contains("sidebar-collapsed");
+    const clickedDropdown = e.target.closest(".dropdown-btn");
+    const clickedSubmenu = e.target.closest(".submenu");
+
+    if (isSidebarCollapsed) {
+      if (!clickedDropdown && !clickedSubmenu) {
+        document.querySelectorAll(".submenu").forEach((s) => {
+          s.classList.remove("open");
+          s.style.top = ""; 
+        });
+        document.querySelectorAll(".dropdown-btn").forEach((b) => {
+          b.classList.remove("dropdown-open");
+        });
+      }
     }
   });
-}
 
-/* --- Módulo 5: Sidebar y submenús --- */
-function setupSubmenu(btnId, submenuId) {
-  const btn = document.getElementById(btnId);
-  const submenu = document.getElementById(submenuId);
-  if (!btn || !submenu) return;
-
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    submenu.classList.toggle("open");
-    btn.classList.toggle("dropdown-open");
-  });
-}
-
-setupSubmenu("btnProyectos", "submenuProyectos");
-setupSubmenu("btnVerMas", "submenuVerMas");
-setupSubmenu("btnMisAlumnos", "submenuMisAlumnos");
-
-  const btnMisAlumnos = document.getElementById("btnMisAlumnos");
-  const submenuMisAlumnos = document.getElementById("submenuMisAlumnos");
-
-  if (btnMisAlumnos && submenuMisAlumnos) {
-    btnMisAlumnos.addEventListener("click", () => {
-      const isOpen = submenuMisAlumnos.classList.contains("open");
-
-      document
-        .querySelectorAll(".submenu")
-        .forEach((s) => s.classList.remove("open"));
-      document
-        .querySelectorAll(".dropdown-btn")
-        .forEach((b) => b.classList.remove("dropdown-open"));
-
-      if (!isOpen) {
-        submenuMisAlumnos.classList.add("open");
-        btnMisAlumnos.classList.add("dropdown-open");
+  const sidebar = document.querySelector(".sidebar");
+  if (sidebar) {
+    sidebar.addEventListener("scroll", () => {
+      const isSidebarCollapsed = document.body.classList.contains("sidebar-collapsed");
+      
+      if (isSidebarCollapsed) {
+        document.querySelectorAll(".submenu.open").forEach((submenu) => {
+          const btnId = submenu.id.replace("submenu", "btn");
+          const btn = document.getElementById(btnId);
+          
+          if (btn) {
+            const btnRect = btn.getBoundingClientRect();
+            submenu.style.top = `${btnRect.top}px`;
+          }
+        });
       }
     });
   }

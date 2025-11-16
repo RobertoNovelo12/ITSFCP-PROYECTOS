@@ -1,4 +1,7 @@
 <div class="sidebar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
+        <img src="/ITSFCP-PROYECTOS/publico/icons/sidebar.svg" alt="Toggle">
+    </button>
     <div class="menu-item active">
         <span class="menu-icon"><img src="./publico/icons/dashboard.svg"></span>
         <span>Inicio</span>
