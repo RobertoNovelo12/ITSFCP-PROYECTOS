@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nombre, 
         $apellido_paterno, 
         $apellido_materno, 
-        $genero, 
+        $id_genero, 
         $telefono
     );
 
