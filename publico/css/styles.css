@@ -30,7 +30,7 @@ html, body {
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  background-color: #f9fafb;
+  background-color: var(--fondo-web);
   position: relative;
 }
 
@@ -49,7 +49,7 @@ body {
   width: 100%;
   padding: 20px 40px;
   display: flex;
-  background-color: #f9fafb;
+  background-color: var(--fondo-web);
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--borde-menu);
@@ -694,6 +694,23 @@ body.sidebar-collapsed .menu-item[data-tooltip]:not(.submenu .menu-item):hover::
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+
+.label-select {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 5px;
+    display: block;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #aaa;
+    background-color: white;
+    font-size: 15px;
 }
 
 /* Inputs con floating labels */

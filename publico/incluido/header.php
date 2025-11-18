@@ -15,10 +15,14 @@ session_start();
 
 // ¿El usuario está logeado?
 $usuario_logeado = isset($_SESSION['id_usuario']);
-$nombre = $usuario_logeado ? $_SESSION['nombre'] : null;
 
-// Primera letra del nombre
-$inicial = $usuario_logeado ? strtoupper(substr($nombre, 0, 1)) : "";
+// Si no existe 'nombre' en sesión, úsalo como vacío para evitar warnings
+$nombre = $usuario_logeado && !empty($_SESSION['nombre'])
+    ? $_SESSION['nombre']
+    : "";
+
+// Primera letra del nombre (si existe)
+$inicial = $nombre !== "" ? strtoupper(substr($nombre, 0, 1)) : "";
 ?>
 
 <div class="header">
