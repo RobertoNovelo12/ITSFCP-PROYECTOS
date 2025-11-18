@@ -31,7 +31,7 @@ if (isset($_SESSION['rol'])) {
 </head>
 <body>
     <?php include './publico/incluido/header.php'; ?>
-    <div class="container">
+    <div class="container-main">
         <?php include 'sidebar_publico.php'; ?>
         
             <div class="main-content">
