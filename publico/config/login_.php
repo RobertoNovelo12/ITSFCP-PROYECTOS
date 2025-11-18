@@ -13,8 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         SELECT 
             u.id_usuarios,
             u.nombre,
-            u.password_hash,
-            u.username,
+            u.password,
             u.estado_usuario,
             r.nombre AS rol
         FROM usuarios u
@@ -51,17 +50,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_SESSION['rol']        = $usuario['rol'] ? strtolower($usuario['rol']) : 'invitado';
 
         $base_url = "/ITSFCP-PROYECTOS/";
-
-        // Si falta username o rol → mandar a completar perfil
-        if (empty($usuario['username']) || empty($usuario['rol'])) {
-            header("Location: {$base_url}Vistas/usuarios/crear_perfil.php");
-            exit;
-        }
-
         // Redirección por rol
         switch ($_SESSION['rol']) {
 
-            case 'alumno':
+            case 'estudiante':
                 header("Location: {$base_url}Vistas/usuarios/alumno.php");
                 break;
 
@@ -92,7 +84,7 @@ if (isset($_SESSION['id_usuario'], $_SESSION['rol'])) {
     $base_url = "/ITSFCP-PROYECTOS/";
 
     switch ($_SESSION['rol']) {
-        case 'alumno':
+        case 'estudiant':
             header("Location: {$base_url}Vistas/usuarios/alumno.php");
             break;
 

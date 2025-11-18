@@ -8,7 +8,7 @@ if (isset($_SESSION['rol'])) {
     $rol = strtolower($_SESSION['rol']);
 
     switch ($rol) {
-        case 'alumno':
+        case 'estudiante':
             header("Location: {$base_url}Vistas/usuarios/alumno.php");
             exit;
 

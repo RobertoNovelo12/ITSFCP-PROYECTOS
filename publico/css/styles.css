@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,700;1,500;1,600&display=swap");
+
 :root {
   --color-primario: #11376b;
   --hover-boton: #274a83;
@@ -22,14 +24,18 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overflow-x: hidden;
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+    sans-serif;
+  font-weight: 400;
+  font-style: normal;
   background-color: var(--fondo-web);
   position: relative;
 }
@@ -248,10 +254,10 @@ body {
     overflow-y: auto;
     padding-right: 4px;
   }
-  
+
   .sidebar::-webkit-scrollbar {
     width: 6px;
-    position: absolute; 
+    position: absolute;
   }
 }
 
@@ -286,7 +292,7 @@ body.sidebar-collapsed .sidebar {
 
 .menu-item > span:not(.menu-icon) {
   opacity: 1;
-  transition: opacity 0.15s ease; 
+  transition: opacity 0.15s ease;
 }
 
 body.sidebar-collapsed .menu-item > span:not(.menu-icon) {
@@ -296,7 +302,7 @@ body.sidebar-collapsed .menu-item > span:not(.menu-icon) {
 }
 
 body.sidebar-collapsed .menu-item {
-  padding: 10px 0;  
+  padding: 10px 0;
   justify-content: center;
   margin: 0;
 }
@@ -306,7 +312,7 @@ body.sidebar-collapsed .dropdown-arrow {
 }
 
 body.sidebar-collapsed .main-content {
-  margin-left: 84px; 
+  margin-left: 84px;
 }
 
 /* ===== BOTÓN PARA COLAPSAR SIDEBAR ===== */
@@ -508,7 +514,8 @@ body.sidebar-collapsed .menu-item[data-tooltip]:not(.submenu .menu-item) {
   position: relative;
 }
 
-body.sidebar-collapsed .menu-item[data-tooltip]:not(.submenu .menu-item):hover::after {
+body.sidebar-collapsed
+  .menu-item[data-tooltip]:not(.submenu .menu-item):hover::after {
   content: attr(data-tooltip);
   position: absolute;
   left: 74px;
@@ -525,8 +532,9 @@ body.sidebar-collapsed .menu-item[data-tooltip]:not(.submenu .menu-item):hover::
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-body.sidebar-collapsed .menu-item[data-tooltip]:not(.submenu .menu-item):hover::before {
-  content: '';
+body.sidebar-collapsed
+  .menu-item[data-tooltip]:not(.submenu .menu-item):hover::before {
+  content: "";
   position: absolute;
   left: 64px;
   top: 50%;
@@ -696,21 +704,20 @@ body.sidebar-collapsed .menu-item[data-tooltip]:not(.submenu .menu-item):hover::
   gap: 16px;
 }
 
-
 .label-select {
-    font-size: 14px;
-    color: #444;
-    margin-bottom: 5px;
-    display: block;
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 5px;
+  display: block;
 }
 
 select {
-    width: 100%;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #aaa;
-    background-color: white;
-    font-size: 15px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  background-color: white;
+  font-size: 15px;
 }
 
 /* Inputs con floating labels */
@@ -1087,7 +1094,7 @@ select {
 .submit-btn,
 .login-btn,
 .toggle-btn,
-.home-btn, 
+.home-btn,
 .menu-item.sub-item,
 .menu-item {
   transition: transform 0.1s ease-in-out, background-color 0.2s ease;
