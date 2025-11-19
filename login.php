@@ -39,6 +39,23 @@ if (isset($_SESSION['rol'])) {
     <link rel="stylesheet" href="/ITSFCP-PROYECTOS/publico/css/styles.css">
 </head>
 <body class="body-register">
+    <?php if (isset($_GET['solicitud_enviada'])): ?>
+    <div class="modal-overlay" id="modalSolicitud">
+        <div class="modal-content">
+            <h2>¡Solicitud enviada!</h2>
+            <p>Tu cuenta aún está en espera de aprobación.</p>
+            <button class="submit-btn" onclick="cerrarModal()">Aceptar</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("modalSolicitud").style.display = "flex";
+
+        function cerrarModal() {
+            window.location.href = "/ITSFCP-PROYECTOS/login.php";
+        }
+    </script>
+<?php endif; ?>
     <div class="header-log-reg">
         <a href="/ITSFCP-PROYECTOS/index.php" class="home-btn">Regresar al inicio</a>
         <a href="/ITSFCP-PROYECTOS/registro.php" class="toggle-btn">Crear cuenta</a>

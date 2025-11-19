@@ -8,7 +8,7 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 // Verificar rol
-if (strtolower($_SESSION['rol']) !== 'alumno') {
+if (strtolower($_SESSION['rol']) !== 'estudiante') {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }

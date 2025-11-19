@@ -8,7 +8,7 @@ $rol = strtolower($_SESSION["rol"] ?? "");
    CONFIGURACIÓN DE MENÚS POR ROL
    ==================================================== */
 
-if ($rol === "alumno") {
+if ($rol === "estudiante") {
 
     // Botones principales
     $mainMenu = [

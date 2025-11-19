@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dia = (int)$_POST['dia'];
     $mes = (int)$_POST['mes'];
     $anio = (int)$_POST['anio'];
-    $id_genero = intval($_POST['id_genero']);
+    $id_genero = intval($_POST['genero']);
     $password = trim($_POST['contraseña']);
     $confirmar = trim($_POST['confirmar']);
 
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $apellido_materno, 
         $id_genero, 
         $telefono
-    );
+    );   
 
     if ($stmt->execute()) {
         $_SESSION['id_usuario'] = $conn->insert_id;
