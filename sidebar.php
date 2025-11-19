@@ -6,7 +6,7 @@ $rol = strtolower($_SESSION["rol"] ?? "");
 // LUIS POR FAVOR CREA LOS ARCHIVOS CORRESPONDIENTES A CADA LINK
 function crearLink($nombre, $rol) {
     $links = [
-        "Principal" => "/ITSFCP-PROYECTOS/Vistas/menu/principal.php.php",
+        "Principal" => "/ITSFCP-PROYECTOS/Vistas/menu/principal.php",
         "Dashboard" => "/ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php",
         "Seguimiento" => "/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php",
         "Tareas" => "/ITSFCP-PROYECTOS/Vistas/Tareas/tabla.php",

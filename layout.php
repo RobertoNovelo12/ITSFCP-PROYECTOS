@@ -8,6 +8,7 @@ if (!isset($_SESSION)) session_start();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $titulo ?? 'Panel' ?></title>
     <link rel="stylesheet" href="/ITSFCP-PROYECTOS/publico/css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body class="<?= $bodyClass ?? '' ?>">
 
@@ -22,6 +23,6 @@ if (!isset($_SESSION)) session_start();
     }
     ?>
 </div>
-
+<script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
 </body>
 </html>
