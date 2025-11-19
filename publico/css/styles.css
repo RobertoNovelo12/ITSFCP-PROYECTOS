@@ -249,6 +249,11 @@ body {
   transition: width 0.3s ease;
 }
 
+.sidebar a {
+  color: inherit;
+  text-decoration: none;
+}
+
 @supports not (overflow-y: overlay) {
   .sidebar {
     overflow-y: auto;

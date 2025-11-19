@@ -30,41 +30,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $usuario = $resultado->fetch_assoc();
 
+        // Verificar si el usuario está activo
         if ($usuario["estado_usuario"] !== "activo") {
             header("Location: /ITSFCP-PROYECTOS/login.php?solicitud_enviada=1");
             exit;
         }
 
+        // Verificar contraseña
         if (!password_verify($clave, $usuario['password'])) {
             echo "<script>alert('Contraseña incorrecta'); window.location.href='/ITSFCP-PROYECTOS/login.php';</script>";
             exit;
         }
 
-        // Guardamos sesión
+        // Guardar sesión
         $_SESSION['id_usuario'] = $usuario['id_usuarios'];
         $_SESSION['nombre']     = $usuario['nombre'];
         $_SESSION['rol']        = $usuario['rol'] ? strtolower($usuario['rol']) : 'invitado';
 
-        $base_url = "/ITSFCP-PROYECTOS/";
-
-        switch ($_SESSION['rol']) {
-
-            case 'estudiante':
-                header("Location: {$base_url}Vistas/usuarios/alumno.php");
-                break;
-
-            case 'profesor':
-            case 'investigador':
-                header("Location: {$base_url}Vistas/usuarios/profesor.php");
-                break;
-
-            case 'supervisor':
-                header("Location: {$base_url}Vistas/usuarios/supervisor.php");
-                break;
-
-            default:
-                header("Location: {$base_url}index.php");
-        }
+        // REDIRECCIONAR AL DASHBOARD PARA TODOS LOS USUARIOS
+        header("Location: /ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php");
         exit;
 
     } else {
