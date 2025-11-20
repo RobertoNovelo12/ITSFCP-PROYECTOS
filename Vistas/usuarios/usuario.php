@@ -125,9 +125,9 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
 
                 <!-- ÁREA -->
                 <div class="input-group">
-                    <label class="floating-label">Área de conocimiento</label>
-                    <select name="area" class="input-field select-field" required>
-                        <option value="">Seleccione...</option>
+                    <label class="label-select">Área de conocimiento</label>
+                    <select name="area" required>
+                        <option value="" disabled selected>Seleccione área...</option>
                         <?php
                         $areas->data_seek(0);
                         while ($a = $areas->fetch_assoc()): ?>
@@ -138,9 +138,9 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
 
                 <!-- SUBÁREA -->
                 <div class="input-group">
-                    <label class="floating-label">Subárea de conocimiento</label>
-                    <select name="subarea" class="input-field select-field" required>
-                        <option value="">Seleccione...</option>
+                    <label class="label-select">Subárea de conocimiento</label>
+                    <select name="subarea" required>
+                        <option value="" disabled selected>Seleccione subárea...</option>
                         <?php
                         $subareas->data_seek(0);
                         while ($s = $subareas->fetch_assoc()): ?>
@@ -151,9 +151,9 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
 
                 <!-- NIVEL SNI -->
                 <div class="input-group">
-                    <label class="floating-label">Nivel SNI</label>
-                    <select name="nivel_sni" class="input-field select-field" required>
-                        <option value="">Seleccione...</option>
+                    <label class="label-select">Nivel SNI</label>
+                    <select name="nivel_sni" required>
+                        <option value="" disabled selected>Seleccione SNI...</option>
                         <?php
                         $nivelesSNI->data_seek(0);
                         while ($n = $nivelesSNI->fetch_assoc()): ?>
@@ -164,9 +164,9 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
 
                 <!-- GRADO -->
                 <div class="input-group">
-                    <label class="floating-label">Grado máximo de estudio</label>
-                    <select name="grado" class="input-field select-field" required>
-                        <option value="">Seleccione...</option>
+                    <label class="label-select">Grado máximo de estudio</label>
+                    <select name="grado" required>
+                        <option value="" disabled selected>Seleccione grado...</option>
                         <?php
                         $grados->data_seek(0);
                         while ($g = $grados->fetch_assoc()): ?>
@@ -177,9 +177,9 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
 
                 <!-- LÍNEA DE INVESTIGACIÓN -->
                 <div class="input-group">
-                    <label class="floating-label">Línea de investigación</label>
-                    <select name="linea" class="input-field select-field" required>
-                        <option value="">Seleccione...</option>
+                    <label class="label-select">Línea de investigación</label>
+                    <select name="linea" required>
+                        <option value="" disabled selected>Seleccione línea...</option>
                         <?php
                         $lineas->data_seek(0);
                         while ($l = $lineas->fetch_assoc()): ?>
@@ -187,12 +187,12 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
                         <?php endwhile; ?>
                     </select>
                 </div>
-
-                <!-- RFC -->
+                <!-- RCF -->
                 <div class="input-group">
                     <input type="text" name="rfc" class="input-field" placeholder=" " maxlength="13" required>
                     <label class="floating-label">RFC</label>
                 </div>
+
 
                 <button type="submit" class="submit-btn">Enviar solicitud</button>
             </form>
@@ -207,7 +207,7 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
                 <input type="hidden" name="rol" value="supervisor">
 
                 <div class="input-group">
-                    <label class="floating-label">Descargar formato de solicitud</label><br>
+                    <label class="label-select">Descargar formato de solicitud</label><br>
                     <a href="../../publico/docs/formato_solicitud.pdf" class="submit-btn" download>Descargar Formato</a>
                 </div>
 
@@ -227,12 +227,13 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
                 </div>
 
                 <div class="input-group">
-                    <label class="floating-label">Subir solicitud en PDF</label>
+                    <label class="label-select">Subir solicitud en PDF</label>
                     <input type="file" name="solicitud_pdf" accept="application/pdf" required>
                 </div>
 
                 <button type="submit" class="submit-btn">Enviar solicitud</button>
             </form>
+
 
         <?php else: ?>
             <p>No se reconoce el tipo de usuario. <a href="crear_perfil.php">Volver</a></p>
