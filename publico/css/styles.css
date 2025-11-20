@@ -930,6 +930,15 @@ body.sidebar-collapsed
   transition: margin-left 0.3s ease; /* AGREGAR */
 }
 
+.main-content-index {
+  flex: 1;
+  padding: 40px;
+  margin-left: 240px;
+  margin-top: 60px;
+  margin-bottom: 40px;
+  transition: margin-left 0.3s ease; /* AGREGAR */
+}
+
 .title {
   font-size: 36px;
   font-weight: bold;

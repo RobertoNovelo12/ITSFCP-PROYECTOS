@@ -66,6 +66,7 @@ $inicial = $nombre !== "" ? strtoupper(substr($nombre, 0, 1)) : "";
 
         <?php endif; ?>
         <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
+        <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
 
 
     </div>

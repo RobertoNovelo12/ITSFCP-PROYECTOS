@@ -32,7 +32,7 @@ if (isset($_SESSION['rol'])) {
     <div class="container-main">
         <?php include 'sidebar_publico.php'; ?>
         
-            <div class="main-content">
+            <div class="main-content-index">
                 <h1 class="title">Sistema web responsive para gestión de proyectos en Instituto Tecnológico Superior
                     Felipe Carrillo Puerto</h1>
 
