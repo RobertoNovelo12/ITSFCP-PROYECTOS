@@ -262,10 +262,10 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 .card .btn-ver-detalle.btn {
-  background-color: #000 !important; /* fuerza el negro */
-  color: #fff !important; /* texto blanco */
-  width: 90%; /* ancho deseado */
-  margin: 0 auto; /* centrado */
+  background-color: var(--color-primario) !important;
+  color: #fff !important;
+  width: 90%;
+  margin: 0 auto;
   display: block;
   border: none;
   transition: background-color 0.3s ease;
@@ -476,6 +476,9 @@ body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 10px;
+  /* Esto permite que las filas crezcan automáticamente */
+  grid-auto-rows: minmax(100px, auto);
+  width: 100%;
 }
 
 .day-header {
@@ -492,20 +495,26 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  height: 80px;
   padding: 10px;
   display: flex;
   flex-direction: column;
+  min-height: 100px;
+  /* Permite que crezca dinámicamente */
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 .day-cell:hover {
   background-color: #f8f9fa;
   border-color: #0d6efd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .day-number {
   font-size: 0.85rem;
   font-weight: 500;
+  margin-bottom: 5px;
 }
 
 .other-month {
@@ -514,28 +523,62 @@ body {
 }
 
 .today {
-  background-color: #0d6efd;
+  background-color: var(--color-primario);
   color: white;
   font-weight: bold;
+}
+
+.today .day-number {
+  color: white;
 }
 
 .today:hover {
   background-color: #0b5ed7;
 }
 
-.selected {
-  border: 2px solid #0d6efd;
-  background-color: #e7f1ff;
+/* Contenedor flexible para eventos */
+.events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
 }
 
 .event-item {
-  background: #0d6efd;
+  background: var(--color-primario);
   color: white;
-  padding: 2px 4px;
-  margin-top: 3px;
+  padding: 4px 6px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 0.75rem;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s;
+}
+
+.event-item:hover {
+  background: #0b5ed7;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Mostrador de eventos adicionales */
+.event-count {
+  background: #6c757d;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  text-align: center;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.event-count:hover {
+  background: #5a6268;
 }
 
 .cal-sidebar {
@@ -576,7 +619,7 @@ body {
 
 .event-list-item {
   padding: 10px;
-  border-left: 3px solid #0d6efd;
+  border-left: 3px solid var(--color-primario);
   background-color: #f8f9fa;
   border-radius: 4px;
   margin-bottom: 10px;
@@ -600,7 +643,7 @@ body {
 
 .btn-nuevo-evento {
   width: 100%;
-  background-color: #0d6efd;
+  background-color: var(--color-primario);
   color: white;
   border: none;
   padding: 12px;
@@ -610,18 +653,19 @@ body {
 }
 
 #btnNuevoEvento {
+  background-color: var(--color-primario) !important;
   padding: 6px 14px;
   border-radius: 6px;
   font-size: 0.9rem;
 }
 
 .btn-nuevo-evento:hover {
-  background-color: #0b5ed7;
+  background-color: var(--hover-boton);
 }
+
 .calendar-header .nav-btn {
   font-size: 1.3rem;
 }
-
 @supports not (overflow-y: overlay) {
   .sidebar {
     overflow-y: auto;

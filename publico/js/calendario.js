@@ -86,21 +86,45 @@ document.addEventListener("DOMContentLoaded", () => {
             cell.appendChild(dayNumber);
 
             // =============================
+            // CONTENEDOR DE EVENTOS
+            // =============================
+            const eventsContainer = document.createElement("div");
+            eventsContainer.classList.add("events-container");
+
+            // =============================
             // AGREGAR EVENTOS DEL USUARIO
             // =============================
             const fechaComparar = date.toISOString().split('T')[0]; // YYYY-MM-DD
 
+            let eventosDelDia = [];
+
             eventosUsuario.forEach(ev => {
-                const fechaEvento = ev.start.split("T")[0] || ev.start.split(" ")[0]; // YYYY-MM-DD
+                // Extraer la parte de fecha (YYYY-MM-DD) del formato "YYYY-MM-DD HH:MM:SS"
+                const fechaEvento = ev.start.split(" ")[0];
 
                 if (fechaEvento === fechaComparar) {
-                    const eventDiv = document.createElement("div");
-                    eventDiv.classList.add("event-item");
-                    eventDiv.textContent = ev.title;
-                    cell.appendChild(eventDiv);
+                    eventosDelDia.push(ev);
                 }
             });
 
+            // Mostrar hasta 3 eventos, si hay más mostrar contador
+            eventosDelDia.slice(0, 3).forEach(ev => {
+                const eventDiv = document.createElement("div");
+                eventDiv.classList.add("event-item");
+                eventDiv.textContent = ev.title;
+                eventDiv.title = ev.title; // Tooltip al pasar el mouse
+                eventsContainer.appendChild(eventDiv);
+            });
+
+            // Si hay más de 3 eventos, mostrar un contador
+            if (eventosDelDia.length > 3) {
+                const countDiv = document.createElement("div");
+                countDiv.classList.add("event-count");
+                countDiv.textContent = `+${eventosDelDia.length - 3} más`;
+                eventsContainer.appendChild(countDiv);
+            }
+
+            cell.appendChild(eventsContainer);
             calendarGrid.appendChild(cell);
         }
     }

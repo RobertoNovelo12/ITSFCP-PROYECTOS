@@ -176,3 +176,4 @@ function isActive($link, $current_url) {
         <?php endforeach; ?>
     </div>
 </div>
+<script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
