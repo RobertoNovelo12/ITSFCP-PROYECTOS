@@ -162,7 +162,7 @@ WHERE estu.id_usuario = ?";
                     break;
                 case 'investigador':
                 case 'profesor':
-                    $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo FROM gestion_proyectos.proyectos as proy 
+                    $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, COUNT(CASE WHEN tbse.id_estadoT = 2 THEN 1 END) AS total FROM gestion_proyectos.proyectos as proy 
 JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
 JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
 JOIN periodos as peri ON proy.id_periodos = peri.id_periodos
