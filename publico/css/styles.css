@@ -2253,12 +2253,19 @@ select:focus {
   #tarjeta_móvil{
     display: block;
   }
-  
 
+  #crear_busqueda .btn {
+    width: 100%;
+  }
+
+  #crear_busqueda .input-group {
+    width: 100%;
+  }
+  
   /* Contenedor del formulario */
   .col-12.d-flex {
-    justify-content: center !important;
-    width: 100% !important;
+    justify-content: center;
+    width: 100%;
   }
 
   /* El formulario debe ocupar el 100% */
@@ -2271,6 +2278,7 @@ select:focus {
   .flex-grow-1 {
     width: 100%;
     flex: 1 1 100%;
+    
   }
 
   /* Input-group debe medir 100% */
@@ -2287,6 +2295,7 @@ select:focus {
   #boton_busqueda {
     display: none;
   }
+
 }
 
 @media (min-width: 1024px) {
@@ -2297,5 +2306,12 @@ select:focus {
 
   #tarjeta_móvil{
     display: none;
+  }
+
+  #crear_busqueda {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
   }
 }
