@@ -2,6 +2,9 @@
 
 :root {
   --color-primario: #11376b;
+  --color-boton-modificar: #fcd34d;
+  --color-boton-nuevo: #2563eb;
+  --color-boton-avalar: #198754;
   --hover-boton: #274a83;
   --tamanio-fuente-base: 16px;
   --borde-menu: #e5e7eb;
