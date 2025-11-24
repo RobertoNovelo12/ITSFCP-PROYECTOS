@@ -40,76 +40,28 @@ $proyectos = $proyectoControlador->$action($id, $rol, $buscar);
 $filtros = $proyectoControlador->filtros($id, $rol);
 $datosPaginacion = $proyectoControlador->tabla($id, $rol, $buscar);
 
-switch ($rol) {
-    case 'alumno':
-        $encabezados = [
-            'ID',
-            'Título',
-            'Fecha Inicio',
-            'Fecha Fin',
-            'Estado',
-            'Período',
-            'Tareas pendientes',
-            'Acciones'
-        ];
-        //Filtro de botones
-        $opciones = [
-            'Total'       => "Total ({$filtros[0]['Total']})",
-            'Activos'     => "Activos ({$filtros[0]['Activos']})",
-            'Cierre'      => "Cierre ({$filtros[0]['Cierre']})",
-            'PorCerrar'   => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-        ];
-        break;
-    case 'profesor':
-    case 'investigador':
-        $encabezados = [
-            'ID',
-            'Título',
-            'Fecha Inicio',
-            'Fecha Fin',
-            'Estado',
-            'Período',
-            'Avances por revisar',
-            'Acciones'
-        ];
-        //Filtro de botones
-        $opciones = [
-            'Total'       => "Total ({$filtros[0]['Total']})",
-            'Activos'     => "Activos ({$filtros[0]['Activos']})",
-            'PorAprobar'  => "Por Aprobar ({$filtros[0]['PorAprobar']})",
-            'Cierre'      => "Cierre ({$filtros[0]['Cierre']})",
-            'PorCerrar'   => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-            'Rechazados'  => "Rechazados ({$filtros[0]['Rechazados']})"
-        ];
-        break;
-    case 'supervisor':
-        $encabezados = [
-            'ID',
-            'Título',
-            'Fecha Inicio',
-            'Fecha Fin',
-            'Estado',
-            'Período',
-            'Acciones'
-        ];
-        //Filtro de botones
-        $opciones = [
-            'Total'       => "Total ({$filtros[0]['Total']})",
-            'Activos'     => "Activos ({$filtros[0]['Activos']})",
-            'PorAprobar'  => "Por Aprobar ({$filtros[0]['PorAprobar']})",
-            'Cierre'      => "Cierre ({$filtros[0]['Cierre']})",
-            'PorCerrar'   => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-            'Rechazados'  => "Rechazados ({$filtros[0]['Rechazados']})"
-        ];
-        break;
-    default:
-        $encabezados = [];
-}
-
-
+$encabezados = $proyectoControlador->encabezados($rol);
+$opciones = $proyectoControlador->datosopciones($rol, $filtros);
 //}
 ?>
+<script>
+    (() => {
+        try {
+            const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
 
+            if (sidebarCollapsed === "true") {
+                document.documentElement.classList.add("sidebar-collapsed-initial");
+            }
+
+            const isDark = localStorage.getItem("darkModeEnabled") === "true";
+            if (isDark) {
+                document.documentElement.classList.add("dark-mode");
+            }
+        } catch (e) {
+            console.warn("Error al acceder a localStorage", e);
+        }
+    })();
+</script>
 <?php include '../../publico/incluido/header.php'; ?>
 <div class="container-main">
     <?php include '../../sidebar.php'; ?>
@@ -119,21 +71,31 @@ switch ($rol) {
                 <h3>Proyectos</h3>
             </div>
             <div class="row mb-1">
-                <div class="col-12 d-flex justify-content-end align-items-center mb-3">
-                    <form class="d-flex flex-wrap gap-2" method="GET" action="tabla.php">
-                        <div class="flex-grow-1">
-                            <div class="input-group">
-                                <input type="hidden" id="input_hidden" name="action" value="<?= $action ?>">
-                                <input type="text"
-                                    name="buscar"
-                                    placeholder="Buscar..."
-                                    class="form-control"
-                                    id="input_busqueda"
-                                    value="<?= $_GET['buscar'] ?? '' ?>">
-                                <button type="submit" id="boton_busqueda" class="btn btn-primary">Buscar</button>
+                <div class="col-12 mb-3" id="crear_busqueda">
+
+                    <div class="col-12 col-md-6 mb-2">
+                        <?php if ($rol == "investigador" || $rol == "profesor"): ?>
+                            <a href="crear.php">
+                                <button type="button" class="btn btn-primary">Crear proyecto</button></a>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="col-12 col-md-6 mb-2">
+                        <form class="d-flex flex-wrap gap-2" method="GET" action="tabla.php">
+                            <div class="flex-grow-1">
+                                <div class="input-group">
+                                    <input type="hidden" id="input_hidden" name="action" value="<?= $action ?>">
+                                    <input type="text"
+                                        name="buscar"
+                                        placeholder="Buscar..."
+                                        class="form-control"
+                                        id="input_busqueda"
+                                        value="<?= $_GET['buscar'] ?? '' ?>">
+                                    <button type="submit" id="boton_busqueda" class="btn btn-primary">Buscar</button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
             <div class="row mb-1">
@@ -158,7 +120,7 @@ switch ($rol) {
             <div class="row mb-1">
                 <div class="col-12">
                     <div class="table-responsive">
-                        <table class="table table-light">
+                        <table class="table table-light" id="tabla_informacion">
                             <thead>
                                 <tr>
                                     <?php
@@ -168,7 +130,7 @@ switch ($rol) {
                                     ?>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="text-center">
                                 <?php foreach ($proyectos as $proyecto):
                                     echo "<tr>";
                                     echo "<th scope='row'>{$proyecto['id_proyectos']}</th>";
@@ -177,53 +139,10 @@ switch ($rol) {
                                     echo "<td>{$proyecto['fecha_fin']}</td>";
                                     echo "<td>{$proyecto['nombre']}</td>";
                                     echo "<td>{$proyecto['periodo']}</td>";
-                                    if (isset($proyecto['total']) && ($rol === 'alumno' || $rol === 'investigador' || $rol === 'profesor')) {
+                                    if (isset($proyecto['total']) && ($rol == 'alumno' || $rol === 'investigador' || $rol === 'profesor')) {
                                         echo "<td>{$proyecto['total']}</td>";
                                     }
-                                    if ($proyecto['nombre'] == "Activo") {
-                                        echo "<td>
-                                <button type=\"button\" class=\"btn btn-success\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" fill=\"currentColor\" class=\"bi bi-file-earmark-plus-fill\" style=\"padding:0;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0\"/>
-</svg>
-                                </button>
-                                <button type=\"button\" class=\"btn btn-primary\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" fill=\"currentColor\" class=\"bi bi-eye-fill\" style=\"padding:0;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0\"/>
-  <path d=\"M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7\"/>
-</svg>
-                                </button>
-                                <button type=\"button\" class=\"btn btn-danger\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" fill=\"currentColor\" class=\"bi bi-ban\" style=\"padding:0;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0\"/>
-</svg></button>";
-                                    } else if ($proyecto['nombre'] == "Sin aprobar") {
-                                        echo "<td>
-                                <button type=\"button\" class=\"btn btn-primary\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" fill=\"currentColor\" class=\"bi bi-eye-fill\" style=\"padding:0px;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0\"/>
-  <path d=\"M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7\"/>
-</svg>
-                                </button>
-                                {$proyecto['total']}</td>";
-                                    } else if ($proyecto['nombre'] == "Por cerrar") {
-                                        echo "<td>
-                                <button type=\"button\" class=\"btn btn-primary\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" fill=\"currentColor\" class=\"bi bi-eye-fill\" style=\"padding:0px;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0\"/>
-  <path d=\"M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7\"/>
-</svg>
-                                </button>
-                                {$proyecto['total']}</td>";
-                                    } else if ($proyecto['nombre'] == "Cierre") {
-                                        echo "<td>
-                                <button type=\"button\" class=\"btn btn-primary\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" fill=\"currentColor\" class=\"bi bi-eye-fill\" style=\"padding:0px;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0\"/>
-  <path d=\"M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7\"/>
-</svg>
-                                </button></td>";
-                                    }
+                                    echo "<td>{$proyectoControlador->botonesAccion($proyecto['id_proyectos'],$rol,$proyecto)}</td>";
                                     echo "</tr>";
                                 endforeach;
                                 ?>
@@ -257,10 +176,10 @@ switch ($rol) {
                                             <p class="card-text"><?php echo $proyecto['periodo'] ?></p>
                                         </div>
                                         <?php if (isset($proyecto['total']) && ($rol === 'alumno' || $rol === 'investigador' || $rol === 'profesor')): ?>
-                                        <div class="col-6">
-                                            <label>Avances</label>
-                                            <p class="card-text"><?php echo $proyecto['total'] ?></p>
-                                        </div>
+                                            <div class="col-6">
+                                                <label>Avances</label>
+                                                <p class="card-text"><?php echo $proyecto['total'] ?></p>
+                                            </div>
                                         <?php endif; ?>
                                     </div>
                             </ul>
@@ -270,44 +189,7 @@ switch ($rol) {
                                         <p class="card-text"><?php echo $proyecto['nombre'] ?></p>
                                     </div>
                                     <div class="col-7">
-                                        <?php
-                                        if ($proyecto['nombre'] == "Activo") {
-                                            echo "<button type=\"button\" class=\"btn btn-success\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" fill=\"currentColor\" class=\"bi bi-file-earmark-plus-fill\" style=\"padding:0;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0\"/>
-</svg>
-                                </button>
-                                <button type=\"button\" class=\"btn btn-primary\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" fill=\"currentColor\" class=\"bi bi-eye-fill\" style=\"padding:0;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0\"/>
-  <path d=\"M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7\"/>
-</svg>
-                                </button>
-                                <button type=\"button\" class=\"btn btn-danger\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" fill=\"currentColor\" class=\"bi bi-ban\" style=\"padding:0;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0\"/>
-</svg></button>";
-                                        } else if ($proyecto['nombre'] == "Sin aprobar") {
-                                            echo "<button type=\"button\" class=\"btn btn-primary\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" fill=\"currentColor\" class=\"bi bi-eye-fill\" style=\"padding:0px;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0\"/>
-  <path d=\"M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7\"/>
-</svg></button>
-                                {$proyecto['total']}</td>";
-                                        } else if ($proyecto['nombre'] == "Por cerrar") {
-                                            echo "<button type=\"button\" class=\"btn btn-primary\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" fill=\"currentColor\" class=\"bi bi-eye-fill\" style=\"padding:0px;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0\"/>
-  <path d=\"M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7\"/>
-</svg></button>
-                                {$proyecto['total']}</td>";
-                                        } else if ($proyecto['nombre'] == "Cierre") {
-                                            echo "<td><button type=\"button\" class=\"btn btn-primary\">
-                                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" fill=\"currentColor\" class=\"bi bi-eye-fill\" style=\"padding:0px;margin:auto;\" viewBox=\"0 0 16 16\">
-  <path d=\"M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0\"/>
-  <path d=\"M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7\"/>
-</svg></button>";
-                                        } ?>
+                                        <?php $proyectoControlador->botonesAccion($id, $rol, $proyecto); ?>
                                     </div>
                                 </div>
                             </div>
