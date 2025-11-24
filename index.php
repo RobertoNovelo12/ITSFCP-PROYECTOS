@@ -27,7 +27,6 @@ if (isset($_SESSION['rol'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITSFCP/PROYECTOS</title>
     
-    <!-- ⬇️ AGREGAR: Script para aplicar estado del sidebar antes del CSS -->
     <script>
         (() => {
             try {
@@ -92,7 +91,6 @@ if (isset($_SESSION['rol'])) {
         </div>
     </div>
     
-    <!-- ⬇️ AGREGAR: Scripts al final del body -->
     <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
     <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
 </body>
