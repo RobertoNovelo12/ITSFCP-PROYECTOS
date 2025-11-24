@@ -6,7 +6,6 @@
     <?php if (isset($necesitaQuill) && $necesitaQuill): ?>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="/ITSFCP-PROYECTOS/publico/js/evento.js"></script>
     <?php endif; ?>
     
     <!-- ⬇️ AGREGAR ESTO ANTES DEL CSS -->
@@ -49,8 +48,7 @@
         }
         ?>
     </div>
-    
-    <!-- ✅ Scripts al final (UNA SOLA VEZ) -->
+
     <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
     <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
 

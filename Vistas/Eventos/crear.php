@@ -1,22 +1,52 @@
 <?php
-if (!isset($_SESSION))
-    session_start();
+if (!isset($_SESSION)) session_start();
 require_once __DIR__ . "/../../publico/config/conexion.php";
 
 $necesitaQuill = true;
 $titulo = "Crear Evento";
 
-// Rol e ID del usuario
 $rol = $_SESSION['rol'] ?? 'estudiante';
-$idUsuario = $_SESSION['id_usuario']; 
+$idUsuario = $_SESSION['id_usuario'];
 
-// ===============================
-//  CARGAR PROYECTOS
-// ===============================
+
+// ============================================================================
+// 1) ENDPOINT INTERNO PARA OBTENER ESTUDIANTES DEL PROYECTO (AJAX)
+// ============================================================================
+if (isset($_GET['getEstudiantes']) && isset($_GET['id_proyecto'])) {
+
+    $idProyecto = intval($_GET['id_proyecto']);
+
+    $sql = "
+        SELECT u.id_usuarios, u.nombre, u.apellido
+        FROM usuarios u
+        INNER JOIN proyectos_usuarios pu ON pu.id_usuarios = u.id_usuarios
+        WHERE pu.id_proyectos = ? AND pu.estado = 'activo'
+        ORDER BY u.nombre
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $idProyecto);
+    $stmt->execute();
+    $res = $stmt->get_result();
+
+    $estudiantes = [];
+    while ($row = $res->fetch_assoc()) {
+        $estudiantes[] = $row;
+    }
+
+    echo json_encode($estudiantes);
+    exit;
+}
+
+
+
+// ============================================================================
+// 2) CARGAR PROYECTOS SEGÚN ROL
+// ============================================================================
 $proyectos = [];
 
 if ($rol === 'estudiante') {
-    // Proyectos donde participa el estudiante
+
     $stmt = $conn->prepare("
         SELECT p.id_proyectos, p.titulo
         FROM proyectos p
@@ -25,8 +55,8 @@ if ($rol === 'estudiante') {
     ");
     $stmt->bind_param("i", $idUsuario);
 
-} elseif ($rol === 'investigador') {
-    // Proyectos del investigador (también considerado profesor)
+} elseif ($rol === 'investigador' || $rol === 'profesor') {
+
     $stmt = $conn->prepare("
         SELECT id_proyectos, titulo
         FROM proyectos
@@ -35,13 +65,9 @@ if ($rol === 'estudiante') {
     $stmt->bind_param("i", $idUsuario);
 
 } else {
-    // Administrador o Supervisor: todos los proyectos
-    $stmt = $conn->prepare("
-        SELECT id_proyectos, titulo
-        FROM proyectos
-    ");
+    // supervisor / admin
+    $stmt = $conn->prepare("SELECT id_proyectos, titulo FROM proyectos");
 }
-
 
 $stmt->execute();
 $result = $stmt->get_result();
@@ -50,48 +76,74 @@ while ($row = $result->fetch_assoc()) {
 }
 
 
-// ===============================
-//  PROCESAR FORMULARIO
-// ===============================
+
+// ============================================================================
+// 3) PROCESAR FORMULARIO (CREAR EVENTO)
+// ============================================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $nombre = $_POST['nombreEvento'] ?? '';
     $descripcion = $_POST['descripcion'] ?? '';
     $ubicacion = $_POST['ubicacion'] ?? '';
+    $proyecto = $_POST['proyecto'] ?? null;
 
     $fechaInicio = $_POST['fechaEvento'] . ' ' . $_POST['horaInicio'] . ':00';
     $fechaFin = $_POST['fechaFin'] . ' ' . $_POST['horaFin'] . ':00';
 
-
-    $proyecto = $_POST['proyecto'] ?? null;
-
     if (!$proyecto) {
         $mensaje = "Debes seleccionar un proyecto.";
     } else {
+
+        // Insertar evento
         $stmt = $conn->prepare("
             INSERT INTO eventos_calendario (id_proyectos, titulo, descripcion, fecha_inicio, fecha_fin, ubicacion)
             VALUES (?, ?, ?, ?, ?, ?)
         ");
-
-        $stmt->bind_param(
-            "isssss",
-            $proyecto,
-            $nombre,
-            $descripcion,
-            $fechaInicio,
-            $fechaFin,
-            $ubicacion
-        );
-
+        $stmt->bind_param("isssss", $proyecto, $nombre, $descripcion, $fechaInicio, $fechaFin, $ubicacion);
         $stmt->execute();
+
+        $idEvento = $stmt->insert_id;
+        if (($rol === "investigador" || $rol === "profesor" || $rol === "supervisor")
+            && isset($_POST['invitados'])
+            && is_array($_POST['invitados'])
+            && count($_POST['invitados']) > 0
+        ) {
+
+            foreach ($_POST['invitados'] as $idInvitado) {
+
+                // Crear una tarea por invitación
+                $contenido = json_encode([
+                    "descripcion" => "Invitación al evento: $nombre",
+                    "evento_id" => $idEvento
+                ]);
+
+                $stmtTarea = $conn->prepare("
+                    INSERT INTO tareas (contenido, fecha_creacion)
+                    VALUES (?, NOW())
+                ");
+                $stmtTarea->bind_param("s", $contenido);
+                $stmtTarea->execute();
+                $idTarea = $stmtTarea->insert_id;
+
+                // Relación tarea-estudiante
+                $stmtRel = $conn->prepare("
+                    INSERT INTO tareas_usuarios (id_tarea, id_usuario, id_proyecto, fecha_asignacion)
+                    VALUES (?, ?, ?, NOW())
+                ");
+                $stmtRel->bind_param("iii", $idTarea, $idInvitado, $proyecto);
+                $stmtRel->execute();
+            }
+        }
+
         $mensaje = "Evento guardado correctamente.";
     }
 }
 
 
-// ===============================
-//  HTML
-// ===============================
+
+// ============================================================================
+// 4) HTML
+// ============================================================================
 $contenido = '
 <div class="container-fluid py-4 h-100">
     <div class="col-lg-12 h-100">
@@ -101,7 +153,7 @@ $contenido = '
             </div>
 
             <div class="card-body-evento">
-                ' . (isset($mensaje) ? '<div class="alert alert-success">' . $mensaje . '</div>' : '') . '
+                ' . (isset($mensaje) ? '<div class="alert alert-success">'.$mensaje.'</div>' : '') . '
 
                 <form method="POST" id="formEvento">
 
@@ -112,29 +164,28 @@ $contenido = '
 
                     <div class="form-row-evento">
                         <div class="form-group-evento">
-                            <label for="fechaEvento">Fecha de inicio <span class="required">*</span></label>
+                            <label>Fecha inicio</label>
                             <input type="date" name="fechaEvento" id="fechaEvento" required>
                         </div>
 
                         <div class="form-group-evento">
-                            <label for="fechaFin">Fecha de finalización <span class="required">*</span></label>
+                            <label>Fecha fin</label>
                             <input type="date" name="fechaFin" id="fechaFin" required>
                         </div>
 
                         <div class="form-group-evento">
-                            <label for="horaInicio">Hora de inicio <span class="required">*</span></label>
+                            <label>Hora inicio</label>
                             <input type="time" name="horaInicio" id="horaInicio" required>
                         </div>
 
                         <div class="form-group-evento">
-                            <label for="horaFin">Hora de finalización <span class="required">*</span></label>
+                            <label>Hora fin</label>
                             <input type="time" name="horaFin" id="horaFin" required>
                         </div>
-
                     </div>
 
                     <div class="form-group-evento">
-                        <label for="proyecto">Proyecto <span class="required">*</span></label>
+                        <label for="proyecto">Proyecto</label>
                         <select name="proyecto" id="proyecto" required>
                             <option value="">Seleccionar proyecto</option>';
 
@@ -144,11 +195,26 @@ foreach ($proyectos as $p) {
 
 $contenido .= '
                         </select>
-                    </div>
+                    </div>';
+
+
+// Mostrar lista de invitados solo a profesores/investigadores
+if ($rol === "investigador" || $rol === "profesor" || $rol === "supervisor") {
+
+$contenido .= '
+                    <div class="form-group-evento">
+                        <label>Invitar estudiantes:</label>
+                        <div id="listaEstudiantes" class="invitados-box">
+                            <p class="small text-muted">Seleccione un proyecto...</p>
+                        </div>
+                    </div>';
+}
+
+$contenido .= '
 
                     <div class="form-group-evento">
-                        <label for="descripcion">Descripción</label>
-                        <div id="editorDescripcion" style="height: 150px;"></div>
+                        <label>Descripción</label>
+                        <div id="editorDescripcion" style="height:150px;"></div>
                         <input type="hidden" name="descripcion" id="descripcion">
                     </div>
 
@@ -157,7 +223,7 @@ $contenido .= '
                         <input type="text" name="ubicacion" id="ubicacion">
                     </div>
 
-                    <button type="submit" class="btn btn-primary mt-3">
+                    <button class="btn btn-primary mt-3">
                         <i class="bi bi-check-lg"></i> Crear evento
                     </button>
 
@@ -165,7 +231,10 @@ $contenido .= '
             </div>
         </div>
     </div>
-</div>';
+</div>
+
+<script src="/ITSFCP-PROYECTOS/publico/js/evento.js"></script>
+';
 
 include __DIR__ . "/../../layout.php";
 ?>

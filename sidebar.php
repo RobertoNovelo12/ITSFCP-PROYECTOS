@@ -28,7 +28,7 @@ function crearLink($nombre, $rol) {
         "Instituto" => "/ITSFCP-PROYECTOS/Vistas/usuarios/usuario.php",
         "Carreras" => "/ITSFCP-PROYECTOS/Vistas/usuarios/usuario.php",
         "Soporte" => "#",
-        "Ajustes" => "#"
+        "Ajustes" => "/ITSFCP-PROYECTOS/Vistas/menu/ajustes.php"
     ];
 
     return $links[$nombre] ?? "#";
@@ -183,6 +183,3 @@ function isActive($link, $current_url) {
         <?php endforeach; ?>
     </div>
 </div>
-
-<!-- ❌ ELIMINAR ESTA LÍNEA: -->
-<!-- <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script> -->
