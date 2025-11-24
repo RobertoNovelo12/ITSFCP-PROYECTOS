@@ -45,6 +45,8 @@ WHERE proy.id_investigador = ?";
                 $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo FROM gestion_proyectos.proyectos as proy 
 JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
 JOIN periodos as peri ON proy.id_periodos = peri.id_periodos";
+                $types  = "";
+                $params = [];
                 break;
             default:
                 break;
@@ -268,11 +270,10 @@ WHERE proy.id_investigador = ? AND espr.id_estadoP = ?";
                     $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo FROM gestion_proyectos.proyectos as proy 
 JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
 JOIN periodos as peri ON proy.id_periodos = peri.id_periodos
-WHERE proy.id_estadoP = ?
-GROUP BY proy.id_proyectos;";
+WHERE proy.id_estadoP = ?";
 
                     $params = [$filtro];
-                    $types  = "s";
+                    $types  = "i";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
@@ -317,16 +318,15 @@ WHERE estu.id_usuario = ?";
                     }
 
                     $stmt = $this->con->prepare($sql);
-                    $stmt->bind_param($types, ...$params);
                     break;
                 case 'investigador':
                 case 'profesor':
                     $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
 JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
-WHERE proy.id_investigador = ? AND proy.id_estadoP = ?";
+WHERE proy.id_investigador = ?";
 
-                    $params = [$id, $numerofiltro];
-                    $types  = "ii";
+                    $params = [$id];
+                    $types  = "i";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
@@ -335,11 +335,10 @@ WHERE proy.id_investigador = ? AND proy.id_estadoP = ?";
                     }
 
                     $stmt = $this->con->prepare($sql);
-                    $stmt->bind_param($types, ...$params);
                     break;
                 case 'supervisor':
-                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy";
-
+                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy WHERE 1";
+                    $params = [];
                     $types  = "";
 
                     if (!empty($buscar)) {
@@ -347,18 +346,19 @@ WHERE proy.id_investigador = ? AND proy.id_estadoP = ?";
                         $params[] = "%$buscar%";
                         $types   .= "s";
                     }
+
                     $stmt = $this->con->prepare($sql);
-                    if (!empty($params)) {
-                        $stmt->bind_param($types, ...$params);
-                    } else {
-                        // No hay parámetros para enlazar
-                    }                   
+
                     break;
                 default:
                     break; // Retorna 0 si el rol no es válido
             }
 
-
+            if (!empty($params)) {
+                $stmt->bind_param($types, ...$params);
+            } else {
+                // No hay parámetros para enlazar
+            }
             $stmt->execute();
             $resultado = $stmt->get_result()->fetch_assoc();
             return $resultado['total_proyectos'];   // OBTENER EL NUMERO TOTAL DE PROYECTOS
@@ -401,6 +401,20 @@ WHERE proy.id_investigador = ? AND proy.id_estadoP = ?";
                     $stmt->bind_param($types, ...$params);
                     break;
                 case 'supervisor':
+                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
+WHERE proy.id_estadoP = ?";
+
+                    $params = [$numerofiltro];
+                    $types  = "i";
+
+                    if (!empty($buscar)) {
+                        $sql .= " AND proy.titulo LIKE ?";
+                        $params[] = "%$buscar%";
+                        $types   .= "s";
+                    }
+
+                    $stmt = $this->con->prepare($sql);
+                    $stmt->bind_param($types, ...$params);
                     break;
                 default:
                     break; // Retorna 0 si el rol no es válido
