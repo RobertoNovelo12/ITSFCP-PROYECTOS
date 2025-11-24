@@ -124,7 +124,7 @@
             </form>
         </div>
     </div>
-    <script src="./publico/js/javascript.js"></script>
+    <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
 </body>
 
 </html>

@@ -15,6 +15,18 @@ document.addEventListener("DOMContentLoaded", () => {
     let eventosUsuario = [];
 
     // =============================
+    // ELEMENTOS DEL MODAL
+    // =============================
+    const modal = document.getElementById("modalEvento");
+    const closeModal = document.getElementById("closeModal");
+    const modalTitulo = document.getElementById("modalTitulo");
+    const modalProyecto = document.getElementById("modalProyecto");
+    const modalFechaInicio = document.getElementById("modalFechaInicio");
+    const modalFechaFin = document.getElementById("modalFechaFin");
+    const modalUbicacion = document.getElementById("modalUbicacion");
+    const modalDescripcion = document.getElementById("modalDescripcion");
+
+    // =============================
     // CARGAR EVENTOS DESDE EL API
     // =============================
     fetch("/ITSFCP-PROYECTOS/Vistas/Calendario/calendario_eventos.php")
@@ -112,7 +124,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const eventDiv = document.createElement("div");
                 eventDiv.classList.add("event-item");
                 eventDiv.textContent = ev.title;
-                eventDiv.title = ev.title; // Tooltip al pasar el mouse
+                eventDiv.title = ev.title; // Tooltip al pasar el mous
+                eventDiv.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    mostrarModal(ev);
+                });
+                
                 eventsContainer.appendChild(eventDiv);
             });
 
@@ -121,6 +138,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 const countDiv = document.createElement("div");
                 countDiv.classList.add("event-count");
                 countDiv.textContent = `+${eventosDelDia.length - 3} más`;
+                
+                // ⬅️ CLIC EN EL CONTADOR MUESTRA TODOS
+                countDiv.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    mostrarTodosEventos(eventosDelDia);
+                });
+                
                 eventsContainer.appendChild(countDiv);
             }
 
@@ -128,6 +152,97 @@ document.addEventListener("DOMContentLoaded", () => {
             calendarGrid.appendChild(cell);
         }
     }
+
+    // =============================
+    // MOSTRAR MODAL CON DETALLES
+    // =============================
+    function mostrarModal(evento) {
+        if (!modal) return;
+
+        modalTitulo.textContent = evento.title || "Sin título";
+        modalProyecto.textContent = evento.proyecto || "Sin proyecto";
+        
+        // Formatear fechas
+        modalFechaInicio.textContent = formatearFecha(evento.start);
+        modalFechaFin.textContent = formatearFecha(evento.end);
+        
+        modalUbicacion.textContent = evento.ubicacion || "No especificada";
+        modalDescripcion.innerHTML = evento.descripcion || "<em>Sin descripción</em>";
+
+        modal.style.display = "flex";
+    }
+
+    // =============================
+    // MOSTRAR TODOS LOS EVENTOS DEL DÍA
+    // =============================
+    function mostrarTodosEventos(eventos) {
+        if (!modal) return;
+
+        modalTitulo.textContent = `Eventos del día (${eventos.length})`;
+        modalProyecto.textContent = "";
+        modalFechaInicio.textContent = "";
+        modalFechaFin.textContent = "";
+        modalUbicacion.textContent = "";
+        
+        let listaHTML = "<ul style='list-style: none; padding: 0;'>";
+        eventos.forEach(ev => {
+            listaHTML += `
+                <li style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 5px; cursor: pointer;" 
+                    onclick="mostrarEventoIndividual(${ev.id_eventos})">
+                    <strong>${ev.title}</strong><br>
+                    <small>${ev.proyecto || 'Sin proyecto'}</small><br>
+                    <small>${formatearFecha(ev.start)}</small>
+                </li>
+            `;
+        });
+        listaHTML += "</ul>";
+        
+        modalDescripcion.innerHTML = listaHTML;
+        modal.style.display = "flex";
+    }
+
+    // =============================
+    // FORMATEAR FECHA
+    // =============================
+    function formatearFecha(fechaStr) {
+        if (!fechaStr) return "No especificada";
+        
+        const fecha = new Date(fechaStr.replace(" ", "T"));
+        
+        return fecha.toLocaleString("es-MX", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    // =============================
+    // CERRAR MODAL
+    // =============================
+    if (closeModal) {
+        closeModal.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+    }
+
+    // Cerrar al hacer clic fuera del contenido
+    if (modal) {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    }
+
+    // Cerrar con la tecla ESC
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal && modal.style.display === "flex") {
+            modal.style.display = "none";
+        }
+    });
 
     // =============================
     // NAVEGACIÓN ENTRE MESES

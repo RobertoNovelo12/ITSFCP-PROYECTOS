@@ -259,7 +259,7 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
         </script>
     <?php endif; ?>
 
-
+    <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
 </body>
 
 </html>

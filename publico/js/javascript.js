@@ -1,5 +1,34 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const darkModeToggle = document.getElementById("darkModeToggle");
+  const htmlElement = document.documentElement;
+  const storageKey = "darkModeEnabled";
 
+  // Si no hay botón, solo no se configura el toggle, pero el modo oscuro sí puede activarse
+  const isDarkMode = localStorage.getItem(storageKey) === "true";
+
+  // Aplicar modo oscuro al cargar la página
+  if (isDarkMode) {
+    htmlElement.classList.add("dark-mode");
+    if (darkModeToggle) {
+      darkModeToggle.classList.add("active");
+      const icon = darkModeToggle.querySelector("i");
+      if (icon) icon.className = "bi bi-moon";
+    }
+  }
+
+  // Si existe el botón, configurar evento
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener("click", () => {
+      const isCurrentlyDark = htmlElement.classList.toggle("dark-mode");
+      localStorage.setItem(storageKey, isCurrentlyDark);
+
+      const icon = darkModeToggle.querySelector("i");
+      if (icon) icon.className = isCurrentlyDark ? "bi bi-moon" : "bi bi-sun";
+    });
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
   /* --- Módulo 1: Mostrar/Ocultar contraseña --- */
   const eyeOpen = "./publico/icons/iconoir_eye-solid.webp";
   const eyeClosed = "./publico/icons/solar_eye-closed-broken.webp";
@@ -124,5 +153,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
 });

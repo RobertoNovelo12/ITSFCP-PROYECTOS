@@ -16,7 +16,6 @@ function progresoProyecto($conn, $id_proyecto)
     return round(($completadas / $total) * 100);
 }
 
-// 1. Progreso del proyecto (tomamos el primero que tenga el usuario)
 $sql_proy = "
     SELECT p.id_proyectos, p.titulo 
     FROM proyectos p
@@ -122,17 +121,43 @@ if ($result_proyectos && $result_proyectos->num_rows > 0) {
     $proyectos_html = '<div class="text-muted fw-semibold">En este espacio encontrarás tus proyectos.</div>';
 }
 
-// 4. Últimas modificaciones
-$sql_modificaciones = "
-    SELECT t.contenido, tu.fecha_completacion, u.nombre, r.nombre AS rol
-    FROM tareas_usuarios tu
-    INNER JOIN tareas t ON tu.id_tarea = t.id_tareas
-    INNER JOIN usuarios u ON tu.id_usuario = u.id_usuarios
-    INNER JOIN usuarios_roles ur ON u.id_usuarios = ur.id_usuario
-    INNER JOIN roles r ON ur.id_rol = r.id_roles
-    ORDER BY tu.fecha_completacion DESC
-    LIMIT 5
-";
+// Obtener proyectos del usuario
+$proyectos_ids = [];
+$res = $conn->query("SELECT id_proyectos FROM proyectos_usuarios WHERE id_usuarios = $id_usuario");
+while ($row = $res->fetch_assoc()) {
+    $proyectos_ids[] = $row['id_proyectos'];
+}
+
+if ($rol == 'supervisor') {
+    // Supervisor ve todo
+    $sql_modificaciones = "
+        SELECT t.contenido, tu.fecha_completacion, u.nombre, r.nombre AS rol
+        FROM tareas_usuarios tu
+        INNER JOIN tareas t ON tu.id_tarea = t.id_tareas
+        INNER JOIN usuarios u ON tu.id_usuario = u.id_usuarios
+        INNER JOIN usuarios_roles ur ON u.id_usuarios = ur.id_usuario
+        INNER JOIN roles r ON ur.id_rol = r.id_roles
+        WHERE tu.fecha_completacion IS NOT NULL
+        ORDER BY tu.fecha_completacion DESC
+        LIMIT 5
+    ";
+} else {
+    // Usuarios normales solo ven modificaciones de sus proyectos
+    $ids_lista = empty($proyectos_ids) ? '0' : implode(',', $proyectos_ids);
+
+    $sql_modificaciones = "
+        SELECT t.contenido, tu.fecha_completacion, u.nombre, r.nombre AS rol
+        FROM tareas_usuarios tu
+        INNER JOIN tareas t ON tu.id_tarea = t.id_tareas
+        INNER JOIN usuarios u ON tu.id_usuario = u.id_usuarios
+        INNER JOIN usuarios_roles ur ON u.id_usuarios = ur.id_usuario
+        INNER JOIN roles r ON ur.id_rol = r.id_roles
+        WHERE tu.id_proyecto IN ($ids_lista)
+        AND tu.fecha_completacion IS NOT NULL
+        ORDER BY tu.fecha_completacion DESC
+        LIMIT 5
+    ";
+}
 
 $modificaciones_html = '';
 $result_mod = $conn->query($sql_modificaciones);
@@ -140,7 +165,7 @@ if ($result_mod && $result_mod->num_rows > 0) {
     while ($mod = $result_mod->fetch_assoc()) {
         $inicial = strtoupper(substr($mod['nombre'], 0, 1));
         $avatar_class = 'avatar-dash';
-        if (strtolower($mod['rol']) == 'Estudiante') $avatar_class .= ' avatar-u';
+        if (strtolower($mod['rol']) == 'estudiante') $avatar_class .= ' avatar-u';
         else $avatar_class .= ' avatar-e';
 
         $desc_mod = json_decode($mod['contenido'], true)['descripcion'] ?? '';

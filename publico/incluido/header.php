@@ -1,27 +1,14 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tareas</title>
-    <link rel="stylesheet" href="/ITSFCP-PROYECTOS/publico/css/styles.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-</head>
-
-<body>
 <?php
-session_start();
+if (!isset($_SESSION)) {
+    session_start();
+}
 
-// ¿El usuario está logeado?
 $usuario_logeado = isset($_SESSION['id_usuario']);
 
-// Si no existe 'nombre' en sesión, úsalo como vacío para evitar warnings
 $nombre = $usuario_logeado && !empty($_SESSION['nombre'])
     ? $_SESSION['nombre']
     : "";
 
-// Primera letra del nombre (si existe)
 $inicial = $nombre !== "" ? strtoupper(substr($nombre, 0, 1)) : "";
 ?>
 
@@ -32,6 +19,11 @@ $inicial = $nombre !== "" ? strtoupper(substr($nombre, 0, 1)) : "";
 
         <input type="text" class="search-box" placeholder="Buscar">
 
+        <!-- BOTÓN DE MODO OSCURO -->
+        <button id="darkModeToggle" class="dark-mode-btn" aria-label="Cambiar modo oscuro">
+            <i class="bi bi-sun"></i>
+        </button>
+
         <?php if (!$usuario_logeado): ?>
             <!-- Usuario NO logeado -->
             <a class="login-btn" href="/ITSFCP-PROYECTOS/login.php">Iniciar sesión</a>
@@ -40,21 +32,21 @@ $inicial = $nombre !== "" ? strtoupper(substr($nombre, 0, 1)) : "";
 
             <!-- ICONO DE NOTIFICACIONES -->
             <div class="notif-icon">
-                <img src="/ITSFCP-PROYECTOS/publico/icons/notificacion.svg">
+                <img src="/ITSFCP-PROYECTOS/publico/icons/notificacion.svg" alt="Notificaciones">
             </div>
 
             <!-- CONTENEDOR DE PERFIL -->
             <div class="profile-wrapper" id="userProfileBtn">
 
                 <?php if (!empty($_SESSION['foto_url'])): ?>
-                    <img class="avatar-img" src="/ITSFCP-PROYECTOS/img/avatars/<?php echo $_SESSION['foto_url']; ?>">
+                    <img class="avatar-img" src="/ITSFCP-PROYECTOS/img/avatars/<?php echo $_SESSION['foto_url']; ?>" alt="Avatar">
                 <?php else: ?>
                     <div class="avatar-initial">
                         <?= $inicial ?>
                     </div>
                 <?php endif; ?>
 
-                <img class="avatar-arrow" src="/ITSFCP-PROYECTOS/publico/icons/caretaa.svg">
+                <img class="avatar-arrow" src="/ITSFCP-PROYECTOS/publico/icons/caretaa.svg" alt="Menú">
             </div>
 
             <!-- MENÚ DESPLEGABLE -->
@@ -62,12 +54,6 @@ $inicial = $nombre !== "" ? strtoupper(substr($nombre, 0, 1)) : "";
                 <a href="/ITSFCP-PROYECTOS/logout.php" class="logout-btn">Cerrar sesión</a>
             </div>
 
-
-
         <?php endif; ?>
-        <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
-        <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
-
-
     </div>
 </div>
