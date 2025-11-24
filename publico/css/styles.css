@@ -2197,3 +2197,105 @@ select:focus {
   text-decoration: line-through;
   color: var(--color-texto-secundario);
 }
+
+/* PAGINACION */
+
+.infopag {
+  text-align: left;
+  width: 22%;
+}
+
+.paginador {
+  display: flex;
+  width: 100%;
+}
+
+.paginador ul {
+  padding: 8px;
+  width: 78%;
+  list-style: none;
+  margin-top: -5px;
+  margin-bottom: -10px;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  justify-content: flex-end;
+}
+.paginador a,
+.pageSelected {
+  color: #428bca;
+  border: 1px solid #ddd;
+  padding: 5px;
+  display: inline-block;
+  font-size: 14px;
+  text-align: center;
+  width: 35px;
+}
+.paginador a:hover {
+  background: #ddd;
+}
+.pageSelected {
+  color: #fff;
+  background: #428bca;
+  border: 1px solid #428bca;
+}
+
+/*RESPONSIVIDAD DE PROYECTOS - CAMBIAR TABLA POR TARJETAS*/
+
+@media only screen and (max-width: 768px) {
+  /*Estilos para dispositivos móviles*/
+  .table-responsive {
+    display: none;
+  }
+
+  #tarjeta_móvil{
+    display: block;
+  }
+  
+
+  /* Contenedor del formulario */
+  .col-12.d-flex {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  /* El formulario debe ocupar el 100% */
+  form.d-flex {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  /* El contenedor interno que tenía flex-grow */
+  .flex-grow-1 {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  /* Input-group debe medir 100% */
+  .input-group {
+    width: 100%;
+  }
+
+  /* El input, 100% */
+  #input_busqueda {
+    width: 100%;
+  }
+
+  /* Ocultar el botón en mobile */
+  #boton_busqueda {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+    /* Estilos para laptops y computadoras */
+  .table-responsive {
+    display: block;
+  }
+
+  #tarjeta_móvil{
+    display: none;
+  }
+}
