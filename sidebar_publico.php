@@ -21,7 +21,7 @@
 
     <div class="menu-item">
         <span class="menu-icon"><img src="./publico/icons/documentation.svg"></span>
-        <span>Documentación</span>
+        <span><a href="./documentacion.html">Documentación</a></span>
     </div>
 
     <div class="menu-bottom">

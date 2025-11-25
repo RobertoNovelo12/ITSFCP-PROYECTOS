@@ -154,3 +154,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+// ==========================
+// VALIDACIÓN DE CURP
+// ==========================
+
+const curpInput = document.getElementById("curp");
+const diaInput = document.getElementById("day");
+const mesInput = document.getElementById("month");
+const anioInput = document.getElementById("year");
+const generoSelect = document.getElementById("id_genero");
+
+const curpRegex = /^[A-Z][AEIOU][A-Z]{2}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[HM](AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]\d$/;
+
+curpInput.addEventListener("input", function () {
+    let curp = curpInput.value.toUpperCase();
+    curpInput.value = curp;
+
+    if (curp.length === 18 && curpRegex.test(curp)) {
+        // Extraer datos
+        const year = curp.substring(4, 6);
+        const month = curp.substring(6, 8);
+        const day = curp.substring(8, 10);
+        const gender = curp.substring(10, 11);
+
+        // Convertir año YY → YYYY
+        const fullYear = parseInt(year) <= 24 ? "20" + year : "19" + year;
+
+        // Autollenar fecha
+        diaInput.value = day;
+        mesInput.value = month;
+        anioInput.value = fullYear;
+
+        // Autollenar género
+        if (gender === "H") generoSelect.value = "2"; // Masculino
+        if (gender === "M") generoSelect.value = "1"; // Femenino
+    }
+});
+
+const phone = document.getElementById("phone-register");
+
+phone.addEventListener("input", function () {
+    this.value = this.value.replace(/\D/g, ""); // solo números
+
+    if (this.value.length > 10) {
+        this.value = this.value.slice(0, 10);
+    }
+});
+
+// Validar CURP con regex
+if (!preg_match('/^[A-Z]{4}\d{6}[HM][A-Z]{5}\d{2}$/', $curp)) {
+    die("CURP inválida.");
+}
+
+// Validar teléfono (10 dígitos)
+if (!preg_match('/^\d{10}$/', $telefono)) {
+    die("El número de teléfono debe tener 10 dígitos.");
+}

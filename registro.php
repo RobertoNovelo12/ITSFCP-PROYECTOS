@@ -55,8 +55,9 @@
 
                 <!-- telefono -->
                 <div class="input-group">
-                    <input type="number" id="phone-register" name="telefono" class="input-field date-field"
-                        placeholder=" " pattern="[0-9]{10}" maxlength="10" required>
+                    <input type="text" id="phone-register" name="telefono" class="input-field date-field"
+                        placeholder=" " maxlength="10" pattern="\d{10}" required>
+
                     <label for="phone-register" class="floating-label">Número de telefono</label>
                 </div>
 
@@ -117,7 +118,8 @@
 
 
                 <div class="terms">
-                    Al crear una cuenta, aceptas los <a href="#">Términos del servicio</a> y <a href="#">Política de
+                    Al crear una cuenta, aceptas los <a href="./politicas.html">Términos del servicio</a> y <a
+                        href="./politicas.html">Política de
                         privacidad</a>
                 </div>
                 <button type="submit" class="submit-btn">Crear cuenta</button>

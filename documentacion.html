@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Documentación — Sistema de Gestión de Proyectos ITSFCP</title>
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --sidebar-bg: #ffffff;
+      --sidebar-border: #e5e7eb;
+      --text-main: #111827;
+      --text-secondary: #6b7280;
+      --link: #11376b;
+      --link-hover: #274a83;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    aside {
+      width: 250px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    aside h2 {
+      margin-top: 0;
+      font-size: 1rem;
+    }
+    aside nav ul {
+      list-style: none;
+      padding: 0;
+    }
+    aside nav a {
+      display: block;
+      padding: 6px 0;
+      color: var(--link);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    aside nav a:hover {
+      color: var(--link-hover);
+    }
+    main {
+      flex: 1;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+    main h1 {
+      margin-top: 0;
+      font-size: 1.4rem;
+    }
+    main h2 {
+      margin-top: 30px;
+      font-size: 1.2rem;
+    }
+    main p, main ul, main ol {
+      max-width: 800px;
+    }
+    @media (max-width: 800px) {
+      .layout { flex-direction: column; }
+      aside { width: 100%; border-right: none; border-bottom: 1px solid var(--sidebar-border); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h2>Documentación</h2>
+      <nav>
+        <ul>
+          <li><a href="#intro">Introducción</a></li>
+          <li><a href="#acceso">Acceso al sistema</a></li>
+          <li><a href="#dashboard">Dashboard</a></li>
+          <li><a href="#proyectos">Gestión de proyectos</a></li>
+          <li><a href="#reportes">Generación de reportes</a></li>
+          <li><a href="#usuarios">Gestión de usuarios</a></li>
+          <li><a href="#pdf">Exportación a PDF</a></li>
+          <li><a href="#soporte">Soporte</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main>
+      <h1>Documentación del Sistema Web Responsivo para Gestión de Proyectos – ITSFCP</h1>
+
+      <section id="intro">
+        <h2>Introducción</h2>
+        <p>Este sistema permite administrar, monitorear y controlar los proyectos académicos y de investigación del Instituto Tecnológico Superior de Felipe Carrillo Puerto. Desde esta documentación aprenderás a usar todas las funciones disponibles.</p>
+      </section>
+
+      <section id="acceso">
+        <h2>Acceso al sistema</h2>
+        <p>Para acceder, ingresa tus credenciales institucionales. Si olvidaste tu contraseña, contacta al departamento de sistemas.</p>
+        <ul>
+          <li>Pantalla de inicio de sesión limpia y responsiva.</li>
+          <li>Control de errores por credenciales incorrectas.</li>
+          <li>Redirección automática al dashboard.</li>
+        </ul>
+      </section>
+
+      <section id="dashboard">
+        <h2>Dashboard</h2>
+        <p>Una vez dentro, verás un panel general con datos importantes:</p>
+        <ul>
+          <li>Total de proyectos registrados.</li>
+          <li>Proyectos por estatus.</li>
+          <li>Acceso rápido a las funciones principales.</li>
+        </ul>
+      </section>
+
+      <section id="proyectos">
+        <h2>Gestión de Proyectos</h2>
+        <p>Desde la sección <strong>Proyectos</strong> podrás:</p>
+        <ol>
+          <li>Registrar un nuevo proyecto.</li>
+          <li>Editar información existente.</li>
+          <li>Actualizar avances.</li>
+          <li>Asignar docentes o estudiantes.</li>
+          <li>Consultar detalles completos de cada proyecto.</li>
+        </ol>
+        <p>Los proyectos cuentan con estatus como <em>En proceso</em>, <em>Terminado</em>, <em>Pendiente</em>, etc.</p>
+      </section>
+
+      <section id="reportes">
+        <h2>Generación de reportes</h2>
+        <p>El sistema permite generar reportes por periodo, tipo de proyecto o estatus.</p>
+        <ul>
+          <li>Filtro por fechas y categorías.</li>
+          <li>Visualización inmediata.</li>
+          <li>Opción para exportar (ver siguiente sección).</li>
+        </ul>
+      </section>
+
+      <section id="pdf">
+        <h2>Exportación a PDF</h2>
+        <p>Todos los reportes pueden exportarse a PDF con un diseño limpio para imprimir o archivar.</p>
+        <ul>
+          <li>Formato responsivo optimizado para impresión.</li>
+          <li>Compatible con navegadores modernos.</li>
+        </ul>
+      </section>
+
+      <section id="usuarios">
+        <h2>Gestión de Usuarios</h2>
+        <p>Los administradores pueden crear, editar o eliminar usuarios.</p>
+        <ul>
+          <li>Roles: Administrador, Docente, Alumno.</li>
+          <li>Control de permisos según nivel.</li>
+          <li>Edición rápida desde la tabla de usuarios.</li>
+        </ul>
+      </section>
+
+      <section id="soporte">
+        <h2>Soporte</h2>
+        <p>Si tienes dudas o encuentras un error, contacta a soporte institucional.</p>
+        <p>Correo sugerido: <strong>moodle@itscarrillopuerto.edu.mx</strong></p>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>

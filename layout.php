@@ -8,7 +8,7 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <?php endif; ?>
     
-    <!-- ⬇️ AGREGAR ESTO ANTES DEL CSS -->
+    <!-- ⬇ AGREGAR ESTO ANTES DEL CSS -->
     <script>
         // Aplicar estado del sidebar INMEDIATAMENTE antes de que se renderice
         (() => {
