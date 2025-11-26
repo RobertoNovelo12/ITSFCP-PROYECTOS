@@ -50,7 +50,6 @@ $preguntas = [
 ];
 
 $contenido = '
-<link rel="stylesheet" href="/ITSFCP-PROYECTOS/publico/css/soporte.css">
 
 <div class="container-fluid py-4">
     <div class="soporte-container">
