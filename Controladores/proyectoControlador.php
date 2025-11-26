@@ -404,14 +404,97 @@ class ProyectoControlador
                 break;
         }
         return $boton;
+    }
+        //CREAR PROYECTO
+    public function tematica()
+    {
+        global $conn;
+        $proyecto = new Proyectos($conn);
 
+        $tematica = $proyecto->tematica();
+        if ($tematica != []) {
+            return $tematica;
+        } else {
+            $tematica = []; // evita undefined variable
+            return $tematica;
+        }
+    }
 
+    public function subtematicas($id)
+    {
+        global $conn;
+        $proyecto = new Proyectos($conn);
+        return $proyecto->obtenersubtematica($id);
+    }
 
+    public function obtenerperiodo()
+    {
+        global $conn;
+        $proyecto = new Proyectos($conn);
+        return $proyecto->obtenerperiodo();
+    }
 
+    public function obtenerInstituto()
+    {
+        global $conn;
+        $proyecto = new Proyectos($conn);
+        return $proyecto->obtenerinstituto();
+    }
 
-        /*
-        $botones = $proyecto->obtenerBotonesAccion($id_proyecto, $rol);
-        */
-        //return $botones;
+    public function registrarProyecto($data, $id, $rol)
+    {
+        $periodoData = $this->obtenerperiodo();
+        $periodo = $periodoData[0]; // tomas el primer registro
+        $estado_periodo = $periodo["estado"]; // O "periodo", según lo que necesites
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if ($estado_periodo == "Activo" && $estado_periodo != "") {
+                if ($rol == "investigador" || $rol == "profesor") {
+
+                    $action = $data['action'] ?? '';
+
+                    $id_investigador = $id;
+                    $id_estadoP = 3;
+                    $id_tematica = $data['Tematica'];
+                    if ($id_tematica == "") {
+                        die("Se debe elegir una temática");
+                    }
+                    $institutoData = $this->obtenerInstituto();
+                    $instituto = $institutoData[0]; // tomas el primer registro
+                    $id_instituto = $instituto['id_instituto'];
+                    $id_periodos = $periodo["id_periodos"];
+                    $titulo = $data['NombreProyecto'];
+                    $descripcion = $data['Descripcion'];
+                    $objetivo = $data['Objetivos'];
+                    $fecha_inicio = $data['FechaInicio'];
+                    $fecha_final = $data['FechaFinal'];
+                    $presupuesto = $data['Presupuesto'];
+
+                    $actualizado_en = null;
+                    $requisitos = $data['Requisitos'];
+
+                    $Pre_requisitos = $data['Pre_requisitos'];
+                    $AlumnosCantidad = $data['AlumnosCantidad'];
+
+                    $modalidad = $data['Modalidad'];
+                    $id_subtematica = $data['Subtematica'];
+
+                    if ($id_subtematica == "") {
+                        die("Se debe elegir una Subtematica");
+                    }
+                    if ($action === 'registrarProyecto') {
+                        global $conn;
+                        $proyecto = new Proyectos($conn);
+                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $actualizado_en, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+                    }
+                } else {
+                    die("El usuario no tiene permiso para crear el proyecto");
+                }
+            } else {
+                die("El periodo ha acabado para registrar proyectos");
+            }
+        } else {
+            die("Los datos no fueron enviados ha acabado para registrar proyectos");
+        }
     }
 }
