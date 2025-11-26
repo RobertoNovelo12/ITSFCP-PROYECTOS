@@ -26,10 +26,32 @@ document.addEventListener("DOMContentLoaded", () => {
       if (icon) icon.className = isCurrentlyDark ? "bi bi-moon" : "bi bi-sun";
     });
   }
-});
 
-document.addEventListener("DOMContentLoaded", () => {
-  /* --- Módulo 1: Mostrar/Ocultar contraseña --- */
+  // ========================================
+  // DROPDOWN DEL PERFIL
+  // ========================================
+  const profileBtn = document.getElementById("userProfileBtn");
+  const profileDropdown = document.getElementById("profileDropdown");
+
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle("show");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (
+        !profileBtn.contains(e.target) &&
+        !profileDropdown.contains(e.target)
+      ) {
+        profileDropdown.classList.remove("show");
+      }
+    });
+  }
+
+  // ========================================
+  // MOSTRAR/OCULTAR CONTRASEÑA
+  // ========================================
   const eyeOpen = "./publico/icons/iconoir_eye-solid.webp";
   const eyeClosed = "./publico/icons/solar_eye-closed-broken.webp";
 
@@ -55,7 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setupPasswordToggle("password", "togglePassword");
   setupPasswordToggle("confirmar", "toggleConfirm");
 
-  /* --- Módulo 2: Modal solicitud y cierre de sesión --- */
+  // ========================================
+  // MODAL SOLICITUD Y CIERRE DE SESIÓN
+  // ========================================
   const form = document.getElementById("formSolicitud");
   const modal = document.getElementById("modal-solicitud");
   const confirmarBtn = document.getElementById("confirmar-btn");
@@ -96,7 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* --- Módulo 3: Avatar dinámico --- */
+  // ========================================
+  // AVATAR DINÁMICO
+  // ========================================
   const usernameInput = document.getElementById("username");
   const avatarLetter = document.getElementById("avatar-letter");
   const avatarUpload = document.getElementById("avatar-upload");
@@ -133,33 +159,11 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsDataURL(file);
     });
   }
-
-  /* --- Módulo 4: Dropdown del perfil --- */
-  const profileBtn = document.getElementById("userProfileBtn");
-  const profileDropdown = document.getElementById("profileDropdown");
-
-  if (profileBtn && profileDropdown) {
-    profileBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      profileDropdown.classList.toggle("open");
-    });
-
-    document.addEventListener("click", (e) => {
-      if (
-        !profileBtn.contains(e.target) &&
-        !profileDropdown.contains(e.target)
-      ) {
-        profileDropdown.classList.remove("open");
-      }
-    });
-  }
 });
 
-
-// ==========================
+// ========================================
 // VALIDACIÓN DE CURP
-// ==========================
-
+// ========================================
 const curpInput = document.getElementById("curp");
 const diaInput = document.getElementById("day");
 const mesInput = document.getElementById("month");
@@ -168,47 +172,46 @@ const generoSelect = document.getElementById("id_genero");
 
 const curpRegex = /^[A-Z][AEIOU][A-Z]{2}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[HM](AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]\d$/;
 
-curpInput.addEventListener("input", function () {
+if (curpInput) {
+  curpInput.addEventListener("input", function () {
     let curp = curpInput.value.toUpperCase();
     curpInput.value = curp;
 
     if (curp.length === 18 && curpRegex.test(curp)) {
-        // Extraer datos
-        const year = curp.substring(4, 6);
-        const month = curp.substring(6, 8);
-        const day = curp.substring(8, 10);
-        const gender = curp.substring(10, 11);
+      // Extraer datos
+      const year = curp.substring(4, 6);
+      const month = curp.substring(6, 8);
+      const day = curp.substring(8, 10);
+      const gender = curp.substring(10, 11);
 
-        // Convertir año YY → YYYY
-        const fullYear = parseInt(year) <= 24 ? "20" + year : "19" + year;
+      // Convertir año YY → YYYY
+      const fullYear = parseInt(year) <= 24 ? "20" + year : "19" + year;
 
-        // Autollenar fecha
-        diaInput.value = day;
-        mesInput.value = month;
-        anioInput.value = fullYear;
+      // Autollenar fecha
+      if (diaInput) diaInput.value = day;
+      if (mesInput) mesInput.value = month;
+      if (anioInput) anioInput.value = fullYear;
 
-        // Autollenar género
+      // Autollenar género
+      if (generoSelect) {
         if (gender === "H") generoSelect.value = "2"; // Masculino
         if (gender === "M") generoSelect.value = "1"; // Femenino
+      }
     }
-});
+  });
+}
 
+// ========================================
+// VALIDACIÓN DE TELÉFONO
+// ========================================
 const phone = document.getElementById("phone-register");
 
-phone.addEventListener("input", function () {
+if (phone) {
+  phone.addEventListener("input", function () {
     this.value = this.value.replace(/\D/g, ""); // solo números
 
     if (this.value.length > 10) {
-        this.value = this.value.slice(0, 10);
+      this.value = this.value.slice(0, 10);
     }
-});
-
-// Validar CURP con regex
-if (!preg_match('/^[A-Z]{4}\d{6}[HM][A-Z]{5}\d{2}$/', $curp)) {
-    die("CURP inválida.");
-}
-
-// Validar teléfono (10 dígitos)
-if (!preg_match('/^\d{10}$/', $telefono)) {
-    die("El número de teléfono debe tener 10 dígitos.");
+  });
 }

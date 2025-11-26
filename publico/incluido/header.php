@@ -55,5 +55,15 @@ $inicial = $nombre !== "" ? strtoupper(substr($nombre, 0, 1)) : "";
             </div>
 
         <?php endif; ?>
+
+        <!-- Botón hamburguesa para móvil (al final, a la derecha) -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Abrir menú">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
     </div>
 </div>
+
+<!-- Overlay para cerrar sidebar en móvil -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
