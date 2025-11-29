@@ -17,16 +17,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // RESTAURAR ESTADO DEL SIDEBAR (SOLO DESKTOP)
   // ============================
   const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
-  
-  html.classList.remove("sidebar-collapsed-initial");
-  
+
+  setTimeout(() => {
+    html.classList.remove("sidebar-collapsed-initial");
+  }, 10);
+
   if (!isMobile() && sidebarCollapsed === "true") {
     sidebar.classList.add("collapsed");
     body.classList.add("sidebar-collapsed");
-    
+
     // Cerrar todos los submenús si está colapsado
-    document.querySelectorAll(".submenu").forEach(sm => sm.classList.remove("open"));
-    document.querySelectorAll(".dropdown-btn").forEach(btn => btn.classList.remove("dropdown-open"));
+    document
+      .querySelectorAll(".submenu")
+      .forEach((sm) => sm.classList.remove("open"));
+    document
+      .querySelectorAll(".dropdown-btn")
+      .forEach((btn) => btn.classList.remove("dropdown-open"));
   } else if (!isMobile()) {
     sidebar.classList.remove("collapsed");
     body.classList.remove("sidebar-collapsed");
@@ -45,8 +51,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Si se colapsa, cerrar todos los submenús
         if (isCollapsed) {
-          document.querySelectorAll(".submenu").forEach(sm => sm.classList.remove("open"));
-          document.querySelectorAll(".dropdown-btn").forEach(btn => btn.classList.remove("dropdown-open"));
+          document
+            .querySelectorAll(".submenu")
+            .forEach((sm) => sm.classList.remove("open"));
+          document
+            .querySelectorAll(".dropdown-btn")
+            .forEach((btn) => btn.classList.remove("dropdown-open"));
           localStorage.removeItem("sidebar-open-submenus");
         } else {
           // Al expandir, restaurar submenús guardados
@@ -60,12 +70,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // MENÚ HAMBURGUESA (MÓVIL)
   // ============================
   if (mobileMenuToggle) {
-    mobileMenuToggle.addEventListener("click", function() {
+    mobileMenuToggle.addEventListener("click", function () {
       if (isMobile()) {
         this.classList.toggle("active");
         sidebar.classList.toggle("mobile-open");
         sidebarOverlay.classList.toggle("active");
-        body.style.overflow = sidebar.classList.contains("mobile-open") ? "hidden" : "";
+        body.style.overflow = sidebar.classList.contains("mobile-open")
+          ? "hidden"
+          : "";
       }
     });
   }
@@ -84,15 +96,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Cerrar al hacer click en el overlay
   if (sidebarOverlay) {
-    sidebarOverlay.addEventListener("click", function() {
+    sidebarOverlay.addEventListener("click", function () {
       closeMobileSidebar();
     });
   }
 
   // Cerrar al hacer click en un enlace del sidebar (en móvil)
   const sidebarLinks = sidebar.querySelectorAll(".menu-item a, .sub-item");
-  sidebarLinks.forEach(link => {
-    link.addEventListener("click", function() {
+  sidebarLinks.forEach((link) => {
+    link.addEventListener("click", function () {
       if (isMobile()) {
         closeMobileSidebar();
       }
@@ -100,8 +112,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Cerrar con tecla ESC (en móvil)
-  document.addEventListener("keydown", function(e) {
-    if (e.key === "Escape" && isMobile() && sidebar.classList.contains("mobile-open")) {
+  document.addEventListener("keydown", function (e) {
+    if (
+      e.key === "Escape" &&
+      isMobile() &&
+      sidebar.classList.contains("mobile-open")
+    ) {
       closeMobileSidebar();
     }
   });
@@ -110,13 +126,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // MANEJAR CAMBIOS DE TAMAÑO
   // ============================
   let resizeTimer;
-  window.addEventListener("resize", function() {
+  window.addEventListener("resize", function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function() {
+    resizeTimer = setTimeout(function () {
       // Si cambiamos a desktop, cerrar el menú móvil
       if (!isMobile()) {
         closeMobileSidebar();
-        
+
         // Restaurar estado desktop si existe
         const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
         if (sidebarCollapsed === "true") {
@@ -138,14 +154,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (body.classList.contains("sidebar-collapsed") || isMobile()) {
       return;
     }
-    
+
     const openSubmenusStr = localStorage.getItem("sidebar-open-submenus");
-    
+
     if (openSubmenusStr) {
       try {
         const openSubmenus = JSON.parse(openSubmenusStr);
-        openSubmenus.forEach(id => {
-          const submenuBtn = document.querySelector(`.dropdown-btn[data-id="${id}"]`);
+        openSubmenus.forEach((id) => {
+          const submenuBtn = document.querySelector(
+            `.dropdown-btn[data-id="${id}"]`
+          );
           if (submenuBtn) {
             submenuBtn.classList.add("dropdown-open");
             const submenu = submenuBtn.nextElementSibling;
@@ -173,10 +191,12 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem("sidebar-open-submenus");
       return;
     }
-    
-    const openBtns = Array.from(document.querySelectorAll(".dropdown-btn.dropdown-open"));
-    const ids = openBtns.map(btn => btn.dataset.id).filter(id => id);
-    
+
+    const openBtns = Array.from(
+      document.querySelectorAll(".dropdown-btn.dropdown-open")
+    );
+    const ids = openBtns.map((btn) => btn.dataset.id).filter((id) => id);
+
     if (ids.length > 0) {
       localStorage.setItem("sidebar-open-submenus", JSON.stringify(ids));
     } else {
@@ -189,11 +209,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================
   const dropdownButtons = document.querySelectorAll(".dropdown-btn");
 
-  dropdownButtons.forEach(button => {
+  dropdownButtons.forEach((button) => {
     button.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       const submenu = button.nextElementSibling;
       if (!submenu || !submenu.classList.contains("submenu")) return;
 
@@ -201,10 +221,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // En sidebar colapsado (desktop) o móvil: solo uno abierto a la vez
       if (body.classList.contains("sidebar-collapsed") || isMobile()) {
-        document.querySelectorAll(".submenu").forEach(sm => {
+        document.querySelectorAll(".submenu").forEach((sm) => {
           if (sm !== submenu) sm.classList.remove("open");
         });
-        document.querySelectorAll(".dropdown-btn").forEach(btn => {
+        document.querySelectorAll(".dropdown-btn").forEach((btn) => {
           if (btn !== button) btn.classList.remove("dropdown-open");
         });
       }

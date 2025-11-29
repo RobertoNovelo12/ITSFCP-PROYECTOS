@@ -19,7 +19,6 @@ $sql = "
     FROM proyectos p
     LEFT JOIN tematica t ON p.id_tematica = t.id_tematica
     LEFT JOIN usuarios u ON p.id_investigador = u.id_usuarios
-    WHERE p.id_estadoP = 1
     ORDER BY p.creado_en DESC
 ";
 
@@ -61,7 +60,7 @@ if ($result && $result->num_rows > 0) {
         ';
     }
 } else {
-    $contenido = '<div class="col-12 text-center"><p class="text-muted fw-semibold">Aún no hay proyectos disponibles</p></div>';
+    $contenido = '<div class="col-12 text-center"><p class="fw-semibold">Aún no hay proyectos disponibles</p></div>';
 }
 
 include __DIR__ . '/../../layout.php';

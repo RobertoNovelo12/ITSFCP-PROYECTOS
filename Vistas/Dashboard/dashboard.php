@@ -33,7 +33,7 @@ if ($proy_result && $proy_result->num_rows > 0) {
         <div class="card-body p-4">
             <div class="row align-items-center">
                 <div class="col-md-5">
-                    <h6 class="mb-3 text-muted">Progreso</h6>
+                    <h6 class="mb-3">Progreso</h6>
                     <div class="progress-circle">
                         <svg width="180" height="180">
                             <circle class="progress-circle-bg" cx="90" cy="90" r="70"></circle>
@@ -50,7 +50,7 @@ if ($proy_result && $proy_result->num_rows > 0) {
         </div>
     </div>';
 } else {
-    $progreso_html = '<div class="card card-progreso shadow-sm mb-4"><div class="card-body text-center text-muted">En este espacio encontrarás tu progreso cuando tengas proyectos asignados.</div></div>';
+    $progreso_html = '<div class="card card-progreso shadow-sm mb-4"><div class="card-body text-center">En este espacio encontrarás tu progreso cuando tengas proyectos asignados.</div></div>';
 }
 
 // 2. Tareas asignadas
@@ -92,7 +92,7 @@ if ($result_tareas && $result_tareas->num_rows > 0) {
         </div>';
     }
 } else {
-    $tareas_html = '<div class="text-muted fw-semibold">En este espacio encontrarás tus tareas asignadas.</div>';
+    $tareas_html = '<div class="fw-semibold">En este espacio encontrarás tus tareas asignadas.</div>';
 }
 
 // 3. Proyectos
@@ -118,7 +118,7 @@ if ($result_proyectos && $result_proyectos->num_rows > 0) {
         </div>';
     }
 } else {
-    $proyectos_html = '<div class="text-muted fw-semibold">En este espacio encontrarás tus proyectos.</div>';
+    $proyectos_html = '<div class= fw-semibold">En este espacio encontrarás tus proyectos.</div>';
 }
 
 // Obtener proyectos del usuario
@@ -176,12 +176,12 @@ if ($result_mod && $result_mod->num_rows > 0) {
                 <div class="flex-grow-1">
                     <div class="fw-semibold">' . htmlspecialchars(substr($desc_mod, 0, 50)) . '</div>
                 </div>
-                <span class="text-muted small">' . date('d/m/Y', strtotime($mod['fecha_completacion'])) . '</span>
+                <span class= small">' . date('d/m/Y', strtotime($mod['fecha_completacion'])) . '</span>
             </div>
         </div>';
     }
 } else {
-    $modificaciones_html = '<div class="text-muted fw-semibold">En este espacio encontrarás las últimas modificaciones de tus tareas.</div>';
+    $modificaciones_html = '<div class= fw-semibold">En este espacio encontrarás las últimas modificaciones de tus tareas.</div>';
 }
 
 // Determinar si mostrar botón Nuevo proyecto

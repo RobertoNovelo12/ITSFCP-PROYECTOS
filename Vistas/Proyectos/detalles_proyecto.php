@@ -30,7 +30,7 @@ $sql = "
     FROM proyectos p
     LEFT JOIN tematica t ON p.id_tematica = t.id_tematica
     LEFT JOIN usuarios u ON p.id_investigador = u.id_usuarios
-    WHERE p.id_proyectos = ? AND p.id_estadoP = 1
+    WHERE p.id_proyectos = ?
 ";
 
 $stmt = $conn->prepare($sql);
@@ -49,7 +49,7 @@ $titulo = "Detalles del Proyecto - " . htmlspecialchars($proyecto['titulo']);
 // Función para mostrar valor o "No especificado"
 function mostrarValor($valor, $tipo = 'texto') {
     if (empty($valor) || is_null($valor)) {
-        return '<span class="text-muted fst-italic">No especificado</span>';
+        return '<span class=" fst-italic">No especificado</span>';
     }
     
     if ($tipo === 'html') {
@@ -80,7 +80,7 @@ $contenido = '
                         <i class="bi bi-chevron-down toggle-icon rotated" id="icon-descripcion"></i>
                     </button>
                     <div class="detalle-content" id="content-descripcion">
-                        <p class="text-muted">'.mostrarValor($proyecto['descripcion'], 'html').'</p>
+                        <p class="">'.mostrarValor($proyecto['descripcion'], 'html').'</p>
                     </div>
                 </div>
 
@@ -91,7 +91,7 @@ $contenido = '
                             <i class="bi bi-chevron-down toggle-icon" id="icon-objetivo"></i>
                         </button>
                         <div class="detalle-content collapsed" id="content-objetivo">
-                            <p class="text-muted">'.mostrarValor($proyecto['objetivo'], 'html').'</p>
+                            <p class="">'.mostrarValor($proyecto['objetivo'], 'html').'</p>
                         </div>
                     </div>
 
@@ -102,7 +102,7 @@ $contenido = '
                             <i class="bi bi-chevron-down toggle-icon" id="icon-prerequisitos"></i>
                         </button>
                         <div class="detalle-content collapsed" id="content-prerequisitos">
-                            <p class="text-muted">'.mostrarValor($proyecto['pre_requisitos'], 'html').'</p>
+                            <p class="">'.mostrarValor($proyecto['pre_requisitos'], 'html').'</p>
                         </div>
                     </div>
 
@@ -135,7 +135,7 @@ $contenido = '
                     
                     <div class="info-item mb-3">
                         <small class="info-label">Modalidad</small>
-                        <span>'.(!empty($proyecto['modalidad']) ? ucfirst(htmlspecialchars($proyecto['modalidad'])) : '<span class="text-muted fst-italic">No especificado</span>').'</span>
+                        <span>'.(!empty($proyecto['modalidad']) ? ucfirst(htmlspecialchars($proyecto['modalidad'])) : '<span class=" fst-italic">No especificado</span>').'</span>
                     </div>
                     
                     <div class="info-item mb-3">
@@ -157,7 +157,7 @@ if (!empty($proyecto['email_investigador'])) {
                             '.htmlspecialchars($proyecto['email_investigador']).'
                           </a>';
 } else {
-    $contenido .= '<span class="text-muted fst-italic">No especificado</span>';
+    $contenido .= '<span class=" fst-italic">No especificado</span>';
 }
 
 $contenido .= '</span>

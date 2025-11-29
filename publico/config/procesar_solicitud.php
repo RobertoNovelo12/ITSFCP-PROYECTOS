@@ -43,14 +43,13 @@ case 'alumno':
     $matricula  = trim($_POST['matricula']);
     $id_carrera = intval($_POST['carrera']);
     $id_area    = intval($_POST['area']);
-    $id_subarea = intval($_POST['subarea']);
 
     $stmt = $conn->prepare("
-        INSERT INTO estudiantes (id_usuario, matricula, id_carrera, id_area, id_subarea)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO estudiantes (id_usuario, matricula, id_carrera, id_area)
+        VALUES (?, ?, ?, ?)
     ");
 
-    $stmt->bind_param("isiii", $id_usuario, $matricula, $id_carrera, $id_area, $id_subarea);
+    $stmt->bind_param("isii", $id_usuario, $matricula, $id_carrera, $id_area);
     $stmt->execute();
 
     break;

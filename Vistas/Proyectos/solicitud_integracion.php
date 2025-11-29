@@ -25,7 +25,7 @@ $sql_proyecto = "
         u.nombre AS investigador
     FROM proyectos p
     LEFT JOIN usuarios u ON p.id_investigador = u.id_usuarios
-    WHERE p.id_proyectos = ? AND p.id_estadoP = 1
+    WHERE p.id_proyectos = ?
 ";
 
 $stmt_proyecto = $conn->prepare($sql_proyecto);
@@ -79,15 +79,10 @@ $nombre_completo = trim($estudiante['nombre'] . ' ' . ($estudiante['apellido_pat
 
 // Crear el contenido
 $contenido = '
-<link rel="stylesheet" href="/ITSFCP-PROYECTOS/publico/css/solicitud_integracion.css">
 
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
-            <a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id='.$id_proyecto.'" class="home-btn mb-3">
-                <i class="bi bi-arrow-left"></i>
-                Regresar al proyecto
-            </a>
             <h2 class="fw-bold mb-0">Formulario de solicitud de integración al proyecto</h2>
         </div>
     </div>
@@ -95,7 +90,7 @@ $contenido = '
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="card-evento">
-                <form id="formSolicitud" method="POST" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/procesar_solicitud.php" enctype="multipart/form-data">
+                <form id="formSolicitud" method="POST" action="/ITSFCP-PROYECTOS/publico/config/procesar_solicitud_proyecto.php" enctype="multipart/form-data">
                     <input type="hidden" name="id_proyecto" value="'.$id_proyecto.'">
                     <input type="hidden" name="id_usuario" value="'.$id_usuario.'">
                     
@@ -121,7 +116,7 @@ $contenido = '
                                 <input type="text" name="nombre" value="'.htmlspecialchars($nombre_completo).'" readonly class="readonly-input">
                             </div>
                             <div class="form-group-evento">
-                                <label>Promedio general <span class="text-muted">(opcional)</span></label>
+                                <label>Promedio general <span class="">(opcional)</span></label>
                                 <input type="number" name="promedio" step="0.01" min="0" max="100" placeholder="96.5">
                             </div>
                         </div>
@@ -165,7 +160,7 @@ $contenido .= '
                                 </select>
                             </div>
                             <div class="form-group-evento">
-                                <label>Semestre actual <span class="text-muted">(opcional)</span></label>
+                                <label>Semestre actual <span class="">(opcional)</span></label>
                                 <select name="semestre">
                                     <option value="">Seleccione</option>';
 
@@ -179,14 +174,14 @@ $contenido .= '
                         </div>
 
                         <div class="form-group-evento">
-                            <label>Adjuntar CV o constancias <span class="text-muted">(opcional)</span></label>
+                            <label>Adjuntar CV o constancias <span class="">(opcional)</span></label>
                             <div class="file-upload-wrapper">
                                 <input type="file" class="file-input" name="documento" id="documento" accept=".pdf,.doc,.docx">
                                 <label for="documento" class="file-upload-label">
                                     <i class="bi bi-cloud-upload me-2"></i>
                                     <span class="file-name">Seleccionar archivo</span>
                                 </label>
-                                <small class="text-muted d-block mt-1">Ningún archivo seleccionado</small>
+                                <small class=" d-block mt-1">Ningún archivo seleccionado</small>
                             </div>
                         </div>
 
@@ -194,7 +189,7 @@ $contenido .= '
                             <input type="checkbox" id="confirmacion" name="confirmacion" required>
                             <label for="confirmacion">
                                 <strong>Confirmación / Declaración</strong><br>
-                                <small class="text-muted">Confirmo que la información proporcionada es verídica</small>
+                                <small class="">Confirmo que la información proporcionada es verídica</small>
                             </label>
                         </div>
 

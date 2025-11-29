@@ -21,9 +21,6 @@ $carreras = $conn->query("SELECT id_carrera, nombre_carrera FROM carreras ORDER 
 // Áreas
 $areas = $conn->query("SELECT id_area, nombre_area FROM areas_conocimiento ORDER BY nombre_area");
 
-// Subáreas
-$subareas = $conn->query("SELECT id_subarea, id_area, nombre_subarea FROM subareas_conocimiento");
-
 // Niveles SNI
 $nivelesSNI = $conn->query("SELECT id_nivel, nombre FROM niveles_sni");
 
@@ -95,19 +92,6 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
                         <option value="" disabled selected>Seleccione área...</option>
                         <?php while ($a = $areas->fetch_assoc()): ?>
                             <option value="<?= $a['id_area'] ?>"><?= $a['nombre_area'] ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-
-                <!-- SUBÁREA -->
-                <div class="input-group">
-                    <label class="label-select">Subárea de conocimiento</label>
-                    <select name="subarea" id="subarea" required>
-                        <option value="" disabled selected>Seleccione subárea...</option>
-                        <?php while ($s = $subareas->fetch_assoc()): ?>
-                            <option value="<?= $s['id_subarea'] ?>" data-area="<?= $s['id_area'] ?>">
-                                <?= $s['nombre_subarea'] ?>
-                            </option>
                         <?php endwhile; ?>
                     </select>
                 </div>
