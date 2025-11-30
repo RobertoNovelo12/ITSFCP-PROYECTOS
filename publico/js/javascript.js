@@ -215,3 +215,110 @@ if (phone) {
     }
   });
 }
+
+//MODAL
+
+function abrirmodal() {
+  const myModal = new bootstrap.Modal(
+    document.getElementById("mensaje")
+  );
+  myModal.show();
+}
+//VERIFICAR LA CANTIDAD DE ALUMNOS
+const inputLimpiar = document.getElementById("InputFormLimpiar6");
+if (inputLimpiar) {
+document
+  .getElementById("InputFormLimpiar6")
+  .addEventListener("input", function () {
+    const max = 3;
+
+    // Convertimos a número
+    let valor = parseInt(this.value);
+
+    // Si no es número, no hacemos nada
+    if (isNaN(valor)) {
+      this.value = "";
+      return;
+    }
+
+    // Si es mayor que el máximo → corregir automáticamente
+    if (valor > max) {
+      this.value = max;
+    }
+
+    // Evita ingresar más de 1 dígito
+    if (this.value.length > 1) {
+      this.value = this.value.slice(0, 1);
+    }
+  });
+}
+//ABRIR MODAL DE RECHAZO CIERRE
+function abrirRechazo(id) {
+  // Insertar ID dentro del input hidden del modal
+  document.getElementById("idProyectoRechazoCierre").value = id;
+
+  // Abrir el modal
+  var modal = new bootstrap.Modal(
+    document.getElementById("modalRechazoCierre")
+  );
+  modal.show();
+}
+//ABRIR MODAL DE RECHAZO CREACIÓN
+function abrirRechazoCreacion(id) {
+  document.getElementById("idProyectoRechazoCreacion").value = id;
+  var modal = new bootstrap.Modal(
+    document.getElementById("modalRechazoCreacion")
+  );
+  modal.show();
+}
+//ABRIR MODAL DE COMENTARIOS
+
+document.addEventListener("click", async function (e) {
+  let btn = e.target.closest(".btn-comentarios");
+  if (!btn) return; // No se hizo clic en el botón
+
+  let id = btn.getAttribute("data-id");
+  document.getElementById("idProyectoComentarios").value = id;
+
+  //Petición AJAX
+  let res = await fetch("/ITSFCP-PROYECTOS/Ajax/comentarios.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "id=" + id,
+  });
+
+  let datos = await res.json();
+
+  let accordion = document.getElementById("comentariosAccordion");
+  accordion.innerHTML = "";
+
+  if (datos.length === 0) {
+    accordion.innerHTML = "<p>No hay comentarios.</p>";
+  } else {
+    datos.forEach((c, index) => {
+      accordion.innerHTML += `
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading${index}">
+                    <button class="accordion-button collapsed" 
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapse${index}">
+                        <strong>${c.tipo} — ${c.fecha}</strong>
+                    </button>
+                </h2>
+                <div id="collapse${index}" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <p><strong>Supervisor:</strong> ${c.nombre_completo}</p>
+                        <p><strong>Comentario:</strong> ${c.comentario}</p>
+                    </div>
+                </div>
+            </div>`;
+    });
+  }
+
+  // Abrir el modal
+  let modal = new bootstrap.Modal(document.getElementById("modalComentarios"));
+  modal.show();
+});
