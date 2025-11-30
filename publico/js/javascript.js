@@ -322,3 +322,12 @@ document.addEventListener("click", async function (e) {
   let modal = new bootstrap.Modal(document.getElementById("modalComentarios"));
   modal.show();
 });
+
+//ABRIR MODAL DE MENSAJE
+function abrirMensaje() {
+  document.addEventListener("DOMContentLoaded", function () {
+    const myModal = new bootstrap.Modal(document.getElementById("mensaje"));
+    myModal.show();
+  });
+}
+
