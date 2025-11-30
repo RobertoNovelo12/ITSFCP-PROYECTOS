@@ -37,7 +37,7 @@ function crearLink($nombre, $rol) {
 // Menús por rol
 $mainMenu = $middleMenu = $submenuProyectos = $submenuMisAlumnos = $submenuVerMas = $footerMenus = [];
 
-if ($rol === "estudiante") {
+if ($rol === "estudiante" ||  $rol ==="alumno") {
     $mainMenu = ["Principal","Dashboard"];
     $submenuProyectos = ["Seguimiento","Tareas"];
     $submenuVerMas = ["Solicitudes","Documentos","Plan de trabajo","Constancias"];
