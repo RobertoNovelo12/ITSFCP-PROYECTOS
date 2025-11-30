@@ -2271,6 +2271,25 @@ select:focus {
   }
 }
 
+
+@media (min-width: 1024px) {
+    /* Estilos para laptops y computadoras */
+  .table-responsive {
+    display: block;
+  }
+
+  #tarjeta_móvil{
+    display: none;
+  }
+
+  #crear_busqueda {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+  }
+}
+
 .container-ajustes {
   max-width: 1400px;
   margin: 0 auto;
