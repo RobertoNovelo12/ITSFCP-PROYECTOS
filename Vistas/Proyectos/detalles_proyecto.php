@@ -127,7 +127,7 @@ $contenido = '
                 <div class="card-header-proyecto">
                     <h6 class="mb-0 fw-bold">Información del Proyecto</h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="border-radius: 0 0 10px 10px !important;">
                     <div class="info-item mb-3">
                         <small class="info-label">Temática</small>
                         <span>'.mostrarValor($proyecto['tematica']).'</span>
@@ -212,6 +212,54 @@ function toggleSection(sectionId) {
 
 $stmt->close();
 $conn->close();
+
+// después de generar $contenido (antes de stmt->close etc.) agrega:
+$mensajeModal = null;
+if (isset($_GET['solicitud'])) {
+    $code = $_GET['solicitud'];
+    if ($code === 'sent') {
+        $mensajeModal = [
+            'title' => '¡Solicitud enviada!',
+            'body'  => 'Tu solicitud ha sido enviada correctamente. El investigador la revisará y recibirás una respuesta.'
+        ];
+    } elseif ($code === 'pending') {
+        $mensajeModal = [
+            'title' => 'Solicitud pendiente',
+            'body'  => 'Ya tienes una solicitud pendiente para este proyecto. Espera a que sea procesada por el investigador.'
+        ];
+    } elseif ($code === 'accepted') {
+        $mensajeModal = [
+            'title' => 'Solicitud aceptada',
+            'body'  => 'Tu solicitud ya fue aceptada anteriormente para este proyecto.'
+        ];
+    } else {
+        $mensajeModal = [
+            'title' => 'Atención',
+            'body'  => 'Ocurrió un problema al enviar tu solicitud. Intenta más tarde.'
+        ];
+    }
+}
+
+if ($mensajeModal) {
+    $contenido .= '
+    <div class="modal-overlay" id="modalSolicitud" style="display:flex;">
+        <div class="modal-content">
+            <h2>'.htmlspecialchars($mensajeModal["title"]).'</h2>
+            <p>'.htmlspecialchars($mensajeModal["body"]).'</p>
+            <button class="submit-btn" onclick="cerrarModalSolicitud()">Aceptar</button>
+        </div>
+    </div>
+
+    <script>
+        function cerrarModalSolicitud() {
+            // redirige a la misma página quitando parámetros
+            const url = new URL(window.location.href);
+            url.searchParams.delete("solicitud");
+            window.location.href = url.toString();
+        }
+    </script>
+    ';
+}
 
 include __DIR__ . '/../../layout.php';
 ?>

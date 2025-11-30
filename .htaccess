@@ -1,0 +1,8 @@
+# Usar páginas personalizadas
+ErrorDocument 404 /ITSFCP-PROYECTOS/publico/error_404.php
+ErrorDocument 500 /ITSFCP-PROYECTOS/publico/error.php
+ErrorDocument 403 /ITSFCP-PROYECTOS/publico/error.php
+
+# No mostrar errores PHP al usuario
+php_flag display_errors Off
+php_flag log_errors On

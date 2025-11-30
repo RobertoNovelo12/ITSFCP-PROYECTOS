@@ -362,7 +362,7 @@ html.dark-mode .avatar-arrow {
 }
 
 .sidebar a:hover {
-  color: var(--color-primario);
+  color: var(--color-texto-secundario);
 }
 
 /* ====================================================
@@ -2517,9 +2517,15 @@ select:focus {
 }
 
 .detalle-header h5 {
-  color: var(--color-primario);
+  color: var(--color-texto-secundario);
   font-weight: 600;
   font-size: 1.1rem;
+}
+
+.card{
+  border-radius: 0% !important;
+  border: none !important;
+  background: none !important;
 }
 
 .toggle-icon {
