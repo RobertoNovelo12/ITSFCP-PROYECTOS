@@ -355,17 +355,10 @@ $opciones = $proyectoControlador->datosopciones($rol, $filtros);
 </div>
 
 <?php include "../../publico/incluido/footer.php"; ?>
-<script>
-
-
-</script>
 <!--- MODAL MENSAJE -->
 <?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const myModal = new bootstrap.Modal(document.getElementById('mensaje'));
-            myModal.show();
-        });
+        abrirMensaje();
     </script>
 <?php unset($_SESSION['mensaje']);
 endif; ?>
