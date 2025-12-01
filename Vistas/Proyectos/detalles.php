@@ -34,7 +34,6 @@ $periodo = $proyectoControlador->obtenerperiodo();
 if ($action == 'registrarProyecto') {
     $proyectoControlador->registrarProyecto($_POST, $id, $rol);
 }
-//Se ejecuta la acción del controlador
 
 }
 ?>
