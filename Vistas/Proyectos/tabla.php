@@ -1,22 +1,5 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-if (isset($_SESSION['rol'])) {
-    $base_url = "/ITSFCP-PROYECTOS/";
-
-    switch (strtolower($_SESSION['rol'])) {
-        case 'alumno':
-            header("Location: {$base_url}Vistas/usuarios/alumno.php");
-            exit;
-        case 'profesor':
-        case 'investigador':
-            header("Location: {$base_url}Vistas/usuarios/profesor.php");
-            exit;
-        case 'supervisor':
-            header("Location: {$base_url}Vistas/usuarios/supervisor.php");
-            exit;
-    }
+session_start();
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 //ACCIONES
@@ -49,7 +32,6 @@ $filtros = $proyectoControlador->filtros($id, $rol);
 $encabezados = $proyectoControlador->encabezados($rol);
 $opciones = $proyectoControlador->datosopciones($rol, $filtros);
 
-}
 ?>
 
 <script>
@@ -112,9 +94,7 @@ $opciones = $proyectoControlador->datosopciones($rol, $filtros);
                                 <?= $label ?>
                             </button>
                         </a>
-                    <?php endforeach;
-                    $proyectoControlador->filtros($id, $rol)
-                    ?>
+                    <?php endforeach;                    ?>
                 </div>
             </div>
             <div class="row mb-1">
@@ -355,6 +335,7 @@ $opciones = $proyectoControlador->datosopciones($rol, $filtros);
 </div>
 
 <?php include "../../publico/incluido/footer.php"; ?>
+
 <!--- MODAL MENSAJE -->
 <?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
     <script>
