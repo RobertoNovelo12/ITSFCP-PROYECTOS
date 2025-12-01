@@ -1582,7 +1582,7 @@ select:focus {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 998;
 }
 
 .modal-content {
@@ -1612,6 +1612,42 @@ select:focus {
   width: 60%;
   margin: 0 auto;
 }
+
+/* ====================================================
+   MODAL FULLSCREEN EN MOBILE
+   ==================================================== */
+@media (max-width: 768px) {
+
+    .modal-overlay {
+        align-items: flex-start !important; /* El modal inicia arriba */
+        justify-content: center;
+    }
+
+    .modal-content-evento,
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: calc(100vh - 60px) !important; /* Deja espacio para el header */
+        margin-top: 60px; /* Altura aproximada del header */
+        border-radius: 0 !important;
+        padding: 1.2rem !important;
+        overflow-y: auto !important;
+        animation: none; /* Quita animación si estorba */
+    }
+
+    .large-modal {
+        width: 100% !important;
+        height: calc(100vh - 60px) !important;
+        max-height: none !important;
+    }
+
+    .close-modal {
+        top: 15px !important;
+        right: 20px !important;
+        font-size: 30px !important;
+    }
+}
+
 
 /* ===========================
    MODAL DE EVENTO
