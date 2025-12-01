@@ -1,25 +1,7 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-if (isset($_SESSION['rol'])) {
-    $base_url = "/ITSFCP-PROYECTOS/";
-
-    switch (strtolower($_SESSION['rol'])) {
-        case 'alumno':
-            header("Location: {$base_url}Vistas/usuarios/alumno.php");
-            exit;
-        case 'profesor':
-        case 'investigador':
-            header("Location: {$base_url}Vistas/usuarios/profesor.php");
-            exit;
-        case 'supervisor':
-            header("Location: {$base_url}Vistas/usuarios/supervisor.php");
-            exit;
-    }
+session_start();
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
-
 $action = $_POST['action'] ?? null;
 
 //Se llama al controlador
@@ -34,9 +16,8 @@ $periodo = $proyectoControlador->obtenerperiodo();
 if ($action == 'registrarProyecto') {
     $proyectoControlador->registrarProyecto($_POST, $id, $rol);
 }
-//Se ejecuta la acción del controlador
 
-}
+
 ?>
 <?php include '../../publico/incluido/header.php'; ?>
 <div class="container-main">
@@ -175,11 +156,11 @@ if ($action == 'registrarProyecto') {
 </div>
 <?php include "../../publico/incluido/footer.php"; ?>
 <?php if (isset($_GET['msg']) && $_GET['msg'] == 'creado'): ?>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    new bootstrap.Modal(document.getElementById('mensaje')).show();
-});
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            new bootstrap.Modal(document.getElementById('mensaje')).show();
+        });
+    </script>
 <?php endif; ?>
 
 <script>
