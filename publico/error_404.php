@@ -91,7 +91,7 @@ session_start();
         <h2>Página no encontrada</h2>
         <p>Parece que la página que buscas no existe o fue movida.</p>
 
-        <a href="/ITSFCP-PROYECTOS/index.php">Volver al inicio</a>
+        <a href="/ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php">Volver al inicio</a>
     </div>
 
 </body>
