@@ -170,7 +170,7 @@ class ProyectoControlador
     //Para obtener el número del filtro de la tabla
     public function numerofiltro($action)
     {
-        
+
         $numerofiltro = 0;
         switch ($action) {
             case 'Total':
@@ -300,7 +300,7 @@ class ProyectoControlador
 
     public function obtenerbotones($tipo, $id_proyecto)
     {
-        $boton ="";
+        $boton = "";
         switch ($tipo) {
             case 'Detalles':
                 $boton = '<a href="detalles.php?id_proyectos=' . $id_proyecto . '"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -308,7 +308,7 @@ class ProyectoControlador
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></button></a>';
                 break;
             case 'Tareas':
-                $boton = '<a href="tareas.php?id_proyectos=' . $id_proyecto . '"><button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                $boton = '<a href="../Tareas/tabla.php?id_proyectos=' . $id_proyecto . '"><button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
         data-bs-title="Tareas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-task" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
   <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/><path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5zM2 7h1v1H2zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm1 .5H2v1h1z"/></svg></button></a>';
                 break;
@@ -497,7 +497,7 @@ class ProyectoControlador
         return $proyecto->obtenerinstituto();
     }
 
-    public function registrarProyecto($data, $id, $rol)
+    public function registrarProyecto($datos, $id, $rol)
     {
         $periodoData = $this->obtenerperiodo();
         $periodo = $periodoData[0]; // tomas el primer registro
@@ -507,11 +507,11 @@ class ProyectoControlador
             if ($estado_periodo == "Activo" && $estado_periodo != "") {
                 if ($rol == "investigador" || $rol == "profesor") {
 
-                    $action = $data['action'] ?? '';
+                    $action = $datos['action'] ?? '';
 
                     $id_investigador = $id;
                     $id_estadoP = 3;
-                    $id_tematica = $data['Tematica'];
+                    $id_tematica = $datos['Tematica'];
                     if ($id_tematica == "") {
                         die("Se debe elegir una temática");
                     }
@@ -519,21 +519,20 @@ class ProyectoControlador
                     $instituto = $institutoData[0]; // tomas el primer registro
                     $id_instituto = $instituto['id_instituto'];
                     $id_periodos = $periodo["id_periodos"];
-                    $titulo = $data['NombreProyecto'];
-                    $descripcion = $data['Descripcion'];
-                    $objetivo = $data['Objetivos'];
-                    $fecha_inicio = $data['FechaInicio'];
-                    $fecha_final = $data['FechaFinal'];
-                    $presupuesto = $data['Presupuesto'];
+                    $titulo = $datos['NombreProyecto'];
+                    $descripcion = $datos['Descripcion'];
+                    $objetivo = $datos['Objetivos'];
+                    $fecha_inicio = $datos['FechaInicio'];
+                    $fecha_final = $datos['FechaFinal'];
+                    $presupuesto = $datos['Presupuesto'];
 
-                    $actualizado_en = null;
-                    $requisitos = $data['Requisitos'];
+                    $requisitos = $datos['Requisitos'];
 
-                    $Pre_requisitos = $data['Pre_requisitos'];
-                    $AlumnosCantidad = $data['AlumnosCantidad'];
+                    $Pre_requisitos = $datos['Pre_requisitos'];
+                    $AlumnosCantidad = $datos['AlumnosCantidad'];
 
-                    $modalidad = $data['Modalidad'];
-                    $id_subtematica = $data['Subtematica'];
+                    $modalidad = $datos['Modalidad'];
+                    $id_subtematica = $datos['Subtematica'];
 
                     if ($id_subtematica == "") {
                         die("Se debe elegir una Subtematica");
@@ -542,7 +541,7 @@ class ProyectoControlador
                         global $conn;
                         $proyecto = new Proyectos($conn);
                         $proyecto->actualizarProyectosVencidos();
-                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $actualizado_en, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_subtematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
                     }
                 } else {
                     die("El usuario no tiene permiso para crear el proyecto");
@@ -554,6 +553,62 @@ class ProyectoControlador
             die("Los datos no fueron enviados ha acabado para registrar proyectos");
         }
     }
+
+    /* EDITAR PROYECTO */
+    public function editarProyecto($datos, $id_usuario, $rol)
+    {
+        $periodoData = $this->obtenerperiodo();
+        $periodo = $periodoData[0]; 
+        $estado_periodo = $periodo["estado"]; 
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if ($estado_periodo == "Activo" && $estado_periodo != "") {
+                if ($rol == "investigador" || $rol == "profesor") {
+                    
+                    $action = $datos['action'] ?? '';
+                    
+                    $id_proyecto = $datos['id_proyectos'];
+                    $id_investigador = $id_usuario;
+                    $id_tematica = $datos['Tematica'];
+                    if ($id_tematica == "") {
+                        die("Se debe elegir una temática");
+                    }
+                    
+                    $titulo = $datos['NombreProyecto'];
+                    $descripcion = $datos['Descripcion'];
+                    $objetivo = $datos['Objetivos'];
+                    $fecha_inicio = $datos['FechaInicio'];
+                    $fecha_final = $datos['FechaFinal'];
+                    $presupuesto = $datos['Presupuesto'];
+
+                    $requisitos = $datos['Requisitos'];
+
+                    $Pre_requisitos = $datos['Pre_requisitos'];
+                    $AlumnosCantidad = $datos['AlumnosCantidad'];
+
+                    $modalidad = $datos['Modalidad'];
+                    $id_subtematica = $datos['Subtematica'];
+
+                    if ($id_subtematica == "") {
+                        die("Se debe elegir una Subtematica");
+                    }
+
+                    if ($action == 'editarProyecto') {
+                        global $conn;
+                        $proyecto = new Proyectos($conn);
+                        $proyecto->editarProyecto($id_proyecto, $id_investigador, $id_tematica, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+                    }
+                } else {
+                    die("El usuario no tiene permiso para crear el proyecto");
+                }
+            } else {
+                die("El periodo ha acabado para registrar proyectos");
+            }
+        } else {
+            die("Los datos no fueron enviados ha acabado para registrar proyectos");
+        }
+    }
+
 
     /* ACCIÓN DE RECHAZAR CIERRE */
     public function actualizarestadoRechazo($data, $id_usuario, $rol) //En vez de buscar será el motivo
@@ -584,21 +639,20 @@ class ProyectoControlador
     }
     //Actualizar estado de proyectos sin comentarios
     public function actualizarestado($id_proyecto, $rol, $tipo)
-    { 
-            if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-                if ($rol == "supervisor" || $rol == "investigador" || $rol == "profesor") {
-                        global $conn;
-                        $proyecto = new Proyectos($conn);
-                        $proyecto->actualizarProyectosVencidos();
-                        $numeroEstado = $this->numerofiltro($tipo);
-                        $proyecto->actualizarestado($id_proyecto, $numeroEstado);
-
-                } else {
-                    die("El usuario no tiene permiso para crear el proyecto");
-                }
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            if ($rol == "supervisor" || $rol == "investigador" || $rol == "profesor") {
+                global $conn;
+                $proyecto = new Proyectos($conn);
+                $proyecto->actualizarProyectosVencidos();
+                $numeroEstado = $this->numerofiltro($tipo);
+                $proyecto->actualizarestado($id_proyecto, $numeroEstado);
             } else {
-                die("Los datos no fueron enviados");
+                die("El usuario no tiene permiso para crear el proyecto");
             }
+        } else {
+            die("Los datos no fueron enviados");
+        }
     }
 
     public function datosproyecto($id_proyecto)
