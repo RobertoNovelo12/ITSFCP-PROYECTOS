@@ -105,7 +105,7 @@ body {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--borde-menu);
-  z-index: 90;
+  z-index: 99999;
 }
 
 .logo {
@@ -349,7 +349,7 @@ html.dark-mode .avatar-arrow {
   flex-direction: column;
   overflow-y: overlay;
   overflow-x: hidden;
-  z-index: 50;
+  z-index: 9990;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   transition: width 0.3s ease;
@@ -1582,7 +1582,7 @@ select:focus {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 998;
+  z-index: 90;
 }
 
 .modal-content {
