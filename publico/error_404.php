@@ -1,12 +1,6 @@
 <?php
 session_start();
 
-// Si hay sesión activa, manda a dashboard
-if (isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php");
-    exit;
-}
-
 // Si NO hay sesión, mostrar página de error personalizada
 ?>
 <!DOCTYPE html>
