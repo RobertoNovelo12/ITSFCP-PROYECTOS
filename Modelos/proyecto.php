@@ -62,6 +62,7 @@ WHERE estu.id_usuario = ? ";
                 $params = [$id];
                 $types  = "i";
                 break;
+            case 'profesor':
             case 'investigador':
                 $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, COUNT(CASE WHEN tbse.id_estadoT = 2 THEN 1 END) AS total FROM gestion_proyectos.proyectos as proy 
 JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
@@ -596,21 +597,22 @@ LIMIT 1;";
     }
 
     //INSERCION DE PROYECTOS
-    public function registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $actualizado_en = null, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
+    public function registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_subtematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
     {
 
         $sql = "INSERT INTO proyectos 
-(id_investigador, id_estadoP, id_tematica, id_instituto, id_periodos, titulo, descripcion, objetivo, fecha_inicio, fecha_fin, presupuesto, actualizado_en, requisitos, pre_requisitos, modalidad, cantidad_estudiante)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+(id_investigador, id_estadoP, id_tematica, id_subtematica, id_instituto, id_periodos, titulo, descripcion, objetivo, fecha_inicio, fecha_fin, presupuesto, actualizado_en, requisitos, pre_requisitos, modalidad, cantidad_estudiante)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
             die("Error en prepare(): " . $this->con->error);
         }
         $stmt->bind_param(
-            "iiiiissssssssssi",
+            "iiiiiissssssssssi",
             $id_investigador,
             $id_estadoP,
             $id_tematica,
+            $id_subtematica,
             $id_instituto,
             $id_periodos,
             $titulo,
@@ -619,11 +621,11 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $fecha_inicio,
             $fecha_final,
             $presupuesto,
-            $actualizado_en,
             $requisitos,
             $Pre_requisitos,
             $modalidad,
-            $AlumnosCantidad
+            $AlumnosCantidad,
+
         );
 
         if (!$stmt) {
@@ -636,6 +638,56 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         header("Location: crear.php?msg=creado");
         exit();
     }
+
+    //ACTUALIZAR PROYECTO
+    public function editarProyecto($id_proyecto, $id_investigador, $id_tematica, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
+    {
+        $sql = "UPDATE proyectos SET 
+                titulo = ?,
+                descripcion = ?,
+                objetivo = ?,
+                pre_requisitos = ?,
+                requisitos = ?,
+                cantidad_estudiante = ?,
+                id_tematica = ?,
+                modalidad = ?,
+                actualizado_en = NOW(),
+                presupuesto = ?,
+                fecha_inicio = ?,
+                fecha_fin = ?
+            WHERE id_proyectos = ? AND id_investigador = ?";
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            die("Error en prepare(): " . $this->con->error);
+        }
+        $stmt->bind_param(
+            "sssssiisissii",
+            $titulo,
+            $descripcion,
+            $objetivo,
+            $Pre_requisitos,
+            $requisitos,
+            $AlumnosCantidad,
+            $id_tematica,
+            $modalidad,
+            $presupuesto,
+            $fecha_inicio,
+            $fecha_final,
+            $id_proyecto,
+            $id_investigador
+        );
+
+        if (!$stmt) {
+            die("Error en prepare(): " . $this->con->error);
+        }
+
+        if (!$stmt->execute()) {
+            die("Error en execute(): " . $stmt->error);
+        }
+        header("Location: editar.php?msg=mensaje&id_proyectos=" . $id_proyecto);
+        exit();
+    }
+
 
     //ACCIÓN DE RECHAZO DE CIERRE
     public function actualizarEstadoProyectoRechazo($id_usuario, $id_proyectos, $tipo, $comentario)
@@ -682,8 +734,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     public function actualizarestado($id_proyectos, $numeroEstado)
     {
         $sql = "UPDATE proyectos SET id_estadoP = ?, actualizado_en = NOW() WHERE id_proyectos = ?";
-        $stmt = $this->con->prepare($sql);
 
+        $stmt = $this->con->prepare($sql);
         $stmt->bind_param("ii", $numeroEstado, $id_proyectos);
         if (!$stmt) {
             die("Error en prepare(): " . $this->con->error);
@@ -692,6 +744,30 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         if (!$stmt->execute()) {
             die("Error en execute(): " . $stmt->error);
         }
+
+        if ($numeroEstado == 2) {
+            //Revisar la ID de los tipos de tareas. Con esto se crean las tareas según la bd.
+            $sqlTipos = "SELECT id_tareatipo FROM tipo_tarea ORDER BY id_tareatipo ASC";
+            $result = $this->con->query($sqlTipos);
+
+            while ($row = $result->fetch_assoc()) {
+                $id_tipo = $row['id_tareatipo'];
+
+                $sql = "INSERT INTO tbl_seguimiento 
+            (id_proyectos, id_estadoT, id_tareatipo, fecha_revision, fecha_entrega, archivo_guia)
+            VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt = $this->con->prepare($sql);
+                if (!$stmt) {
+                    die("Error prepare(): " . $this->con->error);
+                }
+                $stmt->bind_param("iiisss", $id_proyectos, 4, $id_tipo, null, null, null);
+
+                if (!$stmt->execute()) {
+                    die("Error execute(): " . $stmt->error);
+                }
+            }
+        }
+
         header("Location: tabla.php?msg=mensaje");
         exit;
     }
@@ -699,7 +775,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     //DETALLES DEL PROYECTO
     function obtenerProyecto($id_proyecto)
     {
-        $sql = "SELECT espr.nombre as estado_proyecto, tema.nombre_tematica as tematica, subt.nombre_subtematica as subtematica, peri.periodo, CASE WHEN CURDATE() BETWEEN peri.fecha_inicio AND peri.fecha_final THEN 'Activo' WHEN CURDATE() < peri.fecha_inicio THEN 'Terminado' ELSE 'Terminado'  END AS estado_periodo, proy.titulo, proy.descripcion, proy.objetivo, proy.fecha_inicio, proy.fecha_fin, proy.presupuesto, proy.creado_en, proy.requisitos, proy.pre_requisitos, proy.modalidad, proy.cantidad_estudiante FROM gestion_proyectos.proyectos as proy
+        $sql = "SELECT proy.id_proyectos, espr.nombre as estado_proyecto, tema.nombre_tematica as tematica, subt.nombre_subtematica as subtematica, peri.periodo, CASE WHEN CURDATE() BETWEEN peri.fecha_inicio AND peri.fecha_final THEN 'Activo' WHEN CURDATE() < peri.fecha_inicio THEN 'Terminado' ELSE 'Terminado'  END AS estado_periodo, proy.titulo, proy.descripcion, proy.objetivo, proy.fecha_inicio, proy.fecha_fin, proy.presupuesto, proy.creado_en, proy.requisitos, proy.pre_requisitos, proy.modalidad, proy.cantidad_estudiante FROM gestion_proyectos.proyectos as proy
 JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP
 JOIN tematica as tema ON tema.id_tematica = proy.id_tematica
 JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica
