@@ -4,11 +4,14 @@ include("conexion.php");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // ============================
+    // LIMPIAR Y OBTENER DATOS
+    // ============================
     $nombre = trim($_POST['nombre']);
     $apellido_paterno = trim($_POST['apellido_paterno']);
     $apellido_materno = trim($_POST['apellido_materno']);
-    $curp = trim($_POST['curp']);
-    $correo = trim($_POST['correo']);
+    $curp = strtoupper(trim($_POST['curp'])); // CURP en mayúsculas
+    $correo = strtolower(trim($_POST['correo'])); // Correo en minúsculas
     $telefono = trim($_POST['telefono']);
     $dia = (int)$_POST['dia'];
     $mes = (int)$_POST['mes'];
@@ -17,12 +20,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['contraseña']);
     $confirmar = trim($_POST['confirmar']);
 
+    // ============================
+    // VALIDACIONES BÁSICAS
+    // ============================
+    if (empty($nombre) || empty($apellido_paterno) || empty($apellido_materno)) {
+        die("Debes ingresar tu nombre completo.");
+    }
+
+    if (empty($curp) || empty($correo) || empty($password) || empty($confirmar)) {
+        die("CURP, correo y contraseña son obligatorios.");
+    }
+
     if ($password !== $confirmar) {
         die("Las contraseñas no coinciden.");
     }
 
+    // Validar fecha
+    if (!checkdate($mes, $dia, $anio)) {
+        die("Fecha de nacimiento inválida.");
+    }
+
     $fecha_nacimiento = sprintf('%04d-%02d-%02d', $anio, $mes, $dia);
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
+    // ============================
+    // VALIDAR DUPLICADOS
+    // ============================
+    $stmtCheck = $conn->prepare("
+        SELECT id_usuarios 
+        FROM usuarios 
+        WHERE curp = ? OR correo_institucional = ? OR (nombre = ? AND apellido_paterno = ? AND apellido_materno = ?)
+        LIMIT 1
+    ");
+    $stmtCheck->bind_param("sssss", $curp, $correo, $nombre, $apellido_paterno, $apellido_materno);
+    $stmtCheck->execute();
+    $stmtCheck->store_result();
+
+    if ($stmtCheck->num_rows > 0) {
+        die("Ya existe esa cuenta, por favor inicia sesión con tus credenciales.");
+    }
+
+    $stmtCheck->close();
 
     // ============================
     // INSERTAR USUARIO
@@ -52,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['id_usuario'] = $idUsuario;
 
         // ============================
-        // INSERTAR CONFIGURACIONES POR DEFECTO
+        // CONFIGURACIONES POR DEFECTO
         // ============================
         $stmtConfig = $conn->prepare("
             INSERT INTO configuraciones
@@ -61,13 +99,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 localidad,
                 fecha_nacimiento,
                 institucion_academica,
-
                 notif_todas,
                 notif_tareas_nuevas,
                 notif_tareas_atrasadas,
                 notif_modificaciones_proyecto,
                 notif_admin_proyecto,
-
                 priv_ver_tareas,
                 priv_ver_proyectos,
                 priv_ver_datos
