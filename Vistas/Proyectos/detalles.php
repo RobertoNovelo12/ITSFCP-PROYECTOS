@@ -1,24 +1,8 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-if (isset($_SESSION['rol'])) {
-    $base_url = "/ITSFCP-PROYECTOS/";
-
-    switch (strtolower($_SESSION['rol'])) {
-        case 'alumno':
-            header("Location: {$base_url}Vistas/usuarios/alumno.php");
-            exit;
-        case 'profesor':
-        case 'investigador':
-            header("Location: {$base_url}Vistas/usuarios/profesor.php");
-            exit;
-        case 'supervisor':
-            header("Location: {$base_url}Vistas/usuarios/supervisor.php");
-            exit;
-    }
+session_start();
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
+$id_proyecto = $_GET["id_proyectos"];
 
 $action = $_POST['action'] ?? null;
 
@@ -28,13 +12,11 @@ require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
+$proyectos = $proyectoControlador->datosproyecto($id_proyecto);
+$investigador = $proyectoControlador->datosinvestigador($id_proyecto);
 
-$tematica = $proyectoControlador->tematica();
-$periodo = $proyectoControlador->obtenerperiodo();
-if ($action == 'registrarProyecto') {
-    $proyectoControlador->registrarProyecto($_POST, $id, $rol);
-}
-
+if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
+    $estudiantes = $proyectoControlador->datosestudiantes($id_proyecto);
 }
 ?>
 <?php include '../../publico/incluido/header.php'; ?>
@@ -43,166 +25,225 @@ if ($action == 'registrarProyecto') {
     <div class="main-content-index">
         <div class="row mb-1">
             <div class="col-6">
-                <h3>Crear Proyecto</h3>
+                <h3>Detalles del Proyecto</h3>
             </div>
             <div class="col-6 text-end">
                 <a href="tabla.php" class="btn btn-danger">Regresar</a>
             </div>
-            <form method="POST" id="formProyecto" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/crear.php">
-                <input type="hidden" id="input_hidden" name="action" value="registrarProyecto">
-                <div class="row mb-1">
-                    <h5>Información de proyectos</h5>
+            <div class="row mb-1">
+                <h5>Información de proyectos</h5>
+                <?php foreach ($proyectos as $proyecto): ?>
                     <div class="mb-3">
                         <label for="exampleFormControlInput1" class="form-label">Nombre del proyecto</label>
-                        <input type="text" class="form-control" name="NombreProyecto" id="InputFormLimpiar1" required>
+                        <input type="text" disabled class="form-control" id="InputFormLimpiar1" value="<?php echo $proyecto['titulo']; ?>">
                     </div>
                     <div class="mb-3">
                         <label for="exampleFormControlTextarea1" class="form-label">Descripcion breve</label>
-                        <textarea class="form-control" name="Descripcion" id="InputFormLimpiar2" rows="3" required></textarea>
+                        <textarea class="form-control" disabled id="InputFormLimpiar2" rows="3"><?php echo $proyecto['descripcion']; ?></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="exampleFormControlTextarea1" class="form-label">Objetivos</label>
-                        <textarea class="form-control" name="Objetivos" id="InputFormLimpiar3" rows="3" required></textarea>
+                        <textarea class="form-control" disabled id="InputFormLimpiar3" rows="3"><?php echo $proyecto['objetivo']; ?></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="exampleFormControlTextarea1" class="form-label">Pre-requisitos</label>
-                        <textarea class="form-control" name="Pre_requisitos" id="InputFormLimpiar4" rows="3" required></textarea>
+                        <textarea class="form-control" disabled id="InputFormLimpiar4" rows="3"><?php echo $proyecto['pre_requisitos']; ?></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="exampleFormControlTextarea1" class="form-label">Requisitos</label>
-                        <textarea class="form-control" name="Requisitos" id="InputFormLimpiar5" rows="3" required></textarea>
+                        <textarea class="form-control" disabled id="InputFormLimpiar5" rows="3"><?php echo $proyecto['requisitos']; ?></textarea>
+                    </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Cantidad alumnos permitidos</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['cantidad_estudiante']; ?>">
                     </div>
                 </div>
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="InputFormLimpiar6" class="form-label">Cantidad alumnos permitidos</label>
-                            <input type="number" class="form-control" name="AlumnosCantidad" id="InputFormLimpiar6" aria-describedby="Cantidad alumnos" min="0" max="3" required>
-                        </div>
-                    </div>
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="select1" class="form-label">Temática</label>
-                            <select class="form-select" name="Tematica" id="select1" aria-label="Default select example">
-                                <option value=''>Seleccione una temática</option>
-                                <?php foreach ($tematica as $tema): ?>
-                                    <option value="<?php echo $tema['id_tematica'] ?>"><?php echo $tema['nombre_tematica'] ?></option>
-                                <?php endforeach ?>
-                            </select>
-                        </div>
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Temática</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['tematica']; ?>">
                     </div>
                 </div>
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="floatingSelectGrid" class="form-label">Modalidad</label>
-                            <select class="form-select" id="floatingSelectGrid" name="Modalidad" aria-label="Default select example">
-                                <option value="mixto">Mixta</option>
-                                <option value="virtual">Virtual</option>
-                                <option value="fisico">Físico</option>
-                            </select>
-                        </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Modalidad</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['modalidad']; ?>">
                     </div>
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="select2" class="form-label">Subtemática</label>
-                            <select class="form-select" name="Subtematica" id="select2" aria-label="Default select example">
 
-                            </select>
+                </div>
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Subtemática</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['subtematica']; ?>">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Presupuesto</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['presupuesto']; ?>">
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Periodo</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['periodo'] . ' - ' . $proyecto['estado_periodo'];  ?>">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Fecha inicio</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['fecha_inicio']; ?>">
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Fecha final</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['fecha_fin']; ?>">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Estado</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['estado_proyecto']; ?>">
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Fecha de creación</label>
+                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['creado_en']; ?>">
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+        <div class="col-12">
+            <h5>Información del investigador</h5>
+        </div>
+        <div class="row mb-1">
+
+            <?php foreach ($investigador as $invest): ?>
+                <div class="row mb-1">
+                    <div class="col-md">
+                        <div class="mb-3">
+                            <label for="exampleFormControlInput1" class="form-label">Nombre completo</label>
+                            <input type="text" disabled class="form-control" id="InputFormLimpiar1" value="<?php echo $invest['nombre'] . ' ' . $invest['apellido_paterno'] . ' ' . $invest['apellido_materno']; ?>">
+                        </div>
+                    </div>
+                    <div class="col-md">
+                        <div class="mb-3">
+                            <label for="exampleFormControlTextarea1" class="form-label">Área de conocimientos</label>
+                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['area_conocimiento']; ?>"></input>
                         </div>
                     </div>
                 </div>
                 <div class="row mb-1">
                     <div class="col-md">
                         <div class="mb-3">
-                            <label for="InputFormLimpiar7" class="form-label">Presupuesto</label>
-                            <input type="number" class="form-control" name="Presupuesto" id="InputFormLimpiar7" aria-describedby="Presupuesto" min="0" required>
+                            <label for="exampleFormControlTextarea1" class="form-label">Subárea de conomientos</label>
+                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['subarea']; ?>"></input>
                         </div>
                     </div>
                     <div class="col-md">
                         <div class="mb-3">
-                            <label for="InputFormLimpiar7" class="form-label">Periodo</label>
-                            <?php foreach ($periodo as $pe): ?>
-                                <input type="text" disabled class="form-control" aria-describedby="Periodo" value="<?php echo ($pe['periodo'] . " - " . $pe['estado']) ?>">
-                            <?php endforeach ?>
+                            <label for="exampleFormControlTextarea1" class="form-label">Nivel de SNI</label>
+                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['nivel_sni']; ?>"></input>
                         </div>
                     </div>
                 </div>
                 <div class="row mb-1">
                     <div class="col-md">
                         <div class="mb-3">
-                            <label for="InputFormLimpiar8" class="form-label">Fecha inicio</label>
-                            <?php foreach ($periodo as $pe): ?>
-                                <input type="date" class="form-control" name="FechaInicio" id="InputFormLimpiar8" aria-describedby="FechaInicio" min="<?php echo $pe['FechaInicio'] ?>" max="<?php echo $pe['FechaFinal'] ?>" required>
-                            <?php endforeach ?>
+                            <label for="exampleFormControlTextarea1" class="form-label">Grado acádemico</label>
+                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['grado_academico']; ?>"></input>
                         </div>
                     </div>
                     <div class="col-md">
                         <div class="mb-3">
-                            <label for="InputFormLimpiar9" class="form-label">Fecha final</label>
-                            <?php foreach ($periodo as $pe): ?>
-                                <input type="date" class="form-control" name="FechaFinal" id="InputFormLimpiar9" aria-describedby="FechaFinal" min="<?php echo $pe['FechaInicio'] ?>" max="<?php echo $pe['FechaFinal'] ?>" required>
-                            <?php endforeach ?>
+                            <label for="exampleFormControlTextarea1" class="form-label">Línea de investigación</label>
+                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['linea_investigacion']; ?>"></input>
                         </div>
                     </div>
                 </div>
-                <div class="row mb-1">
-                    <div class="col-12 text-center">
-                        <button type="submit" class="btn btn-primary">Enviar solicitud de proyecto</button>
+            <?php endforeach; ?>
+        </div>
+        <?php if ($rol == "supervisor" || $rol == "profesor" || $rol == "investigador"): ?>
+            <div class="row mb-1">
+                <div class="col-12">
+                    <h5>Estudiantes involucrados</h5>
+                </div>
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table table-light" id="tabla_informacion">
+                            <thead class="text-center">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Carrera</th>
+                                    <th>Área conocimientos</th>
+                                    <th>Subárea conocimientos</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                <?php foreach ($estudiantes as $alumno):
+                                    echo "<tr>";
+                                    echo "<th scope='row'>{$alumno['id_usuarios']}</th>";
+                                    echo "<td>{$alumno['nombre']} {$alumno['apellido_paterno']} {$alumno['apellido_materno']}</td>";
+                                    echo "<td>{$alumno['carrera']}</td>";
+                                    echo "<td>{$alumno['area']}</td>";
+                                    echo "<td>{$alumno['subarea']}</td>";
+                                    echo "</tr>";
+                                endforeach;
+                                ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </form>
+            </div>
+            <?php foreach ($estudiantes as $alumno): ?>
+                <div class="card mb-3" id="tarjeta_móvil" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title"><b><?php echo $alumno['id_usuarios']; ?></b></h5>
+                        <p class="card-text"><b><?php echo $alumno['nombre'] .  ' ' . $alumno['apellido_paterno'] . ' ' . $alumno['apellido_materno']; ?></b></p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-12">
+                                    <label><b>Carrera</b></label>
+                                    <p class="card-text"><?php echo $alumno['carrera']; ?></p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-12">
+                                    <label><b>Área de conocimientos</b></label>
+                                    <p class="card-text"><?php echo $alumno['area']; ?></p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-12">
+                                    <label><b>Subárea de conomientos</b></label>
+                                    <p class="card-text"><?php echo $alumno['subarea']; ?></p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
         </div>
     </div>
-</div>
-<!-- Modal -->
-<div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Proyecto creado y enviado la solicitud correctamente </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <img src="/ITSFCP-PROYECTOS/publico/icons/comprobar.svg" alt="">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<?php include "../../publico/incluido/footer.php"; ?>
-<?php if (isset($_GET['msg']) && $_GET['msg'] == 'creado'): ?>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    new bootstrap.Modal(document.getElementById('mensaje')).show();
-});
-</script>
-<?php endif; ?>
-
-<script>
-    document.getElementById("select1").addEventListener("change", function() {
-        const id = this.value;
-        console.log("ID seleccionado:", id);
-        console.log("URL FETCH:", "/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + id);
-
-        fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + id)
-
-            .then(response => response.json())
-            .then(data => {
-                console.log("Subtemas:", data);
-
-                let select2 = document.getElementById("select2");
-                select2.innerHTML = "";
-
-                data.forEach(item => {
-                    let option = document.createElement("option");
-                    option.value = item.id_subtematica;
-                    option.textContent = item.nombre_subtematica;
-                    select2.appendChild(option);
-                });
-            })
-            .catch(error => console.error("Error en fetch:", error));
-    });
-</script>
+    <?php include "../../publico/incluido/footer.php"; ?>
