@@ -16,6 +16,7 @@ $nombre_user = htmlspecialchars($_SESSION['nombre'] ?? 'Usuario', ENT_QUOTES, 'U
 
 $action = $_GET['action'] ?? 'index';
 $buscar = $_GET['buscar'] ?? '';
+$pagina = intval($_GET['pagina'] ?? 1);
 
 require_once "../../Controladores/proyectoControlador.php";
 $proyectoControlador = new ProyectoControlador();
@@ -38,16 +39,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
 // Obtener proyectos
 $resultado = $proyectoControlador->$action($id_usuario, $rol, $buscar);
 
+// Si viene como JSON, decodificar
+if (is_string($resultado)) {
+    $resultado = json_decode($resultado, true);
+}
+
 if (!is_array($resultado)) {
-    die("Error: La acción '$action' no devolvió un array.");
+    die("Error: La acción '$action' no devolvió un array válido.");
 }
 
 $proyectos = $resultado['proyectos'] ?? [];
 $paginacion = $resultado['paginacion'] ?? [
     'total_proyectos' => count($proyectos),
     'por_pagina' => 6,
-    'pagina' => 1,
-    'total_paginas' => 1
+    'pagina' => $pagina,
+    'total_paginas' => max(1, ceil(count($proyectos) / 6))
 ];
 
 $filtros = $proyectoControlador->filtros($id_usuario, $rol);
@@ -68,7 +74,9 @@ ob_start();
         </div>
         <div class="col-md-6 text-md-end">
             <?php if ($rol == "investigador" || $rol == "profesor"): ?>
-                <a href="crear.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Crear proyecto</a>
+                <a href="crear.php" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Crear proyecto
+                </a>
             <?php endif; ?>
         </div>
     </div>
@@ -78,7 +86,9 @@ ob_start();
         <div class="d-flex flex-wrap gap-2">
             <?php foreach ($opciones as $key => $label): 
                 $clase = ($action === $key) ? "btn btn-primary" : "btn btn-outline-primary"; ?>
-                <a href="tabla.php?action=<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>" class="<?= $clase ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></a>
+                <a href="tabla.php?action=<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>" class="<?= $clase ?>">
+                    <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
+                </a>
             <?php endforeach; ?>
         </div>
     </div>
@@ -88,24 +98,27 @@ ob_start();
         <div class="col-12 col-md-6">
             <form class="d-flex gap-2" method="GET" action="tabla.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action, ENT_QUOTES, 'UTF-8') ?>">
-                <input type="text" name="buscar" class="form-control" placeholder="Buscar..." value="<?= htmlspecialchars($buscar ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                <input type="text" 
+                       name="buscar" 
+                       class="form-control" 
+                       placeholder="Buscar..." 
+                       value="<?= htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') ?>">
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
     </div>
 
-    <!-- TABLA DE PROYECTOS -->
+    <!-- TABLA DE PROYECTOS - Desktop -->
     <div class="row">
         <div class="col-12">
             <?php if (!empty($proyectos)): ?>
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover text-center align-middle">
                         <thead>
                             <tr>
                                 <?php foreach ($encabezados as $encabezado): ?>
                                     <th><?= htmlspecialchars($encabezado ?? '', ENT_QUOTES, 'UTF-8') ?></th>
                                 <?php endforeach; ?>
-                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,8 +130,28 @@ ob_start();
                                     <td><?= $proyecto['fecha_fin'] ?? '-' ?></td>
                                     <td><?= htmlspecialchars($proyecto['nombre'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= $proyecto['periodo'] ?? '-' ?></td>
+
+                                    <!-- Comentarios -->
                                     <td>
-                                        <?= $proyectoControlador->botonesAccion($proyecto['id_proyectos'] ?? 0, $rol, $proyecto['nombre'] ?? '-') ?>
+                                        <button type="button" 
+                                                class="btn btn-info btn-sm btn-comentarios" 
+                                                data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
+                                            <i class="bi bi-chat-dots-fill"></i>
+                                        </button>
+                                    </td>
+
+                                    <!-- Avances -->
+                                    <?php if ($rol == 'alumno' || $rol == 'investigador' || $rol == 'profesor'): ?>
+                                        <td><?= $proyecto['total'] ?? '0' ?></td>
+                                    <?php endif; ?>
+
+                                    <!-- Acciones -->
+                                    <td>
+                                        <?= $proyectoControlador->botonesAccion(
+                                            $proyecto['id_proyectos'] ?? 0, 
+                                            $rol, 
+                                            $proyecto['nombre'] ?? '-'
+                                        ); ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -126,24 +159,26 @@ ob_start();
                     </table>
 
                     <!-- PAGINACIÓN -->
-                    <?php
-                    $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                    $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
-                    ?>
-                    <nav>
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item disabled">
-                                <span class="page-link">
-                                    Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
-                                </span>
-                            </li>
-                            <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                                <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                                    <a class="page-link" href="?action=<?= htmlspecialchars($action, ENT_QUOTES, 'UTF-8') ?>&pagina=<?= $i ?>"><?= $i ?></a>
+                    <?php if ($paginacion['total_paginas'] > 1): ?>
+                        <nav>
+                            <ul class="pagination justify-content-center">
+                                <?php
+                                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
+                                $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
+                                ?>
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
+                                    </span>
                                 </li>
-                            <?php endfor; ?>
-                        </ul>
-                    </nav>
+                                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
+                                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
+                                        <a class="page-link" href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>"><?= $i ?></a>
+                                    </li>
+                                <?php endfor; ?>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
                 </div>
 
                 <!-- TARJETAS MÓVILES -->
@@ -151,14 +186,25 @@ ob_start();
                     <?php foreach ($proyectos as $proyecto): ?>
                         <div class="card mb-3 shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title"><?= $proyecto['id_proyectos'] ?? '-' ?></h5>
-                                <p class="card-text"><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
-                                <p class="mb-1"><strong>Inicio:</strong> <?= $proyecto['fecha_inicio'] ?? '-' ?></p>
-                                <p class="mb-1"><strong>Fin:</strong> <?= $proyecto['fecha_fin'] ?? '-' ?></p>
-                                <p class="mb-1"><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
+                                <h5 class="card-title">ID: <?= $proyecto['id_proyectos'] ?? '-' ?></h5>
+                                <p class="card-text"><strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong></p>
                                 <p><strong>Responsable:</strong> <?= htmlspecialchars($proyecto['nombre'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
-                                <div class="mt-2">
-                                    <?= $proyectoControlador->botonesAccion($proyecto['id_proyectos'] ?? 0, $rol, $proyecto['nombre'] ?? '-') ?>
+                                <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
+                                <p><strong>Inicio:</strong> <?= $proyecto['fecha_inicio'] ?? '-' ?> | <strong>Fin:</strong> <?= $proyecto['fecha_fin'] ?? '-' ?></p>
+                                
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <!-- Botón comentarios -->
+                                    <button type="button" 
+                                            class="btn btn-info btn-sm btn-comentarios" 
+                                            data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
+                                        <i class="bi bi-chat-dots-fill"></i> Comentarios
+                                    </button>
+
+                                    <?= $proyectoControlador->botonesAccion(
+                                        $proyecto['id_proyectos'] ?? 0, 
+                                        $rol, 
+                                        $proyecto['nombre'] ?? '-'
+                                    ); ?>
                                 </div>
                             </div>
                         </div>
@@ -166,18 +212,34 @@ ob_start();
                 </div>
 
             <?php else: ?>
-                <div class="alert alert-info">No hay proyectos para mostrar.</div>
+                <div class="alert alert-info text-center">
+                    No hay proyectos para mostrar<?= !empty($buscar) ? ' con el criterio "' . htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') . '"' : '' ?>.
+                </div>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    [...tooltipTriggerList].forEach(t => new bootstrap.Tooltip(t));
-});
-</script>
+<!-- MODAL COMENTARIOS CENTRAL -->
+<div class="modal fade" id="modalComentarios" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Comentarios del Proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="comentariosAccordion">
+                    <!-- Los comentarios se cargarán aquí desde javascript.js -->
+                </div>
+                <input type="hidden" id="idProyectoComentarios" name="id_proyecto">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php
 $contenido = ob_get_clean();
