@@ -27,82 +27,118 @@ class Proyectos
     }
 
     //DATOS GENERALES SIN FILTRO
+    // Reemplaza la función con esta versión
     public function obtenerProyectos($id, $rol, $numerofiltro, $buscar = null)
     {
-        global $conn;
-        //Páginación
-        // Filtro actual
+        // Normalizar rol para evitar problemas de mayúsculas/minúsculas
+        $rol = strtolower($rol);
+
         // Cantidad totales
         $total_proyectos = $this->obtenerCantidadProyectos($id, $numerofiltro, $rol, $buscar);
 
         // Parámetros de paginación
         $por_pagina = 6;
-
         $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
         $desde = ($pagina - 1) * $por_pagina;
 
-        $total_paginas = ($total_proyectos > 0)
-            ? ceil($total_proyectos / $por_pagina)
-            : 1;
-        $types   = "";
-        //Consultas con limites con el valor de la paginación
+        $total_paginas = ($total_proyectos > 0) ? ceil($total_proyectos / $por_pagina) : 1;
+
+        // Inicializar variables
+        $sql = "";
+        $params = [];
+        $types = "";
+        $whereAdded = false;
+
+        // Consultas base según rol
         switch ($rol) {
             case 'estudiante':
-                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, COUNT(CASE WHEN tbse.id_estadoT = 1 THEN 1 END) AS total FROM gestion_proyectos.proyectos as proy 
-JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
-JOIN estudiantes as estu ON estu.id_usuario = prus.id_usuarios
-JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
-JOIN periodos as peri ON proy.id_periodos = peri.id_periodos
-LEFT JOIN tbl_seguimiento AS tbse 
-ON tbse.id_proyectos = proy.id_proyectos
-AND tbse.id_estadoT = 1
-WHERE estu.id_usuario = ? ";
-                $params = [$id];
-                $types  = "i";
+            case 'alumno': // por si usas 'alumno' en algún lugar
+                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, 
+                           COUNT(CASE WHEN tbse.id_estadoT = 1 THEN 1 END) AS total
+                    FROM gestion_proyectos.proyectos AS proy
+                    JOIN proyectos_usuarios AS prus ON proy.id_proyectos = prus.id_proyectos
+                    JOIN estudiantes AS estu ON estu.id_usuario = prus.id_usuarios
+                    JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
+                    JOIN periodos AS peri ON proy.id_periodos = peri.id_periodos
+                    LEFT JOIN tbl_seguimiento AS tbse ON tbse.id_proyectos = proy.id_proyectos AND tbse.id_estadoT = 1
+                    WHERE estu.id_usuario = ? ";
+                $params[] = $id;
+                $types .= "i";
+                $whereAdded = true;
                 break;
+
+            case 'investigador':
             case 'profesor':
-            case 'Investigador':
-                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, COUNT(CASE WHEN tbse.id_estadoT = 2 THEN 1 END) AS total FROM gestion_proyectos.proyectos as proy 
-JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
-JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
-JOIN periodos as peri ON proy.id_periodos = peri.id_periodos
-LEFT JOIN tbl_seguimiento AS tbse 
-ON tbse.id_proyectos = proy.id_proyectos
-AND tbse.id_estadoT = 2
-WHERE proy.id_investigador = ? ";
-                $params = [$id];
-                $types  = "i";
+                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo,
+                           COUNT(CASE WHEN tbse.id_estadoT = 2 THEN 1 END) AS total
+                    FROM gestion_proyectos.proyectos AS proy
+                    JOIN investigadores AS inv ON inv.id_usuario = proy.id_investigador
+                    JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
+                    JOIN periodos AS peri ON proy.id_periodos = peri.id_periodos
+                    LEFT JOIN tbl_seguimiento AS tbse ON tbse.id_proyectos = proy.id_proyectos AND tbse.id_estadoT = 2
+                    WHERE proy.id_investigador = ? ";
+                $params[] = $id;
+                $types .= "i";
+                $whereAdded = true;
                 break;
+
             case 'supervisor':
-                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo FROM gestion_proyectos.proyectos as proy 
-JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
-JOIN periodos as peri ON proy.id_periodos = peri.id_periodos";
-                $types  = "";
-                $params = [];
+                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo
+                    FROM gestion_proyectos.proyectos AS proy
+                    JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
+                    JOIN periodos AS peri ON proy.id_periodos = peri.id_periodos ";
+                // supervisor no añade WHERE por defecto
+                $whereAdded = false;
                 break;
+
             default:
-                break;
+                // Si el rol es inesperado devolvemos vacío (evita errores posteriores)
+                return json_encode([
+                    "proyectos" => [],
+                    "paginacion" => [
+                        "total_proyectos" => 0,
+                        "por_pagina"      => $por_pagina,
+                        "pagina"          => $pagina,
+                        "total_paginas"   => 1
+                    ]
+                ]);
         }
 
+        // Filtro de búsqueda (si aplica)
         if (!empty($buscar)) {
-            $sql .= " AND proy.titulo LIKE ? WHERE 1 ";
+            if ($whereAdded) {
+                $sql .= " AND proy.titulo LIKE ? ";
+            } else {
+                $sql .= " WHERE proy.titulo LIKE ? ";
+                $whereAdded = true;
+            }
             $params[] = "%$buscar%";
-            $types   .= "s";
+            $types .= "s";
         }
-        //Se añade el LIMIT para limitar la cantidad de registros en la tabla
-        $sql .= " GROUP BY proy.id_proyectos LIMIT ?, ?";
+
+        // GROUP BY y LIMIT al final (LIMIT siempre al final de la query)
+        $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
+
+        // Añadir params para paginación (siempre enteros)
         $params[] = $desde;
         $params[] = $por_pagina;
-        $types   .= "ii";
+        $types .= "ii";
+
+        // Preparar y ejecutar
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
             die("Error en prepare(): " . $this->con->error . "<br>SQL: $sql");
         }
 
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
+        // bind_param requiere tipos y valores; si types está vacío no bindear
+        if ($types !== "") {
+            // Usar operador splat para pasar los parámetros
+            $stmt->bind_param($types, ...$params);
+        }
 
-        //Añadir a la información del proyecto la información de la paginación
+        if (!$stmt->execute()) {
+            die("Error en execute(): " . $stmt->error . "<br>SQL: $sql");
+        }
 
         $resultado = [
             "proyectos" => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
@@ -113,68 +149,69 @@ JOIN periodos as peri ON proy.id_periodos = peri.id_periodos";
                 "total_paginas"   => $total_paginas
             ]
         ];
+
         return json_encode($resultado);
     }
+
 
     //DATOS DEL FILTRO
     public function obtenerProyectosDatosFiltro($id, $rol)
     {
         switch ($rol) {
             case 'estudiante':
-                $sql = "SELECT   COUNT(*) AS Total,
-  SUM(espr.nombre='Activo') AS Activos,
-  SUM(espr.nombre='Por aprobar') AS PorAprobar,
-  SUM(espr.nombre='Cierre') AS Cierre,
-  SUM(espr.nombre='Por cerrar') AS PorCerrar,
-  SUM(espr.nombre='Vencido') AS Vencido FROM gestion_proyectos.proyectos as proy 
-JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
-JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
-JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP
-WHERE estu.id_usuario = ? 
-ORDER BY proy.id_proyectos ASC;";
+                $sql = "SELECT 
+  COUNT(*) AS Total,
+  SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END) AS Activos,
+  SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END) AS PorAprobar,
+  SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END) AS Cierre,
+  SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END) AS PorCerrar,
+  SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido
+FROM gestion_proyectos.proyectos AS proy
+JOIN proyectos_usuarios AS prus ON proy.id_proyectos = prus.id_proyectos
+JOIN estudiantes AS estu ON prus.id_usuarios = estu.id_usuario
+JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
+WHERE estu.id_usuario = ?;";
 
                 $stmt = $this->con->prepare($sql);
                 $stmt->bind_param("i", $id);
                 break;
             case 'investigador':
             case 'profesor':
-                $sql = "SELECT   COUNT(*) AS Total,
-  SUM(espr.nombre='Activo') AS Activos,
-  SUM(espr.nombre='Por aprobar') AS PorAprobar,
-  SUM(espr.nombre='Cierre') AS Cierre,
-  SUM(espr.nombre='Por cerrar') AS PorCerrar,
-  SUM(espr.nombre='Rechazado') AS Rechazados,
-  SUM(espr.nombre='Vencido') AS Vencido,
-  SUM(espr.nombre='Cierre rechazado') AS Cierrerechazado 
-  FROM gestion_proyectos.proyectos as proy 
-JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
-JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
-WHERE proy.id_investigador = ?
-ORDER BY proy.id_proyectos ASC;";
+                $sql = "SELECT 
+  COUNT(*) AS Total,
+  SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END) AS Activos,
+  SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END) AS PorAprobar,
+  SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END) AS Cierre,
+  SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END) AS PorCerrar,
+  SUM(CASE WHEN espr.nombre='Rechazado' THEN 1 ELSE 0 END) AS Rechazados,
+  SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido,
+  SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END) AS Cierrerechazado
+FROM gestion_proyectos.proyectos AS proy
+JOIN investigadores AS inv ON inv.id_usuario = proy.id_investigador
+JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
+WHERE proy.id_investigador = ?;";
 
                 $stmt = $this->con->prepare($sql);
                 $stmt->bind_param("i", $id);
                 break;
             case 'supervisor':
-                $sql = "SELECT   COUNT(*) AS Total,
-  SUM(espr.nombre='Activo') AS Activos,
-  SUM(espr.nombre='Por aprobar') AS PorAprobar,
-  SUM(espr.nombre='Cierre') AS Cierre,
-  SUM(espr.nombre='Por cerrar') AS PorCerrar,
-  SUM(espr.nombre='Rechazado') AS Rechazados, 
-  SUM(espr.nombre='Vencido') AS Vencido,
-  SUM(espr.nombre='Cierre rechazado') AS Cierrerechazado 
-  FROM gestion_proyectos.proyectos as proy 
-JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
-ORDER BY proy.id_proyectos ASC;";
+                $sql = "SELECT 
+  COUNT(*) AS Total,
+  SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END) AS Activos,
+  SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END) AS PorAprobar,
+  SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END) AS Cierre,
+  SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END) AS PorCerrar,
+  SUM(CASE WHEN espr.nombre='Rechazado' THEN 1 ELSE 0 END) AS Rechazados, 
+  SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido,
+  SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END) AS Cierrerechazado
+FROM gestion_proyectos.proyectos AS proy
+JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
 
                 $stmt = $this->con->prepare($sql);
                 break;
             default:
                 return []; // Retorna un array vacío si el rol no es válido
         }
-
-
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
