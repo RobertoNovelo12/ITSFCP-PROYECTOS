@@ -27,107 +27,100 @@ class Proyectos
     }
 
     //DATOS GENERALES SIN FILTRO
-    public function obtenerProyectos($id, $rol, $buscar = null)
+    public function obtenerProyectos($id, $rol, $numerofiltro, $buscar = null)
     {
-        $numerofiltro = 0; // ejemplo, reemplazar según tu lógica
+        global $conn;
+        //Páginación
+        // Filtro actual
+        // Cantidad totales
         $total_proyectos = $this->obtenerCantidadProyectos($id, $numerofiltro, $rol, $buscar);
 
+        // Parámetros de paginación
         $por_pagina = 6;
+
         $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
         $desde = ($pagina - 1) * $por_pagina;
-        $total_paginas = ($total_proyectos > 0) ? ceil($total_proyectos / $por_pagina) : 1;
 
+        $total_paginas = ($total_proyectos > 0)
+            ? ceil($total_proyectos / $por_pagina)
+            : 1;
+        $types   = "";
+        //Consultas con limites con el valor de la paginación
         switch ($rol) {
-            case 'alumno':
-                $sql = "SELECT proy.id_proyectos, proy.titulo FROM proyectos as proy
-                    JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
-                    JOIN estudiantes as estu ON estu.id_usuario = prus.id_usuarios
-                    WHERE estu.id_usuario = ?";
+            case 'estudiante':
+                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, COUNT(CASE WHEN tbse.id_estadoT = 1 THEN 1 END) AS total FROM gestion_proyectos.proyectos as proy 
+JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
+JOIN estudiantes as estu ON estu.id_usuario = prus.id_usuarios
+JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
+JOIN periodos as peri ON proy.id_periodos = peri.id_periodos
+LEFT JOIN tbl_seguimiento AS tbse 
+ON tbse.id_proyectos = proy.id_proyectos
+AND tbse.id_estadoT = 1
+WHERE estu.id_usuario = ? ";
                 $params = [$id];
-                $types = "i";
+                $types  = "i";
                 break;
-
             case 'profesor':
-            case 'investigador':
-                $sql = "SELECT proy.id_proyectos, proy.titulo FROM proyectos as proy
-                    WHERE proy.id_investigador = ?";
+            case 'Investigador':
+                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, COUNT(CASE WHEN tbse.id_estadoT = 2 THEN 1 END) AS total FROM gestion_proyectos.proyectos as proy 
+JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
+JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
+JOIN periodos as peri ON proy.id_periodos = peri.id_periodos
+LEFT JOIN tbl_seguimiento AS tbse 
+ON tbse.id_proyectos = proy.id_proyectos
+AND tbse.id_estadoT = 2
+WHERE proy.id_investigador = ? ";
                 $params = [$id];
-                $types = "i";
+                $types  = "i";
                 break;
-
             case 'supervisor':
-                $sql = "SELECT proy.id_proyectos, proy.titulo FROM proyectos as proy";
+                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo FROM gestion_proyectos.proyectos as proy 
+JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
+JOIN periodos as peri ON proy.id_periodos = peri.id_periodos";
+                $types  = "";
                 $params = [];
-                $types = "";
                 break;
-
             default:
-                return [
-                    "proyectos" => [],
-                    "paginacion" => [
-                        "total_proyectos" => 0,
-                        "por_pagina" => $por_pagina,
-                        "pagina" => $pagina,
-                        "total_paginas" => 1
-                    ]
-                ];
+                break;
         }
 
         if (!empty($buscar)) {
-            $sql .= " AND proy.titulo LIKE ?";
+            $sql .= " AND proy.titulo LIKE ? WHERE 1 ";
             $params[] = "%$buscar%";
-            $types .= "s";
+            $types   .= "s";
         }
-
-        $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC";
-        $sql .= " LIMIT " . (int) $desde . ", " . (int) $por_pagina; // ✅ concatenado
-
+        //Se añade el LIMIT para limitar la cantidad de registros en la tabla
+        $sql .= " GROUP BY proy.id_proyectos LIMIT ?, ?";
+        $params[] = $desde;
+        $params[] = $por_pagina;
+        $types   .= "ii";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
-            return [
-                "proyectos" => [],
-                "paginacion" => [
-                    "total_proyectos" => $total_proyectos,
-                    "por_pagina" => $por_pagina,
-                    "pagina" => $pagina,
-                    "total_paginas" => $total_paginas
-                ]
-            ];
+            die("Error en prepare(): " . $this->con->error . "<br>SQL: $sql");
         }
 
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
 
-        if (!$stmt->execute()) {
-            return [
-                "proyectos" => [],
-                "paginacion" => [
-                    "total_proyectos" => $total_proyectos,
-                    "por_pagina" => $por_pagina,
-                    "pagina" => $pagina,
-                    "total_paginas" => $total_paginas
-                ]
-            ];
-        }
+        //Añadir a la información del proyecto la información de la paginación
 
-        return [
+        $resultado = [
             "proyectos" => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
             "paginacion" => [
                 "total_proyectos" => $total_proyectos,
-                "por_pagina" => $por_pagina,
-                "pagina" => $pagina,
-                "total_paginas" => $total_paginas
+                "por_pagina"      => $por_pagina,
+                "pagina"          => $pagina,
+                "total_paginas"   => $total_paginas
             ]
         ];
+        return json_encode($resultado);
     }
-
 
     //DATOS DEL FILTRO
     public function obtenerProyectosDatosFiltro($id, $rol)
     {
         switch ($rol) {
-            case 'alumno':
+            case 'estudiante':
                 $sql = "SELECT   COUNT(*) AS Total,
   SUM(espr.nombre='Activo') AS Activos,
   SUM(espr.nombre='Por aprobar') AS PorAprobar,
@@ -206,7 +199,7 @@ ORDER BY proy.id_proyectos ASC;";
             // Si el filtro es 0 (Total), no aplicamos ninguna condición adicional
 
             switch ($rol) {
-                case 'alumno':
+                case 'estudiante':
                     $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, COUNT(CASE WHEN tbse.id_estadoT = 1 THEN 1 END) AS total FROM gestion_proyectos.proyectos as proy 
 JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
 JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
@@ -218,18 +211,18 @@ AND tbse.id_estadoT = 1
 WHERE estu.id_usuario = ?";
 
                     $params = [$id];
-                    $types = "i";
+                    $types  = "i";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
                     //Añadir el limite a la consulta con los valores de la paginación
                     $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
                     $params[] = $desde;
                     $params[] = $por_pagina;
-                    $types .= "ii";
+                    $types   .= "ii";
 
                     $stmt = $this->con->prepare($sql);
                     $stmt->bind_param($types, ...$params);
@@ -246,18 +239,18 @@ AND tbse.id_estadoT = 2
 WHERE proy.id_investigador = ?";
 
                     $params = [$id];
-                    $types = "i";
+                    $types  = "i";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
                     $params[] = $desde;
                     $params[] = $por_pagina;
-                    $types .= "ii";
+                    $types   .= "ii";
 
                     $stmt = $this->con->prepare($sql);
                     $stmt->bind_param($types, ...$params);
@@ -267,18 +260,18 @@ WHERE proy.id_investigador = ?";
 JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP 
 JOIN periodos as peri ON proy.id_periodos = peri.id_periodos";
 
-                    $types = "";
+                    $types  = "";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
                     $params[] = $desde;
                     $params[] = $por_pagina;
-                    $types .= "ii";
+                    $types   .= "ii";
 
                     $stmt = $this->con->prepare($sql);
                     if (!empty($params)) {
@@ -297,17 +290,17 @@ JOIN periodos as peri ON proy.id_periodos = peri.id_periodos";
                 "proyectos" => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
                 "paginacion" => [
                     "total_proyectos" => $total_proyectos,
-                    "por_pagina" => $por_pagina,
-                    "pagina" => $pagina,
-                    "total_paginas" => $total_paginas
+                    "por_pagina"      => $por_pagina,
+                    "pagina"          => $pagina,
+                    "total_paginas"   => $total_paginas
                 ]
             ];
             //Enviar la información códificada en JSON
-            return $resultado;
+            return json_encode($resultado);
         } else {
 
             switch ($rol) {
-                case 'alumno':
+                case 'estudiante':
                     $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo, SUM(CASE WHEN tbse.id_estadoT = 1 THEN 1 ELSE 0 END) AS total FROM gestion_proyectos.proyectos as proy 
 JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
 JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
@@ -318,18 +311,18 @@ LEFT JOIN tbl_seguimiento AS tbse
 WHERE estu.id_usuario = ? AND proy.id_estadoP = ?";
 
                     $params = [$id, $filtro];
-                    $types = "is";
+                    $types  = "is";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
                     $params[] = $desde;
                     $params[] = $por_pagina;
-                    $types .= "ii";
+                    $types   .= "ii";
 
                     $stmt = $this->con->prepare($sql);
                     $stmt->bind_param($types, ...$params);
@@ -347,18 +340,18 @@ AND tbse.id_estadoT = 2
 WHERE proy.id_investigador = ? AND espr.id_estadoP = ?";
 
                     $params = [$id, $filtro];
-                    $types = "is";
+                    $types  = "ii";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
                     $params[] = $desde;
                     $params[] = $por_pagina;
-                    $types .= "ii";
+                    $types   .= "ii";
 
                     $stmt = $this->con->prepare($sql);
                     $stmt->bind_param($types, ...$params);
@@ -370,18 +363,18 @@ JOIN periodos as peri ON proy.id_periodos = peri.id_periodos
 WHERE proy.id_estadoP = ?";
 
                     $params = [$filtro];
-                    $types = "i";
+                    $types  = "i";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
                     $params[] = $desde;
                     $params[] = $por_pagina;
-                    $types .= "ii";
+                    $types   .= "ii";
 
                     $stmt = $this->con->prepare($sql);
                     $stmt->bind_param($types, ...$params);
@@ -398,12 +391,12 @@ WHERE proy.id_estadoP = ?";
                 "proyectos" => $filas,
                 "paginacion" => [
                     "total_proyectos" => $total_proyectos,
-                    "por_pagina" => $por_pagina,
-                    "pagina" => $pagina,
-                    "total_paginas" => $total_paginas
+                    "por_pagina"      => $por_pagina,
+                    "pagina"          => $pagina,
+                    "total_paginas"   => $total_paginas
                 ]
             ];
-            return $resultado;
+            return json_encode($resultado);
         }
     }
     //OBTENER LA CANTIDAD DE PROYECTOS
@@ -413,19 +406,19 @@ WHERE proy.id_estadoP = ?";
         if ($numerofiltro == 0) {
             // Si el filtro es 0 (Total), no aplicamos ninguna condición adicional
             switch ($rol) {
-                case 'alumno':
+                case 'estudiante':
                     $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
 JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
 JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
 WHERE estu.id_usuario = ?";
 
                     $params = [$id];
-                    $types = "i";
+                    $types  = "i";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $stmt = $this->con->prepare($sql);
@@ -437,12 +430,12 @@ JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
 WHERE proy.id_investigador = ?";
 
                     $params = [$id];
-                    $types = "i";
+                    $types  = "i";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $stmt = $this->con->prepare($sql);
@@ -450,12 +443,12 @@ WHERE proy.id_investigador = ?";
                 case 'supervisor':
                     $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy WHERE 1";
                     $params = [];
-                    $types = "";
+                    $types  = "";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $stmt = $this->con->prepare($sql);
@@ -475,19 +468,19 @@ WHERE proy.id_investigador = ?";
             return $resultado['total_proyectos'];   // OBTENER EL NUMERO TOTAL DE PROYECTOS
         } else {
             switch ($rol) {
-                case 'alumno':
+                case 'estudiante':
                     $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
 JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
 JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
 WHERE estu.id_usuario = ? AND proy.id_estadoP = ?";
 
                     $params = [$id, $numerofiltro];
-                    $types = "ii";
+                    $types  = "ii";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $stmt = $this->con->prepare($sql);
@@ -500,12 +493,12 @@ JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
 WHERE proy.id_investigador = ? AND proy.id_estadoP = ?";
 
                     $params = [$id, $numerofiltro];
-                    $types = "ii";
+                    $types  = "ii";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $stmt = $this->con->prepare($sql);
@@ -516,12 +509,12 @@ WHERE proy.id_investigador = ? AND proy.id_estadoP = ?";
 WHERE proy.id_estadoP = ?";
 
                     $params = [$numerofiltro];
-                    $types = "i";
+                    $types  = "i";
 
                     if (!empty($buscar)) {
                         $sql .= " AND proy.titulo LIKE ?";
                         $params[] = "%$buscar%";
-                        $types .= "s";
+                        $types   .= "s";
                     }
 
                     $stmt = $this->con->prepare($sql);
@@ -530,12 +523,6 @@ WHERE proy.id_estadoP = ?";
                 default:
                     break; // Retorna 0 si el rol no es válido
             }
-            if (!empty($params)) {
-                $stmt->bind_param($types, ...$params);
-            } else {
-                // No hay parámetros para enlazar
-            }
-
             $stmt->execute();
             $resultado = $stmt->get_result()->fetch_assoc();
             return $resultado['total_proyectos'];   // OBTENER EL NUMERO TOTAL DE PROYECTOS
@@ -558,7 +545,7 @@ JOIN tematica as te ON sub.id_tematica = te.id_tematica
 WHERE te.id_tematica = ?";
 
         $params = [$id_tematica];
-        $types = "i";
+        $types  = "i";
 
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
@@ -784,7 +771,7 @@ JOIN periodos as peri ON peri.id_periodos = proy.id_periodos
 WHERE proy.id_proyectos = ?;";
 
         $params = [$id_proyecto];
-        $types = "i";
+        $types  = "i";
 
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
@@ -805,7 +792,7 @@ JOIN proyectos as proy ON proy.id_investigador = inve.id_usuario
 WHERE proy.id_proyectos = ?;";
 
         $params = [$id_proyecto];
-        $types = "i";
+        $types  = "i";
 
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
@@ -825,7 +812,7 @@ JOIN proyectos as proy ON proy.id_proyectos = prus.id_proyectos
 WHERE proy.id_proyectos = ?;";
 
         $params = [$id_proyecto];
-        $types = "i";
+        $types  = "i";
 
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
@@ -845,7 +832,7 @@ JOIN usuarios as usua ON usua.id_usuarios = prco.id_usuario
 Where proy.id_proyectos = ? ORDER BY fecha DESC;";
 
         $params = [$id_proyecto];
-        $types = "i";
+        $types  = "i";
 
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
