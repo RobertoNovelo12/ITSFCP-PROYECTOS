@@ -220,22 +220,74 @@ ob_start();
     </div>
 </div>
 
-<!-- MODAL COMENTARIOS CENTRAL -->
-<div class="modal fade" id="modalComentarios" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <!-- MODAL FORMULARIO RECHAZO CIERRE -->
+    <div class="modal fade" id="modalRechazoCierre" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="POST" id="formRechazoCierre" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Motivo de rechazo de cierre</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <label>Motivo del rechazo:</label>
+                        <textarea class="form-control" name="comentario" required></textarea>
+
+                        <input type="hidden" name="tipo" value="cierre_rechazado">
+                        <input type="hidden" name="action" value="actualizarestadoRechazo">
+                        <!-- Aquí va el id dinámico -->
+                        <input type="hidden" id="idProyectoRechazoCierre" name="id_proyectos">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+<!-- Modal Mensaje Rechazo  -->
+<div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Comentarios del Proyecto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Operación realizada correctamente</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div id="comentariosAccordion">
-                    <!-- Los comentarios se cargarán aquí desde javascript.js -->
-                </div>
-                <input type="hidden" id="idProyectoComentarios" name="id_proyecto">
+                <img src="/ITSFCP-PROYECTOS/publico/icons/comprobar.svg" alt="">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL COMENTARIOS -->
+<div class="modal fade" id="modalComentarios" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Comentarios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="accordion" id="comentariosAccordion">
+                    <!-- Aquí se insertarán los comentarios via JS -->
+                </div>
+
+                <!-- Aquí se guarda el ID del proyecto -->
+                <input type="hidden" id="idProyectoComentarios" name="id_proyecto">
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
             </div>
         </div>
     </div>

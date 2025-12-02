@@ -1617,37 +1617,35 @@ select:focus {
    MODAL FULLSCREEN EN MOBILE
    ==================================================== */
 @media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-start !important; /* El modal inicia arriba */
+    justify-content: center;
+  }
 
-    .modal-overlay {
-        align-items: flex-start !important; /* El modal inicia arriba */
-        justify-content: center;
-    }
+  .modal-content-evento,
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: calc(100vh - 60px) !important; /* Deja espacio para el header */
+    margin-top: 60px; /* Altura aproximada del header */
+    border-radius: 0 !important;
+    padding: 1.2rem !important;
+    overflow-y: auto !important;
+    animation: none; /* Quita animación si estorba */
+  }
 
-    .modal-content-evento,
-    .modal-content {
-        width: 100% !important;
-        max-width: 100% !important;
-        height: calc(100vh - 60px) !important; /* Deja espacio para el header */
-        margin-top: 60px; /* Altura aproximada del header */
-        border-radius: 0 !important;
-        padding: 1.2rem !important;
-        overflow-y: auto !important;
-        animation: none; /* Quita animación si estorba */
-    }
+  .large-modal {
+    width: 100% !important;
+    height: calc(100vh - 60px) !important;
+    max-height: none !important;
+  }
 
-    .large-modal {
-        width: 100% !important;
-        height: calc(100vh - 60px) !important;
-        max-height: none !important;
-    }
-
-    .close-modal {
-        top: 15px !important;
-        right: 20px !important;
-        font-size: 30px !important;
-    }
+  .close-modal {
+    top: 15px !important;
+    right: 20px !important;
+    font-size: 30px !important;
+  }
 }
-
 
 /* ===========================
    MODAL DE EVENTO
@@ -2307,22 +2305,21 @@ select:focus {
   }
 }
 
-
 @media (min-width: 1024px) {
-    /* Estilos para laptops y computadoras */
+  /* Estilos para laptops y computadoras */
   .table-responsive {
     display: block;
   }
 
-  #tarjeta_móvil{
+  #tarjeta_móvil {
     display: none;
   }
 
   #crear_busqueda {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
   }
 }
 
@@ -2577,7 +2574,7 @@ select:focus {
   font-size: 1.1rem;
 }
 
-.card{
+.card {
   border-radius: 0% !important;
   border: none !important;
   background: none !important;
@@ -2973,6 +2970,225 @@ select:focus {
   box-shadow: 0 4px 6px var(--color-sombra);
 }
 
+/* NOTIFICACIONES */
+.notif-wrapper {
+  position: relative;
+  font-family: Arial, sans-serif;
+}
+
+.notif-icon {
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.notif-icon img {
+  width: 22px;
+  height: 22px;
+}
+
+.notif-count {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.notif-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  width: 360px;
+  max-height: 480px;
+  overflow-y: auto;
+  z-index: 100;
+  margin-top: 12px;
+  border-radius: 12px;
+  padding: 0;
+}
+
+/* Scroll personalizado */
+.notif-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notif-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notif-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.notif-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Encabezado opcional del dropdown */
+.notif-dropdown::before {
+  content: 'Notificaciones';
+  display: block;
+  padding: 16px 20px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-texto-principal, #2c3e50);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px 12px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.notif-item {
+  display: block;
+  padding: 16px 20px;
+  margin: 0;
+  text-decoration: none;
+  color: var(--color-texto-principal, #2c3e50);
+  transition: all 0.2s ease;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+
+.notif-item:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.notif-item.unread {
+  background: linear-gradient(to right, #e8f4fd 0%, #f0f8ff 100%);
+  border-left-color: #3498db;
+}
+
+.notif-item.unread::after {
+  content: '';
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: #3498db;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.notif-item:hover {
+  background: #f8f9fa;
+  border-left-color: #3498db;
+}
+
+.notif-item strong {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-texto-principal, #2c3e50);
+  line-height: 1.3;
+}
+
+.notif-item span {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--color-texto-secundario, #7f8c8d);
+  margin-bottom: 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.notif-item small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--color-texto-secundario, #95a5a6);
+  font-weight: 500;
+}
+
+.notif-item small::before {
+  content: '🕐';
+  font-size: 0.85rem;
+}
+
+.notif-empty {
+  padding: 60px 20px;
+  color: var(--color-texto-secundario, #95a5a6);
+  text-align: center;
+  font-style: normal;
+}
+
+.notif-empty::before {
+  content: '🔔';
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+
+/* Animación de entrada */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notif-dropdown[style*="display: block"] {
+  animation: slideDown 0.2s ease;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .notif-dropdown {
+    width: 320px;
+    max-height: 400px;
+  }
+
+  .notif-item {
+    padding: 14px 16px;
+  }
+}
+
+
 @media (min-width: 1024px) {
   .table-responsive {
     display: block;
@@ -3043,109 +3259,107 @@ select:focus {
   transition: opacity 0.3s ease;
 }
 
-
 /* CONTENEDOR */
 .file-upload-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* OCULTA EL INPUT NATIVE */
 .file-input {
-    display: none;
+  display: none;
 }
 
 /* BOTÓN DE ARCHIVO */
 .file-upload-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--fondo-inputs);
-    border: 1px solid var(--borde-input);
-    padding: 12px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    color: var(--color-texto-principal);
-    transition: background 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--fondo-inputs);
+  border: 1px solid var(--borde-input);
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--color-texto-principal);
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .file-upload-label:hover {
-    background: var(--color-boton-secundario);
+  background: var(--color-boton-secundario);
 }
 
 /* NOMBRE DEL ARCHIVO */
 .file-name {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .botones-solicitud {
-    display: flex;
-    justify-content: flex-end;
-    gap: 14px;
-    margin-top: 25px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 25px;
 }
 
 .btn-cancelar-solicitud,
 .btn-enviar-solicitud-form {
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: background 0.25s ease, transform 0.2s ease;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.2s ease;
 }
 
 /* CANCELAR */
 .btn-cancelar-solicitud {
-    background: var(--fondo-inputs);
-    border: 1px solid var(--borde-input);
-    color: var(--color-texto-principal);
+  background: var(--fondo-inputs);
+  border: 1px solid var(--borde-input);
+  color: var(--color-texto-principal);
 }
 
 .btn-cancelar-solicitud:hover {
-    background: var(--color-boton-secundario);
+  background: var(--color-boton-secundario);
 }
 
 /* ENVIAR */
 .btn-enviar-solicitud-form {
-    background: var(--color-primario);
-    color: white;
+  background: var(--color-primario);
+  color: white;
 }
 
 .btn-enviar-solicitud-form:hover {
-    background: var(--color-boton-nuevo);
+  background: var(--color-boton-nuevo);
 }
 
 .confirmacion-box {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-top: 25px;
-    padding: 14px;
-    border-radius: 10px;
-    background: var(--fondo-inputs);
-    border: 1px solid var(--borde-input);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 25px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--fondo-inputs);
+  border: 1px solid var(--borde-input);
 }
 
 /* Checkbox */
 .confirmacion-box input[type="checkbox"] {
-    margin-top: 4px;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 
 /* Texto */
 .confirmacion-box label strong {
-    font-size: 16px;
+  font-size: 16px;
 }
 
 .confirmacion-box label small {
-    font-size: 13px;
-    color: var(--color-texto-secundario);
+  font-size: 13px;
+  color: var(--color-texto-secundario);
 }
-
 
 .sidebar-overlay.active {
   display: block;
