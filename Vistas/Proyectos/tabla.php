@@ -66,6 +66,13 @@ $opciones = $proyectoControlador->datosopciones($rol, $filtros);
 ob_start();
 ?>
 
+<script>
+    //MOSTRAR TOOLTIP, QUE ES UN TEXTO AL SOBREPONER MOUSE EN BOTÓN
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(t => new bootstrap.Tooltip(t));
+    });
+</script>
 <div class="container-fluid py-4">
 
     <div class="row mb-3 align-items-center">
@@ -84,7 +91,7 @@ ob_start();
     <!-- BOTONES DE FILTRO -->
     <div class="row mb-3">
         <div class="d-flex flex-wrap gap-2">
-            <?php foreach ($opciones as $key => $label): 
+            <?php foreach ($opciones as $key => $label):
                 $clase = ($action === $key) ? "btn btn-primary" : "btn btn-outline-primary"; ?>
                 <a href="tabla.php?action=<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>" class="<?= $clase ?>">
                     <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
@@ -95,18 +102,23 @@ ob_start();
 
     <!-- BÚSQUEDA -->
     <div class="row mb-3">
-        <div class="col-12 col-md-6">
-            <form class="d-flex gap-2" method="GET" action="tabla.php">
-                <input type="hidden" name="action" value="<?= htmlspecialchars($action, ENT_QUOTES, 'UTF-8') ?>">
-                <input type="text" 
-                       name="buscar" 
-                       class="form-control" 
-                       placeholder="Buscar..." 
-                       value="<?= htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') ?>">
-                <button type="submit" class="btn btn-primary">Buscar</button>
-            </form>
+        <div class="col-12 text-end">
+            <div class="row justify-content-end">
+                <div class="col-md-6">
+                    <form class="d-flex gap-2" method="GET" action="tabla.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Buscar..."
+                            value="<?= htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') ?>">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+
 
     <!-- TABLA DE PROYECTOS - Desktop -->
     <div class="row">
@@ -133,9 +145,9 @@ ob_start();
 
                                     <!-- Comentarios -->
                                     <td>
-                                        <button type="button" 
-                                                class="btn btn-info btn-sm btn-comentarios" 
-                                                data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
+                                        <button type="button"
+                                            class="btn btn-info btn-sm btn-comentarios"
+                                            data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
                                             <i class="bi bi-chat-dots-fill"></i>
                                         </button>
                                     </td>
@@ -148,8 +160,8 @@ ob_start();
                                     <!-- Acciones -->
                                     <td>
                                         <?= $proyectoControlador->botonesAccion(
-                                            $proyecto['id_proyectos'] ?? 0, 
-                                            $rol, 
+                                            $proyecto['id_proyectos'] ?? 0,
+                                            $rol,
                                             $proyecto['nombre'] ?? '-'
                                         ); ?>
                                     </td>
@@ -191,18 +203,18 @@ ob_start();
                                 <p><strong>Responsable:</strong> <?= htmlspecialchars($proyecto['nombre'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
                                 <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
                                 <p><strong>Inicio:</strong> <?= $proyecto['fecha_inicio'] ?? '-' ?> | <strong>Fin:</strong> <?= $proyecto['fecha_fin'] ?? '-' ?></p>
-                                
+
                                 <div class="d-flex flex-wrap gap-2 mt-2">
                                     <!-- Botón comentarios -->
-                                    <button type="button" 
-                                            class="btn btn-info btn-sm btn-comentarios" 
-                                            data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
+                                    <button type="button"
+                                        class="btn btn-info btn-sm btn-comentarios"
+                                        data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
                                         <i class="bi bi-chat-dots-fill"></i> Comentarios
                                     </button>
 
                                     <?= $proyectoControlador->botonesAccion(
-                                        $proyecto['id_proyectos'] ?? 0, 
-                                        $rol, 
+                                        $proyecto['id_proyectos'] ?? 0,
+                                        $rol,
                                         $proyecto['nombre'] ?? '-'
                                     ); ?>
                                 </div>
@@ -220,35 +232,35 @@ ob_start();
     </div>
 </div>
 
-    <!-- MODAL FORMULARIO RECHAZO CIERRE -->
-    <div class="modal fade" id="modalRechazoCierre" tabindex="-1">
-        <div class="modal-dialog">
-            <form method="POST" id="formRechazoCierre" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Motivo de rechazo de cierre</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <label>Motivo del rechazo:</label>
-                        <textarea class="form-control" name="comentario" required></textarea>
-
-                        <input type="hidden" name="tipo" value="cierre_rechazado">
-                        <input type="hidden" name="action" value="actualizarestadoRechazo">
-                        <!-- Aquí va el id dinámico -->
-                        <input type="hidden" id="idProyectoRechazoCierre" name="id_proyectos">
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
-                    </div>
-
+<!-- MODAL FORMULARIO RECHAZO CIERRE -->
+<div class="modal fade" id="modalRechazoCierre" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" id="formRechazoCierre" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Motivo de rechazo de cierre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-            </form>
-        </div>
+
+                <div class="modal-body">
+                    <label>Motivo del rechazo:</label>
+                    <textarea class="form-control" name="comentario" required></textarea>
+
+                    <input type="hidden" name="tipo" value="cierre_rechazado">
+                    <input type="hidden" name="action" value="actualizarestadoRechazo">
+                    <!-- Aquí va el id dinámico -->
+                    <input type="hidden" id="idProyectoRechazoCierre" name="id_proyectos">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
+                </div>
+
+            </div>
+        </form>
     </div>
+</div>
 <!-- Modal Mensaje Rechazo  -->
 <div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -300,3 +312,9 @@ $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
 ?>
+<?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
+    <script>
+        abrirMensaje();
+    </script>
+<?php unset($_SESSION['mensaje']);
+endif; ?>
