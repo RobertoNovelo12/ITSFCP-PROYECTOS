@@ -1,4 +1,3 @@
-
 <?php
 require_once __DIR__ . '/../publico/config/conexion.php';
 
@@ -95,8 +94,7 @@ class Tarea
     }
 
     //DATOS LISTA PROYECTO
-    //DATOS PRINCIPAL
-    public function obtenerTareasLista($id_proyecto, $id_usuario, $rol)
+    public function obtenerTareasLista($id_avances, $rol)
     {
         switch ($rol) {
             case 'profesor':
@@ -119,7 +117,7 @@ WHERE tu.id_tarea = ?
 ORDER BY u.nombre ASC;
 ";
                 $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("i", $id_proyecto);
+                $stmt->bind_param("i", $id_avances);
                 break;
             default:
                 break;
@@ -137,7 +135,7 @@ ORDER BY u.nombre ASC;
         $sqlTarea = "
         UPDATE tareas
         SET descripcion = ?, instrucciones = ?
-        WHERE id_tareas = ?
+        WHERE id_tarea = ?
     ";
 
         $stmt1 = $this->con->prepare($sqlTarea);
@@ -177,7 +175,9 @@ ORDER BY u.nombre ASC;
         );
 
         // Para blobs se debe activar:
-        $stmt2->send_long_data(1, $archivo_guia);
+        if (!empty($archivo_guia)) {
+            $stmt2->send_long_data(1, $archivo_guia);
+        }
 
         if (!$stmt2->execute()) {
             die("Error en execute seguimiento: " . $stmt2->error);
@@ -272,9 +272,8 @@ ORDER BY u.nombre ASC;
         exit;
     }
 
-    //DETALLES DE LA TAREA
     // DETALLES DE LA TAREA (Estudiante)
-    function obtenerTareaAlumno($id_asignacion, $id_estudiante)
+    function obtenerTareaAlumno($id_asignacion)
     {
         $sql = "
         SELECT 
@@ -295,7 +294,6 @@ ORDER BY u.nombre ASC;
         INNER JOIN tareas_usuarios a 
                                      ON a.id_tarea = s.id_tarea 
                                      AND a.id_asignacion = ?
-                                     AND a.id_estudiante = ?
         LIMIT 1
     ";
 
@@ -305,10 +303,48 @@ ORDER BY u.nombre ASC;
             die("Error al preparar consulta: " . $this->con->error);
         }
 
-        $stmt->bind_param("ii", $id_asignacion, $id_estudiante);
+        $stmt->bind_param("i", $id_asignacion);
         $stmt->execute();
 
         $resultado = $stmt->get_result();
         return $resultado->fetch_assoc();
+    }
+    //Obtener información de tarea con seguimiento para modificar los datos
+    function obtenerTareaGeneral($id_tarea)
+    {
+        // 1) OBTENER TAREA
+        $sqlTarea = "SELECT 
+                    tita.descripcion_tipo AS tipo,
+                    tare.descripcion,
+                    tare.instrucciones
+                 FROM tareas AS tare
+                 JOIN tipo_tarea AS tita ON tare.id_tarea = tita.id_tarea
+                 WHERE tare.id_tarea = ?";
+
+        $stmt1 = $this->con->prepare($sqlTarea);
+        $stmt1->bind_param("i", $id_tarea);
+        $stmt1->execute();
+        $tarea = $stmt1->get_result()->fetch_assoc();
+
+
+        // 2) OBTENER SEGUIMIENTO
+        $sqlSeg = "SELECT 
+                    fecha_entrega,
+                    archivo_guia,
+                    archivo_nombre,
+                    archivo_tipo
+               FROM tbl_seguimiento
+               WHERE id_tarea = ?";
+
+        $stmt2 = $this->con->prepare($sqlSeg);
+        $stmt2->bind_param("i", $id_tarea);
+        $stmt2->execute();
+        $seguimiento = $stmt2->get_result()->fetch_assoc();
+
+        // Empaquetar JSON
+        return json_encode([
+            "tarea"       => $tarea,
+            "seguimiento" => $seguimiento
+        ]);
     }
 }
