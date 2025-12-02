@@ -2996,8 +2996,8 @@ select:focus {
   position: absolute;
   top: 2px;
   right: 2px;
-  background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
-  color: white;
+  background:var(--fondo-web);
+  color: var(--color-primario);
   font-size: 0.65rem;
   font-weight: 700;
   min-width: 18px;
@@ -3025,7 +3025,7 @@ select:focus {
   display: none;
   position: absolute;
   right: 0;
-  background: white;
+  background: var(--fondo-web) !important;
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   width: 360px;
@@ -3064,7 +3064,7 @@ select:focus {
   font-size: 1rem;
   color: var(--color-texto-principal, #2c3e50);
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  background: var(--fondo-web);
   border-radius: 12px 12px 0 0;
   position: sticky;
   top: 0;
@@ -3105,7 +3105,7 @@ select:focus {
 }
 
 .notif-item:hover {
-  background: #f8f9fa;
+  background: white;
   border-left-color: #3498db;
 }
 

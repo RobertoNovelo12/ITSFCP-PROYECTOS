@@ -214,7 +214,6 @@ $contenido .= '
 
 $stmt_proyecto->close();
 $stmt_estudiante->close();
-$conn->close();
 
 include __DIR__ . '/../../layout.php';
 ?>

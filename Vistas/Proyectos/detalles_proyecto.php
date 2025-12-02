@@ -210,10 +210,6 @@ function toggleSection(sectionId) {
 </script>
 ';
 
-$stmt->close();
-$conn->close();
-
-// después de generar $contenido (antes de stmt->close etc.) agrega:
 $mensajeModal = null;
 if (isset($_GET['solicitud'])) {
     $code = $_GET['solicitud'];

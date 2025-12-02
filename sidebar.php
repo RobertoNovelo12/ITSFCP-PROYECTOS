@@ -11,8 +11,6 @@ function crearLink($nombre, $rol) {
         "Seguimiento" => "/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php",
         "Tareas" => "/ITSFCP-PROYECTOS/Vistas/Tareas/tabla.php",
         "Solicitudes" => "/ITSFCP-PROYECTOS/Vistas/Constancias/tabla.php",
-        "Documentos" => "/ITSFCP-PROYECTOS/Vistas/menu/documentos.php",
-        "Plan de trabajo" => "/ITSFCP-PROYECTOS/Vistas/menu/plan_de_trabajo.php",
         "Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
         "Calendario" => "/ITSFCP-PROYECTOS/Vistas/Calendario/calendario.php",
         "Reportes" => "/ITSFCP-PROYECTOS/Vistas/Periodo/reportes.php",
@@ -40,7 +38,7 @@ $mainMenu = $middleMenu = $submenuProyectos = $submenuMisAlumnos = $submenuVerMa
 if ($rol === "estudiante" ||  $rol ==="alumno") {
     $mainMenu = ["Principal","Dashboard"];
     $submenuProyectos = ["Seguimiento","Tareas"];
-    $submenuVerMas = ["Solicitudes","Documentos","Plan de trabajo","Constancias"];
+    $submenuVerMas = ["Solicitudes","Constancias"];
     $middleMenu = ["Calendario"];
     $footerMenus = ["Soporte","Ajustes"];
 } elseif ($rol === "profesor" || $rol === "investigador") {
