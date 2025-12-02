@@ -14,14 +14,11 @@ class ProyectoControlador
 
         $proyecto = new Proyectos($conn);
 
-
-        //Revisión de estados del proyecto
-        $proyecto->actualizarProyectosVencidos();
-
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             //General
             $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectos($id, $rol, $buscar);
+            $numerofiltro =  $this-> numerofiltro("Total");
+            $proyectos = $proyecto->obtenerProyectos($id, $rol, $numerofiltro, $buscar);
             return $proyectos;
         } else {
             $proyectos = []; // evita undefined variable
@@ -34,7 +31,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosDatosFiltro($id, $rol);
             return $proyectos;
@@ -50,7 +47,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 0, $rol, $buscar);
             return $proyectos;
@@ -65,7 +62,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 1, $rol, $buscar);
             return $proyectos;
@@ -80,7 +77,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 2, $rol, $buscar);
             return $proyectos;
@@ -95,7 +92,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 3, $rol, $buscar);
             return $proyectos;
@@ -110,7 +107,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 4, $rol, $buscar);
             return $proyectos;
@@ -126,7 +123,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 5, $rol, $buscar);
             return $proyectos;
@@ -142,7 +139,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 6, $rol, $buscar);
             return $proyectos;
@@ -158,7 +155,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         //Datos filtros
-        if ($rol == "investigador" || $rol == "alumno" || $rol == "supervisor") {
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             $proyecto->actualizarProyectosVencidos();
             $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 7, $rol, $buscar);
             return $proyectos;
@@ -208,7 +205,7 @@ class ProyectoControlador
     public function encabezados($rol)
     {
         switch ($rol) {
-            case 'alumno':
+            case 'estudiante':
                 $encabezados = [
                     'ID',
                     'Título',
@@ -257,7 +254,7 @@ class ProyectoControlador
     public function datosopciones($rol, $filtros)
     {
         switch ($rol) {
-            case 'alumno':
+            case 'estudiante':
                 $opciones = [
                     'Total'       => "Total ({$filtros[0]['Total']})",
                     'Activos'     => "Activos ({$filtros[0]['Activos']})",
@@ -382,7 +379,7 @@ class ProyectoControlador
 
         $boton = "";
         switch ($rol) {
-            case 'alumno':
+            case 'estudiante':
                 if ($estado == "Activo" || $estado == "Por cerrar") {
                     $boton = $this->obtenerbotones("Detalles", $id);
                     $boton .= $this->obtenerbotones("Tareas", $id);
