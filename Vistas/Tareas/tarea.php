@@ -12,14 +12,14 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 
-$id_asignacion = $_GET["id_asignacion"] ?? null;
+$id_tarea = $_GET["id_asignacion"] ?? null;
 $action = $_POST['action'] ?? null;
 
 require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
 //Datos necesarios
-$tarea = $tareaControlador->mostrarTarea($id_asignacion, $rol); // Para rellenar
+$tarea = $tareaControlador->mostrarTarea($id_tarea, $rol); // Para rellenar
 
 if ($action == 'editarTarea') {
     $tareaControlador->editarTarea($_POST, $id, $rol);
@@ -40,7 +40,7 @@ ob_start();
             </div>
 
             <?php foreach ($tarea as $datos): ?>
-                <form action="editar.php" method="POST" enctype="multipart/form-data">
+                <form action="tarea.php" method="POST" enctype="multipart/form-data">
                     <div class="row mb-1">
                         <h3>Editar Tarea</h3>
                         <input type="hidden" name="action" value="editarTarea">
