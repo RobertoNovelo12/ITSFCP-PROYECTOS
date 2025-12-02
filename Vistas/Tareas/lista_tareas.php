@@ -15,7 +15,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 //ACCIONES
 $action = isset($_GET['action']) ? $_GET['action'] : 'index_Lista';
-$id_avances = $_GET['id_avances'] ?? null;
+$id_tarea = $_GET['id_tarea'] ?? null;
 $id_proyectos = $_GET['id_proyectos'] ?? null;
 //LLAMADA AL CONTROLADOR
 include "../../Controladores/tareasControlador.php";
@@ -28,10 +28,10 @@ if (!method_exists($tareaControlador, $action)) {
 //Se ejecuta la acción del controlador
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
-    $tareaControlador->actualizarestado($id_avances, $rol, $_GET['tipo']);
+    $tareaControlador->actualizarestado($id_tarea, $rol, $_GET['tipo']);
 }
 //EJECUTAR ACCION
-$tarea = $tareaControlador->$action($id_avances, $id_usuario, $rol);
+$tarea = $tareaControlador->$action($id_tarea, $rol);
 if (!is_array($tarea)) {
     die("Error: La acción '$action' no devolvió un array válido.");
 }
@@ -80,10 +80,10 @@ ob_start();
                                 foreach ($tarea as $tar) {
                                     echo "<tr>";
                                     echo "<th scope='row'>{$tar['id_asignacion']}</th>";
-                                    echo "<th>{$tar['estudiante']}</th>";
+                                    echo "<th scope='row'>{$tar['estudiante']}</th>";
                                     echo "<td>{$tar['estados_tarea']}</td>";
                                     echo "<td>{$tar['fecha_entrega']}</td>";
-                                    echo "<td>{$tareaControlador->botonesAccionLista($tar['id_asignacion'],$rol,$tar['estados_tarea'],null)}</td>";
+                                    echo "<td>{$tareaControlador->botonesAccionLista($tar['id_tarea'],$rol,$tar['estados_tarea'],null)}</td>";
                                     echo "</tr>";
                                 }
                             } ?>
