@@ -1,5 +1,14 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
+
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: /ITSFCP-PROYECTOS/index.php");
+    exit;
+}
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 
@@ -17,12 +26,13 @@ $proyecto = $proyectoControlador->datosproyecto($id_proyecto); // Para rellenar
 if ($action == 'editarProyecto') {
     $proyectoControlador->editarProyecto($_POST, $id, $rol);
 }
-
-include '../../publico/incluido/header.php';
+// ======================
+// GENERAR CONTENIDO
+// ======================
+ob_start();
 ?>
-<div class="container-main">
-    <?php include '../../sidebar.php'; ?>
-    <div class="main-content-index">
+<div class="container-fluid py-4">
+    <div class="row mb-3 align-items-center">
         <div class="row mb-1">
             <div class="col-6">
                 <h3>Editar Proyecto</h3>
@@ -175,7 +185,13 @@ include '../../publico/incluido/header.php';
         </div>
     </div>
 </div>
-<?php include "../../publico/incluido/footer.php"; ?>
+<?php
+$contenido = ob_get_clean();
+$titulo = "Proyectos";
+$bodyClass = "proyectos-page";
+
+include __DIR__ . '/../../layout.php';
+?>
 <?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
