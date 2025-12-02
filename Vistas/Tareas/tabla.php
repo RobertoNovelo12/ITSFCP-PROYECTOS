@@ -1,1 +1,168 @@
+<?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+session_start();
+
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: /ITSFCP-PROYECTOS/index.php");
+    exit;
+}
+
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = intval($_SESSION['id_usuario']);
+//ACCIONES
+$action = isset($_GET['action']) ? $_GET['action'] : 'index_Principal';
+$id_proyecto = $_GET['id_proyectos'] ?? null;
+
+//LLAMADA AL CONTROLADOR
+include "../../Controladores/tareasControlador.php";
+
+$tareaControlador = new TareaControlador();
+//Si no existe el controlador que mande un mensaje
+if (!method_exists($tareaControlador, $action)) {
+    die("Error: La acción '$action' no existe en el controlador.");
+}
+//Se ejecuta la acción del controlador
+
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
+    $tareaControlador->actualizarestado($id_proyecto, $rol, $_GET['tipo']);
+}
+//EJECUTAR ACCION
+$tarea = $tareaControlador->$action($id_proyecto, $id_usuario, $rol);
+if (!is_array($tarea)) {
+    die("Error: La acción '$action' no devolvió un array válido.");
+}
+$encabezados = $tareaControlador->encabezadosPrincipal($rol);
+// ======================
+// GENERAR CONTENIDO
+// ======================
+ob_start();
+?>
+
+<script>
+    //MOSTRAR TOOLTIP, QUE ES UN TEXTO AL SOBREPONER MOUSE EN BOTÓN
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(t => new bootstrap.Tooltip(t));
+    });
+</script>
+
+
+<div class="container-fluid py-4">
+    <div class="row mb-3 align-items-center">
+        <div class="row  mb-3">
+        <div class="col-md-6">
+            <h3 class="mb-0">Seguimiento de Tareas</h3>
+        </div>
+            <div class="col-12 col-md-6 text-md-end text-center mb-2 mb-md-0">
+                <a href="../Proyectos/tabla.php" class="btn btn-danger w-100 w-md-auto">Regresar</a>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table table-light" id="tabla_informacion">
+                        <thead class="text-center">
+                            <tr>
+                                <?php
+                                foreach ($encabezados as $encabezado) {
+                                    echo "<th scope='col'>{$encabezado}</th>";
+                                }
+                                ?>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <?php if ($rol == "estudiante") {
+                                foreach ($tarea as $tar) {
+                                    echo "<tr>";
+                                    echo "<th scope='row'>{$tar['tipo']}</th>";
+                                    echo "<td><a href='descargar.php?id=" . $tar['id_avances'] . "'>Descargar</a></td>";
+                                    echo "<td>{$tar['fecha_entrega']}</td>";
+                                    echo "<td>{$tar['estado']}</td>";
+                                    echo "<td>{$tareaControlador->botonesAccionPrincipal($tar['id_tarea'],$rol,$tar['estado'])}</td>";
+                                    echo "</tr>";
+                                }
+                            } else if ($rol == "investigador" || $rol == "supervisor") {
+                                foreach ($tarea as $tar) {
+                                    echo "<tr>";
+                                    echo "<th scope='row'>{$tar['tipo']}</th>";
+                                    echo "<td>{$tar['entregado']}/{$tar['total_Estudiantes']}</td>";
+                                    echo "<td><a href='descargar.php?id=" . $tar['id_avances'] . "'><svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='red' class='bi bi-file-earmark-pdf-fill' viewBox='0 0 16 16'>
+  <path d='M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3 0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21 21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0 1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44 0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278 6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5 0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z'/>
+  <path fill-rule='evenodd' d='M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2zM4.165 13.668c.09.18.23.343.438.419.207.075.412.04.58-.03.318-.13.635-.436.926-.786.333-.401.683-.927 1.021-1.51a11.7 11.7 0 0 1 1.997-.406c.3.383.61.713.91.95.28.22.603.403.934.417a.86.86 0 0 0 .51-.138c.155-.101.27-.247.354-.416.09-.181.145-.37.138-.563a.84.84 0 0 0-.2-.518c-.226-.27-.596-.4-.96-.465a5.8 5.8 0 0 0-1.335-.05 11 11 0 0 1-.98-1.686c.25-.66.437-1.284.52-1.794.036-.218.055-.426.048-.614a1.24 1.24 0 0 0-.127-.538.7.7 0 0 0-.477-.365c-.202-.043-.41 0-.601.077-.377.15-.576.47-.651.823-.073.34-.04.736.046 1.136.088.406.238.848.43 1.295a20 20 0 0 1-1.062 2.227 7.7 7.7 0 0 0-1.482.645c-.37.22-.699.48-.897.787-.21.326-.275.714-.08 1.103'/>
+</svg></a></td>";
+                                    echo "<td>{$tar['fecha_entrega']}</td>";
+                                    echo "<td>{$tar['estado']}</td>";
+                                    echo "<td>{$tareaControlador->botonesAccionPrincipal($tar['id_avances'],$rol,$tar['estado'], $id_proyecto)}</td>";
+                                    echo "</tr>";
+                                }
+                            } ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php foreach ($tarea as $tar): ?>
+                    <div class="card mb-3" id="tarjeta_móvil" style="width: 18rem;">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo $tar['id_avances'] ?></h5>
+                            <p class="card-text"><?php echo $tar['tipo'] ?></p>
+                        </div>
+
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <div class="row">
+                                    <?php if ($rol == "supervisor" || $rol == "investigador"): ?>
+                                        <div class="col-6">
+                                            <label>Entragados</label>
+                                            <p class="card-text"><?php echo ($tar['entregado'] . '/' . $tar['total_Estudiantes']) ?></p>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="col-6">
+                                        <label>Guía</label>
+                                        <p class="card-text"><a href='descargar.php?id="<?php echo $tar['id_avances'] ?>"'><button class='btn btn-info btn-sm'>Descargar</button></a></p>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label>Fecha Entrega</label>
+                                        <p class="card-text"><?php echo $tar['fecha_entrega'] ?></p>
+                                    </div>
+                                    <div class="col-6">
+                                        <label>Estado</label>
+                                        <p class="card-text"><?php echo $tar['estado'] ?></p>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <?php echo $tareaControlador->botonesAccionPrincipal($tar['id_avances'], $rol, $tar['estado']); ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach;  ?>
+
+            </div>
+        </div>
+    </div>
+</div>
+<?php
+$contenido = ob_get_clean();
+$titulo = "Tareas";
+$bodyClass = "proyectos-page";
+
+include __DIR__ . '/../../layout.php';
+?>
+<?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
+    <script>
+        abrirMensaje();
+    </script>
+<?php unset($_SESSION['mensaje']);
+endif; ?>
