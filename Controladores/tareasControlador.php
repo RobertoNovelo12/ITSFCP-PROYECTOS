@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../Modelos/tareas.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 
-// Encabezados según rol
+
 
 class TareaControlador
 {
@@ -24,7 +24,7 @@ class TareaControlador
             return $tarea;
         }
     }
-    public function index_Lista($id_proyecto, $id_usuario, $rol)
+    public function index_Lista($id_avances, $rol)
     {
         global $conn;
 
@@ -33,7 +33,7 @@ class TareaControlador
         if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             //Revisión de estados de tarea
             $tarea->actualizarTareasVencidos();
-            $tarea = $tarea->obtenerTareas($id_proyecto, $id_usuario, $rol);
+            $tarea = $tarea->obtenerTareasLista($id_avances, $rol);
             return $tarea;
         } else {
             $tarea = []; // evita undefined variable
@@ -41,18 +41,1373 @@ class TareaControlador
         }
     }
 
-    public function tareas($tipo, $rol, $id_usuario, $datos){
-        switch($tipo){
+    public function tareas($descripcion, $rol, $datos)
+    {
+        switch ($rol) {
             case 'estudiante':
+                if ($descripcion == "hidden") {
+                    $campo = '<input type="hidden" name="action" value="editarTarea">
+    <input type="hidden" name="id_tareas" value="<?= ' . $datos['id_tarea'] . ' ?>">';
+                } else if ($descripcion == "Resumen") {
+                    $campo = '<h4>1. Resumen / Abstract</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Resumen / Abstract:</label>
+        <textarea class="form-control" name="Resumen" rows="4" required><?php echo htmlspecialchars(' . $datos['contenido']['Resumen'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Resumen" class="form-control">
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Introducción") {
+                    $campo = '<h4>2. Introducción</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Introducción:</label>
+        <textarea class="form-control" name="Introducción" rows="4" required><?php echo htmlspecialchars(' . $datos['contenido']['Introduccion'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Introduccion" class="form-control">
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "PlanteamientoProblema") {
+
+                    $campo = '<h4>3. Planteamiento del Problema</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Planteamiento del Problema:</label>
+        <textarea class="form-control" name="PlanteamientoProblema" rows="4" required><?php echo htmlspecialchars(' . $datos['contenido']['PlanteamientoProblema'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Planteamiento" class="form-control">
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Comentarios recibidos:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Justificacion") {
+
+                    $campo = '<h4>4. Justificación</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Justificación:</label>
+        <textarea class="form-control" name="Justificacion" rows="4" required><?php echo htmlspecialchars(' . $datos['contenido']['Justificacion'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Justificacion" class="form-control">
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Comentarios recibidos:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Objetivos") {
+
+                    $campo = '<h4>5. Objetivos</h4>';
+
+                    // OBJETIVO GENERAL
+                    $campo .= '<div class="mb-3">
+        <label>Objetivo general:</label>
+        <textarea class="form-control" name="ObjetivoGeneral" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['ObjetivoGeneral'] . '); ?></textarea>
+    </div>';
+
+                    // OBJETIVOS ESPECÍFICOS
+                    $campo .= '<div class="mb-3">
+        <label>Objetivos específicos:</label>
+        <textarea class="form-control" name="ObjetivosEspecificos" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['ObjetivosEspecificos'] . '); ?></textarea>
+    </div>';
+
+                    // ARCHIVO
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Objetivos" class="form-control">
+    </div>';
+
+                    // COMENTARIOS (solo lectura para estudiante)
+                    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="ComentariosObjetivos" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ComentariosObjetivos'] . '); ?></textarea>
+    </div>';
+                } else if ($descripcion == "MarcoTeorico") {
+
+                    $campo = '<h4>6. Marco teórico y/o de referencia</h4>';
+
+                    /* ===================== ANTECEDENTES ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Antecedentes:</label>
+        <textarea class="form-control" name="Antecedentes" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['Antecedentes'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== FUNDAMENTACIÓN TEÓRICA ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Fundamentación teórica:</label>
+        <textarea class="form-control" name="Fundamentacion" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['Fundamentacion'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== MARCO CONCEPTUAL ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Marco conceptual:</label>
+        <textarea class="form-control" name="MarcoConceptual" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['MarcoConceptual'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== ARCHIVO ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_MarcoTeorico" class="form-control">
+    </div>';
+
+                    /* ===================== COMENTARIOS SOLO LECTURA ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="ComentariosMarcoTeorico" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ComentariosMarcoTeorico'] . '); ?></textarea>
+    </div>';
+                } else if ($descripcion == "Metodologia") {
+
+                    $campo = '<h4>7. Metodología</h4>';
+
+                    /* === Tipo de estudio === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>6.1 Tipo de estudio:</label>
+            <textarea class="form-control" name="TipoEstudio" rows="4">'
+                        . htmlspecialchars($datos["contenido"]["TipoEstudio"]) .
+                        '</textarea>
+        </div>';
+
+                    $campo .= '
+        <div class="mb-3">
+            <label>Archivo actual:</label>';
+                    if (!empty($datos["archivo_nombre_TipoEstudio"])) {
+                        $campo .= '<a href="descargar.php?id=' . $datos["id_tarea"] . '">
+                Descargar archivo (' . $datos["archivo_nombre_TipoEstudio"] . ')
+            </a>';
+                    } else {
+                        $campo .= '<p>No hay archivo cargado.</p>';
+                    }
+                    $campo .= '
+            <label class="mt-2">Subir archivo nuevo:</label>
+            <input type="file" name="archivo_TipoEstudio" class="form-control">
+        </div>';
+
+
+                    /* === Métodos y técnicas === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>6.2 Métodos y técnicas:</label>
+            <textarea class="form-control" name="MetodosTecnicas" rows="4">'
+                        . htmlspecialchars($datos["contenido"]["MetodosTecnicas"]) .
+                        '</textarea>
+        </div>';
+
+                    $campo .= '
+        <div class="mb-3">
+            <label>Archivo actual:</label>';
+                    if (!empty($datos["archivo_nombre_MetodosTecnicas"])) {
+                        $campo .= '<a href="descargar.php?id=' . $datos["id_tarea"] . '">
+                Descargar archivo (' . $datos["archivo_nombre_MetodosTecnicas"] . ')
+            </a>';
+                    } else {
+                        $campo .= '<p>No hay archivo cargado.</p>';
+                    }
+                    $campo .= '
+            <label class="mt-2">Subir archivo nuevo:</label>
+            <input type="file" name="archivo_MetodosTecnicas" class="form-control">
+        </div>';
+
+
+                    /* === Población y muestra === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>6.3 Población y muestra:</label>
+            <textarea class="form-control" name="PoblacionMuestra" rows="4">'
+                        . htmlspecialchars($datos["contenido"]["PoblacionMuestra"]) .
+                        '</textarea>
+        </div>';
+
+                    $campo .= '
+        <div class="mb-3">
+            <label>Archivo actual:</label>';
+                    if (!empty($datos["archivo_nombre_PoblacionMuestra"])) {
+                        $campo .= '<a href="descargar.php?id=' . $datos["id_tarea"] . '">
+                Descargar archivo (' . $datos["archivo_nombre_PoblacionMuestra"] . ')
+            </a>';
+                    } else {
+                        $campo .= '<p>No hay archivo cargado.</p>';
+                    }
+                    $campo .= '
+            <label class="mt-2">Subir archivo nuevo:</label>
+            <input type="file" name="archivo_PoblacionMuestra" class="form-control">
+        </div>';
+
+
+                    /* === Instrumentos === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>6.4 Instrumentos:</label>
+            <textarea class="form-control" name="Instrumentos" rows="4">'
+                        . htmlspecialchars($datos["contenido"]["Instrumentos"]) .
+                        '</textarea>
+        </div>';
+
+                    $campo .= '
+        <div class="mb-3">
+            <label>Archivo actual:</label>';
+                    if (!empty($datos["archivo_nombre_Instrumentos"])) {
+                        $campo .= '<a href="descargar.php?id=' . $datos["id_tarea"] . '">
+                Descargar archivo (' . $datos["archivo_nombre_Instrumentos"] . ')
+            </a>';
+                    } else {
+                        $campo .= '<p>No hay archivo cargado.</p>';
+                    }
+                    $campo .= '
+            <label class="mt-2">Subir archivo nuevo:</label>
+            <input type="file" name="archivo_Instrumentos" class="form-control">
+        </div>';
+
+                    /* === Comentarios del investigador visibles === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>Comentarios del investigador:</label>
+            <textarea class="form-control" rows="3" disabled>'
+                        . htmlspecialchars($datos["contenido"]["Comentarios"]) .
+                        '</textarea>
+        </div>';
+                } else if ($descripcion == "MetasProductosImpacto") {
+
+                    $campo = '<h4>8. Metas, productos esperados e impacto</h4>';
+
+                    /* --- 8.1 Metas --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.1 Metas:</label>
+        <textarea class="form-control" name="Metas" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['Metas'] . ') ?></textarea>
+    </div>';
+
+                    /* --- 8.2 Productos esperados --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.2 Productos esperados:</label>
+        <textarea class="form-control" name="ProductosEsperados" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['ProductosEsperados'] . ') ?></textarea>
+    </div>';
+
+                    /* --- 8.3 Impacto --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.3 Impacto:</label>
+        <textarea class="form-control" name="Impacto" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['Impacto'] . ') ?></textarea>
+    </div>';
+
+                    /* --- ARCHIVO GENERAL --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_MetasProductosImpacto" class="form-control">
+    </div>';
+
+                    /* --- COMENTARIOS (solo los ve el estudiante) --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios del investigador/supervisor:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Cronograma") {
+
+    $campo = '<h4>9. Cronograma</h4>';
+
+    /* --- CRONOGRAMA --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Cronograma:</label>
+        <textarea class="form-control" name="Cronograma" rows="6"><?php echo htmlspecialchars(' . $datos['contenido']['Cronograma'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Cronograma" class="form-control">
+    </div>';
+
+    /* --- COMENTARIOS PARA EL ESTUDIANTE --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios del investigador/supervisor:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+} else if ($descripcion == "Bibliografia") {
+
+    $campo = '<h4>10. Bibliografía</h4>';
+
+    /* --- BIBLIOGRAFÍA --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Bibliografía:</label>
+        <textarea class="form-control" name="Bibliografia" rows="6"><?php echo htmlspecialchars(' . $datos['contenido']['Bibliografia'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL --- */
+    $campo .= '
+    <div class="mb-3">
+
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Bibliografia" class="form-control">
+
+    </div>';
+
+    /* --- COMENTARIOS (el estudiante los puede ver y editar) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios del investigador/supervisor:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+} else if ($descripcion == "Anexos") {
+
+    $campo = '<h4>11. Anexos (Opcional)</h4>';
+
+    /* --- 11.1 Instrumentos de recolección --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Instrumentos de recolección (Explicación):</label>
+        <textarea class="form-control" name="Instrumentos" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['Instrumentos'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.2 Formularios de consentimiento --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Formularios de consentimiento (Explicación):</label>
+        <textarea class="form-control" name="Consentimiento" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['Consentimiento'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.3 Mapas, tablas, gráficos adicionales --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Mapas, tablas, gráficos adicionales (Explicación):</label>
+        <textarea class="form-control" name="Mapas" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['Mapas'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.4 Otra documentación complementaria --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Otra documentación complementaria (Explicación):</label>
+        <textarea class="form-control" name="Documentacion" rows="4"><?php echo htmlspecialchars(' . $datos['contenido']['Documentacion'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL --- */
+    $campo .= '
+    <div class="mb-3">
+
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Anexos" class="form-control">
+
+    </div>';
+
+    /* --- COMENTARIOS PARA EL ESTUDIANTE --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios del investigador/supervisor:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+}
                 break;
             case 'investigador':
+                if ($descripcion == "hidden") {
+                    $campo = '<input type="hidden" name="action" value="editarTareaRevisar">
+    <input type="hidden" name="id_tareas" value="<?= ' . $datos['id_tarea'] . ' ?>">';
+                } else if ($descripcion == "Resumen") {
+                    $campo = '<h4>1. Resumen / Abstract</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Resumen / Abstract:</label>
+        <textarea class="form-control" name="Resumen" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Resumen'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <!-- investigador no sube archivos al contenido; input se muestra deshabilitado -->
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Resumen" class="form-control" disabled>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Comentarios del investigador:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Introducción") {
+                    $campo = '<h4>2. Introducción</h4>';
+
+                    $campo .= '<div class="mb-3">        <label>Introducción:</label>
+        <textarea class="form-control" name="Introducción" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Introduccion'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <!-- investigador no sube archivos al contenido; input se muestra deshabilitado -->
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Introduccion" class="form-control" disabled>
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Comentarios del investigador:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "PlanteamientoProblema") {
+
+                    $campo = '<h4>3. Planteamiento del Problema</h4>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Planteamiento del Problema:</label>
+        <textarea class="form-control" name="PlanteamientoProblema" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['PlanteamientoProblema'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Planteamiento" class="form-control" disabled>
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Comentarios del investigador:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Justificacion") {
+
+                    $campo = '<h4>4. Justificación</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Justificación:</label>
+        <textarea class="form-control" name="Justificacion" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Justificacion'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Justificacion" class="form-control" disabled>
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Comentarios del investigador:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Objetivos") {
+
+                    $campo = '<h4>5. Objetivos</h4>';
+
+                    // OBJETIVO GENERAL (bloqueado)
+                    $campo .= ' <div class="mb-3">
+        <label>Objetivo general:</label>
+        <textarea class="form-control" name="ObjetivoGeneral" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ObjetivoGeneral'] . '); ?></textarea>
+    </div>';
+
+                    // OBJETIVOS ESPECÍFICOS (bloqueado)
+                    $campo .= ' <div class="mb-3">
+        <label>Objetivos específicos:</label>
+        <textarea class="form-control" name="ObjetivosEspecificos" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ObjetivosEspecificos'] . '); ?></textarea>
+    </div>';
+
+                    // ARCHIVO (bloqueado)
+                    $campo .= ' <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Objetivos" class="form-control" disabled>
+    </div>';
+
+                    // COMENTARIOS (solo investigador puede editar)
+                    $campo .= ' <div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="ComentariosObjetivos" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['ComentariosObjetivos'] . '); ?></textarea>
+    </div>';
+                } else if ($descripcion == "MarcoTeorico") {
+
+                    $campo = '<h4>6. Marco teórico y/o de referencia</h4>';
+
+                    /* ===================== ANTECEDENTES ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Antecedentes:</label>
+        <textarea class="form-control" name="Antecedentes" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Antecedentes'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== FUNDAMENTACIÓN TEÓRICA ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Fundamentación teórica:</label>
+        <textarea class="form-control" name="Fundamentacion" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Fundamentacion'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== MARCO CONCEPTUAL ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Marco conceptual:</label>
+        <textarea class="form-control" name="MarcoConceptual" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['MarcoConceptual'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== ARCHIVO ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_MarcoTeorico" class="form-control" disabled>
+    </div>';
+
+                    /* ===================== COMENTARIOS EDITABLE ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="ComentariosMarcoTeorico" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['ComentariosMarcoTeorico'] . '); ?></textarea>
+    </div>';
+                } else if ($descripcion == "Metodologia") {
+                    $campo = '<h4>7. Metodología</h4>';
+
+                    /* === Tipo de estudio === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>6.1 Tipo de estudio:</label>
+            <textarea class="form-control" name="TipoEstudio" rows="4" disabled>'
+                        . htmlspecialchars($datos["contenido"]["TipoEstudio"]) .
+                        '</textarea>
+        </div>';
+
+                    /* === Métodos y técnicas === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>6.2 Métodos y técnicas:</label>
+            <textarea class="form-control" name="MetodosTecnicas" rows="4" disabled>'
+                        . htmlspecialchars($datos["contenido"]["MetodosTecnicas"]) .
+                        '</textarea>
+        </div>';
+
+                    /* === Población y muestra === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>6.3 Población y muestra:</label>
+            <textarea class="form-control" name="PoblacionMuestra" rows="4" disabled>'
+                        . htmlspecialchars($datos["contenido"]["PoblacionMuestra"]) .
+                        '</textarea>
+        </div>';
+
+                    /* === Instrumentos === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>6.4 Instrumentos:</label>
+            <textarea class="form-control" name="Instrumentos" rows="4" disabled>'
+                        . htmlspecialchars($datos["contenido"]["Instrumentos"]) .
+                        '</textarea>
+        </div>';
+
+                    $campo .= '
+        <div class="mb-3">
+            <label>Archivo actual:</label>';
+                    if (!empty($datos["archivo_nombre_"])) {
+                        $campo .= '<a href="descargar.php?id=' . $datos["id_tarea"] . '">
+                Descargar archivo (' . $datos["archivo_nombre"] . ')
+            </a>';
+                    } else {
+                        $campo .= '<p>No hay archivo cargado.</p>';
+                    }
+                    $campo .= '
+            <label class="mt-2">Subir archivo nuevo:</label>
+            <input type="file" name="archivo" class="form-control">
+        </div>';
+
+                    /* === Comentarios del investigador visibles === */
+                    $campo .= '
+        <div class="mb-3">
+            <label>Comentarios del investigador:</label>
+            <textarea class="form-control" rows="3">'
+                        . htmlspecialchars($datos["contenido"]["Comentarios"]) .
+                        '</textarea>
+        </div>';
+                } else if ($descripcion == "MetasProductosImpacto") {
+                    $campo = '<h4>8. Metas, productos esperados e impacto</h4>';
+
+                    /* --- 8.1 Metas --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.1 Metas:</label>
+        <textarea class="form-control" name="Metas" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Metas'] . ') ?></textarea>
+    </div>';
+
+                    /* --- 8.2 Productos esperados --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.2 Productos esperados:</label>
+        <textarea class="form-control" name="ProductosEsperados" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ProductosEsperados'] . ') ?></textarea>
+    </div>';
+
+                    /* --- 8.3 Impacto --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.3 Impacto:</label>
+        <textarea class="form-control" name="Impacto" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Impacto'] . ') ?></textarea>
+    </div>';
+
+                    /* --- ARCHIVO GENERAL --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" class="form-control" disabled>
+    </div>';
+
+                    /* --- COMENTARIOS (investigador puede escribir) --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios al estudiante:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Cronograma") {
+
+    $campo = '<h4>9. Cronograma</h4>';
+
+    /* --- CRONOGRAMA (solo lectura) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Cronograma:</label>
+        <textarea class="form-control" name="Cronograma" rows="6" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Cronograma'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" class="form-control" disabled>
+    </div>';
+
+    /* --- COMENTARIOS (investigador puede escribir) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios al estudiante:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+} else if ($descripcion == "Bibliografia") {
+
+    $campo = '<h4>10. Bibliografía</h4>';
+
+    /* --- BIBLIOGRAFÍA (solo lectura) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Bibliografía:</label>
+        <textarea class="form-control" name="Bibliografia" rows="6" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Bibliografia'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL --- */
+    $campo .= '
+    <div class="mb-3">
+
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input class="form-control" type="file" disabled>
+
+    </div>';
+
+    /* --- COMENTARIOS (investigador puede escribir) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios al estudiante:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+} else if ($descripcion == "Anexos") {
+
+    $campo = '<h4>11. Anexos (Opcional)</h4>';
+
+    /* --- 11.1 Instrumentos de recolección --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Instrumentos de recolección (Explicación):</label>
+        <textarea class="form-control" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Instrumentos'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.2 Formularios de consentimiento --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Formularios de consentimiento (Explicación):</label>
+        <textarea class="form-control" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Consentimiento'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.3 Mapas, tablas, gráficos adicionales --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Mapas, tablas, gráficos adicionales (Explicación):</label>
+        <textarea class="form-control" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Mapas'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.4 Otra documentación complementaria --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Otra documentación complementaria (Explicación):</label>
+        <textarea class="form-control" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Documentacion'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL (solo descargar) --- */
+    $campo .= '
+    <div class="mb-3">
+
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <input type="file" class="form-control mt-2" disabled>
+
+    </div>';
+
+    /* --- COMENTARIOS QUE SÍ PUEDE ESCRIBIR EL INVESTIGADOR --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios al estudiante:</label>
+        <textarea class="form-control" name="Comentarios" rows="3"><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+}
+
+
+
+
+
                 break;
             case 'supervisor':
+                if ($descripcion == "Resumen") {
+                    $campo = '<h4>1. Resumen / Abstract</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Resumen / Abstract:</label>
+        <textarea class="form-control" name="Resumen" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Resumen'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <!-- supervisor no puede subir -->
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Resumen" class="form-control" disabled>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Introducción") {
+                    $campo = '<h4>2. Introducción</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Introducción:</label>
+        <textarea class="form-control" name="Introducción" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Introduccion'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <!-- supervisor no puede subir -->
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Introduccion" class="form-control" disabled>
+    </div>';
+
+                    $campo .= ' <div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "PlanteamientoProblema") {
+
+                    $campo = '<h4>3. Planteamiento del Problema</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Planteamiento del Problema:</label>
+        <textarea class="form-control" name="PlanteamientoProblema" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['PlanteamientoProblema'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= ' <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Planteamiento" class="form-control" disabled>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Justificacion") {
+
+                    $campo = '<h4>4. Justificación</h4>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Justificación:</label>
+        <textarea class="form-control" name="Justificacion" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Justificacion'] . ') ?></textarea>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Justificacion" class="form-control" disabled>
+    </div>';
+
+                    $campo .= '<div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                } else if ($descripcion == "Objetivos") {
+
+                    $campo = '<h4>5. Objetivos</h4>';
+
+                    // OBJETIVO GENERAL
+                    $campo .= '<div class="mb-3">
+        <label>Objetivo general:</label>
+        <textarea class="form-control" name="ObjetivoGeneral" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ObjetivoGeneral'] . '); ?></textarea>
+    </div>';
+
+                    // OBJETIVOS ESPECÍFICOS
+                    $campo .= '<div class="mb-3">
+        <label>Objetivos específicos:</label>
+        <textarea class="form-control" name="ObjetivosEspecificos" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ObjetivosEspecificos'] . '); ?></textarea>
+    </div>';
+
+                    // ARCHIVO
+                    $campo .= '<div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Objetivos" class="form-control" disabled>
+    </div>';
+
+                    // COMENTARIOS (solo lectura)
+                    $campo .= '<div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="ComentariosObjetivos" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ComentariosObjetivos'] . '); ?></textarea>
+    </div>';
+                } else if ($descripcion == "MarcoTeorico") {
+
+                    $campo = '<h4>6. Marco teórico y/o de referencia</h4>';
+
+                    /* ===================== ANTECEDENTES ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Antecedentes:</label>
+        <textarea class="form-control" name="Antecedentes" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Antecedentes'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== FUNDAMENTACIÓN TEÓRICA ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Fundamentación teórica:</label>
+        <textarea class="form-control" name="Fundamentacion" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Fundamentacion'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== MARCO CONCEPTUAL ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Marco conceptual:</label>
+        <textarea class="form-control" name="MarcoConceptual" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['MarcoConceptual'] . '); ?></textarea>
+    </div>';
+
+                    /* ===================== ARCHIVO ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_MarcoTeorico" class="form-control" disabled>
+    </div>';
+
+                    /* ===================== COMENTARIOS ===================== */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios:</label>
+        <textarea class="form-control" name="ComentariosMarcoTeorico" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ComentariosMarcoTeorico'] . '); ?></textarea>
+    </div>';
+                } else if ($descripcion == "Metodologia") {
+
+                    $campo = '<h4>7. Metodología</h4>';
+
+                    /* ===========================================================
+       5.1 Diseño de investigación
+       =========================================================== */
+                    $campo .= '
+    <h5 class="mt-4">5.1 Diseño de investigación</h5>
+    <div class="mb-3">
+        <label>Diseño de investigación:</label>
+        <textarea class="form-control" name="Metodologia_Diseno" rows="4" disabled>
+            <?php echo htmlspecialchars(' . $datos['contenido']['Metodologia_Diseno'] . ') ?>
+        </textarea>
+    </div>';
+
+                    /* ===========================================================
+       5.2 Enfoque
+       =========================================================== */
+                    $campo .= '
+    <h5 class="mt-4">5.2 Enfoque</h5>
+    <div class="mb-3">
+        <label>Enfoque:</label>
+        <textarea class="form-control" name="Metodologia_Enfoque" rows="4" disabled>
+            <?php echo htmlspecialchars(' . $datos['contenido']['Metodologia_Enfoque'] . ') ?>
+        </textarea>
+    </div>';
+
+                    /* ===========================================================
+       5.3 Técnicas e instrumentos
+       =========================================================== */
+                    $campo .= '
+    <h5 class="mt-4">5.3 Técnicas e instrumentos de recolección de datos</h5>
+    <div class="mb-3">
+        <label>Técnicas e instrumentos:</label>
+        <textarea class="form-control" name="Metodologia_Tecnicas" rows="4" disabled>
+            <?php echo htmlspecialchars(' . $datos['contenido']['Metodologia_Tecnicas'] . ') ?>
+        </textarea>
+    </div>';
+
+                    /* ===========================================================
+       5.4 Población y muestra
+       =========================================================== */
+                    $campo .= '
+    <h5 class="mt-4">5.4 Población y muestra</h5>
+    <div class="mb-3">
+        <label>Población y muestra:</label>
+        <textarea class="form-control" name="Metodologia_Poblacion" rows="4" disabled>
+            <?php echo htmlspecialchars(' . $datos['contenido']['Metodologia_Poblacion'] . ') ?>
+        </textarea>
+    </div>';
+
+                    /* ===========================================================
+       5.5 Procedimiento
+       =========================================================== */
+                    $campo .= '
+    <h5 class="mt-4">5.5 Procedimiento para la recolección de datos</h5>
+    <div class="mb-3">
+        <label>Procedimiento:</label>
+        <textarea class="form-control" name="Metodologia_Procedimiento" rows="4" disabled>
+            <?php echo htmlspecialchars(' . $datos['contenido']['Metodologia_Procedimiento'] . ') ?>
+        </textarea>
+    </div>';
+
+                    /* ===========================================================
+       ARCHIVO GENERAL (solo se muestra, no editable)
+       =========================================================== */
+                    $campo .= '
+    <div class="mb-3 mt-4">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" name="archivo_Metodologia" class="form-control" disabled>
+    </div>';
+                } else if ($descripcion == "MetasProductosImpacto") {
+
+                    $campo = '<h4>8. Metas, productos esperados e impacto</h4>';
+
+                    /* --- 8.1 Metas --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.1 Metas:</label>
+        <textarea class="form-control" name="Metas" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Metas'] . ') ?></textarea>
+    </div>';
+
+                    /* --- 8.2 Productos esperados --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.2 Productos esperados:</label>
+        <textarea class="form-control" name="ProductosEsperados" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['ProductosEsperados'] . ') ?></textarea>
+    </div>';
+
+                    /* --- 8.3 Impacto --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>8.3 Impacto:</label>
+        <textarea class="form-control" name="Impacto" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Impacto'] . ') ?></textarea>
+    </div>';
+
+                    /* --- ARCHIVO GENERAL --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" class="form-control" disabled>
+    </div>';
+
+                    /* --- COMENTARIOS (solo visualiza) --- */
+                    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios del investigador:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+                }else if ($descripcion == "Cronograma") {
+
+    $campo = '<h4>9. Cronograma</h4>';
+
+    /* --- CRONOGRAMA (solo lectura) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Cronograma:</label>
+        <textarea class="form-control" name="Cronograma" rows="6" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Cronograma'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input type="file" class="form-control" disabled>
+    </div>';
+
+    /* --- COMENTARIOS (solo lectura) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios del investigador:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+} else if ($descripcion == "Bibliografia") {
+
+    $campo = '<h4>10. Bibliografía</h4>';
+
+    /* --- BIBLIOGRAFÍA (solo lectura) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Bibliografía:</label>
+        <textarea class="form-control" name="Bibliografia" rows="6" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Bibliografia'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL --- */
+    $campo .= '
+    <div class="mb-3">
+
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <label class="mt-2">Subir archivo nuevo:</label>
+        <input class="form-control" type="file" disabled>
+
+    </div>';
+
+    /* --- COMENTARIOS (solo lectura) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios del investigador:</label>
+        <textarea class="form-control" name="Comentarios" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+} else if ($descripcion == "Anexos") {
+
+    $campo = '<h4>11. Anexos (Opcional)</h4>';
+
+    /* --- 11.1 Instrumentos de recolección --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Instrumentos de recolección (Explicación):</label>
+        <textarea class="form-control" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Instrumentos'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.2 Formularios de consentimiento --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Formularios de consentimiento (Explicación):</label>
+        <textarea class="form-control" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Consentimiento'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.3 Mapas, tablas, gráficos adicionales --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Mapas, tablas, gráficos adicionales (Explicación):</label>
+        <textarea class="form-control" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Mapas'] . ') ?></textarea>
+    </div>';
+
+    /* --- 11.4 Otra documentación complementaria --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Otra documentación complementaria (Explicación):</label>
+        <textarea class="form-control" rows="4" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Documentacion'] . ') ?></textarea>
+    </div>';
+
+    /* --- ARCHIVO GENERAL (solo lectura) --- */
+    $campo .= '
+    <div class="mb-3">
+
+        <label>Archivo actual:</label>
+        <?php if (' . $datos['archivo_nombre'] . '): ?>
+            <a href="descargar.php?id=<?= ' . $datos['id_tarea'] . ' ?>">
+                Descargar archivo (<?= ' . $datos['archivo_nombre'] . ' ?>)
+            </a>
+        <?php else: ?>
+            <p>No hay archivo cargado.</p>
+        <?php endif; ?>
+
+        <input type="file" class="form-control mt-2" disabled>
+
+    </div>';
+
+    /* --- COMENTARIOS (solo ver) --- */
+    $campo .= '
+    <div class="mb-3">
+        <label>Comentarios del investigador:</label>
+        <textarea class="form-control" rows="3" disabled><?php echo htmlspecialchars(' . $datos['contenido']['Comentarios'] . ') ?></textarea>
+    </div>';
+}
+
+
+
+
+
                 break;
             default:
                 break;
         }
     }
+
     //Para obtener el número del filtro de la tabla
     public function numerofiltro($action)
     {
@@ -85,7 +1440,7 @@ class TareaControlador
         }
         return $numerofiltro;
     }
-
+// Encabezados según rol
     //Para obtener los encabezados de las tablas
     public function encabezadosPrincipal($rol)
     {
@@ -139,17 +1494,17 @@ class TareaControlador
         return $encabezados;
     }
 
-    public function obtenerbotones($tipo, $id_tarea, $id_avances = null)
+    public function obtenerbotones($tipo, $id_tarea =null, $id_proyecto = null)
     {
         $boton = "";
         switch ($tipo) {
             case 'Ver Tarea':
-                $boton = '<a href="tarea.php?id_tarea=' . $id_tarea . '"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="tarea.php?id_asignacion=' . $id_tarea . '"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></button></a>';
                 break;
             case 'Ver lista':
-                $boton = '<a href="lista_tareas.php?id_avances=' . $id_avances . '"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="lista_tareas.php?id_avances=' . $id_tarea . '&id_proyectos='. $id_proyecto .'"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Ver lista de tareas"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></button></a>';
                 break;
@@ -159,7 +1514,7 @@ class TareaControlador
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></button></a>';
                 break;
             case 'Activar':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_tarea . '&tipo=Pendiete"><button type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="tabla.php?action=actualizarestado&id_tarea=' . $id_tarea . '&tipo=Pendiete"><button type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Aprobar cierre de proyecto"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></button></a>';
                 break;
@@ -194,7 +1549,7 @@ class TareaControlador
     }
 
     //Botones de acción en la tabla 
-    public function botonesAccionPrincipal($id, $rol, $estado = null)
+    public function botonesAccionPrincipal($id, $rol, $estado = null, $id_proyectos = null)
     {
         $boton = "";
 
@@ -209,7 +1564,7 @@ class TareaControlador
             case 'investigador':
             case 'profesor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido"])) {
-                    $boton = $this->obtenerbotones("Ver lista", $id);
+                    $boton = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
                 } elseif ($estado == "SinActivar") {
                     $boton  = $this->obtenerbotones("Activar", $id);
                     $boton .= $this->obtenerbotones("Editar Tarea", $id);
@@ -218,7 +1573,7 @@ class TareaControlador
 
             case 'supervisor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido"])) {
-                    $boton  = $this->obtenerbotones("Ver lista", $id);
+                    $boton  = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
                 } elseif ($estado == "SinActivar") {
                     $boton = $this->obtenerbotones("Detalles", $id);
                 }
@@ -228,7 +1583,7 @@ class TareaControlador
         return $boton;
     }
 
-    public function botonesAccionLista($id, $rol, $estado = null)
+    public function botonesAccionLista($id, $rol, $estado = null, $id_proyecto = null)
     {
         $boton = "";
 
@@ -237,17 +1592,17 @@ class TareaControlador
             case 'investigador':
             case 'profesor':
                 if (in_array($estado, ["Revisar", "Corregir"])) {
-                    $boton  = $this->obtenerbotones("Ver Tarea", $id);
+                    $boton  = $this->obtenerbotones("Ver Tarea", $id, $id_proyecto);
                     $boton .= $this->obtenerbotones("Aprobar", $id);
                     $boton .= $this->obtenerbotones("Solicitar Corregir", $id);
                 } elseif (in_array($estado, ["Aprobado", "Vencido"])) {
-                    $boton = $this->obtenerbotones("Ver Tarea", $id);
+                    $boton = $this->obtenerbotones("Ver Tarea", $id, $id_proyecto);
                 }
                 break;
 
             case 'supervisor':
                 if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido"])) {
-                    $boton = $this->obtenerbotones("Ver Tarea", $id);
+                    $boton = $this->obtenerbotones("Ver Tarea", $id, $id_proyecto);
                 }
                 break;
         }
@@ -255,17 +1610,8 @@ class TareaControlador
         return $boton;
     }
 
-    /*public function obtenerEstado($id_asignacion)
-    {
-        global $conn;
-        $tarea = new Tarea($conn);
-        $tarea->actualizarTareasVencidos();
-        return $tarea->obtenerEstado($id_asignacion);
-    }*/
-
-
     /* EDITAR TAREA - investigador */
-    public function editarTarea($datos, $rol)
+    public function editarTarea($datos, $id, $rol)
     {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -386,5 +1732,44 @@ class TareaControlador
             die("Los datos no fueron enviados");
         }
     }
-}
 
+    public function mostrarEditarTarea($id_tarea, $rol)
+    {
+
+        global $conn;
+
+        $tareas = new Tarea($conn);
+
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
+            //Revisión de estados de tarea
+            $tareas->actualizarTareasVencidos();
+            $json = $tareas->obtenerTareaGeneral($id_tarea);
+            // Convertir a array
+            $datos = json_decode($json, true);
+            return $datos;
+        } else {
+            $datos = []; // evita undefined variable
+            return $datos;
+        }
+    }
+
+    public function mostrarTarea($id_asignacion, $rol)
+    {
+
+        global $conn;
+
+        $tareas = new Tarea($conn);
+
+        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
+            //Revisión de estados de tarea
+            $tareas->actualizarTareasVencidos();
+            $json = $tareas->obtenerTareaAlumno($id_asignacion);
+            // Convertir a array
+            $datos = json_decode($json, true);
+            return $datos;
+        } else {
+            $datos = []; // evita undefined variable
+            return $datos;
+        }
+    }
+}
