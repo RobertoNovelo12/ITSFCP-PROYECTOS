@@ -673,3 +673,4 @@ class ProyectoControlador
         return $proyecto->obtenerProyectoComentarios($id_proyecto);
     }
 }
+ 
