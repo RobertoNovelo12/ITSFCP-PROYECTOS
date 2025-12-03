@@ -347,7 +347,7 @@ ORDER BY u.nombre ASC;
                     tare.descripcion,
                     tare.instrucciones
                  FROM tareas AS tare
-                 JOIN tipo_tarea AS tita ON tare.id_tarea = tita.id_tarea
+                 JOIN tipo_tarea AS tita ON tare.id_tipotarea = tita.id_tareatipo
                  WHERE tare.id_tarea = ?";
 
         $stmt1 = $this->con->prepare($sqlTarea);
