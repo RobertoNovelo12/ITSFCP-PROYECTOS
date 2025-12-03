@@ -1582,13 +1582,13 @@ select:focus {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 90;
+  z-index: 99999;
 }
 
 .modal-content {
-  background: var(--fondo-inputs);
+  background: var(--fondo-inputs) !important;
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 12px !important;
   max-width: 420px;
   width: 90%;
   text-align: center;

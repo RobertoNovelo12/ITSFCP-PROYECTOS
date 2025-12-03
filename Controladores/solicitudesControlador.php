@@ -1,10 +1,7 @@
-
 <?php
 
 require_once __DIR__ . '/../Modelos/solicitudes.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
-
-// Encabezados según rol
 
 class solicitudesControlador
 {
@@ -36,7 +33,6 @@ class solicitudesControlador
             'Proyecto',
             'Fecha solicitud',
             'Comentarios',
-            'Carta',
             'Estado',
             'Acciones'
         ];
@@ -44,24 +40,38 @@ class solicitudesControlador
     }
 
 
-    public function obtenerbotones($tipo, $id_solicitud_proyectos)
+    public function obtenerbotones($tipo, $id_solicitud_proyectos, $id_proyectos = null)
     {
         $boton = "";
         switch ($tipo) {
             case 'Detalles':
-                $boton = '<a href="detalles.php?id_solicitud_proyecto=' . $id_solicitud_proyectos . '"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la solicitud"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></button></a>';
+                $boton = '<a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id=' . $id_proyectos . '">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles del proyecto">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
+                            <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
+                            <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
+                        </svg>
+                    </button>
+                </a>';
                 break;
             case 'Aprobar':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_solicitud_proyecto=' . $id_solicitud_proyectos . '&tipo=Activos"><button type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Aprobar solicituds"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></button></a>';
+                $boton = '<a href="tabla.php?action=actualizarestado&id_solicitud_proyecto=' . $id_solicitud_proyectos . '&tipo=Aceptado">
+                    <button type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Aprobar solicitud">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                        </svg>
+                    </button>
+                </a>';
                 break;
             case 'Rechazar':
                 $boton = '<button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Rechazar solicitud" data-bs-target="#id_solicitud_proyectos" onclick="abrirRechazoSolicitud(' . $id_solicitud_proyectos . ')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-ban" style="padding:0;margin:auto;" viewBox="0 0 16 16">
-  <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/></svg></button>';
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Rechazar solicitud" data-bs-target="#id_solicitud_proyectos" onclick="abrirRechazoSolicitud(' . $id_solicitud_proyectos . ')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-ban" style="padding:0;margin:auto;" viewBox="0 0 16 16">
+                            <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/>
+                        </svg>
+                    </button>';
                 break;
             default:
                 break;
@@ -70,29 +80,27 @@ class solicitudesControlador
     }
 
     //Botones de acción en la tabla 
-    public function botonesAccion($id, $rol, $estado = null, $extra = null)
+    public function botonesAccion($id_solicitud, $rol, $id_proyectos, $estado = null)
     {
-
         $boton = "";
         switch ($rol) {
             case 'estudiante':
-                $boton = $this->obtenerbotones("Detalles", $id);
+                $boton = $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
                 break;
             case 'investigador':
             case 'profesor':
                 if ($estado == "Pendiente") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Aprobar", $id);
-                    $boton .= $this->obtenerbotones("Rechazar", $id);
-                } else if ($estado == "Aceptador") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
+                    $boton = $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
+                    $boton .= $this->obtenerbotones("Aprobar", $id_solicitud);
+                    $boton .= $this->obtenerbotones("Rechazar", $id_solicitud);
+                } else if ($estado == "Aceptado") {
+                    $boton = $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
                 } else if ($estado == "Rechazado") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
+                    $boton = $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
                 }
                 break;
             case 'supervisor':
-                $boton = $this->obtenerbotones("Detalles", $id);
+                $boton = $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
                 break;
             default:
                 $boton = null;
@@ -102,12 +110,12 @@ class solicitudesControlador
     }
 
     /* ACCIÓN DE RECHAZAR CIERRE */
-    public function actualizarestadoRechazo($data, $id_usuario, $rol) //En vez de buscar será el motivo
+    public function actualizarestadoRechazo($data, $id_usuario, $rol)
     {
         $action = $data['action'] ?? '';
         if (!empty($comentario = $data['comentario']) && !empty($id_solicitud_proyecto = $data['id_solicitud_proyecto'])) {
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                if ($rol == "supervisor") {
+                if ($rol == "supervisor" || $rol == "investigador" || $rol == "profesor") {
                     if ($action == 'actualizarestadoRechazo') {
                         $id_solicitud_proyecto = $data['id_solicitud_proyecto'];
                         $tipo = $data['tipo'];
@@ -120,13 +128,14 @@ class solicitudesControlador
                         die("No es la acción correspondiente");
                     }
                 } else {
-                    die("El usuario no tiene permiso para crear el Solicitud");
+                    die("El usuario no tiene permiso para rechazar la solicitud");
                 }
             } else {
-                die("Los datos no fueron enviados Solicitudes");
+                die("Los datos no fueron enviados correctamente");
             }
         }
     }
+
     //Actualizar estado de proyectos sin comentarios
     public function actualizarestado($id_solicitud_proyecto, $rol, $motivo)
     {
@@ -136,7 +145,7 @@ class solicitudesControlador
                 $Solicitud = new Solicitud($conn);
                 $Solicitud->actualizarestado($id_solicitud_proyecto, $motivo);
             } else {
-                die("El usuario no tiene permiso para crear el Solicitud");
+                die("El usuario no tiene permiso para actualizar la solicitud");
             }
         } else {
             die("Los datos no fueron enviados");

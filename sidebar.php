@@ -10,7 +10,7 @@ function crearLink($nombre, $rol) {
         "Dashboard" => "/ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php",
         "Seguimiento" => "/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php",
         "Tareas" => "/ITSFCP-PROYECTOS/Vistas/Tareas/tabla.php",
-        "Solicitudes" => "/ITSFCP-PROYECTOS/Vistas/Constancias/tabla.php",
+        "Solicitudes" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes/tabla.php",
         "Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
         "Calendario" => "/ITSFCP-PROYECTOS/Vistas/Calendario/calendario.php",
         "Reportes" => "/ITSFCP-PROYECTOS/Vistas/Periodo/reportes.php",

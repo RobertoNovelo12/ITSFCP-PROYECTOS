@@ -98,8 +98,93 @@ $stmt->bind_param(
 );
 
 if ($stmt->execute()) {
+
+    // -------------------------------------------------------------
+    // OBTENER INFORMACIÓN DEL PROYECTO
+    // -------------------------------------------------------------
+    $sqlProy = "SELECT titulo FROM proyectos WHERE id_proyectos = ?";
+    $stmtProy = $conn->prepare($sqlProy);
+    $stmtProy->bind_param("i", $id_proyecto);
+    $stmtProy->execute();
+    $resProy = $stmtProy->get_result();
+    
+    if ($resProy->num_rows > 0) {
+        $proyectoInfo = $resProy->fetch_assoc();
+        $titulo_proyecto = $proyectoInfo['titulo'];
+    } else {
+        $titulo_proyecto = "Proyecto desconocido";
+    }
+
+    // -------------------------------------------------------------
+    // OBTENER LISTA DE SUPERVISORES (rol = 4)
+    // -------------------------------------------------------------
+    $sqlSup = "
+        SELECT u.id_usuarios 
+        FROM usuarios u
+        INNER JOIN usuarios_roles r ON r.id_usuario = u.id_usuarios
+        WHERE r.id_rol = 4 AND u.estado_usuario = 'activo'
+    ";
+    $resSup = $conn->query($sqlSup);
+
+    // -------------------------------------------------------------
+    // ENLACE A DETALLES DEL PROYECTO
+    // -------------------------------------------------------------
+    $enlace_notif = "/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id=" . $id_proyecto;
+
+    // -------------------------------------------------------------
+    // ENVIAR NOTIFICACIÓN A TODOS LOS SUPERVISORES
+    // -------------------------------------------------------------
+    if ($resSup && $resSup->num_rows > 0) {
+        while ($sup = $resSup->fetch_assoc()) {
+
+            $titulo_notif = "Nueva solicitud de integración";
+            $contenido_notif = 
+                "Un estudiante ha enviado una solicitud para el proyecto: <b>" . 
+                htmlspecialchars($titulo_proyecto) . "</b>.";
+
+            $sqlNotifSup = "
+                INSERT INTO notificaciones (usuario_id, titulo, contenido, enlace, leido, creado_en)
+                VALUES (?, ?, ?, ?, 0, NOW())
+            ";
+            $stmtNotifSup = $conn->prepare($sqlNotifSup);
+            $stmtNotifSup->bind_param("isss", 
+                $sup['id_usuarios'], 
+                $titulo_notif, 
+                $contenido_notif, 
+                $enlace_notif
+            );
+            $stmtNotifSup->execute();
+        }
+    }
+
+    // -------------------------------------------------------------
+    // NOTIFICACIÓN PARA EL ESTUDIANTE QUE ENVÍA LA SOLICITUD
+    // -------------------------------------------------------------
+    $titulo_est = "Solicitud enviada";
+    $contenido_est = 
+        "Has enviado una solicitud para el proyecto: <b>" . 
+        htmlspecialchars($titulo_proyecto) . "</b>. En espera de revisión.";
+
+    $sqlNotifEst = "
+        INSERT INTO notificaciones (usuario_id, titulo, contenido, enlace, leido, creado_en)
+        VALUES (?, ?, ?, ?, 0, NOW())
+    ";
+
+    $stmtNotifEst = $conn->prepare($sqlNotifEst);
+    $stmtNotifEst->bind_param("isss", 
+        $id_usuario, 
+        $titulo_est, 
+        $contenido_est, 
+        $enlace_notif
+    );
+    $stmtNotifEst->execute();
+
+    // -------------------------------------------------------------
+    // REDIRECCIÓN FINAL
+    // -------------------------------------------------------------
     header("Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id={$id_proyecto}&solicitud=sent");
     exit;
+
 } else {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id={$id_proyecto}&solicitud=error");
     exit;
