@@ -263,11 +263,13 @@ function abrirRechazo(id) {
   );
   modal.show();
 }
-//ABRIR MODAL DE RECHAZO CREACIÓN
-function abrirRechazoCreacion(id) {
-  document.getElementById("idProyectoRechazoCreacion").value = id;
+function abrirRechazoSolicitud(id) {
+  // Insertar ID dentro del input hidden del modal
+  document.getElementById("id_solicitud_proyectos").value = id;
+
+  // Abrir el modal
   var modal = new bootstrap.Modal(
-    document.getElementById("modalRechazoCreacion")
+    document.getElementById("modalRechazoSolicitud")
   );
   modal.show();
 }
