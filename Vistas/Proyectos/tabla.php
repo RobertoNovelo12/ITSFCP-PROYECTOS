@@ -261,6 +261,36 @@ ob_start();
         </form>
     </div>
 </div>
+
+<!-- MODAL FORMULARIO RECHAZO CREACION -->
+<div class="modal fade" id="modalRechazoSolicitud" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" id="formRechazoCierre" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Motivo de rechazo de proyecto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <label>Motivo del rechazo:</label>
+                    <textarea class="form-control" name="comentario" required></textarea>
+
+                    <input type="hidden" name="tipo" value="creacion_rechazada">
+                    <input type="hidden" name="action" value="actualizarestadoRechazo">
+                    <!-- Aquí va el id dinámico -->
+                    <input type="hidden" id="id_solicitud_proyectos" name="id_proyectos">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
 <!-- Modal Mensaje Rechazo  -->
 <div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">

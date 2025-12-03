@@ -83,7 +83,7 @@ ob_start();
                                     echo "<th scope='row'>{$tar['estudiante']}</th>";
                                     echo "<td>{$tar['estados_tarea']}</td>";
                                     echo "<td>{$tar['fecha_entrega']}</td>";
-                                    echo "<td>{$tareaControlador->botonesAccionLista($tar['id_tarea'],$rol,$tar['estados_tarea'],null)}</td>";
+                                    echo "<td>{$tareaControlador->botonesAccionLista($tar['id_tarea'],$rol,$tar['estados_tarea'],$tar['tipo'],$id_proyectos)}</td>";
                                     echo "</tr>";
                                 }
                             } ?>

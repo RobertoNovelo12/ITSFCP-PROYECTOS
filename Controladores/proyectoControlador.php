@@ -364,7 +364,7 @@ class ProyectoControlador
                 break;
             case 'Rechazar creacion':
                 $boton = '<button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Rechazar proyecto" data-bs-target="#modalRechazoProyecto" onclick="abrirRechazoCreacion(' . $id_proyecto . ')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-ban" style="padding:0;margin:auto;" viewBox="0 0 16 16">
+        data-bs-custom-class="custom-tooltip" data-bs-title="Rechazar proyecto" data-bs-target="#modalRechazoSolicitud" onclick="abrirRechazoSolicitud(' . $id_proyecto . ')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-ban" style="padding:0;margin:auto;" viewBox="0 0 16 16">
   <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0\"/></svg></button>';
                 break;
             default:
@@ -529,16 +529,11 @@ class ProyectoControlador
                     $AlumnosCantidad = $datos['AlumnosCantidad'];
 
                     $modalidad = $datos['Modalidad'];
-                    $id_subtematica = $datos['Subtematica'];
-
-                    if ($id_subtematica == "") {
-                        die("Se debe elegir una Subtematica");
-                    }
                     if ($action === 'registrarProyecto') {
                         global $conn;
                         $proyecto = new Proyectos($conn);
                         $proyecto->actualizarProyectosVencidos();
-                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_subtematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
                     }
                 } else {
                     die("El usuario no tiene permiso para crear el proyecto");

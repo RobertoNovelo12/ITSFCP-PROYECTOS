@@ -94,30 +94,34 @@ class Tarea
     }
 
     //DATOS LISTA PROYECTO
-    public function obtenerTareasLista($id_avances, $rol)
+    public function obtenerTareasLista($id_tarea, $rol)
     {
         switch ($rol) {
             case 'profesor':
             case 'investigador':
             case 'supervisor':
-                $sql = "
-            SELECT 
+                $sql = "SELECT 
     tu.id_asignacion,
-    u.id_usuario,
-    CONCAT(u.nombre, ' ', u.apellido_p, ' ', u.apellido_m) AS estudiante,
-    et.estado AS estados_tarea,
+    tita.descripcion_tipo as tipo,
+    u.id_usuarios,
+    CONCAT(u.nombre, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS estudiante,
+    et.nombre AS estados_tarea,
     tu.fecha_revision AS fecha_entrega,
     tu.id_tarea
 FROM tareas_usuarios tu
 INNER JOIN usuarios u 
-        ON tu.id_usuario = u.id_usuario
+        ON tu.id_usuario = u.id_usuarios
 INNER JOIN estados_tarea et 
         ON tu.id_estadoT = et.id_estadoT
+INNER JOIN tareas as ta 
+		ON ta.id_tarea = tu.id_tarea
+INNER JOIN tipo_tarea as tita
+		ON ta.id_tipotarea = tita.id_tareatipo
 WHERE tu.id_tarea = ?
 ORDER BY u.nombre ASC;
 ";
                 $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("i", $id_avances);
+                $stmt->bind_param("i", $id_tarea);
                 break;
             default:
                 break;
@@ -211,7 +215,7 @@ ORDER BY u.nombre ASC;
         $archivo_tipo   = $archivo['type'] ?? null;
 
         $stmt->bind_param(
-            "ssssiii",
+            "bbssiii",
             $contenidoJSON,
             $archivo_blob,
             $archivo_nombre,
@@ -220,6 +224,15 @@ ORDER BY u.nombre ASC;
             $id_tarea,
             $id_estudiante
         );
+
+        // obligatorios para los parámetros tipo "b"
+        if ($contenidoJSON !== null) {
+            $stmt->send_long_data(0, $contenidoJSON);
+        }
+
+        if ($archivo_blob !== null) {
+            $stmt->send_long_data(1, $archivo_blob);
+        }
 
         return $stmt->execute();
     }
@@ -249,7 +262,8 @@ ORDER BY u.nombre ASC;
     public function actualizarestado($id_asignacion, $numeroEstado)
     {
         if ($numeroEstado == 1) { //Pendiente
-            $sql = "UPDATE tareas_usuarios SET id_estadoT = ? WHERE id_asignacion = ?";
+            $sql1 = "";
+            $sql2 = "UPDATE tareas_usuarios SET id_estadoT = ? WHERE id_asignacion = ?";
         } else if ($numeroEstado == 2) { //Revisar
             $sql = "UPDATE tareas_usuarios SET id_estadoT = ?, fecha_revision = CURDATE() WHERE id_asignacion = ?";
         } else if ($numeroEstado == 3) { //Corregir
@@ -275,13 +289,13 @@ ORDER BY u.nombre ASC;
     // DETALLES DE LA TAREA (Estudiante)
     function obtenerTareaAlumno($id_asignacion)
     {
-        $sql = "
-        SELECT 
+        $sql = "SELECT 
             a.id_tarea,
             a.archivo,
             a.archivo_nombre,
             a.archivo_tipo,
 
+            t.descripcion,
             t.instrucciones,
             
             tt.descripcion_tipo AS tipo_tarea,
@@ -293,9 +307,8 @@ ORDER BY u.nombre ASC;
         INNER JOIN tipo_tarea tt     ON tt.id_tareatipo = t.id_tipotarea
         INNER JOIN tareas_usuarios a 
                                      ON a.id_tarea = s.id_tarea 
-                                     AND a.id_asignacion = ?
-        LIMIT 1
-    ";
+                                     AND a.id_asignacion = ?     LIMIT 1";
+
 
         $stmt = $this->con->prepare($sql);
 
@@ -306,9 +319,25 @@ ORDER BY u.nombre ASC;
         $stmt->bind_param("i", $id_asignacion);
         $stmt->execute();
 
-        $resultado = $stmt->get_result();
-        return $resultado->fetch_assoc();
+        $tarea = $stmt->get_result()->fetch_assoc();
+
+        // Convertir a array
+        $tarea = json_decode(json_encode($tarea), true);
+
+        // Si contenido es null → inicializar
+        if (empty($tarea['contenido'])) {
+            $tarea['contenido'] = [];
+        }
+
+        // Si comentarios es null → inicializar
+        if (empty($tarea['comentarios'])) {
+            $tarea['comentarios'] = "";
+        }
+
+        // Empaquetar JSON
+        return json_encode($tarea);
     }
+
     //Obtener información de tarea con seguimiento para modificar los datos
     function obtenerTareaGeneral($id_tarea)
     {
@@ -318,7 +347,7 @@ ORDER BY u.nombre ASC;
                     tare.descripcion,
                     tare.instrucciones
                  FROM tareas AS tare
-                 JOIN tipo_tarea AS tita ON tare.id_tarea = tita.id_tarea
+                 JOIN tipo_tarea AS tita ON tare.id_tipotarea = tita.id_tareatipo
                  WHERE tare.id_tarea = ?";
 
         $stmt1 = $this->con->prepare($sqlTarea);

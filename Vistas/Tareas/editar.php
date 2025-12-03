@@ -85,7 +85,7 @@ ob_start();
                     </div>
                     <div class="row mb-1">
                         <div class="col-12">
-                            <button type="submit">Guardar cambios</button>
+                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
                         </div>
                     </div>
                 </form>
