@@ -529,16 +529,11 @@ class ProyectoControlador
                     $AlumnosCantidad = $datos['AlumnosCantidad'];
 
                     $modalidad = $datos['Modalidad'];
-                    $id_subtematica = $datos['Subtematica'];
-
-                    if ($id_subtematica == "") {
-                        die("Se debe elegir una Subtematica");
-                    }
                     if ($action === 'registrarProyecto') {
                         global $conn;
                         $proyecto = new Proyectos($conn);
                         $proyecto->actualizarProyectosVencidos();
-                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_subtematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
                     }
                 } else {
                     die("El usuario no tiene permiso para crear el proyecto");
