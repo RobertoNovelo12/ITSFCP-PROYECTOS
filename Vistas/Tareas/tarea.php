@@ -12,17 +12,21 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 
-$id_tarea = $_GET["id_asignacion"] ?? null;
+$id_asignacion = $_GET["id_asignacion"] ?? null;
+$tipo = $_GET["tipo"] ?? null;
+$id_proyecto = $_GET["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? null;
 
 require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
 //Datos necesarios
-$tarea = $tareaControlador->mostrarTarea($id_tarea, $rol); // Para rellenar
-
+$datos = $tareaControlador->mostrarTarea($id_asignacion, $rol); // Para rellenar
 if ($action == 'editarTarea') {
     $tareaControlador->editarTarea($_POST, $id, $rol);
+}
+if ($action == 'editarTareaRevisar') {
+    $tareaControlador->editarTareaRevisar($_POST, $id, $rol);
 }
 // ======================
 // GENERAR CONTENIDO
@@ -33,66 +37,47 @@ ob_start();
     <div class="row mb-3 align-items-center">
         <div class="row mb-1">
             <div class="col-6">
-                <h3>Editar Tarea</h3>
+                <h3>Revisar Tarea</h3>
             </div>
             <div class="col-6 text-end">
-                <a href="tabla.php" class="btn btn-danger">Regresar</a>
+                <a href="lista_tareas.php?id_tarea=<?=$datos['id_tarea'];?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>
+            </div>
+            <div class="row mb-1">
+                    <div class="mb-3">
+                        <h5>Descripción</h5>
+                        <span><?= $datos['descripcion'] ?></span>
+                    </div>
+            </div>
+                        <div class="row mb-1">
+                    <div class="mb-3">
+                        <h5>Instrucciones</h5>
+                        <span><?= $datos['instrucciones'] ?></span>
+                    </div>
             </div>
 
-            <?php foreach ($tarea as $datos): ?>
-                <form action="tarea.php" method="POST" enctype="multipart/form-data">
-                    <div class="row mb-1">
-                        <h3>Editar Tarea</h3>
+            <form action="tarea.php" method="POST" enctype="multipart/form-data">
+                <div class="row mb-1">
+                    <?php if ($rol == "estudiante"): ?>
                         <input type="hidden" name="action" value="editarTarea">
-                        <input type="hidden" name="id_tareas" value="<?= $datos['tarea']['id_tarea'] ?>">
+                    <?php endif; ?>
+                    <?php if ($rol == "investigador"): ?>
+                        <input type="hidden" name="action" value="editarTareaRevisar">
+                    <?php endif; ?>
+                    <input type="hidden" name="id_tareas[]" value="<?= $datos['id_tarea'] ?>">
 
-                        <h3>Datos de la tarea</h3>
-                        <div class="mb-3">
-                            <label>Descripción:</label>
-                            <textarea name="descripcion" class="form-control"><?= htmlspecialchars($datos['tarea']['descripcion']) ?></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label>Instrucciones:</label>
-                            <textarea name="Instrucciones" class="form-control"><?= htmlspecialchars($datos['tarea']['instrucciones']) ?></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <h3>Seguimiento</h3>
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <div class="col-md">
-                            <div class="mb-3">
-                                <label>Fecha entrega:</label>
-                                <input type="date" name="fecha_entrega" class="form-control"
-                                    value="<?= $datos['seguimiento']['fecha_entrega'] ?>">
-                            </div>
-                        </div>
-                        <div class="col-md">
-                            <div class="mb-3">
-                                <label>Archivo actual:</label>
-                                <?php if ($datos['seguimiento']['archivo_nombre']): ?>
-                                    <a href="descargar.php?id=<?= $datos['tarea']['id_tarea'] ?>">
-                                        Descargar archivo (<?= $datos['seguimiento']['archivo_nombre'] ?>)
-                                    </a>
-                                <?php else: ?>
-                                    <p>No hay archivo cargado.</p>
-                                <?php endif; ?>
-
-                                <label>Subir archivo nuevo:</label>
-                                <input type="file" name="archivo">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-1">
-                        <div class="col-12">
-                            <button type="submit">Guardar cambios</button>
-                        </div>
-                    </div>
-                </form>
-
-            <?php endforeach; ?>
+                    <?= $tareaControlador->tareas($tipo, $rol, $datos) ?>
+                </div>
         </div>
+        <?php if($rol != "supervisor"): ?>
+        <div class="row mb-1">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            </div>
+        </div>
+        <?php endif; ?>
+        </form>
     </div>
+</div>
 </div>
 <!-- Modal -->
 <div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
