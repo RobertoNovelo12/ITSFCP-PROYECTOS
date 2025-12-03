@@ -757,37 +757,54 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
 
     public function actualizarestado($id_proyectos, $numeroEstado)
     {
-        $sql = "UPDATE proyectos SET id_estadoP = ?, actualizado_en = NOW() WHERE id_proyectos = ?";
+        // 1. Actualizar estado
+        $sql = "UPDATE proyectos 
+            SET id_estadoP = ?, actualizado_en = NOW() 
+            WHERE id_proyectos = ?";
 
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("ii", $numeroEstado, $id_proyectos);
+
         if (!$stmt) {
             die("Error en prepare(): " . $this->con->error);
         }
+
+        $stmt->bind_param("ii", $numeroEstado, $id_proyectos);
 
         if (!$stmt->execute()) {
             die("Error en execute(): " . $stmt->error);
         }
 
+        // 2. Si estado = 2, crear tareas
         if ($numeroEstado == 2) {
-            //Revisar la ID de los tipos de tareas. Con esto se crean las tareas según la bd.
+
+            // Obtener tipos reales de tareas
             $sqlTipos = "SELECT id_tareatipo FROM tipo_tarea ORDER BY id_tareatipo ASC";
             $result = $this->con->query($sqlTipos);
 
-            while ($row = $result->fetch_assoc()) {
-                $id_tipo = $row['id_tareatipo'];
+            if ($result->num_rows > 0) {
 
-                $sql = "INSERT INTO tbl_seguimiento 
-            (id_proyectos, id_estadoT, id_tareatipo, fecha_revision, fecha_entrega, archivo_guia)
-            VALUES (?, ?, ?, ?, ?, ?)";
-                $stmt = $this->con->prepare($sql);
-                if (!$stmt) {
-                    die("Error prepare(): " . $this->con->error);
-                }
-                $stmt->bind_param("iiisss", $id_proyectos, 4, $id_tipo, null, null, null);
+                while ($row = $result->fetch_assoc()) {
+                    $id_tipo = $row['id_tareatipo'];
 
-                if (!$stmt->execute()) {
-                    die("Error execute(): " . $stmt->error);
+                    // INSERT tbl_seguimiento
+                    $sqlSeg = "INSERT INTO tbl_seguimiento 
+                    (id_proyectos, id_estadoT, id_tarea, fecha_activacion) 
+                    VALUES (?, 1, ?, NOW())";
+
+                    $stmtSeg = $this->con->prepare($sqlSeg);
+                    $stmtSeg->bind_param("ii", $id_proyectos, $id_tipo);
+                    $stmtSeg->execute();
+
+                    $id_avances = $stmtSeg->insert_id;
+
+                    // INSERT tareas
+                    $sqlTarea = "INSERT INTO tareas 
+                    (id_avances, id_tipotarea, descripcion, instrucciones)
+                    VALUES (?, ?, NULL, NULL)";
+
+                    $stmtTarea = $this->con->prepare($sqlTarea);
+                    $stmtTarea->bind_param("ii", $id_avances, $id_tipo);
+                    $stmtTarea->execute();
                 }
             }
         }
@@ -795,6 +812,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         header("Location: tabla.php?msg=mensaje");
         exit;
     }
+
 
     //DETALLES DEL PROYECTO
     function obtenerProyecto($id_proyecto)
