@@ -95,7 +95,7 @@ $contenido .= '
 
                 <div class="col-md">
                     <label class="form-label">Subtemática</label>
-                    <select class="form-select" name="Subtematica" id="select2"></select>
+                    <select class="form-select" name="Subtematica" id="select2" disabled required></select>
                 </div>
             </div>
 
