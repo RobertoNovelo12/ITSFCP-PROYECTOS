@@ -622,22 +622,21 @@ LIMIT 1;";
     }
 
     //INSERCION DE PROYECTOS
-    public function registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_subtematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
+    public function registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
     {
 
         $sql = "INSERT INTO proyectos 
-(id_investigador, id_estadoP, id_tematica, id_subtematica, id_instituto, id_periodos, titulo, descripcion, objetivo, fecha_inicio, fecha_fin, presupuesto, actualizado_en, requisitos, pre_requisitos, modalidad, cantidad_estudiante)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
+(id_investigador, id_estadoP, id_tematica, id_instituto, id_periodos, titulo, descripcion, objetivo, fecha_inicio, fecha_fin, presupuesto, actualizado_en, requisitos, pre_requisitos, modalidad, cantidad_estudiante)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
             die("Error en prepare(): " . $this->con->error);
         }
         $stmt->bind_param(
-            "iiiiiissssssssssi",
+            "iiiiisssssssssi",
             $id_investigador,
             $id_estadoP,
             $id_tematica,
-            $id_subtematica,
             $id_instituto,
             $id_periodos,
             $titulo,
