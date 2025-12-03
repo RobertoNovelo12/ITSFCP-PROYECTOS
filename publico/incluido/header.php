@@ -36,7 +36,7 @@ if ($usuario_logeado) {
     <div class="logo">ITSFCP/PROYECTOS</div>
 
     <div class="header-right">
-        <input type="text" class="search-box" placeholder="Buscar">
+        <input type="text" class="search-box" placeholder="Buscar" display="none">
 
         <!-- BOTÓN DE MODO OSCURO -->
         <button id="darkModeToggle" class="dark-mode-btn" aria-label="Cambiar modo oscuro">
