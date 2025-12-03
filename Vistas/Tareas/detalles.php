@@ -14,7 +14,7 @@ $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 
 $id_tarea = $_GET["id_tarea"] ?? null;
-
+$id_proyectos = $_GET["id_proyectos"] ?? null;
 require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
@@ -31,7 +31,7 @@ ob_start();
             <h3>Editar Tarea</h3>
         </div>
         <div class="col-6 text-end">
-            <a href="tabla.php" class="btn btn-danger">Regresar</a>
+            <a href="tabla.php?id_proyectos=<?= $id_proyectos; ?>" class="btn btn-danger">Regresar</a>
         </div>
     </div>
 
