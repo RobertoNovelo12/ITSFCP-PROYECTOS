@@ -1520,8 +1520,8 @@ class TareaControlador
 </svg></button></a>';
                 break;
             case 'Detalles':
-                $boton = '<a href="detalles.php?id_tarea=' . $id1 . '"> <button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Editar proyecto"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
+                $boton = '<a href="detalles.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"> <button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></button></a>';
                 break;
             case 'EnviarTarea':
@@ -1568,8 +1568,9 @@ class TareaControlador
             case 'supervisor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido"])) {
                     $boton  = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
+                    $boton = $this->obtenerbotones("Detalles", $id, $id_proyectos);
                 } elseif ($estado == "SinActivar") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
+                    $boton = $this->obtenerbotones("Detalles", $id, $id_proyectos);
                 }
                 break;
         }
