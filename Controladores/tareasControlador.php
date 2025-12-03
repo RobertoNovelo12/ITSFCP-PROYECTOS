@@ -1559,6 +1559,7 @@ class TareaControlador
             case 'profesor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido"])) {
                     $boton = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
+                    $boton .= $this->obtenerbotones("Editar Tarea", $id);
                 } elseif ($estado == "SinActivar") {
                     $boton  = $this->obtenerbotones("Activar", $id);
                     $boton .= $this->obtenerbotones("Editar Tarea", $id);
