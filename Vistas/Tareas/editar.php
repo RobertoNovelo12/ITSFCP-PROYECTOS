@@ -39,40 +39,40 @@ ob_start();
                 <a href="tabla.php" class="btn btn-danger">Regresar</a>
             </div>
 
-            <?php foreach ($tarea as $datos): ?>
-                <form action="editar.php" method="POST" enctype="multipart/form-data">
-                    <div class="row mb-1">
-                        <h3>Editar Tarea</h3>
-                        <input type="hidden" name="action" value="editarTarea">
-                        <input type="hidden" name="id_tareas" value="<?= $datos['tarea']['id_tarea'] ?>">
+            <form action="editar.php" method="POST" enctype="multipart/form-data">
+                <div class="row mb-1">
+                    <input type="hidden" name="action" value="editarTarea">
+                    <input type="hidden" name="id_tareas" value="<?= $tarea['id_tarea'] ?>">
 
-                        <h3>Datos de la tarea</h3>
-                        <div class="mb-3">
-                            <label>Descripción:</label>
-                            <textarea name="descripcion" class="form-control"><?= htmlspecialchars($datos['tarea']['descripcion']) ?></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label>Instrucciones:</label>
-                            <textarea name="Instrucciones" class="form-control"><?= htmlspecialchars($datos['tarea']['instrucciones']) ?></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <h3>Seguimiento</h3>
-                        </div>
+                    <h3>Datos de la tarea</h3>
+                    <div class="mb-3">
+                        <label>Descripción:</label>
+                        <textarea name="descripcion" class="form-control"><?= htmlspecialchars($tarea['descripcion']) ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Instrucciones:</label>
+                        <textarea name="Instrucciones" class="form-control"><?= htmlspecialchars($tarea['instrucciones']) ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <h3>Seguimiento</h3>
+                        <input type="hidden" name="id_avances" class="form-control" value="<?= $tarea['id_avances'] ?>">
+
+                            </div>
                     </div>
                     <div class="row mb-1">
                         <div class="col-md">
                             <div class="mb-3">
                                 <label>Fecha entrega:</label>
                                 <input type="date" name="fecha_entrega" class="form-control"
-                                    value="<?= $datos['seguimiento']['fecha_entrega'] ?>">
+                                    value="<?= $tarea['fecha_entrega'] ?>">
                             </div>
                         </div>
                         <div class="col-md">
                             <div class="mb-3">
                                 <label>Archivo actual:</label>
-                                <?php if ($datos['seguimiento']['archivo_nombre']): ?>
-                                    <a href="descargar.php?id=<?= $datos['tarea']['id_tarea'] ?>">
-                                        Descargar archivo (<?= $datos['seguimiento']['archivo_nombre'] ?>)
+                                <?php if (!empty($tarea) && !empty($tarea['archivo_nombre'])): ?>
+                                    <a href="descargar_guia.php?id=<?= $tarea['id_tarea'] ?>">
+                                        Descargar archivo (<?= $tarea['archivo_nombre'] ?>)
                                     </a>
                                 <?php else: ?>
                                     <p>No hay archivo cargado.</p>
@@ -88,9 +88,7 @@ ob_start();
                             <button type="submit" class="btn btn-primary">Guardar cambios</button>
                         </div>
                     </div>
-                </form>
-
-            <?php endforeach; ?>
+            </form>
         </div>
     </div>
 </div>
@@ -118,10 +116,3 @@ $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
 ?>
-<?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            new bootstrap.Modal(document.getElementById('mensaje')).show();
-        });
-    </script>
-<?php endif; ?>
