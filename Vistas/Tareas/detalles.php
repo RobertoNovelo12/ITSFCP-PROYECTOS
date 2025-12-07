@@ -42,12 +42,12 @@ ob_start();
 
         <div class="mb-3">
             <label>Descripción:</label>
-            <textarea class="form-control" disabled><?= htmlspecialchars($tarea['tarea']['descripcion']) ?></textarea>
+            <textarea class="form-control" disabled><?= htmlspecialchars($tarea['descripcion']) ?></textarea>
         </div>
 
         <div class="mb-3">
             <label>Instrucciones:</label>
-            <textarea class="form-control" disabled><?= htmlspecialchars($tarea['tarea']['instrucciones']) ?></textarea>
+            <textarea class="form-control" disabled><?= htmlspecialchars($tarea['instrucciones']) ?></textarea>
         </div>
 
     </div>
@@ -60,15 +60,15 @@ ob_start();
             <div class="col-md">
                 <label>Fecha entrega:</label>
                 <input type="date" class="form-control"
-                       value="<?= $tarea['seguimiento']['fecha_entrega'] ?>" disabled>
+                       value="<?= $tarea['fecha_entrega'] ?>" disabled>
             </div>
 
             <div class="col-md">
                 <label>Archivo actual:</label><br>
 
-                <?php if ($tarea['seguimiento']['archivo_nombre']): ?>
-                    <a href="descargar.php?id=<?= $tarea['tarea']['id_avances'] ?>">
-                        Descargar archivo (<?= $tarea['seguimiento']['archivo_nombre'] ?>)
+                <?php if ($tarea['archivo_nombre']): ?>
+                    <a href="descargar.php?id=<?= $tarea['id_avances'] ?>">
+                        Descargar archivo (<?= $tarea['archivo_nombre'] ?>)
                     </a>
                 <?php else: ?>
                     <p>No hay archivo cargado.</p>
