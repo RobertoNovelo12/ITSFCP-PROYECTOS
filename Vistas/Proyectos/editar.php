@@ -37,8 +37,8 @@ ob_start();
             <div class="col-6">
                 <h3>Editar Proyecto</h3>
             </div>
-            <div class="col-6 text-end">
-                <a href="tabla.php" class="btn btn-danger">Regresar</a>
+            <div class="col-12 col-md-6 text-md-end text-center mb-2 mb-md-0">
+                <a href="tabla.php" class="btn btn-danger w-100 w-md-auto">Regresar</a>
             </div>
 
             <?php foreach ($proyecto as $p): ?>
