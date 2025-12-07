@@ -89,15 +89,15 @@ class solicitudesControlador
     public function botonesAccion($id_solicitud, $rol, $id_proyectos, $estado = null)
     {
         $boton = "";
-        
+
         // Normalizar el estado a minúsculas para comparación
         $estado_lower = strtolower(trim($estado ?? ''));
-        
+
         switch ($rol) {
             case 'estudiante':
                 $boton = $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
                 break;
-                
+
             case 'investigador':
             case 'profesor':
                 if ($estado_lower == "pendiente") {
@@ -123,13 +123,13 @@ class solicitudesControlador
                     $boton .= $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
                 }
                 break;
-                
+
             case 'supervisor':
                 $boton = $this->obtenerbotones("VerDatos", $id_solicitud);
                 $boton .= ' ';
                 $boton .= $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
                 break;
-                
+
             default:
                 $boton = '';
                 break;
@@ -165,20 +165,17 @@ class solicitudesControlador
     }
 
     //Actualizar estado de proyectos sin comentarios
-    public function actualizarestado($id_solicitud_proyecto, $rol, $motivo)
+    public function actualizarestado($id_solicitud_proyecto, $estado)
     {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            if ($rol == "supervisor" || $rol == "investigador" || $rol == "profesor") {
-                global $conn;
-                $Solicitud = new Solicitud($conn);
-                $Solicitud->actualizarestado($id_solicitud_proyecto, $motivo);
-            } else {
-                die("El usuario no tiene permiso para actualizar la solicitud");
-            }
+            global $conn;
+            $Solicitud = new Solicitud($conn);
+            $Solicitud->actualizarestado($id_solicitud_proyecto, $estado);
         } else {
             die("Los datos no fueron enviados");
         }
     }
+
 
 
     public function comentarios($id_solicitud_proyecto)

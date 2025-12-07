@@ -22,37 +22,46 @@ function progresoProyecto($conn, $id_proyecto)
 {
     $id_proyecto = intval($id_proyecto);
 
+    // Total de tareas vinculadas al proyecto
     $total_q = $conn->query("
-        SELECT COUNT(*) AS total 
-        FROM tareas_usuarios 
-        WHERE id_proyecto = $id_proyecto
+        SELECT COUNT(*) AS total
+        FROM tareas_usuarios tu
+        INNER JOIN tareas t ON tu.id_tarea = t.id_tarea
+        INNER JOIN tbl_seguimiento s ON t.id_avances = s.id_avances
+        WHERE s.id_proyectos = $id_proyecto
     ");
 
     $total = $total_q->fetch_assoc()['total'] ?? 0;
     if ($total == 0)
         return 0;
 
+    // Tareas completadas (estado 4)
     $done_q = $conn->query("
-        SELECT COUNT(*) AS done 
-        FROM tareas_usuarios 
-        WHERE id_proyecto = $id_proyecto 
-        AND id_estadoT = 4
+        SELECT COUNT(*) AS done
+        FROM tareas_usuarios tu
+        INNER JOIN tareas t ON tu.id_tarea = t.id_tarea
+        INNER JOIN tbl_seguimiento s ON t.id_avances = s.id_avances
+        WHERE s.id_proyectos = $id_proyecto
+        AND tu.id_estadoT = 4
     ");
 
     $done = $done_q->fetch_assoc()['done'] ?? 0;
+
     return round(($done / $total) * 100);
 }
+
 
 /* =======================================================
    1. PROYECTO PRINCIPAL
    ======================================================= */
 $sql_proy = "
-    SELECT p.id_proyectos, p.titulo 
+    SELECT p.id_proyectos, p.titulo, p.descripcion
     FROM proyectos p
     INNER JOIN proyectos_usuarios pu ON p.id_proyectos = pu.id_proyectos
     WHERE pu.id_usuarios = $id_usuario
     LIMIT 1
 ";
+
 
 $proy_result = $conn->query($sql_proy);
 
@@ -62,26 +71,28 @@ if ($proy_result && $proy_result->num_rows > 0) {
     $porcentaje = progresoProyecto($conn, $proyecto['id_proyectos']);
 
     $progreso_html = '
-    <div class="card card-progreso shadow-sm mb-4">
-        <div class="card-body p-4">
-            <div class="row align-items-center">
-                <div class="col-md-5">
-                    <h5 class="mb-4 fw-bold">Progreso</h5>
-                    <div class="progress-circle">
-                        <svg width="180" height="180">
-                            <circle class="progress-circle-bg" cx="90" cy="90" r="70"></circle>
-                            <circle class="progress-circle-bar" cx="90" cy="90" r="70"
-                                style="stroke-dasharray: 440; stroke-dashoffset:' . (440 - 440 * $porcentaje / 100) . ';"></circle>
-                        </svg>
-                        <div class="progress-text">' . $porcentaje . '%</div>
-                    </div>
-                </div>
-                <div class="col-md-7">
-                    <h5 class="fw-bold mb-3">' . htmlspecialchars($proyecto['titulo']) . '</h5>
+<div class="card card-progreso shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="row align-items-center">
+            <div class="col-md-5">
+                <h5 class="mb-4 fw-bold">Progreso</h5>
+                <div class="progress-circle">
+                    <svg width="180" height="180">
+                        <circle class="progress-circle-bg" cx="90" cy="90" r="70"></circle>
+                        <circle class="progress-circle-bar" cx="90" cy="90" r="70"
+                            style="stroke-dasharray: 440; stroke-dashoffset:' . (440 - 440 * $porcentaje / 100) . ';"></circle>
+                    </svg>
+                    <div class="progress-text">' . $porcentaje . '%</div>
                 </div>
             </div>
+            <div class="col-md-7">
+                <h5 class="fw-bold mb-1">' . htmlspecialchars($proyecto['titulo'] ?? '') . '</h5>
+                <p class="text-muted mb-3">' . htmlspecialchars($proyecto['descripcion'] ?? '') . '</p>
+            </div>
         </div>
-    </div>';
+    </div>
+</div>';
+
 
 } else {
 

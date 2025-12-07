@@ -222,17 +222,50 @@ class Solicitud
      ******************************************************************/
     public function actualizarestado($id_solicitud_proyecto, $estado)
     {
+        // 1) Actualizar estado de la solicitud
         $sql = "UPDATE solicitud_proyecto 
-                SET estado = ? 
-                WHERE id_solicitud_proyecto = ?";
+            SET estado = ? 
+            WHERE id_solicitud_proyecto = ?";
 
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param("si", $estado, $id_solicitud_proyecto);
         $stmt->execute();
 
+
+        // SOLO insertar en proyectos_usuarios si se aceptó
+        if ($estado === "aceptado") {
+
+            // 2) Obtener id_proyectos y id_estudiante desde la solicitud
+            $sql = "SELECT id_proyectos, id_estudiante 
+                FROM solicitud_proyecto 
+                WHERE id_solicitud_proyecto = ?";
+
+            $stmt = $this->con->prepare($sql);
+            $stmt->bind_param("i", $id_solicitud_proyecto);
+            $stmt->execute();
+
+            $res = $stmt->get_result()->fetch_assoc();
+
+            $id_proyecto = $res['id_proyectos'];
+            $id_estudiante = $res['id_estudiante'];
+            $fecha_asignacion = date("Y-m-d");
+
+
+            // 3) Insertar en proyectos_usuarios
+            $sql = "INSERT INTO proyectos_usuarios 
+                (id_proyectos, id_usuarios, fecha_asignacion, estado)
+                VALUES (?, ?, ?, 'activo')";
+
+            $stmt = $this->con->prepare($sql);
+            $stmt->bind_param("iis", $id_proyecto, $id_estudiante, $fecha_asignacion);
+            $stmt->execute();
+        }
+
+        // Redirección
         header("Location: tabla.php?msg=actualizada");
         exit;
     }
+
 
     /******************************************************************
      * OBTENER COMENTARIOS (CORREGIDO)

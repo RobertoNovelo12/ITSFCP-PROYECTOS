@@ -37,7 +37,10 @@ if (
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
     if (isset($_GET['id_solicitud_proyecto'], $_GET['tipo'])) {
-        $solicitudesoControlador->actualizarestado($_GET['id_solicitud_proyecto'], $rol, $_GET['tipo']);
+        $solicitudesoControlador->actualizarestado(
+            $_GET['id_solicitud_proyecto'],
+            $_GET['tipo']
+        );
     }
 }
 
@@ -79,7 +82,7 @@ ob_start();
 
     function confirmarAprobacion(id) {
         if (confirm('¿Estás seguro de aprobar esta solicitud?')) {
-            window.location.href = 'tabla.php?action=actualizarestado&id_solicitud_proyecto=' + id + '&tipo=Aceptado';
+            window.location.href = 'tabla.php?action=actualizarestado&id_solicitud_proyecto=' + id + '&tipo=aceptado';
         }
     }
 
@@ -96,7 +99,7 @@ ob_start();
                     alert(data.error);
                     return;
                 }
-                
+
                 // Llenar el modal con los datos
                 document.getElementById('modalDatosContent').innerHTML = `
                     <div class="row">
@@ -154,7 +157,7 @@ ob_start();
                     </div>
                     ` : ''}
                 `;
-                
+
                 const modal = new bootstrap.Modal(document.getElementById('modalDatosSolicitud'));
                 modal.show();
             })
@@ -299,98 +302,6 @@ ob_start();
     </div>
 </div>
 
-<!-- MODAL DATOS DE SOLICITUD -->
-<div class="modal fade" id="modalDatosSolicitud" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Datos de la Solicitud</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="modalDatosContent">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL RECHAZO -->
-<div class="modal fade" id="modalRechazoSolicitud" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="POST" id="formRechazo" action="/ITSFCP-PROYECTOS/Vistas/Solicitudes/tabla.php">
-            <div class="modal-content">
-
-                <div class="modal-header">
-                    <h5 class="modal-title">Motivo de rechazo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <label>Motivo del rechazo:</label>
-                    <textarea class="form-control" name="comentario" required></textarea>
-
-                    <input type="hidden" name="tipo" value="Rechazado">
-                    <input type="hidden" name="action" value="actualizarestadoRechazo">
-                    <input type="hidden" id="id_solicitud_proyectos" name="id_solicitud_proyecto">
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
-                </div>
-
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL MENSAJE -->
-<div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5">Operación realizada correctamente</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <img src="/ITSFCP-PROYECTOS/publico/icons/comprobar.svg" alt="">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL COMENTARIOS -->
-<div class="modal fade" id="modalComentarios" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title">Comentarios</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <div class="accordion" id="comentariosAccordion"></div>
-                <input type="hidden" id="idProyectoComentarios">
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <?php
 $contenido = ob_get_clean();
 $titulo = "Solicitudes de integracion";
@@ -401,5 +312,5 @@ include __DIR__ . '/../../layout.php';
 
 <?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
     <script>abrirMensaje();</script>
-    <?php unset($_SESSION['mensaje']); 
+    <?php unset($_SESSION['mensaje']);
 endif; ?>
