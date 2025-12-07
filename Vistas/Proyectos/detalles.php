@@ -141,7 +141,6 @@ ob_start();
             <h5>Información del investigador</h5>
         </div>
         <div class="row mb-1">
-
             <?php foreach ($investigador as $invest): ?>
                 <div class="row mb-1">
                     <div class="col-md">
