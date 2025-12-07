@@ -12,7 +12,6 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$nombre_user = htmlspecialchars($_SESSION['nombre'] ?? 'Usuario', ENT_QUOTES, 'UTF-8');
 
 $action = $_GET['action'] ?? 'index';
 $buscar = $_GET['buscar'] ?? '';
@@ -23,11 +22,6 @@ $proyectoControlador = new ProyectoControlador();
 
 if (!method_exists($proyectoControlador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");
-}
-
-// Actualización de estados
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && ($_POST['action'] ?? '') == 'actualizarestadoRechazo' && $rol == "supervisor") {
-    $proyectoControlador->actualizarestadoRechazo($_POST, $id_usuario, $rol);
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
@@ -140,7 +134,7 @@ ob_start();
                                     <td><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= $proyecto['fecha_inicio'] ?? '-' ?></td>
                                     <td><?= $proyecto['fecha_fin'] ?? '-' ?></td>
-                                    <td><?= htmlspecialchars($proyecto['nombre'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= $proyecto['periodo'] ?? '-' ?></td>
 
                                     <!-- Comentarios -->
@@ -152,6 +146,9 @@ ob_start();
                                         </button>
                                     </td>
 
+                                    <!-- Porcentaje de Avances -->
+                                    <td><?= $proyectoControlador->obtenerPorcentajeAvance($proyecto['id_proyectos']) ?? 0 ?></td>
+
                                     <!-- Avances -->
                                     <?php if ($rol == 'alumno' || $rol == 'investigador' || $rol == 'profesor'): ?>
                                         <td><?= $proyecto['total'] ?? '0' ?></td>
@@ -162,7 +159,7 @@ ob_start();
                                         <?= $proyectoControlador->botonesAccion(
                                             $proyecto['id_proyectos'] ?? 0,
                                             $rol,
-                                            $proyecto['nombre'] ?? '-'
+                                            $proyecto['estado'] ?? '-'
                                         ); ?>
                                     </td>
                                 </tr>
@@ -200,7 +197,7 @@ ob_start();
                             <div class="card-body">
                                 <h5 class="card-title">ID: <?= $proyecto['id_proyectos'] ?? '-' ?></h5>
                                 <p class="card-text"><strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong></p>
-                                <p><strong>Responsable:</strong> <?= htmlspecialchars($proyecto['nombre'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
+                                <p><strong>Estado:</strong> <?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
                                 <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
                                 <p><strong>Inicio:</strong> <?= $proyecto['fecha_inicio'] ?? '-' ?> | <strong>Fin:</strong> <?= $proyecto['fecha_fin'] ?? '-' ?></p>
 
@@ -235,79 +232,34 @@ ob_start();
 <!-- MODAL FORMULARIO RECHAZO CIERRE -->
 <div class="modal fade" id="modalRechazoCierre" tabindex="-1">
     <div class="modal-dialog">
-        <form method="POST" id="formRechazoCierre" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Motivo de rechazo de cierre</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <label>Motivo del rechazo:</label>
-                    <textarea class="form-control" name="comentario" required></textarea>
-
-                    <input type="hidden" name="tipo" value="cierre_rechazado">
-                    <input type="hidden" name="action" value="actualizarestadoRechazo">
-                    <!-- Aquí va el id dinámico -->
-                    <input type="hidden" id="idProyectoRechazoCierre" name="id_proyectos">
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
-                </div>
-
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL FORMULARIO RECHAZO CREACION -->
-<div class="modal fade" id="modalRechazoSolicitud" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="POST" id="formRechazoCierre" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Motivo de rechazo de proyecto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <label>Motivo del rechazo:</label>
-                    <textarea class="form-control" name="comentario" required></textarea>
-
-                    <input type="hidden" name="tipo" value="creacion_rechazada">
-                    <input type="hidden" name="action" value="actualizarestadoRechazo">
-                    <!-- Aquí va el id dinámico -->
-                    <input type="hidden" id="id_solicitud_proyectos" name="id_proyectos">
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
-                </div>
-
-            </div>
-        </form>
-    </div>
-</div>
-<!-- Modal Mensaje Rechazo  -->
-<div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Operación realizada correctamente</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Motivo de rechazo de cierre</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body">
-                <img src="/ITSFCP-PROYECTOS/publico/icons/comprobar.svg" alt="">
+                <label>Motivo del rechazo:</label>
+                <textarea class="form-control" name="comentario" required></textarea>
+
+                <input type="hidden" name="tipo" value="cierre_rechazado">
+                <input type="hidden" name="action" value="actualizarestadoRechazo">
+                <!-- Aquí va el id dinámico -->
+                <input type="hidden" id="idProyectoRechazoCierre" name="id_proyectos">
             </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
             </div>
+
         </div>
+        </form>
     </div>
 </div>
+
+
+
 
 <!-- MODAL COMENTARIOS -->
 <div class="modal fade" id="modalComentarios" tabindex="-1">
