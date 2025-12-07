@@ -47,7 +47,7 @@ class TareaControlador
             case 'estudiante':
                 if ($descripcion == "hidden") {
                     $campo = '<input type="hidden" name="action" value="editarTarea">
-    <input type="hidden" name="id_tareas" value="<?= '. $datos['id_tarea'] .' ?>">';
+    <input type="hidden" name="id_tareas" value="<?= ' . $datos['id_tarea'] . ' ?>">';
                 } else if ($descripcion == "Resumen") {
                     $campo = '<h4>1. Resumen / Abstract</h4>';
 
@@ -59,7 +59,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -85,7 +85,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -112,7 +112,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -139,7 +139,7 @@ class TareaControlador
                     $campo .= ' <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -174,7 +174,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -221,7 +221,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -379,7 +379,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -412,7 +412,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -446,7 +446,7 @@ class TareaControlador
 
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -502,7 +502,7 @@ class TareaControlador
 
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -525,7 +525,7 @@ class TareaControlador
             case 'investigador':
                 if ($descripcion == "hidden") {
                     $campo = '<input type="hidden" name="action" value="editarTareaRevisar">
-    <input type="hidden" name="id_tareas" value="<?= '. $datos['id_tarea'] .' ?>">';
+    <input type="hidden" name="id_tareas" value="<?= ' . $datos['id_tarea'] . ' ?>">';
                 } else if ($descripcion == "Resumen") {
                     $campo = '<h4>1. Resumen / Abstract</h4>';
 
@@ -537,7 +537,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -563,7 +563,7 @@ class TareaControlador
                     $campo .= ' <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -591,7 +591,7 @@ class TareaControlador
                     $campo .= ' <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -618,7 +618,7 @@ class TareaControlador
                     $campo .= ' <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -653,7 +653,7 @@ class TareaControlador
                     $campo .= ' <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -699,7 +699,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -807,7 +807,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -840,7 +840,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -874,7 +874,7 @@ class TareaControlador
 
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -930,7 +930,7 @@ class TareaControlador
 
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -961,7 +961,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -988,7 +988,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1015,7 +1015,7 @@ class TareaControlador
 
                     $campo .= ' <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1042,7 +1042,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1077,7 +1077,7 @@ class TareaControlador
                     $campo .= '<div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1123,7 +1123,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1211,7 +1211,7 @@ class TareaControlador
     <div class="mb-3 mt-4">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1251,7 +1251,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1284,7 +1284,7 @@ class TareaControlador
     <div class="mb-3">
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1318,7 +1318,7 @@ class TareaControlador
 
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1374,7 +1374,7 @@ class TareaControlador
 
         <label>Archivo actual:</label>
         <?php if (' . $datos['archivo_nombre'] . '): ?>
-            <a href="descargar.php?id='. $datos['id_tarea'] .'">
+            <a href="descargar.php?id=' . $datos['id_tarea'] . '">
                 Descargar archivo (' . $datos['archivo_nombre'] . ')
             </a>
         <?php else: ?>
@@ -1488,12 +1488,12 @@ class TareaControlador
         return $encabezados;
     }
 
-    public function obtenerbotones($tipo, $id1 = null, $id2 = null, $id3= null)
+    public function obtenerbotones($tipo, $id1 = null, $id2 = null, $id3 = null)
     {
         $boton = "";
         switch ($tipo) {
             case 'Ver Tarea':
-                $boton = '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos='. $id3 .'"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos=' . $id3 . '"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></button></a>';
                 break;
@@ -1579,7 +1579,7 @@ class TareaControlador
         return $boton;
     }
 
-    public function botonesAccionLista($id1, $rol, $estado = null, $id2 = null, $id3= null)
+    public function botonesAccionLista($id1, $rol, $estado = null, $id2 = null, $id3 = null)
     {
         $boton = "";
 
@@ -1607,7 +1607,7 @@ class TareaControlador
     }
 
     /* EDITAR TAREA - investigador */
-    public function editarTarea($datos, $id, $rol)
+    public function editarTarea($datos, $rol)
     {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -1616,6 +1616,7 @@ class TareaControlador
                 $action = $datos['action'] ?? '';
 
                 $id_tareas = $datos['id_tareas'];
+                $id_avances = $datos['id_avances'];
                 $descripcion = $datos['descripcion'];
 
                 $instrucciones = $datos['Instrucciones'];
@@ -1635,7 +1636,7 @@ class TareaControlador
                     global $conn;
                     $tarea = new Tarea($conn);
                     $tarea->actualizarTareasVencidos();
-                    $tarea->editarTareaGeneral($id_tareas, $descripcion, $instrucciones, $fecha_entrega, $archivo, $archivo_nombre, $archivo_tipo);
+                    $tarea->editarTareaGeneral($id_tareas, $id_avances, $descripcion, $instrucciones, $fecha_entrega, $archivo, $archivo_nombre, $archivo_tipo);
                 }
             } else {
                 die("El usuario no tiene permiso para crear el tarea");
@@ -1801,9 +1802,7 @@ class TareaControlador
         if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             //Revisión de estados de tarea
             $tareas->actualizarTareasVencidos();
-            $json = $tareas->obtenerTareaGeneral($id_tarea);
-            // Convertir a array
-            $datos = json_decode($json, true);
+            $datos = $tareas->obtenerTareaGeneral($id_tarea);
             return $datos;
         } else {
             $datos = []; // evita undefined variable
