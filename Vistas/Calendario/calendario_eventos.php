@@ -1,6 +1,9 @@
 <?php
-if (!isset($_SESSION)) session_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
+if (!isset($_SESSION)) session_start();
 header("Content-Type: application/json");
 
 require __DIR__ . "/../../publico/config/conexion.php";
@@ -13,6 +16,11 @@ if (!isset($_SESSION['id_usuario'])) {
 $idUsuario = $_SESSION['id_usuario'];
 $rol = strtolower($_SESSION['rol'] ?? 'estudiante');
 
+$items = [];
+
+// =============================
+// OBTENER EVENTOS
+// =============================
 if ($rol === "supervisor") {
     $sql = "
         SELECT 
@@ -73,21 +81,18 @@ if ($rol === "supervisor") {
 $stmt->execute();
 $res = $stmt->get_result();
 
-$items = []; // AQUÍ SE GUARDAN EVENTOS + TAREAS
-
 while ($row = $res->fetch_assoc()) {
     $items[] = $row;
 }
 
-// ============================================
-//  OBTENER TAREAS Y AGREGARLAS AL CALENDARIO
-// ============================================
-
+// =============================
+// OBTENER TAREAS
+// =============================
 if ($rol === "supervisor") {
     $sqlT = "
         SELECT 
-            t.id_tareas AS id_eventos,
-            tu.id_proyecto AS id_proyectos,
+            t.id_tarea AS id_eventos,
+            p.id_proyectos AS id_proyectos,
             p.titulo AS proyecto,
             t.contenido AS title,
             t.comentarios AS descripcion,
@@ -96,27 +101,30 @@ if ($rol === "supervisor") {
             tu.fecha_completacion AS end,
             'tarea' AS tipo
         FROM tareas t
-        INNER JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tareas
-        INNER JOIN proyectos p ON p.id_proyectos = tu.id_proyecto
+        INNER JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+        INNER JOIN proyectos_usuarios pu ON pu.id_usuarios = tu.id_usuario
+        INNER JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
     ";
     $stmtT = $conn->prepare($sqlT);
 
 } elseif ($rol === "investigador" || $rol === "profesor") {
     $sqlT = "
-        SELECT 
-            t.id_tareas AS id_eventos,
-            tu.id_proyecto AS id_proyectos,
-            p.titulo AS proyecto,
-            t.contenido AS title,
-            t.comentarios AS descripcion,
-            NULL AS ubicacion,
-            tu.fecha_asignacion AS start,
-            tu.fecha_completacion AS end,
-            'tarea' AS tipo
-        FROM tareas t
-        INNER JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tareas
-        INNER JOIN proyectos p ON p.id_proyectos = tu.id_proyecto
-        WHERE p.id_investigador = ?
+ SELECT 
+    t.id_tarea AS id_eventos,
+    p.id_proyectos AS id_proyectos,
+    p.titulo AS proyecto,
+    p.titulo AS title,
+    p.descripcion AS descripcion,
+    NULL AS ubicacion,
+    tu.fecha_revision AS start,
+    tu.fecha_aprobacion AS end,
+    'tarea' AS tipo
+FROM tareas t
+INNER JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+INNER JOIN proyectos_usuarios pu ON pu.id_usuarios = tu.id_usuario
+INNER JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+WHERE tu.id_usuario = ?
+
     ";
     $stmtT = $conn->prepare($sqlT);
     $stmtT->bind_param("i", $idUsuario);
@@ -124,8 +132,8 @@ if ($rol === "supervisor") {
 } else {
     $sqlT = "
         SELECT 
-            t.id_tareas AS id_eventos,
-            tu.id_proyecto AS id_proyectos,
+            t.id_tarea AS id_eventos,
+            p.id_proyectos AS id_proyectos,
             p.titulo AS proyecto,
             t.contenido AS title,
             t.comentarios AS descripcion,
@@ -134,8 +142,9 @@ if ($rol === "supervisor") {
             tu.fecha_completacion AS end,
             'tarea' AS tipo
         FROM tareas t
-        INNER JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tareas
-        INNER JOIN proyectos p ON p.id_proyectos = tu.id_proyecto
+        INNER JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+        INNER JOIN proyectos_usuarios pu ON pu.id_usuarios = tu.id_usuario
+        INNER JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
         WHERE tu.id_usuario = ?
     ";
     $stmtT = $conn->prepare($sqlT);
@@ -149,8 +158,8 @@ while ($row = $resT->fetch_assoc()) {
     $items[] = $row;
 }
 
-// ============================================
-//  RETORNAR EVENTOS + TAREAS
-// ============================================
-
+// =============================
+// RETORNAR JSON
+// =============================
 echo json_encode($items);
+?>

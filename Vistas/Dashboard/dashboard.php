@@ -11,8 +11,8 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol         = strtolower($_SESSION['rol'] ?? '');
-$id_usuario  = intval($_SESSION['id_usuario']);
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = intval($_SESSION['id_usuario']);
 $nombre_user = htmlspecialchars($_SESSION['nombre'] ?? 'Usuario');
 
 /* =======================================================
@@ -27,9 +27,10 @@ function progresoProyecto($conn, $id_proyecto)
         FROM tareas_usuarios 
         WHERE id_proyecto = $id_proyecto
     ");
-    
+
     $total = $total_q->fetch_assoc()['total'] ?? 0;
-    if ($total == 0) return 0;
+    if ($total == 0)
+        return 0;
 
     $done_q = $conn->query("
         SELECT COUNT(*) AS done 
@@ -57,7 +58,7 @@ $proy_result = $conn->query($sql_proy);
 
 if ($proy_result && $proy_result->num_rows > 0) {
 
-    $proyecto   = $proy_result->fetch_assoc();
+    $proyecto = $proy_result->fetch_assoc();
     $porcentaje = progresoProyecto($conn, $proyecto['id_proyectos']);
 
     $progreso_html = '
@@ -119,7 +120,7 @@ if ($result_tareas && $result_tareas->num_rows > 0) {
         $desc = htmlspecialchars(substr($tarea['descripcion'], 0, 50));
         $fecha = $tarea['fecha_revision'] ? date('d/m/Y', strtotime($tarea['fecha_revision'])) : 'Sin fecha';
 
-        $checked   = ($tarea['estado'] === 'Aprobado') ? 'checked' : '';
+        $checked = ($tarea['estado'] === 'Aprobado') ? 'checked' : '';
         $completed = ($tarea['estado'] === 'Aprobado') ? 'task-completed' : '';
 
         $tareas_html .= '
@@ -163,8 +164,8 @@ if ($result_proyectos && $result_proyectos->num_rows > 0) {
         $proyectos_html .= '
         <div class="d-flex align-items-center mb-3">
             <div class="proyecto-bar ' . $color_class . ' flex-grow-1" style="width:' . $pct . '%"></div>
-            <span class="badge badge-estado ' 
-            . ($color_class === 'proyecto-verde' ? 'badge-en-curso' : 'badge-completado') 
+            <span class="badge badge-estado '
+            . ($color_class === 'proyecto-verde' ? 'badge-en-curso' : 'badge-completado')
             . ' ms-3">' . htmlspecialchars($proyecto['estado']) . '</span>
         </div>';
     }
@@ -213,22 +214,22 @@ if ($rol === 'supervisor') {
     $ids_lista = empty($proyectos_ids) ? '0' : implode(',', $proyectos_ids);
 
     $sql_modificaciones = "
-        SELECT 
-            tu.contenido,
-            tu.fecha_revision AS fecha,
-            u.nombre,
-            r.nombre AS rol
-        FROM tareas_usuarios tu
-        INNER JOIN tareas t ON tu.id_tarea = t.id_tarea
-        INNER JOIN tbl_seguimiento sg ON t.id_tarea = sg.id_tarea
-        INNER JOIN usuarios u ON tu.id_usuario = u.id_usuarios
-        INNER JOIN usuarios_roles ur ON u.id_usuarios = ur.id_usuario
-        INNER JOIN roles r ON ur.id_rol = r.id_roles
-        WHERE sg.id_proyectos IN ($ids_lista)
-        AND tu.fecha_revision IS NOT NULL
-        ORDER BY tu.fecha_revision DESC
-        LIMIT 5
-    ";
+    SELECT 
+        tu.contenido,
+        tu.fecha_revision AS fecha,
+        u.nombre,
+        r.nombre AS rol
+    FROM tareas_usuarios tu
+    INNER JOIN usuarios u ON tu.id_usuario = u.id_usuarios
+    INNER JOIN usuarios_roles ur ON u.id_usuarios = ur.id_usuario
+    INNER JOIN roles r ON ur.id_rol = r.id_roles
+    INNER JOIN proyectos_usuarios pu ON tu.id_usuario = pu.id_usuarios
+    INNER JOIN proyectos p ON pu.id_proyectos = p.id_proyectos
+    WHERE pu.id_proyectos IN ($ids_lista)
+    AND tu.fecha_revision IS NOT NULL
+    ORDER BY tu.fecha_revision DESC
+    LIMIT 5
+";
 }
 
 $result_mod = $conn->query($sql_modificaciones);
@@ -239,7 +240,7 @@ if ($result_mod && $result_mod->num_rows > 0) {
     while ($mod = $result_mod->fetch_assoc()) {
 
         $desc_raw = json_decode($mod['contenido'], true);
-        $desc     = htmlspecialchars(substr($desc_raw['descripcion'] ?? '', 0, 50));
+        $desc = htmlspecialchars(substr($desc_raw['descripcion'] ?? '', 0, 50));
 
         $inicial = strtoupper(substr($mod['nombre'], 0, 1));
         $avatar_class = "avatar-dash " . (strtolower($mod['rol']) === 'estudiante' ? 'avatar-u' : 'avatar-e');

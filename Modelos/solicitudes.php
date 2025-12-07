@@ -177,7 +177,7 @@ class Solicitud
                 $sql = "SELECT COUNT(*) AS total
                     FROM solicitud_proyecto sp
                     INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
-                    WHERE p.id_investigador = ?"; 
+                    WHERE p.id_investigador = ?";
                 break;
 
             default:
@@ -249,4 +249,59 @@ class Solicitud
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
+    /******************************************************************
+     * OBTENER DATOS COMPLETOS DE SOLICITUD (NUEVO)
+     ******************************************************************/
+    public function obtenerDatosCompletosolicitud($id_solicitud)
+    {
+        $sql = "SELECT 
+                sp.id_solicitud_proyecto,
+                sp.estado,
+                sp.fecha_envio,
+                sp.carta_presentacion,
+                sp.carta_aceptacion,
+                sp.motivacion,
+                sp.experiencia,
+                sp.promedio,
+                sp.semestre,
+                u.nombre,
+                u.apellido_paterno,
+                u.apellido_materno,
+                u.correo_institucional,
+                u.telefono,
+                u.fecha_nacimiento,
+                e.matricula,
+                c.nombre_carrera,
+                a.nombre_area,
+                p.titulo AS proyecto_titulo,
+                p.descripcion AS proyecto_descripcion
+            FROM solicitud_proyecto sp
+            INNER JOIN usuarios u ON sp.id_estudiante = u.id_usuarios
+            LEFT JOIN estudiantes e ON sp.id_estudiante = e.id_usuario
+            LEFT JOIN carreras c ON e.id_carrera = c.id_carrera
+            LEFT JOIN areas a ON e.id_area = a.id_area
+            INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
+            WHERE sp.id_solicitud_proyecto = ?
+            LIMIT 1";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            error_log("Error en prepare: " . $this->con->error);
+            return null;
+        }
+
+        $stmt->bind_param("i", $id_solicitud);
+
+        if (!$stmt->execute()) {
+            error_log("Error en execute: " . $stmt->error);
+            return null;
+        }
+
+        $result = $stmt->get_result();
+        $data = $result->fetch_assoc();
+        $stmt->close();
+
+        return $data;
+    }
 }
+
