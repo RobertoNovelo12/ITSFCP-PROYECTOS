@@ -1,676 +1,302 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-require_once __DIR__ . '/../Modelos/proyecto.php';
-require_once __DIR__ . '/../publico/config/conexion.php';
+session_start();
 
-// Encabezados según rol
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: /ITSFCP-PROYECTOS/index.php");
+    exit;
+}
 
-class ProyectoControlador
-{
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = intval($_SESSION['id_usuario']);
 
-    public function index($id, $rol, $buscar = null)
-    {
-        global $conn;
+$action = $_GET['action'] ?? 'index';
+$buscar = $_GET['buscar'] ?? '';
+$pagina = intval($_GET['pagina'] ?? 1);
 
-        $proyecto = new Proyectos($conn);
+require_once "../../Controladores/proyectoControlador.php";
+$proyectoControlador = new ProyectoControlador();
 
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            //General
-            $proyecto->actualizarProyectosVencidos();
-            $numerofiltro =  $this-> numerofiltro("Total");
-            $proyectos = $proyecto->obtenerProyectos($id, $rol, $numerofiltro, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-    //Datos filtros GENERAL
-    public function filtros($id, $rol)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosDatosFiltro($id, $rol);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-    //Datos tabla por filtro
-    //Total
-    public function Total($id, $rol, $buscar = null)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 0, $rol, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-    //Cierre
-    public function Cierre($id, $rol, $buscar = null)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 1, $rol, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-    //Activos
-    public function Activos($id, $rol, $buscar = null)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 2, $rol, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-    //PorAprobar
-    public function PorAprobar($id, $rol, $buscar = null)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 3, $rol, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-    //Rechazados
-    public function Rechazados($id, $rol, $buscar = null)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 4, $rol, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
+if (!method_exists($proyectoControlador, $action)) {
+    die("Error: La acción '$action' no existe en el controlador.");
+}
 
-    //PorCerrar
-    public function PorCerrar($id, $rol, $buscar = null)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 5, $rol, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-
-    //Vencidos
-    public function Vencido($id, $rol, $buscar = null)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 6, $rol, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-
-    //Rechazado cierre
-    public function Cierrerechazado($id, $rol, $buscar = null)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        //Datos filtros
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            $proyecto->actualizarProyectosVencidos();
-            $proyectos = $proyecto->obtenerProyectosTablaFiltro($id, 7, $rol, $buscar);
-            return $proyectos;
-        } else {
-            $proyectos = []; // evita undefined variable
-            return $proyectos;
-        }
-    }
-    //Para obtener el número del filtro de la tabla
-    public function numerofiltro($action)
-    {
-
-        $numerofiltro = 0;
-        switch ($action) {
-            case 'Total':
-                $numerofiltro = 0;
-                break;
-            case 'Cierre':
-                $numerofiltro = 1;
-                break;
-
-            case 'Activos':
-                $numerofiltro = 2;
-                break;
-            case 'PorAprobar':
-                $numerofiltro = 3;
-                break;
-            case 'Rechazados':
-                $numerofiltro = 4;
-                break;
-            case 'PorCerrar':
-                $numerofiltro = 5;
-                break;
-            case 'Vencido':
-                $numerofiltro = 6;
-                break;
-            case 'CierreRechazado':
-                $numerofiltro = 7;
-                break;
-            default:
-                break;
-        }
-        return $numerofiltro;
-    }
-
-    //Para obtener los encabezados de las tablas
-    public function encabezados($rol)
-    {
-        switch ($rol) {
-            case 'estudiante':
-                $encabezados = [
-                    'ID',
-                    'Título',
-                    'Fecha Inicio',
-                    'Fecha Fin',
-                    'Estado',
-                    'Período',
-                    'Comentarios',
-                    'Pendientes',
-                    'Acciones'
-                ];
-                break;
-            case 'investigador':
-            case 'profesor':
-                $encabezados = [
-                    'ID',
-                    'Título',
-                    'Fecha Inicio',
-                    'Fecha Fin',
-                    'Estado',
-                    'Período',
-                    'Comentarios',
-                    'Pendientes',
-                    'Acciones'
-                ];
-                break;
-            case 'supervisor':
-                $encabezados = [
-                    'ID',
-                    'Título',
-                    'Fecha Inicio',
-                    'Fecha Fin',
-                    'Estado',
-                    'Período',
-                    'Comentarios',
-                    'Acciones'
-                ];
-                break;
-            default:
-                $encabezados = [];
-                break;
-        }
-        return $encabezados;
-    }
-
-    public function datosopciones($rol, $filtros)
-    {
-        switch ($rol) {
-            case 'estudiante':
-                $opciones = [
-                    'Total'       => "Total ({$filtros[0]['Total']})",
-                    'Activos'     => "Activos ({$filtros[0]['Activos']})",
-                    'Cierre'      => "Cierre ({$filtros[0]['Cierre']})",
-                    'PorCerrar'   => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-                    'Vencido'   => "Vencidos ({$filtros[0]['Vencido']})"
-                ];
-                break;
-            case 'investigador':
-            case 'profesor':
-                $opciones = [
-                    'Total'       => "Total ({$filtros[0]['Total']})",
-                    'Activos'     => "Activos ({$filtros[0]['Activos']})",
-                    'PorAprobar'  => "Por Aprobar ({$filtros[0]['PorAprobar']})",
-                    'Rechazados'  => "Rechazados ({$filtros[0]['Rechazados']})",
-                    'Cierre'      => "Cierre ({$filtros[0]['Cierre']})",
-                    'PorCerrar'   => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-                    'Cierrerechazado'   => "Cierre rechazado ({$filtros[0]['Cierrerechazado']})",
-                    'Vencido'  => "Vencidos ({$filtros[0]['Vencido']})"
-                ];
-                break;
-            case 'supervisor':
-                $opciones = [
-                    'Total'       => "Total ({$filtros[0]['Total']})",
-                    'Activos'     => "Activos ({$filtros[0]['Activos']})",
-                    'PorAprobar'  => "Por Aprobar ({$filtros[0]['PorAprobar']})",
-                    'Rechazados'  => "Rechazados ({$filtros[0]['Rechazados']})",
-                    'Cierre'      => "Cierre ({$filtros[0]['Cierre']})",
-                    'PorCerrar'   => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-                    'Cierrerechazado'   => "Cierre rechazado ({$filtros[0]['Cierrerechazado']})",
-                    'Vencido'  => "Vencidos ({$filtros[0]['Vencido']})"
-                ];
-                break;
-            default:
-                $opciones = [];
-                break;
-        }
-        return $opciones;
-    }
-
-    public function obtenerbotones($tipo, $id_proyecto)
-    {
-        $boton = "";
-        switch ($tipo) {
-            case 'Detalles':
-                $boton = '<a href="detalles.php?id_proyectos=' . $id_proyecto . '"><button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles del proyecto"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></button></a>';
-                break;
-            case 'Tareas':
-                $boton = '<a href="../Tareas/tabla.php?id_proyectos=' . $id_proyecto . '"><button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
-        data-bs-title="Tareas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-task" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
-  <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/><path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5zM2 7h1v1H2zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm1 .5H2v1h1z"/></svg></button></a>';
-                break;
-            case 'Aprobar':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos"><button type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Aprobar proyecto"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></button></a>';
-                break;
-            case 'Solicitar cerrar':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"><button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Solicitar cerrar proyecto"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-</svg></button></a>';
-                break;
-            case 'Aprobar cierre':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"><button type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Aprobar cierre de proyecto"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></button></a>';
-                break;
-            case 'Rechazar cierre':
-                $boton = '<button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Rechazar proyecto" data-bs-target="#modalRechazoCierre" onclick="abrirRechazo(' . $id_proyecto . ')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-ban" style="padding:0;margin:auto;" viewBox="0 0 16 16">
-  <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/></svg></button>';
-                break;
-            case 'Volver a enviar cierre':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"><button type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Volver a enviar cierre"><svg xmlns=\"http://www.w3.org/2000/svg\" width="18" height="18" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
-  <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
-  <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
-</svg></button></a>';
-                break;
-            case 'Volver a enviar proyecto':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorAprobar">
-    <button type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
-    data-bs-custom-class="custom-tooltip" data-bs-title="Volver a enviar proyecto">
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" 
-    class="bi bi-arrow-repeat" viewBox="0 0 16 16">
-      <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
-      <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
-    </svg>
-    </button></a>';
-                break;
-            case 'GenerarConstancia':
-                $boton = '<a href="constancias.php?action=generar&id_proyectos=' . $id_proyecto . '"> <button type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Descargar constancia de terminación"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-file-earmark-pdf-fill" viewBox="0 0 16 16">
-  <path d="M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3 0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21 21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0 1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44 0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278 6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5 0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z"/>
-  <path fill-rule="evenodd" d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2zM4.165 13.668c.09.18.23.343.438.419.207.075.412.04.58-.03.318-.13.635-.436.926-.786.333-.401.683-.927 1.021-1.51a11.7 11.7 0 0 1 1.997-.406c.3.383.61.713.91.95.28.22.603.403.934.417a.86.86 0 0 0 .51-.138c.155-.101.27-.247.354-.416.09-.181.145-.37.138-.563a.84.84 0 0 0-.2-.518c-.226-.27-.596-.4-.96-.465a5.8 5.8 0 0 0-1.335-.05 11 11 0 0 1-.98-1.686c.25-.66.437-1.284.52-1.794.036-.218.055-.426.048-.614a1.24 1.24 0 0 0-.127-.538.7.7 0 0 0-.477-.365c-.202-.043-.41 0-.601.077-.377.15-.576.47-.651.823-.073.34-.04.736.046 1.136.088.406.238.848.43 1.295a20 20 0 0 1-1.062 2.227 7.7 7.7 0 0 0-1.482.645c-.37.22-.699.48-.897.787-.21.326-.275.714-.08 1.103"/>
-</svg></button></a>';
-                break;
-            case 'Editar':
-                $boton = '<a href="editar.php?id_proyectos=' . $id_proyecto . '"> <button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Editar proyecto"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-</svg></button></a>';
-                break;
-            case 'Rechazar creacion':
-                $boton = '<button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Rechazar proyecto" data-bs-target="#modalRechazoSolicitud" onclick="abrirRechazoSolicitud(' . $id_proyecto . ')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-ban" style="padding:0;margin:auto;" viewBox="0 0 16 16">
-  <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0\"/></svg></button>';
-                break;
-            default:
-                break;
-        }
-        return $boton;
-    }
-
-    //Botones de acción en la tabla 
-    public function botonesAccion($id, $rol, $estado = null, $extra = null)
-    {
-
-        $boton = "";
-        switch ($rol) {
-            case 'estudiante':
-                if ($estado == "Activo" || $estado == "Por cerrar") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                } else if ($estado == "Cerrado") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                    $boton .= $this->obtenerbotones("GenerarConstancia", $id);
-                } else if ($estado == "Vencido") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                }
-                break;
-            case 'investigador':
-            case 'profesor':
-                if ($estado == "Activo") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                    $boton .= $this->obtenerbotones("Editar", $id);
-                    $boton .= $this->obtenerbotones("Solicitar cerrar", $id);
-                } else if ($estado == "Por aprobar") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                } else if ($estado == "Por cerrar") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                } else if ($estado == "Cierre") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                } else if ($estado == "Cierre rechazado") {
-                    $boton = $this->obtenerbotones("Volver a enviar cierre", $id);
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Editar", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                } else if ($estado == "Rechazado") {
-                    $boton = $this->obtenerbotones("Volver a enviar proyecto", $id);
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Editar", $id);
-                } else if ($estado == "Vencido") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                }
-                break;
-            case 'supervisor':
-                if ($estado == "Activo") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                } else if ($estado == "Por aprobar") {
-                    $boton = $this->obtenerbotones("Aprobar", $id);
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                    $boton .= $this->obtenerbotones("Rechazar creacion", $id);
-                } else if ($estado == "Por cerrar") {
-                    $boton = $this->obtenerbotones("Aprobar cierre", $id);
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                    $boton .= $this->obtenerbotones("Rechazar cierre", $id);
-                } else if ($estado == "Cierre rechazado") {
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                } else if ($estado == "Cierre") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                } else if ($estado == "Vencido") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
-                } else if ($estado == "Rechazado") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                }
-                break;
-            default:
-                $boton = null;
-                break;
-        }
-        return $boton;
-    }
-
-    //CREAR PROYECTO
-    public function tematica()
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        $proyecto->actualizarProyectosVencidos();
-        $tematica = $proyecto->tematica();
-        if ($tematica != []) {
-            return $tematica;
-        } else {
-            $tematica = []; // evita undefined variable
-            return $tematica;
-        }
-    }
-
-    public function subtematicas($id)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        $proyecto->actualizarProyectosVencidos();
-        return $proyecto->obtenersubtematica($id);
-    }
-
-    public function obtenerperiodo()
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        $proyecto->actualizarProyectosVencidos();
-        return $proyecto->obtenerperiodo();
-    }
-
-    public function obtenerInstituto()
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        $proyecto->actualizarProyectosVencidos();
-        return $proyecto->obtenerinstituto();
-    }
-
-    public function registrarProyecto($datos, $id, $rol)
-    {
-        $periodoData = $this->obtenerperiodo();
-        $periodo = $periodoData[0]; // tomas el primer registro
-        $estado_periodo = $periodo["estado"]; // O "periodo", según lo que necesites
-
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            if ($estado_periodo == "Activo" && $estado_periodo != "") {
-                if ($rol == "investigador" || $rol == "profesor") {
-
-                    $action = $datos['action'] ?? '';
-
-                    $id_investigador = $id;
-                    $id_estadoP = 3;
-                    $id_tematica = $datos['Tematica'];
-                    if ($id_tematica == "") {
-                        die("Se debe elegir una temática");
-                    }
-                    $institutoData = $this->obtenerInstituto();
-                    $instituto = $institutoData[0]; // tomas el primer registro
-                    $id_instituto = $instituto['id_instituto'];
-                    $id_periodos = $periodo["id_periodos"];
-                    $titulo = $datos['NombreProyecto'];
-                    $descripcion = $datos['Descripcion'];
-                    $objetivo = $datos['Objetivos'];
-                    $fecha_inicio = $datos['FechaInicio'];
-                    $fecha_final = $datos['FechaFinal'];
-                    $presupuesto = $datos['Presupuesto'];
-
-                    $requisitos = $datos['Requisitos'];
-
-                    $Pre_requisitos = $datos['Pre_requisitos'];
-                    $AlumnosCantidad = $datos['AlumnosCantidad'];
-
-                    $modalidad = $datos['Modalidad'];
-                    if ($action === 'registrarProyecto') {
-                        global $conn;
-                        $proyecto = new Proyectos($conn);
-                        $proyecto->actualizarProyectosVencidos();
-                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
-                    }
-                } else {
-                    die("El usuario no tiene permiso para crear el proyecto");
-                }
-            } else {
-                die("El periodo ha acabado para registrar proyectos");
-            }
-        } else {
-            die("Los datos no fueron enviados ha acabado para registrar proyectos");
-        }
-    }
-
-    /* EDITAR PROYECTO */
-    public function editarProyecto($datos, $id_usuario, $rol)
-    {
-        $periodoData = $this->obtenerperiodo();
-        $periodo = $periodoData[0]; 
-        $estado_periodo = $periodo["estado"]; 
-
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            if ($estado_periodo == "Activo" && $estado_periodo != "") {
-                if ($rol == "investigador" || $rol == "profesor") {
-                    
-                    $action = $datos['action'] ?? '';
-                    
-                    $id_proyecto = $datos['id_proyectos'];
-                    $id_investigador = $id_usuario;
-                    $id_tematica = $datos['Tematica'];
-                    if ($id_tematica == "") {
-                        die("Se debe elegir una temática");
-                    }
-                    
-                    $titulo = $datos['NombreProyecto'];
-                    $descripcion = $datos['Descripcion'];
-                    $objetivo = $datos['Objetivos'];
-                    $fecha_inicio = $datos['FechaInicio'];
-                    $fecha_final = $datos['FechaFinal'];
-                    $presupuesto = $datos['Presupuesto'];
-
-                    $requisitos = $datos['Requisitos'];
-
-                    $Pre_requisitos = $datos['Pre_requisitos'];
-                    $AlumnosCantidad = $datos['AlumnosCantidad'];
-
-                    $modalidad = $datos['Modalidad'];
-                    $id_subtematica = $datos['Subtematica'];
-
-                    if ($id_subtematica == "") {
-                        die("Se debe elegir una Subtematica");
-                    }
-
-                    if ($action == 'editarProyecto') {
-                        global $conn;
-                        $proyecto = new Proyectos($conn);
-                        $proyecto->editarProyecto($id_proyecto, $id_investigador, $id_tematica, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
-                    }
-                } else {
-                    die("El usuario no tiene permiso para crear el proyecto");
-                }
-            } else {
-                die("El periodo ha acabado para registrar proyectos");
-            }
-        } else {
-            die("Los datos no fueron enviados ha acabado para registrar proyectos");
-        }
-    }
-
-
-    /* ACCIÓN DE RECHAZAR CIERRE */
-    public function actualizarestadoRechazo($data, $id_usuario, $rol) //En vez de buscar será el motivo
-    {
-        $action = $data['action'] ?? '';
-        if (!empty($comentario = $data['comentario']) && !empty($id_proyectos = $data['id_proyectos'])) {
-            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                if ($rol == "supervisor") {
-                    if ($action == 'actualizarestadoRechazo') {
-                        $id_proyectos = $data['id_proyectos'];
-                        $tipo = $data['tipo'];
-                        $comentario = $data['comentario'];
-
-                        global $conn;
-                        $proyecto = new Proyectos($conn);
-                        $proyecto->actualizarProyectosVencidos();
-                        $proyecto->actualizarEstadoProyectoRechazo($id_usuario, $id_proyectos, $tipo, $comentario);
-                    } else {
-                        die("No es la acción correspondiente");
-                    }
-                } else {
-                    die("El usuario no tiene permiso para crear el proyecto");
-                }
-            } else {
-                die("Los datos no fueron enviados proyectos");
-            }
-        }
-    }
-    //Actualizar estado de proyectos sin comentarios
-    public function actualizarestado($id_proyecto, $rol, $tipo)
-    {
-        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            if ($rol == "supervisor" || $rol == "investigador" || $rol == "profesor") {
-                global $conn;
-                $proyecto = new Proyectos($conn);
-                $proyecto->actualizarProyectosVencidos();
-                $numeroEstado = $this->numerofiltro($tipo);
-                $proyecto->actualizarestado($id_proyecto, $numeroEstado);
-            } else {
-                die("El usuario no tiene permiso para crear el proyecto");
-            }
-        } else {
-            die("Los datos no fueron enviados");
-        }
-    }
-
-    public function datosproyecto($id_proyecto)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        return $proyecto->obtenerProyecto($id_proyecto);
-    }
-    public function datosinvestigador($id_proyecto)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        return $proyecto->obtenerProyectoInvestigador($id_proyecto);
-    }
-    public function datosestudiantes($id_proyecto)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        return $proyecto->obtenerProyectoEstudiante($id_proyecto);
-    }
-
-    public function comentarios($id_proyecto)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        return $proyecto->obtenerProyectoComentarios($id_proyecto);
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
+    if (isset($_GET['id_proyectos'], $_GET['tipo'])) {
+        $proyectoControlador->actualizarestado($_GET['id_proyectos'], $rol, $_GET['tipo']);
     }
 }
- 
+
+// Obtener proyectos
+$resultado = $proyectoControlador->$action($id_usuario, $rol, $buscar);
+
+// Si viene como JSON, decodificar
+if (is_string($resultado)) {
+    $resultado = json_decode($resultado, true);
+}
+
+if (!is_array($resultado)) {
+    die("Error: La acción '$action' no devolvió un array válido.");
+}
+
+$proyectos = $resultado['proyectos'] ?? [];
+$paginacion = $resultado['paginacion'] ?? [
+    'total_proyectos' => count($proyectos),
+    'por_pagina' => 6,
+    'pagina' => $pagina,
+    'total_paginas' => max(1, ceil(count($proyectos) / 6))
+];
+
+$filtros = $proyectoControlador->filtros($id_usuario, $rol);
+$encabezados = $proyectoControlador->encabezados($rol);
+$opciones = $proyectoControlador->datosopciones($rol, $filtros);
+
+// ======================
+// GENERAR CONTENIDO
+// ======================
+ob_start();
+?>
+
+<script>
+    //MOSTRAR TOOLTIP, QUE ES UN TEXTO AL SOBREPONER MOUSE EN BOTÓN
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(t => new bootstrap.Tooltip(t));
+    });
+</script>
+<div class="container-fluid py-4">
+
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-6">
+            <h2 class="mb-0">Proyectos</h2>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <?php if ($rol == "investigador" || $rol == "profesor"): ?>
+                <a href="crear.php" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Crear proyecto
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- BOTONES DE FILTRO -->
+    <div class="row mb-3">
+        <div class="d-flex flex-wrap gap-2">
+            <?php foreach ($opciones as $key => $label):
+                $clase = ($action === $key) ? "btn btn-primary" : "btn btn-outline-primary"; ?>
+                <a href="tabla.php?action=<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>" class="<?= $clase ?>">
+                    <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- BÚSQUEDA -->
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <div class="row justify-content-end">
+                <div class="col-md-6">
+                    <form class="d-flex gap-2" method="GET" action="tabla.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Buscar..."
+                            value="<?= htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') ?>">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- TABLA DE PROYECTOS - Desktop -->
+    <div class="row">
+        <div class="col-12">
+            <?php if (!empty($proyectos)): ?>
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-hover text-center align-middle">
+                        <thead>
+                            <tr>
+                                <?php foreach ($encabezados as $encabezado): ?>
+                                    <th><?= htmlspecialchars($encabezado ?? '', ENT_QUOTES, 'UTF-8') ?></th>
+                                <?php endforeach; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($proyectos as $proyecto): ?>
+                                <tr>
+                                    <th scope="row"><?= $proyecto['id_proyectos'] ?? '-' ?></th>
+                                    <td><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= $proyecto['fecha_inicio'] ?? '-' ?></td>
+                                    <td><?= $proyecto['fecha_fin'] ?? '-' ?></td>
+                                    <td><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= $proyecto['periodo'] ?? '-' ?></td>
+
+                                    <!-- Comentarios -->
+                                    <td>
+                                        <button type="button"
+                                            class="btn btn-info btn-sm btn-comentarios"
+                                            data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
+                                            <i class="bi bi-chat-dots-fill"></i>
+                                        </button>
+                                    </td>
+
+                                    <!-- Porcentaje de Avances -->
+                                    <td><?= $proyectoControlador->obtenerPorcentajeAvance($proyecto['id_proyectos']) ?? 0 ?></td>
+
+                                    <!-- Avances -->
+                                    <?php if ($rol == 'alumno' || $rol == 'investigador' || $rol == 'profesor'): ?>
+                                        <td><?= $proyecto['total'] ?? '0' ?></td>
+                                    <?php endif; ?>
+
+                                    <!-- Acciones -->
+                                    <td>
+                                        <?= $proyectoControlador->botonesAccion(
+                                            $proyecto['id_proyectos'] ?? 0,
+                                            $rol,
+                                            $proyecto['estado'] ?? '-'
+                                        ); ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+
+                    <!-- PAGINACIÓN -->
+                    <?php if ($paginacion['total_paginas'] > 1): ?>
+                        <nav>
+                            <ul class="pagination justify-content-center">
+                                <?php
+                                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
+                                $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
+                                ?>
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
+                                    </span>
+                                </li>
+                                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
+                                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
+                                        <a class="page-link" href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>"><?= $i ?></a>
+                                    </li>
+                                <?php endfor; ?>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
+                </div>
+
+                <!-- TARJETAS MÓVILES -->
+                <div class="d-block d-md-none mt-4">
+                    <?php foreach ($proyectos as $proyecto): ?>
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">ID: <?= $proyecto['id_proyectos'] ?? '-' ?></h5>
+                                <p class="card-text"><strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong></p>
+                                <p><strong>Estado:</strong> <?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
+                                <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
+                                <p><strong>Inicio:</strong> <?= $proyecto['fecha_inicio'] ?? '-' ?> | <strong>Fin:</strong> <?= $proyecto['fecha_fin'] ?? '-' ?></p>
+
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <!-- Botón comentarios -->
+                                    <button type="button"
+                                        class="btn btn-info btn-sm btn-comentarios"
+                                        data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
+                                        <i class="bi bi-chat-dots-fill"></i> Comentarios
+                                    </button>
+
+                                    <?= $proyectoControlador->botonesAccion(
+                                        $proyecto['id_proyectos'] ?? 0,
+                                        $rol,
+                                        $proyecto['nombre'] ?? '-'
+                                    ); ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+            <?php else: ?>
+                <div class="alert alert-info text-center">
+                    No hay proyectos para mostrar<?= !empty($buscar) ? ' con el criterio "' . htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') . '"' : '' ?>.
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FORMULARIO RECHAZO CIERRE -->
+<div class="modal fade" id="modalRechazoCierre" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Motivo de rechazo de cierre</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <label>Motivo del rechazo:</label>
+                <textarea class="form-control" name="comentario" required></textarea>
+
+                <input type="hidden" name="tipo" value="cierre_rechazado">
+                <input type="hidden" name="action" value="actualizarestadoRechazo">
+                <!-- Aquí va el id dinámico -->
+                <input type="hidden" id="idProyectoRechazoCierre" name="id_proyectos">
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
+            </div>
+
+        </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+<!-- MODAL COMENTARIOS -->
+<div class="modal fade" id="modalComentarios" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Comentarios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="accordion" id="comentariosAccordion">
+                    <!-- Aquí se insertarán los comentarios via JS -->
+                </div>
+
+                <!-- Aquí se guarda el ID del proyecto -->
+                <input type="hidden" id="idProyectoComentarios" name="id_proyecto">
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php
+$contenido = ob_get_clean();
+$titulo = "Proyectos";
+$bodyClass = "proyectos-page";
+
+include __DIR__ . '/../../layout.php';
+?>
+<?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
+    <script>
+        abrirMensaje();
+    </script>
+<?php unset($_SESSION['mensaje']);
+endif; ?>
