@@ -87,9 +87,6 @@ $contenido = '
                 <div class="perfil-header">
                     <div class="avatar-container">
                         <div class="avatar">' . $inicial . '</div>
-                        <button class="edit-avatar-btn">
-                            <i class="bi bi-pencil"></i>
-                        </button>
                     </div>
                     <div class="perfil-info">
                         <h2 class="perfil-nombre">' . htmlspecialchars($nombre_completo) . '</h2>
@@ -98,10 +95,6 @@ $contenido = '
                 </div>
 
                 <div class="perfil-detalles">
-                    <div class="detalle-item">
-                        <i class="bi bi-geo-alt"></i>
-                        <span>' . htmlspecialchars($config['localidad']) . '</span>
-                    </div>
                     <div class="detalle-item">
                         <i class="bi bi-calendar"></i>
                         <span>Nací el ' . $fecha_formateada . '</span>
