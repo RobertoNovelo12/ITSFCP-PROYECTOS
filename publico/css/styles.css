@@ -41,8 +41,8 @@ html.dark-mode {
 }
 
 .form-select {
-  background-color: var(--color-boton-nuevo) !important;
-  color: #e5e7eb !important;
+  background-color: var(--color-boton-secundario) !important;
+  color: var(--color-texto-secundario) !important;
   border: none !important;
 }
 
@@ -1619,6 +1619,40 @@ select:focus {
 
 .table {
   background-color: var(--fondo-web);
+}
+
+.modal-dia {
+  max-width: 95%;
+  width: 95%;
+}
+
+.item-lista-dia {
+  background: var(--fondo-web);
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.item-lista-dia:hover {
+  transform: scale(1.02);
+}
+
+.tipo-tarea {
+  background: #ffce54;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-size: 11px;
+  color: #8a6d00;
+}
+
+.tipo-evento {
+  background: #5cc3ff;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-size: 11px;
+  color: #003e5c;
 }
 
 /* ===========================
@@ -4039,12 +4073,38 @@ select:focus {
   .event-dot {
     width: 6px;
     height: 6px;
-    background-color: var(--color-primario);
+    background-color: var(--hover-boton);
     border-radius: 50%;
     margin: 2px auto 0 auto;
     display: block;
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
   }
+}
+
+.proyecto-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-boton-nuevo);
+}
+
+.icon-proyecto {
+  font-size: 18px;
+  margin-right: 6px;
+}
+
+.proyecto-nombre {
+  color: #d1d5db;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.estado-proyecto {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #dfe9ff;
+  color: #1a4fc3;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 @media (max-width: 480px) {

@@ -171,21 +171,21 @@ if ($result_proyectos && $result_proyectos->num_rows > 0) {
 
     while ($proyecto = $result_proyectos->fetch_assoc()) {
 
-        $pct = progresoProyecto($conn, $proyecto['id_proyectos']);
-        $color_class = ($proyecto['estado'] === 'Completado') ? 'proyecto-azul' : 'proyecto-verde';
-
         $proyectos_html .= '
-        <div class="d-flex align-items-center mb-3">
-            <div class="proyecto-bar ' . $color_class . ' flex-grow-1" style="width:' . $pct . '%"></div>
-            <span class="badge badge-estado '
-            . ($color_class === 'proyecto-verde' ? 'badge-en-curso' : 'badge-completado')
-            . ' ms-3">' . htmlspecialchars($proyecto['estado']) . '</span>
+        <div class="proyecto-item d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="icon-proyecto">📁</span>
+                <span class="proyecto-nombre">' . htmlspecialchars($proyecto['titulo']) . '</span>
+            </div>
+            <span class="estado-proyecto">' . htmlspecialchars($proyecto['estado']) . '</span>
         </div>';
     }
 
 } else {
     $proyectos_html = '<div>En este espacio encontrarás tus proyectos.</div>';
 }
+
+
 
 // ======================
 // 4. MODIFICACIONES

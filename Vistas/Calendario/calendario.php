@@ -1,5 +1,6 @@
 <?php
-if (!isset($_SESSION)) session_start();
+if (!isset($_SESSION))
+    session_start();
 $titulo = "Calendario";
 $necesitaQuill = true;
 
@@ -35,8 +36,6 @@ $contenido = '
                     <i class="bi bi-chevron-right"></i>
                 </button>
             </div>
-
-            <button class="btn btn-outline-primary mb-3" id="todayBtn">Hoy</button>
 
             <div class="calendar-grid" id="calendar"></div>
         </div>
@@ -145,15 +144,17 @@ $contenido = '
         </div>
     </div>
 
+    <div id="modalListaDia" class="modal-evento" style="display:none;">
+    <div class="modal-content-evento modal-dia">
+        <span class="close-modal" id="cerrarListaDia">&times;</span>
+
+        <h2 id="tituloListaDia"></h2>
+
+        <div id="contenidoListaDia" style="margin-top:15px;"></div>
+    </div>
 </div>
 
-<style>
-.large-modal {
-    width: 60%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-</style>
+</div>
 
 <script src="/ITSFCP-PROYECTOS/publico/js/calendario.js"></script>
 <script src="/ITSFCP-PROYECTOS/publico/js/evento.js"></script>

@@ -8,15 +8,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!calendarGrid || !monthTitle) return;
 
-  // SIEMPRE comenzamos en el PRIMER día del mes actual
   let currentDate = new Date();
   currentDate.setDate(1);
 
   let eventosUsuario = [];
 
-  // =============================
-  // ELEMENTOS DEL MODAL
-  // =============================
+  // MODAL DETALLES
   const modal = document.getElementById("modalEvento");
   const closeModal = document.getElementById("closeModal");
   const modalTitulo = document.getElementById("modalTitulo");
@@ -25,6 +22,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalFechaFin = document.getElementById("modalFechaFin");
   const modalUbicacion = document.getElementById("modalUbicacion");
   const modalDescripcion = document.getElementById("modalDescripcion");
+
+  // MODAL LISTA DEL DÍA (MÓVIL)
+  const modalLista = document.getElementById("modalListaDia");
+  const cerrarListaDia = document.getElementById("cerrarListaDia");
+  const tituloListaDia = document.getElementById("tituloListaDia");
+  const contenidoListaDia = document.getElementById("contenidoListaDia");
 
   // =============================
   // CARGAR EVENTOS DESDE API
@@ -35,14 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
       eventosUsuario = data;
       renderCalendar();
     })
-    .catch((err) => {
-      console.error("Error cargando eventos:", err);
-      renderCalendar();
-    });
+    .catch(() => renderCalendar());
 
-  // =============================
-  // FUNCIONES AUXILIARES
-  // =============================
+  // AUXILIARES
   function crearCeldaVacia() {
     const cell = document.createElement("div");
     cell.classList.add("day-cell", "other-month");
@@ -63,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
-  // RENDERIZAR CALENDARIO
+  // RENDER CALENDARIO
   // =============================
   function renderCalendar() {
     calendarGrid.innerHTML = "";
@@ -71,13 +69,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let year = currentDate.getFullYear();
     let month = currentDate.getMonth();
 
-    // Titulo
     monthTitle.textContent = currentDate.toLocaleString("es-MX", {
       month: "long",
       year: "numeric",
     });
 
-    // Vista móvil = puntos
     if (window.innerWidth <= 768) {
       renderCalendarGridWithDots(year, month);
       return;
@@ -87,68 +83,101 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
-  // VISTA MOVIL (puntos)
+  // VISTA MÓVIL (PUNTOS)
   // =============================
+  function renderCalendarGridWithDots(year, month) {
+    calendarGrid.innerHTML = "";
 
-function renderCalendarGridWithDots(year, month) {
-  calendarGrid.innerHTML = "";
-
-  const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-  daysOfWeek.forEach((d) => {
-    const header = document.createElement("div");
-    header.classList.add("day-header");
-    header.textContent = d;
-    calendarGrid.appendChild(header);
-  });
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const prevDays = (firstDay + 6) % 7; // Ajuste para lunes = 0
-
-  // Celdas vacías antes del 1
-  for (let i = 0; i < prevDays; i++) {
-    calendarGrid.appendChild(crearCeldaVacia());
-  }
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    const isoDate = date.toISOString().split("T")[0]; // YYYY-MM-DD
-
-    const cell = document.createElement("div");
-    cell.classList.add("day-cell");
-
-    const dayNumber = document.createElement("div");
-    dayNumber.classList.add("day-number");
-    dayNumber.textContent = day;
-
-    // Verificar si hay **eventos** para este día
-    const tieneEvento = eventosUsuario.some((ev) => {
-      if (!ev.start) return false;
-      const fechaEvento = ev.start.split("T")[0] || ev.start.split(" ")[0];
-      return fechaEvento === isoDate;
+    const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+    daysOfWeek.forEach((d) => {
+      const header = document.createElement("div");
+      header.classList.add("day-header");
+      header.textContent = d;
+      calendarGrid.appendChild(header);
     });
 
-    // Verificar si hay **tareas** para este día
-    const tieneTarea = eventosUsuario.some((ev) => {
-      if (!ev.tipo || ev.tipo !== "tarea") return false; // si marcas las tareas con tipo
-      const fechaTarea = ev.start.split("T")[0] || ev.start.split(" ")[0];
-      return fechaTarea === isoDate;
-    });
+    const firstDay = new Date(year, month, 1).getDay();
+    const prevDays = (firstDay + 6) % 7;
 
-    // Si hay al menos uno de los dos, mostrar punto
-    if (tieneEvento || tieneTarea) {
-      const dot = document.createElement("div");
-      dot.classList.add("event-dot");
-      dayNumber.appendChild(dot);
+    for (let i = 0; i < prevDays; i++) {
+      calendarGrid.appendChild(crearCeldaVacia());
     }
 
-    cell.appendChild(dayNumber);
-    calendarGrid.appendChild(cell);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const isoDate = date.toISOString().split("T")[0];
+
+      const cell = document.createElement("div");
+      cell.classList.add("day-cell");
+
+      const dayNumber = document.createElement("div");
+      dayNumber.classList.add("day-number");
+      dayNumber.textContent = day;
+
+      const eventosDelDia = eventosUsuario.filter((ev) => {
+        const fechaEv = ev.start?.split(/[ T]/)[0];
+        return fechaEv === isoDate;
+      });
+
+      if (eventosDelDia.length > 0) {
+        const dot = document.createElement("div");
+        dot.classList.add("event-dot");
+        dayNumber.appendChild(dot);
+      }
+
+      // 🔥 CLICK EN MÓVIL = ABRE LISTA DEL DÍA
+      cell.addEventListener("click", () => {
+        abrirListaDia(isoDate, eventosDelDia);
+      });
+
+      cell.appendChild(dayNumber);
+      calendarGrid.appendChild(cell);
+    }
   }
-}
 
+  // =============================
+  // MODAL LISTA DEL DÍA (MÓVIL)
+  // =============================
+  function abrirListaDia(fecha, eventosDelDia) {
+    tituloListaDia.textContent = `Actividades del ${fecha}`;
 
+    if (eventosDelDia.length === 0) {
+      contenidoListaDia.innerHTML = "<p>No hay actividades para este día.</p>";
+    } else {
+      let html = "";
+
+      eventosDelDia.forEach((ev) => {
+        html += `
+          <div class="item-lista-dia" onclick=''>
+            <div style="display:flex; justify-content: space-between;">
+                <strong>${ev.title}</strong>
+                ${
+                  ev.tipo === "tarea"
+                    ? `<span class="tipo-tarea">Tarea</span>`
+                    : `<span class="tipo-evento">Evento</span>`
+                }
+            </div>
+            <small>${ev.proyecto || ""}</small><br>
+            <small>${ev.start.split(/[ T]/)[0]}</small>
+          </div>
+        `;
+      });
+
+      contenidoListaDia.innerHTML = html;
+    }
+
+    modalLista.style.display = "flex";
+  }
+
+  cerrarListaDia?.addEventListener("click", () => {
+    modalLista.style.display = "none";
+  });
+
+  modalLista?.addEventListener("click", (e) => {
+    if (e.target === modalLista) modalLista.style.display = "none";
+  });
 
   // =============================
   // VISTA DESKTOP
@@ -165,7 +194,6 @@ function renderCalendarGridWithDots(year, month) {
     const firstDay = new Date(year, month, 1).getDay();
     const prevDays = (firstDay + 6) % 7;
 
-    // Celdas vacías
     for (let i = 0; i < prevDays; i++) {
       calendarGrid.appendChild(crearCeldaVacia());
     }
@@ -191,7 +219,7 @@ function renderCalendarGridWithDots(year, month) {
 
       const fechaComparar = date.toISOString().split("T")[0];
       const eventosDelDia = eventosUsuario.filter(
-        (ev) => ev.start.split(" ")[0] === fechaComparar
+        (ev) => ev.start.split(/[ T]/)[0] === fechaComparar
       );
 
       eventosDelDia.slice(0, 3).forEach((ev) => {
@@ -232,10 +260,8 @@ function renderCalendarGridWithDots(year, month) {
   function mostrarModal(evento) {
     modalTitulo.textContent = evento.title || "Sin título";
     modalProyecto.textContent = evento.proyecto || "Sin proyecto";
-
     modalFechaInicio.textContent = formatearFecha(evento.start);
     modalFechaFin.textContent = formatearFecha(evento.end);
-
     modalUbicacion.textContent = evento.ubicacion || "No especificada";
     modalDescripcion.innerHTML =
       evento.descripcion || "<em>Sin descripción</em>";
@@ -251,6 +277,7 @@ function renderCalendarGridWithDots(year, month) {
     modalUbicacion.textContent = "";
 
     let listaHTML = "<ul style='list-style:none;padding:0;'>";
+
     eventos.forEach((ev) => {
       listaHTML += `
         <li style="margin-bottom:15px;padding:10px;background:#f5f5f5;border-radius:5px;cursor:pointer;">
@@ -259,20 +286,17 @@ function renderCalendarGridWithDots(year, month) {
           <small>${formatearFecha(ev.start)}</small>
         </li>`;
     });
+
     listaHTML += "</ul>";
 
     modalDescripcion.innerHTML = listaHTML;
     modal.style.display = "flex";
   }
 
-  // =============================
-  // CERRAR MODAL
-  // =============================
-  if (closeModal) {
-    closeModal.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-  }
+  // Cerrar modal detalles
+  closeModal?.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
 
   modal?.addEventListener("click", (e) => {
     if (e.target === modal) modal.style.display = "none";
@@ -282,9 +306,7 @@ function renderCalendarGridWithDots(year, month) {
     if (e.key === "Escape") modal.style.display = "none";
   });
 
-  // =============================
-  // NAVEGACIÓN DE MESES
-  // =============================
+  // NAV MESES
   prevMonthBtn?.addEventListener("click", () => {
     currentDate.setMonth(currentDate.getMonth() - 1);
     currentDate.setDate(1);
@@ -303,12 +325,9 @@ function renderCalendarGridWithDots(year, month) {
     renderCalendar();
   });
 
-  // =============================
-  // SELECT (por ahora solo mes)
-  // =============================
   viewSelect?.addEventListener("change", () => {
     if (viewSelect.value !== "mes") {
-      alert("Solo la vista de mes está activa por ahora.");
+      alert("Solo la vista mes está disponible por ahora.");
       viewSelect.value = "mes";
     }
   });

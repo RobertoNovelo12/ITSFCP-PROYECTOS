@@ -229,7 +229,7 @@ if ($rol === 'estudiante') {
             <a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/solicitud_integracion.php?id=' . $proyecto['id_proyectos'] . '" 
                class="btn-enviar-solicitud">
                 <i class="bi bi-send"></i>
-                Enviar Solicitud de integración
+                Solicitud
             </a>';
     } else {
         $contenido .= '
