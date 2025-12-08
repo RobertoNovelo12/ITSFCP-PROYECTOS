@@ -76,7 +76,7 @@ $contenido = '
 
     <!-- MODAL CREAR EVENTO -->
     <div id="modalCrearEvento" class="modal-evento" style="display:none;">
-        <div class="modal-content-evento large-modal">
+        <div class="modal-content-evento">
             <span class="close-modal" id="cerrarCrearEvento">&times;</span>
 
             <h2>Nuevo evento</h2>
@@ -137,7 +137,7 @@ $contenido = '
                     <input type="text" name="ubicacion" id="ubicacionModal">
                 </div>
 
-                <button class="btn btn-primary mt-3" id="btnSubmitModal">
+                <button type="submit" class="btn btn-primary mt-3" id="btnSubmitModal">
                     <i class="bi bi-check-lg"></i> Crear evento
                 </button>
 

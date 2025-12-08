@@ -41,9 +41,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // CARGAR PROYECTOS (AJAX)
     // =====================================================
     function cargarProyectos() {
-        fetch("/ITSFCP-PROYECTOS/Vistas/Eventos/crear.php?getProyectos=1")
+        fetch("/ITSFCP-PROYECTOS/Vistas/Calendario/obtener_proyectos.php")
             .then(res => res.json())
             .then(lista => {
+                console.log(lista);
                 let select = document.getElementById("proyectoModal");
                 select.innerHTML = '<option value="">Seleccionar proyecto</option>';
 
@@ -72,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function() {
         fetch(`/ITSFCP-PROYECTOS/Vistas/Eventos/crear.php?getEstudiantes=1&id_proyecto=${id}`)
             .then(res => res.json())
             .then(estudiantes => {
-
+                console.log(estudiantes);
                 if (!estudiantes.length) {
                     listaEstudiantes.innerHTML =
                         "<p class='text-muted small'>No hay estudiantes en este proyecto.</p>";
@@ -99,29 +100,34 @@ document.addEventListener("DOMContentLoaded", function() {
     // =====================================================
     const formModal = document.getElementById("formCrearEvento");
 
-    formModal.addEventListener("submit", function(e) {
-        e.preventDefault();
+formModal.addEventListener("submit", function(e) {
+    e.preventDefault();
 
-        document.getElementById("descripcionModal").value =
-            quillModal.root.innerHTML;
+    document.getElementById("descripcionModal").value = quillModal.root.innerHTML;
 
-        const formData = new FormData(formModal);
+    const formData = new FormData(formModal);
 
-        fetch("/ITSFCP-PROYECTOS/Vistas/Eventos/crear.php", {
-            method: "POST",
-            body: formData
-        })
-        .then(res => res.text())
-        .then(() => {
+    // Depurar qué se envía
+    for (let pair of formData.entries()) {
+        console.log(pair[0]+ ': ' + pair[1]);
+    }
 
-            document.getElementById("alertaEvento").innerHTML =
-                "Evento creado correctamente.";
-            document.getElementById("alertaEvento").style.display = "block";
+    fetch("/ITSFCP-PROYECTOS/Vistas/Eventos/crear.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log(data); // ver qué responde el servidor
+        document.getElementById("alertaEvento").innerHTML = data.msg;
+        document.getElementById("alertaEvento").style.display = "block";
 
+        if (data.status === "ok") {
             setTimeout(() => {
                 window.location.reload();
             }, 1200);
-        });
+        }
     });
+});
 
 });

@@ -89,49 +89,66 @@ document.addEventListener("DOMContentLoaded", () => {
   // =============================
   // VISTA MOVIL (puntos)
   // =============================
-  function renderCalendarGridWithDots(year, month) {
-    calendarGrid.innerHTML = "";
 
-    const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-    daysOfWeek.forEach((d) => {
-      const header = document.createElement("div");
-      header.classList.add("day-header");
-      header.textContent = d;
-      calendarGrid.appendChild(header);
+function renderCalendarGridWithDots(year, month) {
+  calendarGrid.innerHTML = "";
+
+  const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+  daysOfWeek.forEach((d) => {
+    const header = document.createElement("div");
+    header.classList.add("day-header");
+    header.textContent = d;
+    calendarGrid.appendChild(header);
+  });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const prevDays = (firstDay + 6) % 7; // Ajuste para lunes = 0
+
+  // Celdas vacías antes del 1
+  for (let i = 0; i < prevDays; i++) {
+    calendarGrid.appendChild(crearCeldaVacia());
+  }
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const isoDate = date.toISOString().split("T")[0]; // YYYY-MM-DD
+
+    const cell = document.createElement("div");
+    cell.classList.add("day-cell");
+
+    const dayNumber = document.createElement("div");
+    dayNumber.classList.add("day-number");
+    dayNumber.textContent = day;
+
+    // Verificar si hay **eventos** para este día
+    const tieneEvento = eventosUsuario.some((ev) => {
+      if (!ev.start) return false;
+      const fechaEvento = ev.start.split("T")[0] || ev.start.split(" ")[0];
+      return fechaEvento === isoDate;
     });
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const prevDays = (firstDay + 6) % 7;
+    // Verificar si hay **tareas** para este día
+    const tieneTarea = eventosUsuario.some((ev) => {
+      if (!ev.tipo || ev.tipo !== "tarea") return false; // si marcas las tareas con tipo
+      const fechaTarea = ev.start.split("T")[0] || ev.start.split(" ")[0];
+      return fechaTarea === isoDate;
+    });
 
-    // Celdas vacías antes del 1
-    for (let i = 0; i < prevDays; i++) {
-      calendarGrid.appendChild(crearCeldaVacia());
+    // Si hay al menos uno de los dos, mostrar punto
+    if (tieneEvento || tieneTarea) {
+      const dot = document.createElement("div");
+      dot.classList.add("event-dot");
+      dayNumber.appendChild(dot);
     }
 
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const isoDate = date.toISOString().split("T")[0];
-
-      const cell = document.createElement("div");
-      cell.classList.add("day-cell");
-
-      const dayNumber = document.createElement("div");
-      dayNumber.classList.add("day-number");
-      dayNumber.textContent = day;
-
-      // Punto azul si hay eventos
-      if (eventosUsuario.some((ev) => ev.start.split(" ")[0] === isoDate)) {
-        const dot = document.createElement("div");
-        dot.classList.add("event-dot");
-        dayNumber.appendChild(dot);
-      }
-
-      cell.appendChild(dayNumber);
-      calendarGrid.appendChild(cell);
-    }
+    cell.appendChild(dayNumber);
+    calendarGrid.appendChild(cell);
   }
+}
+
+
 
   // =============================
   // VISTA DESKTOP

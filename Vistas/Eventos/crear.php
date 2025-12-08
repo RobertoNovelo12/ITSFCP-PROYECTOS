@@ -3,7 +3,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-if (!isset($_SESSION)) session_start();
+if (!isset($_SESSION))
+    session_start();
 require __DIR__ . "/../../publico/config/conexion.php";
 
 header("Access-Control-Allow-Origin: *");
@@ -12,18 +13,16 @@ header("Access-Control-Allow-Headers: *");
 $idUsuario = $_SESSION["id_usuarios"] ?? 0;
 $rol = $_SESSION["rol"] ?? "";
 
-ob_clean();
-
-
+// =====================================================
+// OBTENER PROYECTOS
+// =====================================================
 if (isset($_GET["getProyectos"])) {
 
     header("Content-Type: application/json; charset=UTF-8");
 
     $proyectos = [];
 
-    // Estudiante → solo proyectos donde participa
     if ($rol === "estudiante") {
-
         $stmt = $conn->prepare("
             SELECT p.id_proyectos AS id, p.titulo
             FROM proyectos p
@@ -32,10 +31,7 @@ if (isset($_GET["getProyectos"])) {
         ");
         $stmt->bind_param("i", $idUsuario);
 
-    }
-    // Investigador o profesor → proyectos que lidera
-    elseif ($rol === "investigador" || $rol === "profesor") {
-
+    } elseif ($rol === "investigador" || $rol === "profesor") {
         $stmt = $conn->prepare("
             SELECT id_proyectos AS id, titulo
             FROM proyectos
@@ -43,10 +39,7 @@ if (isset($_GET["getProyectos"])) {
         ");
         $stmt->bind_param("i", $idUsuario);
 
-    }
-    // Admin → todos los proyectos
-    else {
-
+    } else {
         $stmt = $conn->prepare("
             SELECT id_proyectos AS id, titulo
             FROM proyectos
@@ -64,20 +57,25 @@ if (isset($_GET["getProyectos"])) {
     exit;
 }
 
+// =====================================================
+// OBTENER ESTUDIANTES DE UN PROYECTO
+// =====================================================
 if (isset($_GET["getEstudiantes"]) && isset($_GET["id_proyecto"])) {
 
     header("Content-Type: application/json; charset=UTF-8");
 
     $idProyecto = intval($_GET["id_proyecto"]);
+    $idRolEstudiante = 3; // Rol Estudiante
     $estudiantes = [];
 
     $stmt = $conn->prepare("
-        SELECT u.id_usuarios, u.nombre, u.apellido
+        SELECT u.id_usuarios, u.nombre, u.apellido_paterno, u.apellido_materno
         FROM usuarios u
         INNER JOIN proyectos_usuarios pu ON u.id_usuarios = pu.id_usuarios
-        WHERE pu.id_proyectos = ? AND u.rol = 'estudiante' AND pu.estado = 'activo'
+        INNER JOIN usuarios_roles ur ON u.id_usuarios = ur.id_usuario
+        WHERE pu.id_proyectos = ? AND pu.estado = 'activo' AND ur.id_rol = ?
     ");
-    $stmt->bind_param("i", $idProyecto);
+    $stmt->bind_param("ii", $idProyecto, $idRolEstudiante);
     $stmt->execute();
     $res = $stmt->get_result();
 
@@ -89,40 +87,44 @@ if (isset($_GET["getEstudiantes"]) && isset($_GET["id_proyecto"])) {
     exit;
 }
 
-
+// =====================================================
+// CREAR NUEVO EVENTO
+// =====================================================
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     header("Content-Type: application/json; charset=UTF-8");
 
-    $nombre       = $_POST["nombreEvento"] ?? "";
-    $fechaInicio  = $_POST["fechaEvento"] ?? "";
-    $fechaFin     = $_POST["fechaFin"] ?? "";
-    $horaInicio   = $_POST["horaInicio"] ?? "";
-    $horaFin      = $_POST["horaFin"] ?? "";
-    $proyecto     = $_POST["proyecto"] ?? "";
-    $descripcion  = $_POST["descripcion"] ?? "";
-    $ubicacion    = $_POST["ubicacion"] ?? "";
-    $invitados    = $_POST["invitados"] ?? [];
+    $nombre = $_POST["nombreEvento"] ?? "";
+    $fechaInicio = $_POST["fechaEvento"] ?? "";
+    $fechaFin = $_POST["fechaFin"] ?? "";
+    $horaInicio = $_POST["horaInicio"] ?? "";
+    $horaFin = $_POST["horaFin"] ?? "";
+    $proyecto = $_POST["proyecto"] ?? "";
+    $descripcion = $_POST["descripcion"] ?? "";
+    $ubicacion = $_POST["ubicacion"] ?? "";
 
     if (!$nombre || !$fechaInicio || !$fechaFin || !$horaInicio || !$horaFin || !$proyecto) {
         echo json_encode(["status" => "error", "msg" => "Faltan datos obligatorios"]);
         exit;
     }
 
+    $fechaInicioDT = $fechaInicio . " " . $horaInicio;
+    $fechaFinDT = $fechaFin . " " . $horaFin;
+
+    // INSERT EN eventos_calendario
     $stmt = $conn->prepare("
-        INSERT INTO eventos (id_proyectos, nombre, descripcion, fecha_inicio, fecha_fin, hora_inicio, hora_fin, ubicacion)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO eventos_calendario 
+        (id_proyectos, titulo, descripcion, fecha_inicio, fecha_fin, ubicacion)
+        VALUES (?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        "isssssss",
+        "isssss",
         $proyecto,
         $nombre,
         $descripcion,
-        $fechaInicio,
-        $fechaFin,
-        $horaInicio,
-        $horaFin,
+        $fechaInicioDT,
+        $fechaFinDT,
         $ubicacion
     );
 
@@ -130,16 +132,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $idEvento = $stmt->insert_id;
 
-        // Guardar invitados
-        if (!empty($invitados)) {
-            $stmt2 = $conn->prepare("
-                INSERT INTO eventos_invitados (id_evento, id_usuario)
-                VALUES (?, ?)
-            ");
-            foreach ($invitados as $idInv) {
-                $stmt2->bind_param("ii", $idEvento, $idInv);
-                $stmt2->execute();
-            }
+        // ASOCIAR TODOS LOS USUARIOS ACTIVOS DEL PROYECTO AL EVENTO
+        $stmtUsuarios = $conn->prepare("
+            SELECT id_usuarios
+            FROM proyectos_usuarios
+            WHERE id_proyectos = ? AND estado = 'activo'
+        ");
+        $stmtUsuarios->bind_param("i", $proyecto);
+        $stmtUsuarios->execute();
+        $resUsuarios = $stmtUsuarios->get_result();
+
+        $stmtInsert = $conn->prepare("
+            INSERT INTO eventos_usuarios (id_usuarios, id_eventos)
+            VALUES (?, ?)
+        ");
+
+        while ($usuario = $resUsuarios->fetch_assoc()) {
+            $stmtInsert->bind_param("ii", $usuario['id_usuarios'], $idEvento);
+            $stmtInsert->execute();
         }
 
         echo json_encode(["status" => "ok", "msg" => "Evento creado exitosamente"]);
@@ -149,5 +159,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     echo json_encode(["status" => "error", "msg" => "No se pudo crear el evento"]);
     exit;
 }
-
 ?>

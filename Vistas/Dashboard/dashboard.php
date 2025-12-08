@@ -87,7 +87,7 @@ if ($proy_result && $proy_result->num_rows > 0) {
             </div>
             <div class="col-md-7">
                 <h5 class="fw-bold mb-1">' . htmlspecialchars($proyecto['titulo'] ?? '') . '</h5>
-                <p class="text-muted mb-3">' . htmlspecialchars($proyecto['descripcion'] ?? '') . '</p>
+                <p class=" mb-3">' . htmlspecialchars($proyecto['descripcion'] ?? '') . '</p>
             </div>
         </div>
     </div>
@@ -111,14 +111,17 @@ if ($proy_result && $proy_result->num_rows > 0) {
 $sql_tareas = "
     SELECT 
         tu.id_tarea,
+        tt.descripcion_tipo AS nombre_tarea,
         t.descripcion,
-        tu.fecha_revision,
+        t.fecha_entrega,
+        tu.id_estadoT,
         et.nombre AS estado
     FROM tareas_usuarios tu
     INNER JOIN tareas t ON tu.id_tarea = t.id_tarea
+    INNER JOIN tipo_tarea tt ON t.id_tipotarea = tt.id_tareatipo
     INNER JOIN estados_tarea et ON tu.id_estadoT = et.id_estadoT
     WHERE tu.id_usuario = $id_usuario
-    ORDER BY tu.fecha_revision DESC
+    ORDER BY t.fecha_entrega DESC
 ";
 
 $result_tareas = $conn->query($sql_tareas);
@@ -128,8 +131,8 @@ if ($result_tareas && $result_tareas->num_rows > 0) {
 
     while ($tarea = $result_tareas->fetch_assoc()) {
 
-        $desc = htmlspecialchars(substr($tarea['descripcion'], 0, 50));
-        $fecha = $tarea['fecha_revision'] ? date('d/m/Y', strtotime($tarea['fecha_revision'])) : 'Sin fecha';
+        $nombre = htmlspecialchars($tarea['nombre_tarea']); // Nombre de la tarea
+        $fecha_entrega = $tarea['fecha_entrega'] ? date('d/m/Y', strtotime($tarea['fecha_entrega'])) : 'Sin fecha';
 
         $checked = ($tarea['estado'] === 'Aprobado') ? 'checked' : '';
         $completed = ($tarea['estado'] === 'Aprobado') ? 'task-completed' : '';
@@ -139,9 +142,9 @@ if ($result_tareas && $result_tareas->num_rows > 0) {
             <div class="d-flex align-items-center">
                 <input type="checkbox" class="task-checkbox me-3" ' . $checked . '>
                 <div class="flex-grow-1">
-                    <span class="' . $completed . '">' . $desc . '</span>
+                    <span class="' . $completed . '">' . $nombre . '</span>
                 </div>
-                <span class="badge-date">' . $fecha . '</span>
+                <span class="badge-date">' . $fecha_entrega . '</span>
             </div>
         </div>';
     }
@@ -149,7 +152,6 @@ if ($result_tareas && $result_tareas->num_rows > 0) {
 } else {
     $tareas_html = '<div>En este espacio encontrarás tus tareas asignadas.</div>';
 }
-
 /* =======================================================
    3. PROYECTOS
    ======================================================= */

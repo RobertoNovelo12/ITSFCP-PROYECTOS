@@ -1576,55 +1576,10 @@ select:focus {
 /* ====================================================
    MODAL
    ==================================================== */
-.modal-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  background: var(--color-sombra-fuerte) !important;
-  display: none !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 99999 !important;
-}
-
-.modal-content {
-  background: var(--fondo-inputs) !important;
-  padding: 2rem !important;
-  border-radius: 12px !important;
-  max-width: 420px !important;
-  width: 90% !important;
-  text-align: center !important;
-  animation: fadeIn 0.3s ease-in-out !important;
-  border: 1px solid var(--borde-menu) !important;
-}
-
-.modal-content h2 {
-  color: var(--color-primario) !important;
-  margin-bottom: 1rem !important;
-}
-
-.modal-content p {
-  color: var(--color-texto-principal) !important;
-  font-size: 15px !important;
-  line-height: 1.5 !important;
-  margin-bottom: 1.8rem !important;
-}
-
-.modal-content .submit-btn {
-  width: 60% !important;
-  margin: 0 auto !important;
-}
-
-.table{
-  background-color: var(--fondo-web) !important;
-}
-
-
 /* ====================================================
-   MODALES PERSONALIZADOS (Sin conflictos con Bootstrap)
+   MODAL
    ==================================================== */
-
-/* Usa nombres de clase únicos que Bootstrap NO toque */
-.custom-modal-overlay {
+.modal-overlay {
   position: fixed;
   inset: 0;
   background: var(--color-sombra-fuerte);
@@ -1634,11 +1589,7 @@ select:focus {
   z-index: 99999;
 }
 
-.custom-modal-overlay.active {
-  display: flex;
-}
-
-.custom-modal-box {
+.modal-content {
   background: var(--fondo-inputs);
   padding: 2rem;
   border-radius: 12px;
@@ -1649,201 +1600,25 @@ select:focus {
   border: 1px solid var(--borde-menu);
 }
 
-.custom-modal-box h2 {
+.modal-content h2 {
   color: var(--color-primario);
   margin-bottom: 1rem;
 }
 
-.custom-modal-box p {
+.modal-content p {
   color: var(--color-texto-principal);
   font-size: 15px;
   line-height: 1.5;
   margin-bottom: 1.8rem;
 }
 
-.custom-modal-box label {
-  display: block;
-  text-align: left;
-  color: var(--color-texto-principal);
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+.modal-content .submit-btn {
+  width: 60%;
+  margin: 0 auto;
 }
 
-.custom-modal-box textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--borde-menu);
-  border-radius: 8px;
-  background: var(--fondo-web);
-  color: var(--color-texto-principal);
-  font-family: inherit;
-  font-size: 14px;
-  resize: vertical;
-  min-height: 100px;
-}
-
-.custom-modal-box textarea:focus {
-  outline: none;
-  border-color: var(--color-primario);
-}
-
-.custom-modal-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 1.5rem;
-}
-
-.custom-modal-close {
-  background: var(--color-secundario);
-  color: white;
-  border: none;
-  padding: 0.65rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.custom-modal-close:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.custom-modal-submit {
-  background: var(--color-primario);
-  color: white;
-  border: none;
-  padding: 0.65rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.custom-modal-submit:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.custom-modal-submit.danger {
-  background: #dc3545;
-}
-
-/* Animación */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Accordion para comentarios */
-.custom-modal-accordion {
-  text-align: left;
-  margin-top: 10px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.custom-modal-accordion .accordion-item {
-  background: var(--fondo-web);
-  border: 1px solid var(--borde-menu);
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.custom-modal-accordion .accordion-button {
-  background: var(--fondo-inputs);
-  color: var(--color-texto-principal);
-  padding: 12px;
-  cursor: pointer;
-  border: none;
-  width: 100%;
-  text-align: left;
-  font-weight: 500;
-  border-radius: 8px;
-}
-
-.custom-modal-accordion .accordion-button:hover {
-  background: var(--borde-menu);
-}
-
-.custom-modal-accordion .accordion-body {
-  padding: 12px;
-  color: var(--color-texto-principal);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-/* Para la tabla (si también quieres personalizar) */
 .table {
-  background-color: var(--fondo-web) !important;
-}
-
-/* IMPORTANTE: Resetear cualquier estilo de Bootstrap en tus modales */
-.custom-modal-overlay *,
-.custom-modal-box * {
-  all: revert;
-}
-
-.custom-modal-overlay,
-.custom-modal-box {
-  all: initial;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* Re-aplicar tus estilos después del reset */
-.custom-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
-}
-
-.custom-modal-overlay.active {
-  display: flex;
-}
-
-/* ====================================================
-   MODAL FULLSCREEN EN MOBILE
-   ==================================================== */
-@media (max-width: 768px) {
-  .modal-overlay {
-    align-items: flex-start !important; /* El modal inicia arriba */
-    justify-content: center;
-  }
-
-  .modal-content-evento,
-  .modal-content {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: calc(100vh - 60px) !important; /* Deja espacio para el header */
-    margin-top: 60px; /* Altura aproximada del header */
-    border-radius: 0 !important;
-    padding: 1.2rem !important;
-    overflow-y: auto !important;
-    animation: none; /* Quita animación si estorba */
-  }
-
-  .large-modal {
-    width: 100% !important;
-    height: calc(100vh - 60px) !important;
-    max-height: none !important;
-  }
-
-  .close-modal {
-    top: 15px !important;
-    right: 20px !important;
-    font-size: 30px !important;
-  }
+  background-color: var(--fondo-web);
 }
 
 /* ===========================
@@ -1852,7 +1627,7 @@ select:focus {
 .modal-evento {
   display: none;
   position: fixed;
-  z-index: 1000;
+  z-index: 10000000;
   left: 0;
   top: 0;
   width: 100%;
@@ -3479,7 +3254,8 @@ select:focus {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -3523,7 +3299,7 @@ select:focus {
 
 /* Encabezado del dropdown */
 .notif-dropdown::before {
-  content: 'Notificaciones';
+  content: "Notificaciones";
   display: block;
   padding: 16px 20px;
   font-weight: 700;
@@ -3558,7 +3334,7 @@ select:focus {
 }
 
 .notif-item.unread::after {
-  content: '';
+  content: "";
   position: absolute;
   right: 20px;
   top: 50%;
@@ -3606,7 +3382,7 @@ select:focus {
 }
 
 .notif-item small::before {
-  content: '🕐';
+  content: "🕐";
   font-size: 0.85rem;
 }
 
@@ -3618,7 +3394,7 @@ select:focus {
 }
 
 .notif-empty::before {
-  content: '🔔';
+  content: "🔔";
   display: block;
   font-size: 3rem;
   margin-bottom: 12px;
@@ -3891,7 +3667,6 @@ select:focus {
     padding: 14px 16px;
   }
 }
-
 
 @media (min-width: 1024px) {
   .table-responsive {
@@ -4262,8 +4037,13 @@ select:focus {
   }
 
   .event-dot {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-primario);
+    border-radius: 50%;
+    margin: 2px auto 0 auto;
+    display: block;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
   }
 }
 
