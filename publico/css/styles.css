@@ -4130,3 +4130,16 @@ select:focus {
     gap: 3px;
   }
 }
+.tarea-card {
+  border-radius: 16px;
+  transition: 0.2s;
+}
+.tarea-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+}
+.descripcion-limit {
+  max-height: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
