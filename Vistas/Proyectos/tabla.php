@@ -137,9 +137,7 @@ ob_start();
                                     <td><span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado']); ?>"><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td><?= $proyecto['periodo'] ?? '-' ?></td>
                                     <!-- Avances -->
-                                    <?php if ($rol == 'alumno' || $rol == 'investigador' || $rol == 'profesor'): ?>
                                         <td><?= $proyecto['total'] ?? '0' ?></td>
-                                    <?php endif; ?>
 
                                     <!-- Acciones -->
                                     <td>
