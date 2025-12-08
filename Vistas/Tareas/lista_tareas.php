@@ -28,7 +28,7 @@ if (!method_exists($tareaControlador, $action)) {
 //Se ejecuta la acción del controlador
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
-    $tareaControlador->actualizarestado($id_tarea, $rol, $_GET['tipo']);
+    $tareaControlador->actualizarestado($id_tarea, $rol, $_GET['tipo'], $id_proyectos);
 }
 //EJECUTAR ACCION
 $tarea = $tareaControlador->$action($id_tarea, $rol);
@@ -82,7 +82,9 @@ ob_start();
                                     echo "<th scope='row'>{$tar['id_asignacion']}</th>";
                                     echo "<th scope='row'>{$tar['estudiante']}</th>";
                                     echo "<td>{$tar['estados_tarea']}</td>";
-                                    echo "<td>{$tar['fecha_entrega']}</td>";
+                                    echo "<td>{$tar['fecha_revision']}</td>";
+                                    echo "<td>{$tar['fecha_correccion']}</td>";
+                                    echo "<td>{$tar['fecha_aprobacion']}</td>";
                                     echo "<td>{$tareaControlador->botonesAccionLista($tar['id_tarea'],$rol,$tar['estados_tarea'],$tar['tipo'],$id_proyectos)}</td>";
                                     echo "</tr>";
                                 }
