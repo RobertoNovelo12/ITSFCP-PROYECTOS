@@ -88,7 +88,7 @@ ob_start();
                                         <td><?= $tar['fecha_entrega'] ?: "Sin fecha" ?></td>
 
                                         <!-- Estado de la entrega del estudiante -->
-                                        <td><?= $tar['estado_entrega'] ?: "Sin estado" ?></td>
+                                        <td><span class="badge text-bg-<?php echo $tareaControlador->EstiloEstadoLista($tar['estados_tarea']); ?>"><?= htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
 
                                         <td>
                                             <?= $tareaControlador->botonesAccionPrincipal(
@@ -113,7 +113,7 @@ ob_start();
                                         <td><?= $tar['total_entregados'] ?>/<?= $tar['total_asignados'] ?></td>
 
                                         <!-- Estado de la plantilla -->
-                                        <td><?= $tar['estado_plantilla'] ?></td>
+                                        <td><span class="badge text-bg-<?php echo $tareaControlador->EstiloEstadoLista($tar['estado_plantilla']); ?>"><?= htmlspecialchars($tar['estado_plantilla'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
 
                                         <td>
                                             <a href='descargar_guia.php?id=<?= $tar['id_tarea'] ?>'>
