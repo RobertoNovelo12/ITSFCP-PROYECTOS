@@ -134,10 +134,36 @@ WHERE proy.id_investigador = ?
                 break;
 
             case 'supervisor':
-                $sql = "SELECT proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin, espr.nombre, peri.periodo
+                $sql = "SELECT 
+    proy.id_proyectos,
+    proy.titulo,
+    proy.fecha_inicio,
+    proy.fecha_fin,
+    espr.nombre AS estado,
+    peri.periodo,
+
+    -- Total de tareas en ESTADO 2
+    COUNT(CASE WHEN taus.id_estadoT = 2 THEN 1 END) AS total
+
 FROM gestion_proyectos.proyectos AS proy
-JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
-JOIN periodos AS peri ON proy.id_periodos = peri.id_periodos
+
+JOIN investigadores AS inv 
+        ON inv.id_usuario = proy.id_investigador
+
+JOIN estados_proyectos AS espr 
+        ON proy.id_estadoP = espr.id_estadoP
+
+JOIN periodos AS peri 
+        ON proy.id_periodos = peri.id_periodos
+
+LEFT JOIN tbl_seguimiento AS tbse 
+        ON tbse.id_proyectos = proy.id_proyectos 
+
+LEFT JOIN tareas AS tare 
+        ON tare.id_avances = tbse.id_avances
+
+LEFT JOIN tareas_usuarios AS taus 
+        ON taus.id_tarea = tare.id_tarea
 ";
                 // supervisor no añade WHERE por defecto
                 $whereAdded = false;
@@ -616,7 +642,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         if (!$stmt->execute()) {
             die("Error en execute(): " . $stmt->error);
         }
-        header("Location: crear.php?msg=creado");
+        header("Location: crear.php");
         exit();
     }
 
@@ -665,7 +691,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         if (!$stmt->execute()) {
             die("Error en execute(): " . $stmt->error);
         }
-        header("Location: editar.php?msg=mensaje&id_proyectos=" . $id_proyecto);
+        header("Location: editar.php?id_proyectos=" . $id_proyecto);
         exit();
     }
 
@@ -715,9 +741,9 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             $sql = "UPDATE tbl_cierres
             SET fecha_resultado = CURDATE(), estado = ? 
             WHERE id_proyectos = ?";
-
+            $estado= "rechazado";
             $stmtSeg = $this->con->prepare($sql);
-            $stmtSeg->bind_param("si", "rechazado", $id_proyectos);
+            $stmtSeg->bind_param("si", $estado, $id_proyectos);
             $stmtSeg->execute();
         }
         header("Location: tabla.php");
@@ -744,6 +770,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             die("Error en execute(): " . $stmt->error);
         }
         // 2. Si estado = 2, crear tareas
+        $estado= "";
         if ($numeroEstado == 2) {
 
             // Obtener tipos reales de tareas
@@ -768,11 +795,11 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
 
                     // INSERT tareas
                     $sqlTarea = "INSERT INTO tareas 
-                    (id_avances, id_tipotarea)
-                    VALUES (?, ?)";
-
+                    (id_avances, id_tipotarea, id_estadoT)
+                    VALUES (?, ?, ?)";
+                    $estado = 4;
                     $stmtTarea = $this->con->prepare($sqlTarea);
-                    $stmtTarea->bind_param("ii", $id_avances, $id_tipo);
+                    $stmtTarea->bind_param("iii", $id_avances, $id_tipo, $estado);
                     $stmtTarea->execute();
                 }
             }
@@ -783,6 +810,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             $stmtInvestigador->bind_param("i", $id_proyectos);
             $stmtInvestigador->execute();
             $result = $stmtInvestigador->get_result();
+            $estado= "espera";
 
             if ($row = $result->fetch_assoc()) {
 
@@ -792,7 +820,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
                     VALUES (?, ?, CURDATE(), ?, ?)";
 
                 $stmtSeg = $this->con->prepare($sqlSeg);
-                $stmtSeg->bind_param("iiis", $id_proyectos, $row['id_investigador'], $porcentaje, "espera");
+                $stmtSeg->bind_param("iiis", $id_proyectos, $row['id_investigador'], $porcentaje,  $estado);
                 $stmtSeg->execute();
             }
         } else if ($numeroEstado == 1) { //Cierre
@@ -807,13 +835,22 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
                 $sql = "UPDATE tbl_cierres
             SET fecha_resultado = CURDATE(), estado = ? 
             WHERE id_proyectos = ?";
-
+                $estado= "aprobado";
                 $stmtSeg = $this->con->prepare($sql);
-                $stmtSeg->bind_param("si", "aprobado", $id_proyectos);
+                $stmtSeg->bind_param("si", $estado, $id_proyectos);
+                $stmtSeg->execute();
+
+                // Actualizar proyectos_usuarios
+                $sql = "UPDATE proyectos_usuarios
+            SET fecha_terminacion = CURDATE(), estado = ? 
+            WHERE id_proyectos = ?";
+                $estado= "concluido";
+                $stmtSeg = $this->con->prepare($sql);
+                $stmtSeg->bind_param("si", $estado, $id_proyectos);
                 $stmtSeg->execute();
             }
         }
-        header("Location: tabla.php?msg=mensaje");
+        header("Location: tabla.php");
         exit();
     }
 
