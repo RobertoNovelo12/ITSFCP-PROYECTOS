@@ -22,7 +22,9 @@ $items = [];
 // =============================
 // OBTENER TAREAS
 // =============================
+
 if ($rol === "supervisor") {
+    // SUPERVISOR: Ver todas las tareas de todos los proyectos
     $sqlT = "
         SELECT 
             t.id_tarea AS id_eventos,
@@ -42,7 +44,31 @@ if ($rol === "supervisor") {
     ";
     $stmtT = $conn->prepare($sqlT);
 
+} elseif ($rol === "investigador" || $rol === "profesor") {
+    // INVESTIGADOR/PROFESOR: Ver tareas de sus proyectos (de sus alumnos)
+    $sqlT = "
+        SELECT DISTINCT
+            t.id_tarea AS id_eventos,
+            p.id_proyectos AS id_proyectos,
+            p.titulo AS proyecto,
+            tt.descripcion_tipo AS title,
+            t.descripcion AS descripcion,
+            NULL AS ubicacion,
+            t.fecha_entrega AS start,
+            t.fecha_entrega AS end,
+            'tarea' AS tipo
+        FROM tareas t
+        INNER JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+        INNER JOIN proyectos_usuarios pu ON pu.id_usuarios = tu.id_usuario
+        INNER JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+        INNER JOIN tipo_tarea tt ON tt.id_tareatipo = t.id_tipotarea
+        WHERE p.id_investigador = ?
+    ";
+    $stmtT = $conn->prepare($sqlT);
+    $stmtT->bind_param("i", $idUsuario);
+
 } else {
+    // ESTUDIANTE: Solo ver sus propias tareas
     $sqlT = "
         SELECT 
             t.id_tarea AS id_eventos,
@@ -73,7 +99,8 @@ while ($row = $resT->fetch_assoc()) {
 }
 
 // =============================
-// OBTENER EVENTOS
+// OBTENER EVENTOS (SOLO PROPIOS)
+// Los eventos son PRIVADOS para cada usuario
 // =============================
 $sqlE = "
     SELECT 
