@@ -60,20 +60,20 @@ ob_start();
             <div class="col-md">
                 <label>Fecha entrega:</label>
                 <input type="date" class="form-control"
-                       value="<?= $tarea['fecha_entrega'] ?>" disabled>
+                    value="<?= $tarea['fecha_entrega'] ?>" disabled>
             </div>
 
             <div class="col-md">
-                <label>Archivo actual:</label><br>
-
-                <?php if ($tarea['archivo_nombre']): ?>
-                    <a href="descargar.php?id=<?= $tarea['id_avances'] ?>">
-                        Descargar archivo (<?= $tarea['archivo_nombre'] ?>)
-                    </a>
-                <?php else: ?>
-                    <p>No hay archivo cargado.</p>
-                <?php endif; ?>
-
+                <div class="mb-3">
+                    <label>Archivo actual:</label>
+                    <?php if (!empty($tarea) && !empty($tarea['archivo_nombre'])): ?>
+                        <a href="descargar_guia.php?id=<?= $tarea['id_tarea'] ?>">
+                            Descargar archivo (<?= $tarea['archivo_nombre']; ?>)
+                        </a>
+                    <?php else: ?>
+                        <p>No hay archivo cargado.</p>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 
