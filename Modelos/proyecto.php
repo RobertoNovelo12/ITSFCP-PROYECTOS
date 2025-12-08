@@ -295,25 +295,25 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
     }
 
     //DATOS FILTRADOS SEGUN SELECCION
- public function obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar = null)
-{
-    // --- Paginación ---
-    $total_proyectos = $this->obtenerCantidadProyectos($id, $filtro, $rol, $buscar);
-    $por_pagina = 6;
-    $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
-    $desde = ($pagina - 1) * $por_pagina;
-    $total_paginas = ($total_proyectos > 0) ? ceil($total_proyectos / $por_pagina) : 1;
+    public function obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar = null)
+    {
+        // --- Paginación ---
+        $total_proyectos = $this->obtenerCantidadProyectos($id, $filtro, $rol, $buscar);
+        $por_pagina = 6;
+        $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
+        $desde = ($pagina - 1) * $por_pagina;
+        $total_paginas = ($total_proyectos > 0) ? ceil($total_proyectos / $por_pagina) : 1;
 
-    // --- SQL BASE POR ROL ---
-    $base = "";
-    $params = [];
-    $types = "";
-    $where = [];
+        // --- SQL BASE POR ROL ---
+        $base = "";
+        $params = [];
+        $types = "";
+        $where = [];
 
-    switch ($rol) {
+        switch ($rol) {
 
-        case 'estudiante':
-            $base = "
+            case 'estudiante':
+                $base = "
                 SELECT 
                     proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
                     espr.nombre AS estado, peri.periodo,
@@ -327,14 +327,14 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
                 LEFT JOIN tareas tare ON tare.id_avances = tbse.id_avances
                 LEFT JOIN tareas_usuarios taus ON taus.id_tarea = tare.id_tarea
                 ";
-            $where[] = "estu.id_usuario = ?";
-            $params[] = $id;
-            $types .= "i";
-            break;
+                $where[] = "estu.id_usuario = ?";
+                $params[] = $id;
+                $types .= "i";
+                break;
 
-        case 'investigador':
-        case 'profesor':
-            $base = "
+            case 'investigador':
+            case 'profesor':
+                $base = "
                 SELECT 
                     proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
                     espr.nombre AS estado, peri.periodo,
@@ -347,13 +347,13 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
                 LEFT JOIN tareas tare ON tare.id_avances = tbse.id_avances
                 LEFT JOIN tareas_usuarios taus ON taus.id_tarea = tare.id_tarea
                 ";
-            $where[] = "proy.id_investigador = ?";
-            $params[] = $id;
-            $types .= "i";
-            break;
+                $where[] = "proy.id_investigador = ?";
+                $params[] = $id;
+                $types .= "i";
+                break;
 
-        case 'supervisor':
-            $base = "
+            case 'supervisor':
+                $base = "
                 SELECT 
                     proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
                     espr.nombre AS estado, peri.periodo
@@ -361,63 +361,63 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
                 JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
                 JOIN periodos peri ON proy.id_periodos = peri.id_periodos
                 ";
-            break;
+                break;
 
-        default:
-            return json_encode([
-                "proyectos" => [],
-                "paginacion" => []
-            ]);
-    }
+            default:
+                return json_encode([
+                    "proyectos" => [],
+                    "paginacion" => []
+                ]);
+        }
 
-    // --- Filtro por estado ---
-    if ($filtro != 0) {
-        $where[] = "proy.id_estadoP = ?";
-        $params[] = $filtro;
-        $types   .= "i";
-    }
+        // --- Filtro por estado ---
+        if ($filtro != 0) {
+            $where[] = "proy.id_estadoP = ?";
+            $params[] = $filtro;
+            $types   .= "i";
+        }
 
-    // --- Filtro de búsqueda ---
-    if (!empty($buscar)) {
-        $where[] = "proy.titulo LIKE ?";
-        $params[] = "%$buscar%";
-        $types   .= "s";
-    }
+        // --- Filtro de búsqueda ---
+        if (!empty($buscar)) {
+            $where[] = "proy.titulo LIKE ?";
+            $params[] = "%$buscar%";
+            $types   .= "s";
+        }
 
-    // --- WHERE dinámico ---
-    $sql = $base;
-    if (count($where) > 0) {
-        $sql .= " WHERE " . implode(" AND ", $where);
-    }
+        // --- WHERE dinámico ---
+        $sql = $base;
+        if (count($where) > 0) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
 
-    // --- Agrupación, orden y límite ---
-    $sql .= "
+        // --- Agrupación, orden y límite ---
+        $sql .= "
         GROUP BY proy.id_proyectos
         ORDER BY proy.id_proyectos ASC
         LIMIT ?, ?
     ";
 
-    $params[] = $desde;
-    $params[] = $por_pagina;
-    $types   .= "ii";
+        $params[] = $desde;
+        $params[] = $por_pagina;
+        $types   .= "ii";
 
-    // --- Ejecutar consulta ---
-    $stmt = $this->con->prepare($sql);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $filas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        // --- Ejecutar consulta ---
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $filas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    // --- Respuesta final ---
-    return json_encode([
-        "proyectos" => $filas,
-        "paginacion" => [
-            "total_proyectos" => $total_proyectos,
-            "por_pagina"      => $por_pagina,
-            "pagina"          => $pagina,
-            "total_paginas"   => $total_paginas
-        ]
-    ]);
-}
+        // --- Respuesta final ---
+        return json_encode([
+            "proyectos" => $filas,
+            "paginacion" => [
+                "total_proyectos" => $total_proyectos,
+                "por_pagina"      => $por_pagina,
+                "pagina"          => $pagina,
+                "total_paginas"   => $total_paginas
+            ]
+        ]);
+    }
 
     //OBTENER LA CANTIDAD DE PROYECTOS
     public function obtenerCantidadProyectos($id, $numerofiltro, $rol, $buscar = null)
@@ -741,7 +741,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             $sql = "UPDATE tbl_cierres
             SET fecha_resultado = CURDATE(), estado = ? 
             WHERE id_proyectos = ?";
-            $estado= "rechazado";
+            $estado = "rechazado";
             $stmtSeg = $this->con->prepare($sql);
             $stmtSeg->bind_param("si", $estado, $id_proyectos);
             $stmtSeg->execute();
@@ -770,7 +770,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             die("Error en execute(): " . $stmt->error);
         }
         // 2. Si estado = 2, crear tareas
-        $estado= "";
+        $estado = "";
         if ($numeroEstado == 2) {
 
             // Obtener tipos reales de tareas
@@ -810,7 +810,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             $stmtInvestigador->bind_param("i", $id_proyectos);
             $stmtInvestigador->execute();
             $result = $stmtInvestigador->get_result();
-            $estado= "espera";
+            $estado = "espera";
 
             if ($row = $result->fetch_assoc()) {
 
@@ -835,7 +835,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
                 $sql = "UPDATE tbl_cierres
             SET fecha_resultado = CURDATE(), estado = ? 
             WHERE id_proyectos = ?";
-                $estado= "aprobado";
+                $estado = "aprobado";
                 $stmtSeg = $this->con->prepare($sql);
                 $stmtSeg->bind_param("si", $estado, $id_proyectos);
                 $stmtSeg->execute();
@@ -844,7 +844,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
                 $sql = "UPDATE proyectos_usuarios
             SET fecha_terminacion = CURDATE(), estado = ? 
             WHERE id_proyectos = ?";
-                $estado= "concluido";
+                $estado = "concluido";
                 $stmtSeg = $this->con->prepare($sql);
                 $stmtSeg->bind_param("si", $estado, $id_proyectos);
                 $stmtSeg->execute();
@@ -879,7 +879,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         $sql = "SELECT taus.id_estadoT FROM tareas_usuarios as taus
         JOIN tareas as tare ON tare.id_tarea = taus.id_tarea
         JOIN tbl_seguimiento as tbse ON tare.id_avances = tbse.id_avances
-        WHERE tbse.id_proyectos = ?";
+        WHERE tbse.id_proyectos = ? AND taus.id_estadoT=5"; //5 es aprobado
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param("i", $id_proyecto);
         $stmt->execute();
@@ -891,7 +891,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             $suma += $this->valorPorEstado($row['id_estadoT']);
         }
 
-        $porcentaje = intval($suma / $totalTareas);
+        $porcentaje = min(100, ($suma / $totalTareas) * 100);
+        $porcentaje = round($porcentaje, 2);
         return $porcentaje;
     }
 
