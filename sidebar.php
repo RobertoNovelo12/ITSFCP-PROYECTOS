@@ -9,7 +9,6 @@ function crearLink($nombre, $rol) {
         "Principal" => "/ITSFCP-PROYECTOS/Vistas/menu/principal.php",
         "Dashboard" => "/ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php",
         "Seguimiento" => "/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php",
-        "Tareas" => "/ITSFCP-PROYECTOS/Vistas/Tareas/tabla.php",
         "Solicitudes" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes/tabla.php",
         "Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
         "Calendario" => "/ITSFCP-PROYECTOS/Vistas/Calendario/calendario.php",
@@ -37,7 +36,7 @@ $mainMenu = $middleMenu = $submenuProyectos = $submenuMisAlumnos = $submenuVerMa
 
 if ($rol === "estudiante" ||  $rol ==="alumno") {
     $mainMenu = ["Principal","Dashboard"];
-    $submenuProyectos = ["Seguimiento","Tareas"];
+    $submenuProyectos = ["Seguimiento"];
     $submenuVerMas = ["Solicitudes","Constancias"];
     $middleMenu = ["Calendario"];
     $footerMenus = ["Soporte","Ajustes"];
