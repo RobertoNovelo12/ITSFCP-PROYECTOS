@@ -4087,6 +4087,11 @@ select:focus {
   background: var(--color-boton-nuevo);
 }
 
+.proyecto-link {
+    text-decoration: none;
+    color: inherit;
+}
+
 .icon-proyecto {
   font-size: 18px;
   margin-right: 6px;

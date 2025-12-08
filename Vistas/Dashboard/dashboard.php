@@ -172,13 +172,15 @@ if ($result_proyectos && $result_proyectos->num_rows > 0) {
     while ($proyecto = $result_proyectos->fetch_assoc()) {
 
         $proyectos_html .= '
-        <div class="proyecto-item d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <span class="icon-proyecto">📁</span>
-                <span class="proyecto-nombre">' . htmlspecialchars($proyecto['titulo']) . '</span>
-            </div>
-            <span class="estado-proyecto">' . htmlspecialchars($proyecto['estado']) . '</span>
-        </div>';
+<a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles.php?id_proyectos=' . $proyecto['id_proyectos'] . '" class="proyecto-link">
+    <div class="proyecto-item d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <span class="icon-proyecto">📁</span>
+            <span class="proyecto-nombre">' . htmlspecialchars($proyecto['titulo']) . '</span>
+        </div>
+        <span class="estado-proyecto">' . htmlspecialchars($proyecto['estado']) . '</span>
+    </div>
+</a>';
     }
 
 } else {
