@@ -1,5 +1,5 @@
 <?php
-require "../ITSFCP-PROYECTOS/publico/config/conexion.php";
+require "../../publico/config/conexion.php";
 
 $id = $_GET['id'];
 
