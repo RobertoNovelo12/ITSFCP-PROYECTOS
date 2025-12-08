@@ -85,7 +85,6 @@ ob_start();
                                         . htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') .
                                         "</span></td>";
                                     echo "<td>{$tar['fecha_revision']}</td>";
-                                    echo "<td>{$tar['fecha_revision']}</td>";
                                     echo "<td>{$tar['fecha_correccion']}</td>";
                                     echo "<td>{$tar['fecha_aprobacion']}</td>";
                                     echo "<td>{$tareaControlador->botonesAccionLista($tar['id_asignacion'],$rol,$tar['estados_tarea'],$tar['tipo'],$id_proyectos,$tar['id_tarea'])}</td>";
