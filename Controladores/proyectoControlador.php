@@ -214,7 +214,6 @@ class ProyectoControlador
                     'Estado',
                     'Período',
                     'Pendientes',
-                    '% avance',
                     'Acciones'
                 ];
                 break;
@@ -228,7 +227,6 @@ class ProyectoControlador
                     'Estado',
                     'Período',
                     'Pendientes',
-                    '% avance',
                     'Acciones'
                 ];
                 break;
@@ -240,7 +238,7 @@ class ProyectoControlador
                     'Fecha Fin',
                     'Estado',
                     'Período',
-                    '% avance',
+                    'Pendientes',
                     'Acciones'
                 ];
                 break;
@@ -295,27 +293,28 @@ class ProyectoControlador
         return $opciones;
     }
     //Estilo de la información estado - Ajeno a como a filtros
-    public function EstiloEstado($estado){
-        switch($estado){
+    public function EstiloEstado($estado)
+    {
+        switch ($estado) {
             case 'Cierre rechazado':
             case 'Rechazado':
-                $estilo= "danger";
+                $estilo = "danger";
                 break;
             case 'Por cerrar':
             case 'Por aprobar':
-                $estilo= "warning";
+                $estilo = "warning";
                 break;
             case 'Vencido':
-                $estilo= "secondary";
+                $estilo = "secondary";
                 break;
             case 'Activo':
-                $estilo= "success";
+                $estilo = "success";
                 break;
             case 'Cierre':
-                $estilo= "dark";
+                $estilo = "dark";
                 break;
             default:
-                $estilo= "info";
+                $estilo = "info";
                 break;
         }
         return $estilo;
@@ -325,17 +324,20 @@ class ProyectoControlador
     public function obtenerPorcentajeAvance($id_proyecto)
     {
         global $conn;
+
         $proyecto = new Proyectos($conn);
         $porcentaje = $proyecto->obtenerTareasAvance($id_proyecto);
-        if ($proyecto != []) {
-            return $porcentaje;
-        } else {
-            $porcentaje = []; // evita undefined variable
-            return $porcentaje;
+
+        // Si no hay porcentaje, devolver 0
+        if ($porcentaje === null || $porcentaje === false) {
+            return 0;
         }
+
+        return $porcentaje;
     }
 
-    public function obtenerbotones($tipo, $id_proyecto)
+
+    public function obtenerbotones($tipo, $id_proyecto, $id_usuario = null)
     {
         $boton = "";
         switch ($tipo) {
@@ -347,6 +349,11 @@ class ProyectoControlador
             case 'Tareas':
                 $boton = '<a href="../Tareas/tabla.php?id_proyectos=' . $id_proyecto . '"><button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
         data-bs-title="Tareas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-task" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
+  <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/><path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5zM2 7h1v1H2zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm1 .5H2v1h1z"/></svg></button></a>';
+                break;
+            case 'Ver Tareas Alumnos':
+                $boton = '<a href="../Tareas/tareas_estudiante.php?id_usuario=' . $id_usuario . '"><button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+        data-bs-title="Ver Tareas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-task" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
   <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/><path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5zM2 7h1v1H2zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm1 .5H2v1h1z"/></svg></button></a>';
                 break;
             case 'Aprobar':
@@ -430,14 +437,14 @@ class ProyectoControlador
             case 'estudiante':
                 if ($estado == "Activo" || $estado == "Por cerrar") {
                     $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
+                    $boton .= $this->obtenerbotones("Ver Tareas Alumnos", null, $extra);
                 } else if ($estado == "Cerrado") {
                     $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
+                    $boton .= $this->obtenerbotones("Ver Tareas Alumnos", null, $extra);
                     $boton .= $this->obtenerbotones("GenerarConstancia", $id);
                 } else if ($estado == "Vencido") {
                     $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Tareas", $id);
+                    $boton .= $this->obtenerbotones("Ver Tareas Alumnos", null, $extra);
                 }
                 break;
             case 'investigador':
