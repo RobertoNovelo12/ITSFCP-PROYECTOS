@@ -134,17 +134,8 @@ ob_start();
                                     <td><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= $proyecto['fecha_inicio'] ?? '-' ?></td>
                                     <td><?= $proyecto['fecha_fin'] ?? '-' ?></td>
-                                    <td><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado']); ?>"><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td><?= $proyecto['periodo'] ?? '-' ?></td>
-
-                                    <!-- Comentarios -->
-                                    <td>
-                                        <button type="button"
-                                            class="btn btn-info btn-sm btn-comentarios"
-                                            data-id="<?= $proyecto['id_proyectos'] ?? 0 ?>">
-                                            <i class="bi bi-chat-dots-fill"></i>
-                                        </button>
-                                    </td>
 
                                     <!-- Porcentaje de Avances -->
                                     <td><?= $proyectoControlador->obtenerPorcentajeAvance($proyecto['id_proyectos']) ?? 0 ?></td>
@@ -229,64 +220,6 @@ ob_start();
     </div>
 </div>
 
-<!-- MODAL FORMULARIO RECHAZO CIERRE -->
-<div class="modal fade" id="modalRechazoCierre" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Motivo de rechazo de cierre</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <label>Motivo del rechazo:</label>
-                <textarea class="form-control" name="comentario" required></textarea>
-
-                <input type="hidden" name="tipo" value="cierre_rechazado">
-                <input type="hidden" name="action" value="actualizarestadoRechazo">
-                <!-- Aquí va el id dinámico -->
-                <input type="hidden" id="idProyectoRechazoCierre" name="id_proyectos">
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
-            </div>
-
-        </div>
-        </form>
-    </div>
-</div>
-
-
-
-
-<!-- MODAL COMENTARIOS -->
-<div class="modal fade" id="modalComentarios" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title">Comentarios</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <div class="accordion" id="comentariosAccordion">
-                    <!-- Aquí se insertarán los comentarios via JS -->
-                </div>
-
-                <!-- Aquí se guarda el ID del proyecto -->
-                <input type="hidden" id="idProyectoComentarios" name="id_proyecto">
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <?php
 $contenido = ob_get_clean();
 $titulo = "Proyectos";
@@ -294,9 +227,3 @@ $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
 ?>
-<?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
-    <script>
-        abrirMensaje();
-    </script>
-<?php unset($_SESSION['mensaje']);
-endif; ?>
