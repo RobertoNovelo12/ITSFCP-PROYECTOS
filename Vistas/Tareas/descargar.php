@@ -4,7 +4,7 @@ require "../../publico/config/conexion.php";
 $id = $_GET['id'];
 
 $sql = "SELECT archivo, archivo_nombre, archivo_tipo 
-        FROM tarea_usuarios 
+        FROM tareas_usuarios 
         WHERE id_tarea = ?";
 
 $stmt = $conn->prepare($sql);
