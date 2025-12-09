@@ -70,7 +70,7 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
     <h1 class="title-perfil">Solicitud de alta - <?= ucfirst($rol) ?></h1>
 
 <!-- FORMULARIO ALUMNO -->
-<?php if ($rol === 'alumno'): ?>
+<?php if ($rol === 'estudiante'): ?>
     <form class="form-perfil" action="../../publico/config/procesar_solicitud.php" method="POST">
         <input type="hidden" name="rol" value="alumno">
 

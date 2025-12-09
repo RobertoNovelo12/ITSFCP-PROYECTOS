@@ -1618,7 +1618,7 @@ select:focus {
 }
 
 .table {
-  background-color: var(--fondo-web);
+  background-color: var(--fondo-web) !important;
 }
 
 .modal-dia {
