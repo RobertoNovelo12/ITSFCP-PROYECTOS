@@ -329,7 +329,7 @@ class TareaControlador
             case 'supervisor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido", "Sin activar"])) {
                     $boton  = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
-                    $boton = $this->obtenerbotones("Detalles", $id, $id_proyectos);
+                    $boton .= $this->obtenerbotones("Detalles", $id, $id_proyectos);
                 } elseif ($estado == "Sin activar") {
                     $boton = $this->obtenerbotones("Detalles", $id, $id_proyectos);
                 }
@@ -348,7 +348,7 @@ class TareaControlador
             case 'investigador':
             case 'profesor':
                 if (in_array($estado, ["Revisar", "Corregir"])) {
-                    $boton  = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
+                    $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente"])) {
                     $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 }
@@ -372,7 +372,7 @@ class TareaControlador
             case 'estudiante':
                 if (in_array($estado, ["Revisar", "Corregir", "Pendiente"])) {
                     $boton  = $this->obtenerbotones("EnviarTarea", $id1, $id2, $id3);
-                    $boton  = $this->obtenerbotones("Guardar");
+                    $boton  .= $this->obtenerbotones("Guardar");
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente", "Sin activar"])) {
                     $boton = "";
                 }
@@ -381,8 +381,8 @@ class TareaControlador
             case 'profesor':
                 if (in_array($estado, ["Revisar", "Corregir"])) {
                     $boton  = $this->obtenerbotones("Aprobar", $id1, $id2, $id3);
-                    $boton  = $this->obtenerbotones("Solicitar Corregir", $id1, $id2, $id3);
-                    $boton  = $this->obtenerbotones("Guardar");
+                    $boton  .= $this->obtenerbotones("Solicitar Corregir", $id1, $id2, $id3);
+                    $boton  .= $this->obtenerbotones("Guardar");
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente", "Sin activar"])) {
                     $boton = "";
                 }
