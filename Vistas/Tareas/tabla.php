@@ -41,16 +41,6 @@ $encabezados = $tareaControlador->encabezadosPrincipal($rol);
 // ======================
 ob_start();
 ?>
-
-<script>
-    //MOSTRAR TOOLTIP, QUE ES UN TEXTO AL SOBREPONER MOUSE EN BOTÓN
-    document.addEventListener('DOMContentLoaded', function() {
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        const tooltipList = [...tooltipTriggerList].map(t => new bootstrap.Tooltip(t));
-    });
-</script>
-
-
 <div class="container-fluid py-4">
     <div class="row mb-3 align-items-center">
         <div class="col-md-6">
