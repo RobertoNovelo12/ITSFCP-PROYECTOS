@@ -200,14 +200,9 @@ ob_start();
 </div>
 <?php
 $contenido = ob_get_clean();
-$titulo = "Tareas";
+$titulo = "Proyectos";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
 ?>
-<?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
-    <script>
-        abrirMensaje();
-    </script>
-<?php unset($_SESSION['mensaje']);
-endif; ?>
+
