@@ -2282,6 +2282,10 @@ select:focus {
     display: none;
   }
 
+  .badge-date{
+    font-size: 10px;
+  }
+
   #tarjeta_móvil {
     display: block;
   }
