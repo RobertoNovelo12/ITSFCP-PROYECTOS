@@ -15,12 +15,12 @@ $id = $_SESSION['id_usuario'];
 $id_asignacion = $_POST["id_asignacion"]
     ?? $_GET["id_asignacion"]
     ?? null;
-$id_tarea      = $_POST["id_tarea"] ?? $_GET["id_tarea"] ?? null;
+$id_tarea = $_POST["id_tarea"] ?? $_GET["id_tarea"] ?? null;
 
 if ($id_asignacion == null) {
     die("ERROR: No se recibió id_asignacion");
 }
-
+$estado = $_POST["estado"] ?? $_GET["estado"] ?? null;
 $id_proyecto = $_GET["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 $tipo = $_GET['tipo'] ?? null;
@@ -94,20 +94,7 @@ ob_start();
 
             <div class="row mb-1">
                 <div class="col-12">
-
-                    <?php if ($rol == "investigador"): ?>
-                        <a href="tarea.php?id_tarea=<?= $datos['id_tarea']; ?>&id_asignacion=<?= $id_asignacion; ?>&id_proyectos=<?= $id_proyecto; ?>&action=actualizarestado&tipo=Aprobado"
-                            class="btn btn-success">Aprobar tarea</a>
-                        <a href="tarea.php?id_tarea=<?= $datos['id_tarea']; ?>&id_asignacion=<?= $id_asignacion; ?>&id_proyectos=<?= $id_proyecto; ?>&action=actualizarestado&tipo=Corregir"
-                            class="btn btn-info">Solicitar corregir</a>
-
-                    <?php endif; ?>
-
-                    <?php if ($rol == "estudiante"): ?>
-                        <a href="tarea.php?id_tarea=<?= $datos['id_tarea']; ?>&id_asignacion=<?= $id_asignacion; ?>&id_proyectos=<?= $id_proyecto; ?>&action=actualizarestado&tipo=Revisar"
-                            class="btn btn-success">Enviar tarea</a>
-                    <?php endif; ?>
-
+                    <?php echo $tareaControlador->botonesAccionTarea($datos['id_tarea'], $rol, $estado, $datos['id_asignacion'], $id_proyecto);?>
                     <?php if ($rol != "supervisor"): ?>
                         <button type="submit" class="btn btn-primary">Guardar cambios</button>
                     <?php endif; ?>
