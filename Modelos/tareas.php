@@ -323,8 +323,59 @@ ORDER BY t.id_tarea ASC;
 
         $stmt->execute();
     }
+    public function VincularTareasAntiguas($id_proyectos, $id_tarea)
+    {
+        // Obtener usuarios NO vinculados
+        $sqlUsuario = "
+        SELECT prus.id_usuarios
+        FROM proyectos_usuarios AS prus
+        WHERE prus.id_proyectos = ?
+        AND NOT EXISTS (
+            SELECT 1
+            FROM tareas_usuarios AS taus
+            WHERE taus.id_tarea = ?
+            AND taus.id_usuario = prus.id_usuarios
+        )
+    ";
+        // justo antes de $stmtUsuario = $this->con->prepare($sqlUsuario);
+        $stmtUsuario = $this->con->prepare($sqlUsuario);
+        if ($stmtUsuario === false) {
+            // muestra el SQL y el error de MySQL para depuración
+            error_log("MySQL prepare failed: " . $this->con->error);
+            error_log("SQL: " . $sqlUsuario);
+            throw new Exception("MySQL prepare failed: " . $this->con->error);
+        }
+        $stmtUsuario = $this->con->prepare($sqlUsuario);
+        $stmtUsuario->bind_param("ii", $id_proyectos, $id_tarea);
+        $stmtUsuario->execute();
+        $result = $stmtUsuario->get_result();
 
+        // Insert seguro (evita duplicados)
+        $sqlInsert = "
+        INSERT INTO tareas_usuarios (id_tarea, id_usuario, id_estadoT)
+        SELECT ?, ?, 1
+        WHERE NOT EXISTS (
+            SELECT 1 FROM tareas_usuarios 
+            WHERE id_tarea = ? AND id_usuario = ?
+        )
+    ";
 
+        $stmtInsert = $this->con->prepare($sqlInsert);
+
+        // Recorrer todos los usuarios no vinculados
+        while ($alumno = $result->fetch_assoc()) {
+
+            $stmtInsert->bind_param(
+                "iiii",
+                $id_tarea,
+                $alumno['id_usuarios'],
+                $id_tarea,
+                $alumno['id_usuarios']
+            );
+
+            $stmtInsert->execute();
+        }
+    }
 
     public function actualizarestado($id_tarea, $numeroEstado)
     {
@@ -470,9 +521,11 @@ a.archivo_tipo,
                     tare.fecha_entrega,
                     tare.archivo_guia,
                     tare.archivo_nombre,
-                    tare.archivo_tipo
+                    tare.archivo_tipo,
+                    esta.nombre as estado
                  FROM tareas AS tare
                  JOIN tipo_tarea AS tita ON tare.id_tipotarea = tita.id_tareatipo
+                 JOIN estados_tarea as esta ON esta.id_estadoT = tare.id_estadoT
                  WHERE tare.id_tarea = ?";
 
         $stmt1 = $this->con->prepare($sqlTarea);
