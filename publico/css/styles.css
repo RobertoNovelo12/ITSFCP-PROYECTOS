@@ -1621,6 +1621,7 @@ select:focus {
 .table td, 
 .table th {
     background-color: var(--fondo-web) !important;
+    color: var(--color-texto-principal);
 }
 
 
