@@ -42,14 +42,14 @@ if ($rol === "estudiante" ||  $rol ==="alumno") {
     $footerMenus = ["Soporte","Ajustes"];
 } elseif ($rol === "profesor" || $rol === "investigador") {
     $mainMenu = ["Principal","Dashboard"];
-    $submenuProyectos = ["Seguimiento","Tareas"];
-    $submenuMisAlumnos = ["Solicitudes","Documentos","Plan de trabajo","Constancias"];
-    $middleMenu = ["Calendario","Reportes"];
+    $submenuProyectos = ["Seguimiento"];
+    $submenuMisAlumnos = ["Solicitudes", "Constancias"];
+    $middleMenu = ["Calendario"];
     $footerMenus = ["Soporte","Ajustes"];
 } elseif ($rol === "supervisor") {
     $mainMenu = ["Principal","Dashboard"];
-    $submenuProyectos = ["Seguimiento","Tareas"];
-    $middleMenu = ["Calendario","Reportes"];
+    $submenuProyectos = ["Seguimiento"];
+    $middleMenu = ["Calendario"];
     $submenuVerMas = ["Usuarios","Línea de investigación","Temática","Subtemática","Área de conocimiento","Subárea de conocimiento","Ajuste de constancias","Período","Instituto","Carreras"];
     $footerMenus = ["Soporte","Ajustes"];
 }
