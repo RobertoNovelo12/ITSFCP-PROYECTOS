@@ -9,204 +9,105 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
+$rol = $_SESSION['rol'];
+$id = $_SESSION['id_usuario'];
+$id_proyecto = $_POST["id_proyectos"]
+    ?? $_GET["id_proyectos"]
+    ?? null;
+$id_asignacion = $_POST["id_asignacion"]
+    ?? $_GET["id_asignacion"]
+    ?? null;
+$id_tarea = $_POST["id_tarea"] ?? $_GET["id_tarea"] ?? null;
 
-$rol = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = intval($_SESSION['id_usuario']);
-
-$action = $_GET['action'] ?? 'index';
-$buscar = $_GET['buscar'] ?? '';
-$pagina = intval($_GET['pagina'] ?? 1);
-
-require_once "../../Controladores/proyectoControlador.php";
-$proyectoControlador = new ProyectoControlador();
-
-if (!method_exists($proyectoControlador, $action)) {
-    die("Error: La acción '$action' no existe en el controlador.");
+if ($id_asignacion == null) {
+    die("ERROR: No se recibió id_asignacion");
 }
+$action = $_POST['action'] ?? $_GET['action'] ?? null;
+$tipo = $_GET['tipo'] ?? null;
+require_once '../../Controladores/tareasControlador.php';
+$tareaControlador = new TareaControlador();
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
-    if (isset($_GET['id_proyectos'], $_GET['tipo'])) {
-        $proyectoControlador->actualizarestado($_GET['id_proyectos'], $rol, $_GET['tipo']);
-    }
+// DATOS
+$datos = $tareaControlador->mostrarTarea($id_asignacion, $rol);
+
+if ($action == 'editarTareaEstudiante') {
+    $tareaControlador->editarTareaEstudiante($_POST, $rol, $id_proyecto);
 }
-
-// Obtener proyectos
-$resultado = $proyectoControlador->$action($id_usuario, $rol, $buscar);
-
-// Si viene como JSON, decodificar
-if (is_string($resultado)) {
-    $resultado = json_decode($resultado, true);
+if ($action == 'editarTareaRevisar') {
+    $tareaControlador->editarTareaRevisar($_POST, $rol, $id_proyecto);
 }
-
-if (!is_array($resultado)) {
-    die("Error: La acción '$action' no devolvió un array válido.");
+if ($action == 'actualizarestado') {
+    $tareaControlador->actualizarestado($_GET['id_tarea'], $rol, $_GET['tipo'], $id_proyecto, $id_asignacion);
 }
-
-$proyectos = $resultado['proyectos'] ?? [];
-$paginacion = $resultado['paginacion'] ?? [
-    'total_proyectos' => count($proyectos),
-    'por_pagina' => 6,
-    'pagina' => $pagina,
-    'total_paginas' => max(1, ceil(count($proyectos) / 6))
-];
-
-$filtros = $proyectoControlador->filtros($id_usuario, $rol);
-$encabezados = $proyectoControlador->encabezados($rol);
-$opciones = $proyectoControlador->datosopciones($rol, $filtros);
 
 // ======================
-// GENERAR CONTENIDO
+// GENERAR VISTA
 // ======================
 ob_start();
-include __DIR__ . '/../../mensaje.php';
+
 ?>
 
 <div class="container-fluid py-4">
-
+    <?php include __DIR__ . '/../../mensaje.php'; ?>
     <div class="row mb-3 align-items-center">
-        <div class="col-md-6">
-            <h2 class="mb-0 fw-bold">Proyectos</h2>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <?php if ($rol == "investigador" || $rol == "profesor"): ?>
-                <a href="crear.php" class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i> Crear proyecto
-                </a>
-            <?php endif; ?>
-        </div>
-    </div>
 
-    <!-- FILTROS Y BÚSQUEDA -->
-    <div class="row mb-3">
-        <div class="col-12 text-end">
-            <div class="row justify-content-end">
-                <div class="col-md-6 mb-3">
-                    <select class="form-select"
-                        onchange="location.href='tabla.php?action=' + this.value;">
-
-                        <?php foreach ($opciones as $key => $label): ?>
-                            <option value="<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>"
-                                <?= ($action === $key) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <form class="d-flex gap-2" method="GET" action="tabla.php">
-                        <input type="hidden" name="action" value="<?= htmlspecialchars($action, ENT_QUOTES, 'UTF-8') ?>">
-                        <input type="text"
-                            name="buscar"
-                            class="form-control"
-                            placeholder="Buscar..."
-                            value="<?= htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') ?>">
-                        <button type="submit" class="btn btn-primary">Buscar</button>
-                    </form>
-                </div>
+        <div class="row mb-1">
+            <div class="col-6">
+                <h3>Revisar Tarea</h3>
+            </div>
+            <div class="col-6 text-end">
+                <?php if ($rol == "investigador") { ?>
+                    <a href="lista_tareas.php?id_tarea=<?= $id_tarea; ?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>
+                <?php } elseif ($rol == "estudiante") { ?>
+                    <a href="tareas_estudiante.php?id_tarea=<?= $id_tarea; ?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>
+                <?php } ?>
             </div>
         </div>
-    </div>
 
-
-    <!-- TABLA DE PROYECTOS -->
-    <div class="row">
-        <div class="col-12">
-            <?php if (!empty($proyectos)): ?>
-                <div class="table-responsive d-none d-md-block">
-                    <table class="table table-hover text-center align-middle">
-                        <thead>
-                            <tr>
-                                <?php foreach ($encabezados as $encabezado): ?>
-                                    <th><?= htmlspecialchars($encabezado ?? '', ENT_QUOTES, 'UTF-8') ?></th>
-                                <?php endforeach; ?>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($proyectos as $proyecto): ?>
-                                <tr>
-                                    <th scope="row"><?= $proyecto['id_proyectos'] ?? '-' ?></th>
-                                    <td><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= $proyecto['fecha_inicio'] ?? '-' ?></td>
-                                    <td><?= $proyecto['fecha_fin'] ?? '-' ?></td>
-                                    <td><span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado']); ?>"><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
-                                    <td><?= $proyecto['periodo'] ?? '-' ?></td>
-                                    <!-- Avances -->
-                                        <td><?= $proyecto['total'] ?? '0' ?></td>
-
-                                    <!-- Acciones -->
-                                    <td>
-                                        <?= $proyectoControlador->botonesAccion(
-                                            $proyecto['id_proyectos'] ?? 0,
-                                            $rol,
-                                            $proyecto['estado'] ?? '-',
-                                            $id_usuario
-                                        ); ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-
-                    <!-- PAGINACIÓN -->
-                    <?php if ($paginacion['total_paginas'] > 1): ?>
-                        <nav>
-                            <ul class="pagination justify-content-center">
-                                <?php
-                                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                                $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
-                                ?>
-                                <li class="page-item disabled">
-                                    <span class="page-link">
-                                        Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
-                                    </span>
-                                </li>
-                                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                                        <a class="page-link" href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>"><?= $i ?></a>
-                                    </li>
-                                <?php endfor; ?>
-                            </ul>
-                        </nav>
-                    <?php endif; ?>
-                </div>
-
-                <!-- TARJETAS MÓVILES -->
-                <div class="d-block d-md-none mt-4">
-                    <?php foreach ($proyectos as $proyecto): ?>
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title"><strong>ID: </strong><?= $proyecto['id_proyectos'] ?? '-' ?></h5>
-                                <p class="card-text"><strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong></p>
-                                <p><strong>Estado:</strong> <?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
-                                <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
-                                <p><strong>Pendientes:</strong> <?= $proyecto['total'] ?? '-' ?></p>
-                                <p><strong>Inicio:</strong> <?= $proyecto['fecha_inicio'] ?? '-' ?> | <strong>Fin:</strong> <?= $proyecto['fecha_fin'] ?? '-' ?></p>
-
-                                <div class="d-flex flex-wrap gap-2 mt-2">
-
-                                    <?= $proyectoControlador->botonesAccion(
-                                        $proyecto['id_proyectos'] ?? 0,
-                                        $rol,
-                                        $proyecto['estado'] ?? '-'
-                                    ); ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-
-            <?php else: ?>
-                <div class="alert alert-info text-center">
-                    No hay proyectos para mostrar<?= !empty($buscar) ? ' con el criterio "' . htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') . '"' : '' ?>.
-                </div>
-            <?php endif; ?>
+        <div class="row mb-1">
+            <div class="mb-3">
+                <h5>Descripción</h5>
+                <span><?= $datos['descripcion'] ?? "" ?></span>
+            </div>
         </div>
+
+        <div class="row mb-1">
+            <div class="mb-3">
+                <h5>Instrucciones</h5>
+                <span><?= $datos['instrucciones'] ?? "" ?></span>
+            </div>
+        </div>
+
+        <form action="tarea.php" method="POST" enctype="multipart/form-data">
+            <div class="row mb-1">
+
+                <?php if ($rol == "estudiante"): ?>
+                    <input type="hidden" name="action" value="editarTareaEstudiante">
+                <?php endif; ?>
+
+                <?php if ($rol == "investigador"): ?>
+                    <input type="hidden" name="action" value="editarTareaRevisar">
+                <?php endif; ?>
+                <input type="hidden" name="id_tarea" value="<?= $datos['id_tarea']; ?>">
+                <input type="hidden" name="id_proyectos" value="<?= $datos['id_proyectos']; ?>">
+                <input type="hidden" name="id_asignacion" value="<?= $datos['id_asignacion']; ?>">
+
+                <?php echo $tareaControlador->tareas($datos['tipo_tarea'], $rol, $datos) ?? ""; ?>
+            </div>
+
+            <div class="row mb-1">
+                <div class="col-12">
+                    <?php echo $tareaControlador->botonesAccionTarea($datos['id_tarea'], $rol, $datos['estado'], $datos['id_asignacion'], $datos['id_proyectos']); ?>
+                </div>
+            </div>
+        </form>
+
     </div>
 </div>
 
 <?php
 $contenido = ob_get_clean();
-$titulo = "Proyectos";
+$titulo = "Editar tarea";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
