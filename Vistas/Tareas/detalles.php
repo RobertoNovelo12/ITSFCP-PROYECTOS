@@ -24,11 +24,12 @@ $tarea = $tareaControlador->mostrarEditarTarea($id_tarea, $rol);
 // ======================
 ob_start();
 ?>
+
 <div class="container-fluid py-4">
 
     <div class="row mb-3">
         <div class="col-6">
-            <h3>Editar Tarea</h3>
+            <h3>Detalles de Tarea</h3>
         </div>
         <div class="col-6 text-end">
             <a href="tabla.php?id_proyectos=<?= $id_proyectos; ?>" class="btn btn-danger">Regresar</a>
