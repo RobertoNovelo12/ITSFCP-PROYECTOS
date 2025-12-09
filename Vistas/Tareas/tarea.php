@@ -95,10 +95,6 @@ ob_start();
             <div class="row mb-1">
                 <div class="col-12">
                     <?php echo $tareaControlador->botonesAccionTarea($datos['id_tarea'], $rol, $estado, $datos['id_asignacion'], $id_proyecto);?>
-                    <?php if ($rol != "supervisor"): ?>
-                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    <?php endif; ?>
-
                 </div>
             </div>
         </form>
