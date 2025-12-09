@@ -1576,13 +1576,10 @@ select:focus {
 /* ====================================================
    MODAL
    ==================================================== */
-/* ====================================================
-   MODAL
-   ==================================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: var(--color-sombra-fuerte);
+  background: var(--color-sombra-fuerte) !important;
   display: none;
   align-items: center;
   justify-content: center;
@@ -1590,14 +1587,14 @@ select:focus {
 }
 
 .modal-content {
-  background: var(--fondo-inputs);
+  background: var(--fondo-inputs) !important;
   padding: 2rem;
   border-radius: 12px;
   max-width: 420px;
   width: 90%;
   text-align: center;
   animation: fadeIn 0.3s ease-in-out;
-  border: 1px solid var(--borde-menu);
+  border: 1px solid var(--borde-menu) !important;
 }
 
 .modal-content h2 {
@@ -1617,9 +1614,16 @@ select:focus {
   margin: 0 auto;
 }
 
-.table {
-  background-color: var(--fondo-web) !important;
+.table thead, 
+.table tbody, 
+.table tfoot, 
+.table tr, 
+.table td, 
+.table th {
+    background-color: var(--fondo-web) !important;
 }
+
+
 
 .modal-dia {
   max-width: 95%;

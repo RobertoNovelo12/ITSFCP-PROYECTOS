@@ -147,20 +147,31 @@ $tareas_html = '';
 
 if ($rol !== 'supervisor') {
     $sql_tareas = "
-        SELECT 
-            tu.id_tarea,
-            tt.descripcion_tipo AS nombre_tarea,
-            t.descripcion,
-            t.fecha_entrega,
-            tu.id_estadoT,
-            et.nombre AS estado
-        FROM tareas_usuarios tu
-        INNER JOIN tareas t ON tu.id_tarea = t.id_tarea
-        INNER JOIN tipo_tarea tt ON t.id_tipotarea = tt.id_tareatipo
-        INNER JOIN estados_tarea et ON tu.id_estadoT = et.id_estadoT
-        WHERE tu.id_usuario = $id_usuario
-        ORDER BY t.fecha_entrega DESC
-    ";
+    SELECT 
+        tu.id_tarea,
+        tt.descripcion_tipo AS nombre_tarea,
+        t.descripcion,
+        t.fecha_entrega,
+        tu.id_estadoT,
+        et.nombre AS estado
+    FROM tareas_usuarios tu
+    INNER JOIN tareas t ON tu.id_tarea = t.id_tarea
+    INNER JOIN tipo_tarea tt ON t.id_tipotarea = tt.id_tareatipo
+    INNER JOIN estados_tarea et ON tu.id_estadoT = et.id_estadoT
+    INNER JOIN tbl_seguimiento s ON t.id_avances = s.id_avances
+    INNER JOIN proyectos p ON s.id_proyectos = p.id_proyectos
+
+    /* Mostrar tareas propias o tareas de alumnos dentro de sus proyectos */
+    WHERE 
+        tu.id_usuario = $id_usuario
+        OR (
+            p.id_investigador = $id_usuario
+            AND tu.id_usuario != $id_usuario
+        )
+
+    ORDER BY t.fecha_entrega DESC
+";
+
 
     $result_tareas = $conn->query($sql_tareas);
 
