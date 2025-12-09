@@ -294,6 +294,9 @@ class TareaControlador
                 $boton = '<a href="tarea.php?id_tarea='. $id1 .'&id_asignacion='. $id2 .'&id_proyectos='. $id3 .'&action=actualizarestado&tipo=Corregir"
                             class="btn btn-info">Solicitar corregir</a>';
                 break;
+            case 'Guardar':
+                $boton= '<button type="submit" class="btn btn-primary">Guardar cambios</button>';
+                break;
             default:
                 break;
         }
@@ -369,6 +372,7 @@ class TareaControlador
             case 'estudiante':
                 if (in_array($estado, ["Revisar", "Corregir", "Pendiente"])) {
                     $boton  = $this->obtenerbotones("EnviarTarea", $id1, $id2, $id3);
+                    $boton  = $this->obtenerbotones("Guardar");
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente", "Sin activar"])) {
                     $boton = "";
                 }
@@ -378,6 +382,7 @@ class TareaControlador
                 if (in_array($estado, ["Revisar", "Corregir"])) {
                     $boton  = $this->obtenerbotones("Aprobar", $id1, $id2, $id3);
                     $boton  = $this->obtenerbotones("Solicitar Corregir", $id1, $id2, $id3);
+                    $boton  = $this->obtenerbotones("Guardar");
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente", "Sin activar"])) {
                     $boton = "";
                 }
@@ -390,8 +395,6 @@ class TareaControlador
 
         return $boton;
     }
-
-
     /* EDITAR TAREA - investigador */
     public function editarTarea($datos, $rol)
     {
