@@ -181,7 +181,7 @@ ob_start();
                     <?php foreach ($proyectos as $proyecto): ?>
                         <div class="card mb-3 shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title">ID: <?= $proyecto['id_proyectos'] ?? '-' ?></h5>
+                                <h5 class="card-title"><strong>ID: </strong>strong><?= $proyecto['id_proyectos'] ?? '-' ?></h5>
                                 <p class="card-text"><strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong></p>
                                 <p><strong>Estado:</strong> <?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
                                 <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
