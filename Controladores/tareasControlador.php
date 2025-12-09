@@ -288,7 +288,8 @@ class TareaControlador
                 break;
             case 'EnviarTarea':
                 $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Revisar"
-                            class="btn btn-success">Enviar tarea</a>';
+                            class="btn btn-success" type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Enviar tarea al investigador">Enviar tarea</a>';
                 break;
             case 'Solicitar Corregir':
                 $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Corregir"
@@ -536,7 +537,7 @@ class TareaControlador
     {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
-            if ($rol == "investigador" || $rol == "profesor") {
+            if ($rol == "investigador" || $rol == "profesor" || $rol = "estudiante" ) {
 
                 global $conn;
                 $tarea = new Tarea($conn);
@@ -550,7 +551,7 @@ class TareaControlador
                     header("Location: tarea.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&mensaje=1");
                     exit();
                 } else {
-                    header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
+                    header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&mensaje=1");
                     exit();
                 }
             }
@@ -602,6 +603,7 @@ class TareaControlador
                 "id_proyectos"  => "",
                 "descripcion"    => "",
                 "instrucciones"  => "",
+                "estado"         => "",
                 "tipo_tarea"     => "",
                 "contenido"      => "",
                 "comentarios"    => ""
