@@ -19,13 +19,13 @@ $preguntas = [
     ],
     [
         'id' => 'faq2',
-        'pregunta' => '¿Mi cuenta puede tener varios roles (investigador, coordinador, administrador)?',
-        'respuesta' => 'Sí, una cuenta puede tener múltiples roles asignados dependiendo de tus responsabilidades en la institución. Puedes cambiar entre roles desde el menú de tu perfil.'
+        'pregunta' => '¿Mi cuenta puede tener varios roles (investigador, Supervisor, Alumno)?',
+        'respuesta' => 'No, una cuenta no puede tener múltiples roles asignados dependiendo de tus responsabilidades en la institución.'
     ],
     [
         'id' => 'faq3',
         'pregunta' => '¿Cómo puedo crear un nuevo proyecto de investigación?',
-        'respuesta' => 'Ve a la sección "Proyectos" en el menú lateral y haz clic en "Nuevo Proyecto". Completa el formulario con la información requerida: título, descripción, objetivos, requisitos y selecciona la temática correspondiente.'
+        'respuesta' => 'Primero debes ser un profesor/investigador o supervisor, ve a la sección "Proyectos" en el menú lateral y haz clic en "Nuevo Proyecto". Completa el formulario con la información requerida: título, descripción, objetivos, requisitos y selecciona la temática correspondiente.'
     ],
     [
         'id' => 'faq4',
