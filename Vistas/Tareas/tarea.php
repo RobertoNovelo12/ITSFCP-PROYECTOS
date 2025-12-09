@@ -11,7 +11,9 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
-
+$id_proyecto = $_POST["id_proyectos"]
+    ?? $_GET["id_proyectos"]
+    ?? null;
 $id_asignacion = $_POST["id_asignacion"]
     ?? $_GET["id_asignacion"]
     ?? null;
@@ -20,8 +22,6 @@ $id_tarea = $_POST["id_tarea"] ?? $_GET["id_tarea"] ?? null;
 if ($id_asignacion == null) {
     die("ERROR: No se recibió id_asignacion");
 }
-$estado = $_POST["estado"] ?? $_GET["estado"] ?? null;
-$id_proyecto = $_GET["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 $tipo = $_GET['tipo'] ?? null;
 require_once '../../Controladores/tareasControlador.php';
@@ -31,10 +31,10 @@ $tareaControlador = new TareaControlador();
 $datos = $tareaControlador->mostrarTarea($id_asignacion, $rol);
 
 if ($action == 'editarTareaEstudiante') {
-    $tareaControlador->editarTareaEstudiante($_POST, $rol);
+    $tareaControlador->editarTareaEstudiante($_POST, $rol, $id_proyecto);
 }
 if ($action == 'editarTareaRevisar') {
-    $tareaControlador->editarTareaRevisar($_POST, $rol);
+    $tareaControlador->editarTareaRevisar($_POST, $rol, $id_proyecto);
 }
 if ($action == 'actualizarestado') {
     $tareaControlador->actualizarestado($_GET['id_tarea'], $rol, $_GET['tipo'], $id_proyecto, $id_asignacion);
@@ -44,8 +44,11 @@ if ($action == 'actualizarestado') {
 // GENERAR VISTA
 // ======================
 ob_start();
+
 ?>
+
 <div class="container-fluid py-4">
+    <?php include __DIR__ . '/../../mensaje.php'; ?>
     <div class="row mb-3 align-items-center">
 
         <div class="row mb-1">
@@ -53,9 +56,9 @@ ob_start();
                 <h3>Revisar Tarea</h3>
             </div>
             <div class="col-6 text-end">
-                <?php if ($rol == "investigador"){ ?>
+                <?php if ($rol == "investigador") { ?>
                     <a href="lista_tareas.php?id_tarea=<?= $id_tarea; ?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>
-                <?php }elseif ($rol == "estudiante"){ ?>
+                <?php } elseif ($rol == "estudiante") { ?>
                     <a href="tareas_estudiante.php?id_tarea=<?= $id_tarea; ?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>
                 <?php } ?>
             </div>
@@ -85,8 +88,8 @@ ob_start();
                 <?php if ($rol == "investigador"): ?>
                     <input type="hidden" name="action" value="editarTareaRevisar">
                 <?php endif; ?>
-
                 <input type="hidden" name="id_tarea" value="<?= $datos['id_tarea']; ?>">
+                <input type="hidden" name="id_proyectos" value="<?= $datos['id_proyectos']; ?>">
                 <input type="hidden" name="id_asignacion" value="<?= $datos['id_asignacion']; ?>">
 
                 <?php echo $tareaControlador->tareas($datos['tipo_tarea'], $rol, $datos) ?? ""; ?>
@@ -94,7 +97,7 @@ ob_start();
 
             <div class="row mb-1">
                 <div class="col-12">
-                    <?php echo $tareaControlador->botonesAccionTarea($datos['id_tarea'], $rol, $estado, $datos['id_asignacion'], $id_proyecto);?>
+                    <?php echo $tareaControlador->botonesAccionTarea($datos['id_tarea'], $rol, $datos['estado'], $datos['id_asignacion']); ?>
                 </div>
             </div>
         </form>
