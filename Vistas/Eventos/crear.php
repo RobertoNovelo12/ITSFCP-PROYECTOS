@@ -10,7 +10,7 @@ require __DIR__ . "/../../publico/config/conexion.php";
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: *");
 
-$idUsuario = $_SESSION["id_usuarios"] ?? 0;
+$idUsuario = $_SESSION["id_usuario"] ?? 0;
 $rol = $_SESSION["rol"] ?? "";
 
 // =====================================================
@@ -88,11 +88,15 @@ if (isset($_GET["getEstudiantes"]) && isset($_GET["id_proyecto"])) {
 }
 
 // =====================================================
-// CREAR NUEVO EVENTO
+// CREAR NUEVO EVENTO (PRIVADO - SOLO CREADOR)
 // =====================================================
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     header("Content-Type: application/json; charset=UTF-8");
+    if ($idUsuario == 0) {
+        echo json_encode(["status" => "error", "msg" => "Usuario no autenticado"]);
+        exit;
+    }
 
     $nombre = $_POST["nombreEvento"] ?? "";
     $fechaInicio = $_POST["fechaEvento"] ?? "";
@@ -131,28 +135,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($stmt->execute()) {
 
         $idEvento = $stmt->insert_id;
-
-        // ASOCIAR TODOS LOS USUARIOS ACTIVOS DEL PROYECTO AL EVENTO
-        $stmtUsuarios = $conn->prepare("
-            SELECT id_usuarios
-            FROM proyectos_usuarios
-            WHERE id_proyectos = ? AND estado = 'activo'
-        ");
-        $stmtUsuarios->bind_param("i", $proyecto);
-        $stmtUsuarios->execute();
-        $resUsuarios = $stmtUsuarios->get_result();
-
         $stmtInsert = $conn->prepare("
             INSERT INTO eventos_usuarios (id_usuarios, id_eventos)
             VALUES (?, ?)
         ");
-
-        while ($usuario = $resUsuarios->fetch_assoc()) {
-            $stmtInsert->bind_param("ii", $usuario['id_usuarios'], $idEvento);
-            $stmtInsert->execute();
+        $stmtInsert->bind_param("ii", $idUsuario, $idEvento);
+        
+        if ($stmtInsert->execute()) {
+            echo json_encode(["status" => "ok", "msg" => "Evento privado creado exitosamente"]);
+        } else {
+            echo json_encode(["status" => "error", "msg" => "Evento creado pero no se pudo asignar al usuario"]);
         }
-
-        echo json_encode(["status" => "ok", "msg" => "Evento creado exitosamente"]);
         exit;
     }
 

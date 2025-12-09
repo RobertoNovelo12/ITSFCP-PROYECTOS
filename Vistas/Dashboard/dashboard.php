@@ -290,8 +290,15 @@ if ($result_mod && $result_mod->num_rows > 0) {
 
     while ($mod = $result_mod->fetch_assoc()) {
 
-        $desc_raw = json_decode($mod['contenido'], true);
-        $desc = htmlspecialchars(substr($desc_raw['descripcion'] ?? '', 0, 50));
+        $contenido = $mod['contenido'];
+
+        if (!empty($contenido)) {
+            $desc_raw = json_decode($contenido, true);
+            $desc = htmlspecialchars(substr($desc_raw['descripcion'] ?? '', 0, 50));
+        } else {
+            $desc = "Sin contenido";
+        }
+
 
         $inicial = strtoupper(substr($mod['nombre'], 0, 1));
         $avatar_class = "avatar-dash " . (strtolower($mod['rol']) === 'estudiante' ? 'avatar-u' : 'avatar-e');

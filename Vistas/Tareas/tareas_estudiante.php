@@ -56,7 +56,7 @@ ob_start();
                 </div>
 
                 <!-- INSTRUCCIONES LIMITADAS -->
-                <p class="text-muted descripcion-limit mt-2">
+                <p class="descripcion-limit mt-2">
                     <?= htmlspecialchars($tarea['instrucciones']) ?>
                 </p>
 

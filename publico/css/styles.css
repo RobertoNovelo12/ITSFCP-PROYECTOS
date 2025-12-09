@@ -1623,6 +1623,10 @@ select:focus {
     background-color: var(--fondo-web) !important;
     color: var(--color-texto-principal);
 }
+.form-control{
+  background-color: var(--fondo-inputs) !important;
+  color: var(--color-texto-principal);
+}
 
 
 
