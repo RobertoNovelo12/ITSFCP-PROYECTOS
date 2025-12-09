@@ -31,9 +31,8 @@ $proyectoControlador = new ProyectoControlador();
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && ($_POST['action'] ?? '') == 'actualizarestadoRechazo' && $rol == "supervisor") {
     $proyectoControlador->actualizarestadoRechazo($_POST, $id, $rol);
 }
-
-
 ob_start();
+include __DIR__ . '/../../mensaje.php';
 ?>
 <div class="container-fluid py-4">
     <div class="row mb-3 align-items-center">

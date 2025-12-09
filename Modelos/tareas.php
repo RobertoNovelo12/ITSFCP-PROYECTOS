@@ -477,9 +477,12 @@ ORDER BY t.id_tarea ASC;
         $sql = "SELECT
 a.id_asignacion,
 a.id_tarea,
+tbse.id_proyectos,
 a.archivo,
 a.archivo_nombre,
 a.archivo_tipo,
+
+esta.nombre AS estado,
 
             t.descripcion,
             t.instrucciones,
@@ -489,7 +492,9 @@ a.archivo_tipo,
             a.comentarios
         FROM tareas_usuarios a
         INNER JOIN tareas t ON t.id_tarea = a.id_tarea
+        INNER JOIN tbl_seguimiento as tbse ON t.id_avances = tbse.id_avances 
         INNER JOIN tipo_tarea tt ON tt.id_tareatipo = t.id_tipotarea
+        INNER JOIN estados_tarea as esta ON esta.id_estadoT = a.id_estadoT
         WHERE a.id_asignacion = ?
         LIMIT 1";
 
@@ -505,9 +510,6 @@ a.archivo_tipo,
 
         return $tarea;
     }
-
-
-
 
     //Obtener información de tarea con seguimiento para modificar los datos
     function obtenerTareaGeneral($id_tarea)

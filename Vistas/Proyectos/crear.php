@@ -25,9 +25,8 @@ $periodo = $proyectoControlador->obtenerperiodo();
 if ($action == 'registrarProyecto') {
     $proyectoControlador->registrarProyecto($_POST, $id, $rol);
 }
-
-
 ob_start();
+include __DIR__ . '/../../mensaje.php';
 ?>
 <div class="container-fluid py-4">
     <div class="row mb-3 align-items-center">

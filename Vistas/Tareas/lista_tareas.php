@@ -40,25 +40,17 @@ $encabezados = $tareaControlador->encabezadosLista($rol);
 // GENERAR CONTENIDO
 // ======================
 ob_start();
+include __DIR__ . '/../../mensaje.php';
 ?>
-
-<script>
-    //MOSTRAR TOOLTIP, QUE ES UN TEXTO AL SOBREPONER MOUSE EN BOTÓN
-    document.addEventListener('DOMContentLoaded', function() {
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        const tooltipList = [...tooltipTriggerList].map(t => new bootstrap.Tooltip(t));
-    });
-</script>
-
 
 <div class="container-fluid py-4">
     <div class="row mb-3 align-items-center">
-        <div class="row  mb-3">
+        <div class="row mb-3">
             <div class="col-md-6">
-                <h3 class="mb-0">Lista de Tareas</h3>
+                <h3 class="mb-0 fw-bold">Lista de Tareas</h3>
             </div>
         <div class="col-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-2 mt-md-0">
-                <a href="tabla.php?id_proyectos=<?php echo $id_proyectos; ?>" class="btn btn-danger w-100 w-md-auto">Regresar</a>
+                <a href="tabla.php?id_proyectos=<?php echo $id_proyectos; ?>" class="btn btn-danger px-4">Regresar</a>
             </div>
         </div>
         <div class="row mb-3">
@@ -97,18 +89,18 @@ ob_start();
                 <?php foreach ($tarea as $tar): ?>
                     <div class="card mb-3" id="tarjeta_móvil" style="width: 18rem;">
                         <div class="card-body">
-                            <h5 class="card-title"><?php  $tar['id_asignacion'] ?></h5>
-                            <p class="card-text"><?php  $tar['estudiante'] ?></p>
+                            <h5 class="card-title"><strong><?php echo $tar['id_asignacion']; ?></strong></h5>
+                            <p class="card-text"><strong><?php echo  $tar['estudiante']; ?></strong></p>
                         </div>
 
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">
                                 <div class="row">
                                     <div class="col-12">
-                                        <label>Estado</label>
-                                        <p class="card-text text-<?= $tareaControlador->EstiloEstadoLista($tar['estados_tarea']) ?>">
+                                        <strong>Estado </strong>
+                                        <span class="badge text-bg-<?= $tareaControlador->EstiloEstadoLista($tar['estados_tarea']) ?>">
                                             <?= htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') ?>
-                                        </p>
+                                        </span>
 
                                     </div>
                                 </div>
@@ -116,7 +108,7 @@ ob_start();
                             <li class="list-group-item">
                                 <div class="row">
                                     <div class="col-12">
-                                        <label>Fecha Revisión</label>
+                                        <strong>Fecha Revisión </strong>
                                         <p class="card-text"><?php echo $tar['fecha_revision'] ?></p>
                                     </div>
                                 </div>
@@ -124,7 +116,7 @@ ob_start();
                             <li class="list-group-item">
                                 <div class="row">
                                     <div class="col-12">
-                                        <label>Fecha Corrección</label>
+                                        <strong>Fecha Corrección </strong>
                                         <p class="card-text"><?php echo $tar['fecha_correccion'] ?></p>
                                     </div>
                                 </div>
@@ -132,7 +124,7 @@ ob_start();
                             <li class="list-group-item">
                                 <div class="row">
                                     <div class="col-12">
-                                        <label>Fecha Aprobación</label>
+                                        <strong>Fecha Aprobación </strong>
                                         <p class="card-text"><?php echo $tar['fecha_aprobacion'] ?></p>
                                     </div>
                                 </div>
@@ -158,4 +150,3 @@ $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
 ?>
-

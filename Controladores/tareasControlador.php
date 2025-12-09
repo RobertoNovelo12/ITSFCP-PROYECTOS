@@ -106,7 +106,7 @@ class TareaControlador
     }
 
 
-    private function textarea($label, $name, $value, $disabled = false, $rows = 4)
+    private function textarea($label, $name, $value, $disabled = false, $rows = 7)
     {
         $dis = $disabled ? "disabled" : "";
         return "
@@ -236,7 +236,7 @@ class TareaControlador
             case 'supervisor':
                 $encabezados = [
                     'ID',
-                    'estudiante',
+                    'Estudiante',
                     'Estado',
                     'Fecha Revisión',
                     'Fecha Corrección',
@@ -270,7 +270,7 @@ class TareaControlador
                             class="btn btn-success">Aprobar tarea</a>';
                 break;
             case 'Activar':
-                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&tipo=Pendiete" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos='. $id2 .'&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
                 break;
@@ -374,7 +374,6 @@ class TareaControlador
                     $boton  = $this->obtenerbotones("EnviarTarea", $id1, $id2, $id3);
                     $boton  .= $this->obtenerbotones("Guardar");
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Sin activar"])) {
-                    $boton = "";
                 }
                 break;
             case 'investigador':
@@ -386,13 +385,13 @@ class TareaControlador
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente"])) {
                     $boton  = $this->obtenerbotones("Guardar");
                 } elseif (in_array($estado, ["Sin activar"])) {
-                    $boton  = $this->obtenerbotones("Activar");
+                    $boton  = $this->obtenerbotones("Activar",$id1, $id2);
                     $boton  .= $this->obtenerbotones("Guardar");
                 }
                 break;
-
             case 'supervisor':
-                $boton = "";
+                break;
+            default:
                 break;
         }
 
@@ -444,12 +443,12 @@ class TareaControlador
         );
 
         // REDIRECCIÓN SEGURA
-        header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
+        header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
         exit();
     }
 
 
-    public function editarTareaEstudiante($datos, $rol)
+    public function editarTareaEstudiante($datos, $rol, $id_proyecto)
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             die("Método no permitido");
@@ -500,12 +499,12 @@ class TareaControlador
         );
 
         // Redirección luego de guardar
-        header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tarea}");
+        header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tarea}&id_proyectos={$id_proyecto}&mensaje=1");
         exit();
     }
 
     //investigador 
-    public function editarTareaRevisar($datos, $rol)
+    public function editarTareaRevisar($datos, $rol, $id_proyecto)
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($rol == "investigador" || $rol == "profesor") {
@@ -515,14 +514,13 @@ class TareaControlador
                 $id_asignacion = $datos['id_asignacion'];
                 $id_tareas = $datos['id_tarea'];
 
-
                 $comentarios = ($datos['comentarios'] ?? '');
                 if ($action == 'editarTareaRevisar') {
                     global $conn;
                     $tarea = new Tarea($conn);
                     $tarea->actualizarTareasVencidos();
                     $tarea->editarTareaRevisar($id_tareas, $comentarios);
-                    header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tareas}");
+                    header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tareas}&id_proyectos={$id_proyecto}&mensaje=1");
                     exit();
                 }
             } else {
@@ -549,10 +547,10 @@ class TareaControlador
 
                 $tarea->actualizarestado($id_tarea, $numeroEstado);
                 if ($tipo == "Aprobado" || $tipo == "Corregir" || $tipo == "Revisar") {
-                    header("Location: tarea.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}");
+                    header("Location: tarea.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&mensaje=1");
                     exit();
                 } else {
-                    header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
+                    header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
                     exit();
                 }
             }
@@ -601,6 +599,7 @@ class TareaControlador
             return array_merge([
                 "id_tarea"       => null,
                 "id_asignacion"  => $id_asignacion,
+                "id_proyectos"  => "",
                 "descripcion"    => "",
                 "instrucciones"  => "",
                 "tipo_tarea"     => "",

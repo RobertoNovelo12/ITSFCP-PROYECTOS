@@ -30,6 +30,7 @@ if ($action == 'editarProyecto') {
 // GENERAR CONTENIDO
 // ======================
 ob_start();
+include __DIR__ . '/../../mensaje.php';
 ?>
 <div class="container-fluid py-4">
     <div class="row mb-3 align-items-center">
@@ -56,12 +57,12 @@ ob_start();
 
                         <div class="mb-3">
                             <label class="form-label">Descripción breve</label>
-                            <textarea class="form-control" name="Descripcion" rows="3" required><?php echo $p['descripcion']; ?></textarea>
+                            <textarea class="form-control" name="Descripcion" rows="6" required><?php echo $p['descripcion']; ?></textarea>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Objetivos</label>
-                            <textarea class="form-control" name="Objetivos" rows="3" required><?php echo $p['objetivo']; ?></textarea>
+                            <textarea class="form-control" name="Objetivos" rows="6" required><?php echo $p['objetivo']; ?></textarea>
                         </div>
 
                         <div class="mb-3">
