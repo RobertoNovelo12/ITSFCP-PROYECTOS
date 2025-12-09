@@ -71,7 +71,7 @@ ob_start();
 
     <div class="row mb-3 align-items-center">
         <div class="col-md-6">
-            <h2 class="mb-0">Proyectos</h2>
+            <h2 class="mb-0 fw-bold">Proyectos</h2>
         </div>
         <div class="col-md-6 text-md-end">
             <?php if ($rol == "investigador" || $rol == "profesor"): ?>
@@ -86,7 +86,7 @@ ob_start();
     <div class="row mb-3">
         <div class="col-12 text-end">
             <div class="row justify-content-end">
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <select class="form-select"
                         onchange="location.href='tabla.php?action=' + this.value;">
 
