@@ -37,3 +37,4 @@ $titulo = "Comentarios";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
+?>
