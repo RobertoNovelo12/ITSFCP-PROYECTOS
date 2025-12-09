@@ -273,16 +273,15 @@ function abrirRechazoSolicitud(id) {
   );
   modal.show();
 }
-//ABRIR MODAL DE COMENTARIOS
+//ABRIR COMENTARIOS
 
-document.addEventListener("click", async function (e) {
-  let btn = e.target.closest(".btn-comentarios");
-  if (!btn) return; // No se hizo clic en el botón
+document.addEventListener("DOMContentLoaded", async function () {
+  let id = document.getElementById("idProyectoComentarios").value;
 
-  let id = btn.getAttribute("data-id");
-  document.getElementById("idProyectoComentarios").value = id;
+  // Si no hay ID, no hacemos nada
+  if (!id) return;
 
-  //Petición AJAX
+  // Petición AJAX
   let res = await fetch("/ITSFCP-PROYECTOS/Ajax/comentarios.php", {
     method: "POST",
     headers: {
@@ -301,24 +300,35 @@ document.addEventListener("click", async function (e) {
   } else {
     datos.forEach((c, index) => {
       accordion.innerHTML += `
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="heading${index}">
-                    <button class="accordion-button collapsed" 
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapse${index}">
-                        <strong>${c.tipo} — ${c.fecha}</strong>
-                    </button>
-                </h2>
-                <div id="collapse${index}" class="accordion-collapse collapse">
-                    <div class="accordion-body">
-                        <p><strong>Supervisor:</strong> ${c.nombre_completo}</p>
-                        <p><strong>Comentario:</strong> ${c.comentario}</p>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading${index}">
+                        <button class="accordion-button collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapse${index}">
+                            <strong>${c.tipo} — ${c.fecha}</strong>
+                        </button>
+                    </h2>
+                    <div id="collapse${index}" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            <p><strong>Supervisor:</strong> ${c.nombre_completo}</p>
+                            <p><strong>Comentario:</strong> ${c.comentario}</p>
+                        </div>
                     </div>
-                </div>
-            </div>`;
+                </div>`;
     });
   }
+});
+
+//MOSTRAR TOOLTIP, QUE ES UN TEXTO AL SOBREPONER MOUSE EN BOTÓN
+document.addEventListener("DOMContentLoaded", function () {
+  const tooltipTriggerList = document.querySelectorAll(
+    '[data-bs-toggle="tooltip"]'
+  );
+  const tooltipList = [...tooltipTriggerList].map(
+    (t) => new bootstrap.Tooltip(t)
+  );
+});
 
   // Abrir el modal
   let modal = new bootstrap.Modal(document.getElementById("modalComentarios"));
@@ -332,12 +342,4 @@ function abrirMensaje() {
     myModal.show();
   });
 }
-//MOSTRAR TOOLTIP, QUE ES UN TEXTO AL SOBREPONER MOUSE EN BOTÓN
-document.addEventListener("DOMContentLoaded", function () {
-  const tooltipTriggerList = document.querySelectorAll(
-    '[data-bs-toggle="tooltip"]'
-  );
-  const tooltipList = [...tooltipTriggerList].map(
-    (t) => new bootstrap.Tooltip(t)
-  );
-});
+
