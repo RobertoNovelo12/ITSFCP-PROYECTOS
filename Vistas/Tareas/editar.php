@@ -34,7 +34,9 @@ if ($action == 'actualizarestado' && isset($_GET['id_tarea'])) {
 // GENERAR CONTENIDO
 // ======================
 ob_start();
+include __DIR__ . '/../../mensaje.php';
 ?>
+
 <div class="container-fluid py-4">
     <div class="row mb-3 align-items-center">
         <div class="row mb-1">
@@ -45,18 +47,18 @@ ob_start();
                 <a href="tabla.php?id_proyectos=<?= $id_proyectos; ?>" class="btn btn-danger">Regresar</a>
             </div>
 
-            <form action="editar.php?id_proyectos=<?php $id_proyectos ?? $tarea['id_tarea']; ?>" method="POST" enctype="multipart/form-data">
+            <form action="editar.php?id_proyectos=<?php $id_proyectos ?? "" ?>" method="POST" enctype="multipart/form-data">
                 <div class="row mb-1">
                     <input type="hidden" name="action" value="editarTarea">
                     <input type="hidden" name="id_tarea" value="<?= $tarea['id_tarea']; ?>">
                     <input type="hidden" name="id_proyectos" value="<?= $id_proyectos; ?>">
                     <div class="mb-3">
                         <label>Descripción:</label>
-                        <textarea name="descripcion" class="form-control"><?= htmlspecialchars($tarea['descripcion']) ?></textarea>
+                        <textarea name="descripcion" class="form-control" rows="6"><?= htmlspecialchars($tarea['descripcion']) ?></textarea>
                     </div>
                     <div class="mb-3">
                         <label>Instrucciones:</label>
-                        <textarea name="instrucciones" class="form-control"><?= htmlspecialchars($tarea['instrucciones']) ?></textarea>
+                        <textarea name="instrucciones" class="form-control" rows="6"><?= htmlspecialchars($tarea['instrucciones']) ?></textarea>
                     </div>
 
                     <div class="row mb-1">
@@ -86,7 +88,7 @@ ob_start();
                     <div class="row mb-1">
                         <div class="col-12">
                             <div class="col-12">
-                                <?php echo $tareaControlador->botonesAccionTarea($tarea['id_tarea'], $rol, $tarea['estado'], null, $id_proyectos); ?>
+                                <?php echo $tareaControlador->botonesAccionTarea($tarea['id_tarea'], $rol, $tarea['estado'], $id_proyectos); ?>
                             </div>
                         </div>
                     </div>
