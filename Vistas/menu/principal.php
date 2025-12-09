@@ -19,6 +19,7 @@ $sql = "
     FROM proyectos p
     LEFT JOIN tematica t ON p.id_tematica = t.id_tematica
     LEFT JOIN usuarios u ON p.id_investigador = u.id_usuarios
+    WHERE p.id_estadoP = 2
     ORDER BY p.creado_en DESC
 ";
 
