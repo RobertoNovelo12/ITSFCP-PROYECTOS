@@ -333,7 +333,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // Abrir el modal
   let modal = new bootstrap.Modal(document.getElementById("modalComentarios"));
   modal.show();
-});
 
 //ABRIR MODAL DE MENSAJE
 function abrirMensaje() {
