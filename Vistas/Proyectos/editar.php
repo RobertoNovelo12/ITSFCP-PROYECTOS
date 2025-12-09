@@ -187,18 +187,11 @@ ob_start();
 </div>
 <?php
 $contenido = ob_get_clean();
-$titulo = "Proyectos";
+$titulo = "Editar proyecto";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
 ?>
-<?php if (isset($_GET['msg']) && $_GET['msg'] == 'mensaje'): ?>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            new bootstrap.Modal(document.getElementById('mensaje')).show();
-        });
-    </script>
-<?php endif; ?>
 <script>
     document.getElementById("select1").addEventListener("change", function() {
         const id = this.value;

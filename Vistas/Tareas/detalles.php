@@ -79,7 +79,7 @@ ob_start();
 
 <?php
 $contenido = ob_get_clean();
-$titulo = "Editar tarea";
+$titulo = "Detalles de tarea";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';

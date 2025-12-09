@@ -258,7 +258,7 @@ ob_start();
     </div>
 <?php
 $contenido = ob_get_clean();
-$titulo = "Proyectos";
+$titulo = "Detalles de royecto";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';

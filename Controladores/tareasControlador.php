@@ -107,14 +107,14 @@ class TareaControlador
 
 
     private function textarea($label, $name, $value, $disabled = false, $rows = 4)
-{
-    $dis = $disabled ? "disabled" : "";
-    return "
+    {
+        $dis = $disabled ? "disabled" : "";
+        return "
     <div class='mb-3'>
         <label>$label:</label>
         <textarea class='form-control' name='contenido' rows='$rows' $dis>$value</textarea>
     </div>";
-}
+    }
 
 
     private function archivo($datos, $disabled = false)
@@ -251,12 +251,12 @@ class TareaControlador
         return $encabezados;
     }
 
-        public function obtenerbotones($tipo, $id1 = null, $id2 = null, $id3 = null, $id4 = null, $estado= null)
+    public function obtenerbotones($tipo, $id1 = null, $id2 = null, $id3 = null, $id4 = null, $estado = null)
     {
         $boton = "";
         switch ($tipo) {
             case 'Ver Tarea':
-                $boton = '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos=' . $id3 . '&id_tarea=' . $id4 . '&estado='. $estado .'"  type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos=' . $id3 . '&id_tarea=' . $id4 . '&estado=' . $estado . '"  type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
@@ -266,13 +266,13 @@ class TareaControlador
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
             case 'Aprobar':
-                $boton = '<a href="tarea.php?id_tarea='. $id1 .'&id_asignacion='. $id2 .'&id_proyectos='. $id3 .'&action=actualizarestado&tipo=Aprobado"
+                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Aprobado"
                             class="btn btn-success">Aprobar tarea</a>';
                 break;
             case 'Activar':
                 $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&tipo=Pendiete" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg></a>';
+        data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
                 break;
             case 'Editar Tarea':
                 $boton = '<a href="editar.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -287,15 +287,15 @@ class TareaControlador
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
             case 'EnviarTarea':
-                $boton = '<a href="tarea.php?id_tarea='. $id1 .'&id_asignacion='. $id2 .'&id_proyectos='. $id3 .'&action=actualizarestado&tipo=Revisar"
+                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Revisar"
                             class="btn btn-success">Enviar tarea</a>';
                 break;
             case 'Solicitar Corregir':
-                $boton = '<a href="tarea.php?id_tarea='. $id1 .'&id_asignacion='. $id2 .'&id_proyectos='. $id3 .'&action=actualizarestado&tipo=Corregir"
+                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Corregir"
                             class="btn btn-info">Solicitar corregir</a>';
                 break;
             case 'Guardar':
-                $boton= '<button type="submit" class="btn btn-primary">Guardar cambios</button>';
+                $boton = '<button type="submit" class="btn btn-primary">Guardar cambios</button>';
                 break;
             default:
                 break;
@@ -323,12 +323,12 @@ class TareaControlador
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido", "Sin activar"])) {
                     $boton = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
                     $boton .= $this->obtenerbotones("Editar Tarea", $id, $id_proyectos);
-                } 
+                }
                 break;
 
             case 'supervisor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido", "Sin activar"])) {
-                    $boton  = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
+                    $boton = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
                     $boton .= $this->obtenerbotones("Detalles", $id, $id_proyectos);
                 } elseif ($estado == "Sin activar") {
                     $boton = $this->obtenerbotones("Detalles", $id, $id_proyectos);
@@ -348,7 +348,7 @@ class TareaControlador
             case 'investigador':
             case 'profesor':
                 if (in_array($estado, ["Revisar", "Corregir"])) {
-                    $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
+                    $boton  = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente"])) {
                     $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 }
@@ -373,7 +373,7 @@ class TareaControlador
                 if (in_array($estado, ["Revisar", "Corregir", "Pendiente"])) {
                     $boton  = $this->obtenerbotones("EnviarTarea", $id1, $id2, $id3);
                     $boton  .= $this->obtenerbotones("Guardar");
-                } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente", "Sin activar"])) {
+                } elseif (in_array($estado, ["Aprobado", "Vencido", "Sin activar"])) {
                     $boton = "";
                 }
                 break;
@@ -383,18 +383,22 @@ class TareaControlador
                     $boton  = $this->obtenerbotones("Aprobar", $id1, $id2, $id3);
                     $boton  .= $this->obtenerbotones("Solicitar Corregir", $id1, $id2, $id3);
                     $boton  .= $this->obtenerbotones("Guardar");
-                } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente", "Sin activar"])) {
-                    $boton = "";
+                } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente"])) {
+                    $boton  = $this->obtenerbotones("Guardar");
+                } elseif (in_array($estado, ["Sin activar"])) {
+                    $boton  = $this->obtenerbotones("Activar");
+                    $boton  .= $this->obtenerbotones("Guardar");
                 }
                 break;
 
             case 'supervisor':
-                    $boton = "";
+                $boton = "";
                 break;
         }
 
         return $boton;
     }
+
     /* EDITAR TAREA - investigador */
     public function editarTarea($datos, $rol)
     {
@@ -407,7 +411,7 @@ class TareaControlador
         }
 
         $id_tarea = $datos['id_tarea'];
-        $id_proyectos = $datos['id_proyectos'];
+        $id_proyectos = $datos['id_proyectos'] ?? ($_GET['id_proyectos'] ?? null);
         $descripcion = $datos['descripcion'];
         $instrucciones = $datos['instrucciones'];
         $fecha_entrega = $datos['fecha_entrega'];
@@ -440,7 +444,7 @@ class TareaControlador
         );
 
         // REDIRECCIÓN SEGURA
-        header("Location: editar.php?id_tarea={$datos['id_tarea']}&id_proyectos={$datos['id_proyectos']}");
+        header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
         exit();
     }
 
@@ -627,7 +631,7 @@ class TareaControlador
         };
     }
 
-        public function EstiloEstadoLista($estado)
+    public function EstiloEstadoLista($estado)
     {
         switch ($estado) {
 

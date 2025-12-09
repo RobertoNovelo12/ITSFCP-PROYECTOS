@@ -13,7 +13,7 @@ $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 
 $id_tarea = $_GET["id_tarea"] ?? null;
-$id_proyectos = $_GET["id_proyectos"] ?? null;
+$id_proyectos = $_GET["id_proyectos"] ?? $_POST["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 
 
@@ -45,7 +45,7 @@ ob_start();
                 <a href="tabla.php?id_proyectos=<?= $id_proyectos; ?>" class="btn btn-danger">Regresar</a>
             </div>
 
-            <form action="editar.php" method="POST" enctype="multipart/form-data">
+            <form action="editar.php?id_proyectos=<?php $id_proyectos ?? $tarea['id_tarea']; ?>" method="POST" enctype="multipart/form-data">
                 <div class="row mb-1">
                     <input type="hidden" name="action" value="editarTarea">
                     <input type="hidden" name="id_tarea" value="<?= $tarea['id_tarea']; ?>">
@@ -85,13 +85,9 @@ ob_start();
                     </div>
                     <div class="row mb-1">
                         <div class="col-12">
-                            <?php if ($rol == "investigador"): ?>
-                                <a href="editar.php?action=actualizarestado&id_tarea=<?= $tarea['id_tarea']; ?>&tipo=Pendiente&id_proyectos=<?= $id_proyectos; ?>" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea para los alumnos"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-                                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-                                        </svg>Activar tarea</a>
-                            <?php endif; ?>
-                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            <div class="col-12">
+                                <?php echo $tareaControlador->botonesAccionTarea($tarea['id_tarea'], $rol, $tarea['estado'], null, $id_proyectos); ?>
+                            </div>
                         </div>
                     </div>
                 </div>
