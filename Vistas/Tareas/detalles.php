@@ -51,11 +51,7 @@ ob_start();
         </div>
 
     </div>
-
-    <!-- SEGUIMIENTO -->
     <div class="card p-3">
-        <h4>Seguimiento</h4>
-
         <div class="row mb-3">
             <div class="col-md">
                 <label>Fecha entrega:</label>

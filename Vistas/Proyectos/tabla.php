@@ -71,7 +71,7 @@ ob_start();
 
     <div class="row mb-3 align-items-center">
         <div class="col-md-6">
-            <h2 class="mb-0">Proyectos</h2>
+            <h2 class="mb-0 fw-bold">Proyectos</h2>
         </div>
         <div class="col-md-6 text-md-end">
             <?php if ($rol == "investigador" || $rol == "profesor"): ?>
@@ -82,22 +82,22 @@ ob_start();
         </div>
     </div>
 
-    <!-- BOTONES DE FILTRO -->
-    <div class="row mb-3">
-        <div class="d-flex flex-wrap gap-2">
-            <?php foreach ($opciones as $key => $label):
-                $clase = ($action === $key) ? "btn btn-primary" : "btn btn-outline-primary"; ?>
-                <a href="tabla.php?action=<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>" class="<?= $clase ?>">
-                    <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
-                </a>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
-    <!-- BÚSQUEDA -->
+    <!-- FILTROS Y BÚSQUEDA -->
     <div class="row mb-3">
         <div class="col-12 text-end">
             <div class="row justify-content-end">
+                <div class="col-md-6 mb-3">
+                    <select class="form-select"
+                        onchange="location.href='tabla.php?action=' + this.value;">
+
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
                 <div class="col-md-6">
                     <form class="d-flex gap-2" method="GET" action="tabla.php">
                         <input type="hidden" name="action" value="<?= htmlspecialchars($action, ENT_QUOTES, 'UTF-8') ?>">
@@ -136,11 +136,8 @@ ob_start();
                                     <td><?= $proyecto['fecha_fin'] ?? '-' ?></td>
                                     <td><span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado']); ?>"><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td><?= $proyecto['periodo'] ?? '-' ?></td>
-                                    <td><?= $proyecto['total'] ?? '-' ?></td>
                                     <!-- Avances -->
-                                    <?php if ($rol == 'alumno' || $rol == 'investigador' || $rol == 'profesor'): ?>
                                         <td><?= $proyecto['total'] ?? '0' ?></td>
-                                    <?php endif; ?>
 
                                     <!-- Acciones -->
                                     <td>
@@ -184,7 +181,7 @@ ob_start();
                     <?php foreach ($proyectos as $proyecto): ?>
                         <div class="card mb-3 shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title">ID: <?= $proyecto['id_proyectos'] ?? '-' ?></h5>
+                                <h5 class="card-title"><strong>ID: </strong>strong><?= $proyecto['id_proyectos'] ?? '-' ?></h5>
                                 <p class="card-text"><strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong></p>
                                 <p><strong>Estado:</strong> <?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
                                 <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
@@ -193,11 +190,11 @@ ob_start();
 
                                 <div class="d-flex flex-wrap gap-2 mt-2">
 
-                                        <?= $proyectoControlador->botonesAccion(
-                                            $proyecto['id_proyectos'] ?? 0,
-                                            $rol,
-                                            $proyecto['estado'] ?? '-'
-                                        ); ?>
+                                    <?= $proyectoControlador->botonesAccion(
+                                        $proyecto['id_proyectos'] ?? 0,
+                                        $rol,
+                                        $proyecto['estado'] ?? '-'
+                                    ); ?>
                                 </div>
                             </div>
                         </div>

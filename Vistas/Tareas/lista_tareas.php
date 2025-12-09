@@ -57,7 +57,7 @@ ob_start();
             <div class="col-md-6">
                 <h3 class="mb-0">Lista de Tareas</h3>
             </div>
-            <div class="col-12 col-md-6 text-md-end text-center mb-2 mb-md-0">
+        <div class="col-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-2 mt-md-0">
                 <a href="tabla.php?id_proyectos=<?php echo $id_proyectos; ?>" class="btn btn-danger w-100 w-md-auto">Regresar</a>
             </div>
         </div>
@@ -85,7 +85,6 @@ ob_start();
                                         . htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') .
                                         "</span></td>";
                                     echo "<td>{$tar['fecha_revision']}</td>";
-                                    echo "<td>{$tar['fecha_revision']}</td>";
                                     echo "<td>{$tar['fecha_correccion']}</td>";
                                     echo "<td>{$tar['fecha_aprobacion']}</td>";
                                     echo "<td>{$tareaControlador->botonesAccionLista($tar['id_asignacion'],$rol,$tar['estados_tarea'],$tar['tipo'],$id_proyectos,$tar['id_tarea'])}</td>";
@@ -98,8 +97,8 @@ ob_start();
                 <?php foreach ($tarea as $tar): ?>
                     <div class="card mb-3" id="tarjeta_móvil" style="width: 18rem;">
                         <div class="card-body">
-                            <h5 class="card-title"><?php echo $tar['id_asignacion'] ?></h5>
-                            <p class="card-text"><?php echo $tar['estudiante'] ?></p>
+                            <h5 class="card-title"><?php  $tar['id_asignacion'] ?></h5>
+                            <p class="card-text"><?php  $tar['estudiante'] ?></p>
                         </div>
 
                         <ul class="list-group list-group-flush">
@@ -107,7 +106,10 @@ ob_start();
                                 <div class="row">
                                     <div class="col-12">
                                         <label>Estado</label>
-                                        <p class="card-text"><?php echo ($tar['estados_tarea']) ?></p>
+                                        <p class="card-text text-<?= $tareaControlador->EstiloEstadoLista($tar['estados_tarea']) ?>">
+                                            <?= htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') ?>
+                                        </p>
+
                                     </div>
                                 </div>
                             </li>
@@ -145,7 +147,6 @@ ob_start();
                         </div>
                     </div>
                 <?php endforeach;  ?>
-
             </div>
         </div>
     </div>

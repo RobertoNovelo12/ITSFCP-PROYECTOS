@@ -94,6 +94,7 @@ ob_start();
                             <button type="submit" class="btn btn-primary">Guardar cambios</button>
                         </div>
                     </div>
+                </div>
             </form>
         </div>
     </div>
