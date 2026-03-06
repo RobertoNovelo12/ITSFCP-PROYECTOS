@@ -176,8 +176,8 @@ include __DIR__ . '/../../mensaje.php';
                         <div class="card mb-3 shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title"><strong>ID: </strong><?= $proyecto['id_proyectos'] ?? '-' ?></h5>
-                                <p class="card-text"><strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong></p>
-                                <p><strong>Estado:</strong> <?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="card-text"><strong>Título: </strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
+                                <p><strong>Estado:</strong> <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado']); ?>"><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></p>
                                 <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
                                 <p><strong>Pendientes:</strong> <?= $proyecto['total'] ?? '-' ?></p>
                                 <p><strong>Inicio:</strong> <?= $proyecto['fecha_inicio'] ?? '-' ?> | <strong>Fin:</strong> <?= $proyecto['fecha_fin'] ?? '-' ?></p>
@@ -193,8 +193,27 @@ include __DIR__ . '/../../mensaje.php';
                             </div>
                         </div>
                     <?php endforeach; ?>
+                    <?php if ($paginacion['total_paginas'] > 1): ?>
+                        <nav>
+                            <ul class="pagination justify-content-center">
+                                <?php
+                                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
+                                $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
+                                ?>
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
+                                    </span>
+                                </li>
+                                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
+                                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
+                                        <a class="page-link" href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>"><?= $i ?></a>
+                                    </li>
+                                <?php endfor; ?>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
                 </div>
-
             <?php else: ?>
                 <div class="alert alert-info text-center">
                     No hay proyectos para mostrar<?= !empty($buscar) ? ' con el criterio "' . htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') . '"' : '' ?>.
