@@ -144,7 +144,7 @@ include __DIR__ . '/../../mensaje.php';
             <?php foreach ($tarea as $tar): ?>
                 <div class="card mb-3" id="tarjeta_móvil" style="width: 18rem;">
                     <div class="card-body">
-                        <p class="card-text fw-bold"><?php echo $tar['tipo'] ?></p>
+                        <p class="card-text fw-bold"><strong><?php echo $tar['tipo'] ?></strong></p>
                     </div>
 
                     <ul class="list-group list-group-flush">
@@ -152,13 +152,13 @@ include __DIR__ . '/../../mensaje.php';
                             <div class="row">
                                 <?php if ($rol == "supervisor" || $rol == "investigador"): ?>
                                     <div class="col-6">
-                                        <label>Entregados</label>
-                                        <p class="card-text"><?php echo ($tar['total_entregados'] . '/' . $tar['total_asignados']) ?></p>
+                                        <label><strong>Entregados</strong></label>
+                                        <p class="card-text text-center"><?php echo ($tar['total_entregados'] . '/' . $tar['total_asignados']) ?></p>
                                     </div>
                                 <?php endif; ?>
                                 <div class="col-6">
-                                    <label>Guía</label>
-                                    <p class="card-text"><?php if (!empty($tar['archivo_nombre'])): ?>
+                                    <label><strong>Guía</strong></label>
+                                    <p class="card-text text-center"><?php if (!empty($tar['archivo_nombre'])): ?>
                                             <a href="descargar_guia.php?id=<?= $tar['id_tarea'] ?>">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="red" class="bi bi-file-earmark-pdf-fill" viewBox="0 0 16 16">
                                                     <path d="M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3 0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21 21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0 1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44 0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278 6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5 0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z" />
@@ -166,7 +166,7 @@ include __DIR__ . '/../../mensaje.php';
                                                 </svg>
                                             </a>
                                         <?php else: ?>
-                                            <span>SN</span>
+                                            <span class="text-center">SN</span>
                                         <?php endif; ?>
                                     </p>
                                 </div>
@@ -176,12 +176,12 @@ include __DIR__ . '/../../mensaje.php';
 
                             <div class="row">
                                 <div class="col-6">
-                                    <label>Fecha Entrega</label>
-                                    <p class="card-text"><?php echo $tar['fecha_entrega'] ?></p>
+                                    <label><strong>Fecha Entrega</strong></label>
+                                    <p class="card-text text-center"><?php echo $tar['fecha_entrega'] ?></p>
                                 </div>
                                 <div class="col-6">
-                                    <label>Estado</label>
-                                    <span class="badge text-bg-<?php echo $tareaControlador->EstiloEstadoLista($tar['estado_plantilla']); ?>"><?= htmlspecialchars($tar['estado_plantilla'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span>
+                                    <label><strong>Estado</strong></label>
+                                    <span class="text-center badge text-bg-<?php echo $tareaControlador->EstiloEstadoLista($tar['estado_plantilla']); ?>"><?= htmlspecialchars($tar['estado_plantilla'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span>
                                 </div>
                             </div>
                         </li>
