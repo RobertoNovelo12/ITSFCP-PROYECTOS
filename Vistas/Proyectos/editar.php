@@ -20,15 +20,13 @@ $proyectoControlador = new ProyectoControlador();
 
 //Datos necesarios
 $tematica = $proyectoControlador->tematica();
+$subtematicasProyecto = $proyectoControlador->subtematicasProyecto($id_proyecto);
 $periodo = $proyectoControlador->obtenerperiodo();
 $proyecto = $proyectoControlador->datosproyecto($id_proyecto); // Para rellenar
-
 if ($action == 'editarProyecto') {
     $proyectoControlador->editarProyecto($_POST, $id, $rol);
 }
-// ======================
 // GENERAR CONTENIDO
-// ======================
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
@@ -88,7 +86,7 @@ include __DIR__ . '/../../mensaje.php';
 
                         <div class="col-md">
                             <div class="mb-3">
-                                <label class="form-label">Temática</label>
+                                <label class="form-label" for="select1">Temática</label>
                                 <select class="form-select" name="Tematica" id="select1">
                                     <option value="">Seleccione una temática</option>
                                     <?php foreach ($tematica as $tema): ?>
@@ -113,13 +111,16 @@ include __DIR__ . '/../../mensaje.php';
                                 </select>
                             </div>
                         </div>
-
+                        <!-- Subtemáticas (selección múltiple) -->
                         <div class="col-md">
                             <div class="mb-3">
-                                <label class="form-label">Subtemática</label>
-                                <select class="form-select" name="Subtematica" id="select2">
-                                    <option selected><?php echo $p['subtematica']; ?></option>
+                                <label class="form-label" for="select2">Subtemáticas</label>
+                                <select name="subtematicas[]" id="select2" class="form-select" multiple required>
+
                                 </select>
+                                <small class="text-muted">
+                                    Mantén presionada la tecla Ctrl (o Cmd) para seleccionar varias
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -169,23 +170,6 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 </div>
-<!-- Modal -->
-<div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Operación correctamente </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <img src="/ITSFCP-PROYECTOS/publico/icons/comprobar.svg" alt="">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
 <?php
 $contenido = ob_get_clean();
 $titulo = "Editar proyecto";
@@ -194,19 +178,51 @@ $bodyClass = "proyectos-page";
 include __DIR__ . '/../../layout.php';
 ?>
 <script>
-    document.getElementById("select1").addEventListener("change", function() {
-        const id = this.value;
-        fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + id)
+const subtematicasProyecto = <?= json_encode($subtematicasProyecto ?? []); ?>;
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const selectTematica = document.getElementById("select1");
+    const selectSub = document.getElementById("select2");
+
+    //  IDs ORIGINALES del proyecto (NO se modifican)
+    const subProyectoIds = Array.isArray(subtematicasProyecto)
+        ? subtematicasProyecto.map(s => Number(s.id_subtematica))
+        : [];
+
+    function cargarSubtematicas() {
+
+        const idTematica = selectTematica.value;
+        selectSub.innerHTML = "";
+
+        if (!idTematica) return;
+
+        fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + idTematica)
             .then(r => r.json())
             .then(data => {
-                let select2 = document.getElementById("select2");
-                select2.innerHTML = "";
+
                 data.forEach(item => {
-                    let opt = document.createElement("option");
+
+                    const opt = document.createElement("option");
                     opt.value = item.id_subtematica;
                     opt.textContent = item.nombre_subtematica;
-                    select2.appendChild(opt);
+
+                    // SOLO marcar si pertenece al proyecto
+                    if (subProyectoIds.includes(Number(item.id_subtematica))) {
+                        opt.selected = true;
+                    }
+
+                    selectSub.appendChild(opt);
                 });
             });
-    });
+    }
+
+    // Cambio de temática
+    selectTematica.addEventListener("change", cargarSubtematicas);
+
+    // Carga inicial
+    if (selectTematica.value) {
+        cargarSubtematicas();
+    }
+});
 </script>
