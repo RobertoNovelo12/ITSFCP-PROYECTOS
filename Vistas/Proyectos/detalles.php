@@ -27,9 +27,7 @@ $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
 if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
     $estudiantes = $proyectoControlador->datosestudiantes($id_proyecto);
 }
-// ======================
 // GENERAR CONTENIDO
-// ======================
 ob_start();
 ?>
 <div class="container-fluid py-4">
