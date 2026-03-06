@@ -92,14 +92,19 @@ include __DIR__ . '/../../mensaje.php';
                             </select>
                         </div>
                     </div>
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="select2" class="form-label">Subtemática</label>
-                            <select class="form-select" name="Subtematica" id="select2" aria-label="Default select example" disabled required>
 
-                            </select>
-                        </div>
+                    <!-- Subtemáticas (selección múltiple) -->
+                     <div class="col-md">
+                    <div class="mb-3">
+                        <label class="form-label" for="select2">Subtemáticas</label>
+                        <select name="subtematicas[]" id="select2" class="form-select" multiple required>
+                            
+                        </select>
+                        <small class="text-muted">
+                            Mantén presionada la tecla Ctrl (o Cmd) para seleccionar varias
+                        </small>
                     </div>
+                    
                 </div>
                 <div class="row mb-1">
                     <div class="col-md">
@@ -144,23 +149,6 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 </div>
-<!-- Modal -->
-<div class="modal fade" id="mensaje" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Proyecto creado y enviado la solicitud correctamente </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <img src="/ITSFCP-PROYECTOS/publico/icons/comprobar.svg" alt="">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
 <?php
 $contenido = ob_get_clean();
 $titulo = "Crear Proyecto";
@@ -170,27 +158,40 @@ include __DIR__ . '/../../layout.php';
 ?>
 
 <script>
-    document.getElementById("select1").addEventListener("change", function() {
-        const id = this.value;
-        console.log("ID seleccionado:", id);
-        console.log("URL FETCH:", "/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + id);
+document.addEventListener("DOMContentLoaded", function () {
 
-        fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + id)
+    const selectTematica = document.getElementById("select1");
+    const selectSub = document.getElementById("select2");
 
-            .then(response => response.json())
+    function cargarSubtematicas() {
+
+        const idTematica = selectTematica.value;
+        if (!idTematica) return;
+
+        fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + idTematica)
+            .then(r => r.json())
             .then(data => {
-                console.log("Subtemas:", data);
 
-                let select2 = document.getElementById("select2");
-                select2.innerHTML = "";
+                selectSub.innerHTML = "";
 
                 data.forEach(item => {
-                    let option = document.createElement("option");
-                    option.value = item.id_subtematica;
-                    option.textContent = item.nombre_subtematica;
-                    select2.appendChild(option);
+
+                    const opt = document.createElement("option");
+                    opt.value = item.id_subtematica;
+                    opt.textContent = item.nombre_subtematica;
+
+                    selectSub.appendChild(opt);
                 });
-            })
-            .catch(error => console.error("Error en fetch:", error));
-    });
+            });
+    }
+
+    // Evento al cambiar temática
+    selectTematica.addEventListener("change", cargarSubtematicas);
+
+    // cargar automáticamente al abrir
+    if (selectTematica.value) {
+        cargarSubtematicas();
+    }
+});
+
 </script>
