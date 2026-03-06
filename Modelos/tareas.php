@@ -326,8 +326,7 @@ ORDER BY t.id_tarea ASC;
     public function VincularTareasAntiguas($id_proyectos, $id_tarea)
     {
         // Obtener usuarios NO vinculados
-        $sqlUsuario = "
-        SELECT prus.id_usuarios
+        $sqlUsuario = "SELECT prus.id_usuarios
         FROM proyectos_usuarios AS prus
         WHERE prus.id_proyectos = ?
         AND NOT EXISTS (
@@ -349,10 +348,10 @@ ORDER BY t.id_tarea ASC;
         $stmtUsuario->bind_param("ii", $id_proyectos, $id_tarea);
         $stmtUsuario->execute();
         $result = $stmtUsuario->get_result();
+        $stmtUsuario->close();
 
         // Insert seguro (evita duplicados)
-        $sqlInsert = "
-        INSERT INTO tareas_usuarios (id_tarea, id_usuario, id_estadoT)
+        $sqlInsert = "INSERT INTO tareas_usuarios (id_tarea, id_usuario, id_estadoT)
         SELECT ?, ?, 1
         WHERE NOT EXISTS (
             SELECT 1 FROM tareas_usuarios 
@@ -388,10 +387,10 @@ ORDER BY t.id_tarea ASC;
             $stmt = $this->con->prepare($sql);
             $stmt->bind_param("ii", $numeroEstado, $id_tarea);
             $stmt->execute();
+            $stmt->close();
 
             // Obtener proyecto y tarea
-            $sqlProyecto = "
-            SELECT tbse.id_proyectos, tare.id_tarea
+            $sqlProyecto = "SELECT tbse.id_proyectos, tare.id_tarea
             FROM tareas as tare
             JOIN tbl_seguimiento tbse ON tbse.id_avances = tare.id_avances
             WHERE tare.id_tarea = ?
@@ -400,13 +399,12 @@ ORDER BY t.id_tarea ASC;
             $stmtProyecto->bind_param("i", $id_tarea);
             $stmtProyecto->execute();
             $proy = $stmtProyecto->get_result()->fetch_assoc();
-
+            $stmtProyecto->close();
             $id_proyectos = $proy['id_proyectos'];
             $id_tarea     = $proy['id_tarea'];
 
             // Obtener alumnos del proyecto
-            $sqlEstudiante = "
-            SELECT id_usuarios
+            $sqlEstudiante = "SELECT id_usuarios
             FROM proyectos_usuarios
             WHERE id_proyectos = ?
         ";
@@ -414,10 +412,10 @@ ORDER BY t.id_tarea ASC;
             $stmtAlumnos->bind_param("i", $id_proyectos);
             $stmtAlumnos->execute();
             $alumnos = $stmtAlumnos->get_result();
+            $stmtAlumnos->close();
 
             // INSERT seguro (evita duplicados)
-            $sqlInsert = "
-            INSERT INTO tareas_usuarios (id_tarea, id_usuario, id_estadoT)
+            $sqlInsert = "INSERT INTO tareas_usuarios (id_tarea, id_usuario, id_estadoT)
             SELECT ?, ?, 1
             WHERE NOT EXISTS (
                 SELECT 1 FROM tareas_usuarios 
@@ -530,10 +528,10 @@ esta.nombre AS estado,
                  JOIN estados_tarea as esta ON esta.id_estadoT = tare.id_estadoT
                  WHERE tare.id_tarea = ?";
 
-        $stmt1 = $this->con->prepare($sqlTarea);
-        $stmt1->bind_param("i", $id_tarea);
-        $stmt1->execute();
-        $tarea = $stmt1->get_result()->fetch_assoc();
+        $stmt = $this->con->prepare($sqlTarea);
+        $stmt->bind_param("i", $id_tarea);
+        $stmt->execute();
+        $tarea = $stmt->get_result()->fetch_assoc();
 
         return $tarea;
     }
