@@ -1,40 +1,75 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
-require_once __DIR__ . "/../../publico/config/conexion.php";
 
-$id_usuario = $_SESSION['id_usuario'];
-$id_solicitud = isset($_GET['id_solicitud']) ? intval($_GET['id_solicitud']) : 0;
-$id_proyecto = isset($_GET['id_proyecto']) ? intval($_GET['id_proyecto']) : 0;
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: /ITSFCP-PROYECTOS/index.php");
+    exit;
+}
+$rol = $_SESSION['rol'];
+$id = $_SESSION['id_usuario'];
+$action = $_POST['action'] ?? null;
 
-// ELIMINAR SOLICITUD
-$sql = "DELETE FROM solicitud_proyecto WHERE id_solicitud_proyecto = ? AND id_estudiante = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $id_solicitud, $id_usuario);
-$stmt->execute();
+$id_proyectos = $_GET['id_proyectos'] ?? null;
+$motivo = $_GET['motivo'] ?? null;
 
-// Obtener título del proyecto
-$sqlProy = "SELECT titulo FROM proyectos WHERE id_proyectos = ?";
-$stmtProy = $conn->prepare($sqlProy);
-$stmtProy->bind_param("i", $id_proyecto);
-$stmtProy->execute();
-$resProy = $stmtProy->get_result();
-$proyecto = $resProy->fetch_assoc();
-$titulo_proyecto = $proyecto['titulo'];
+if ($motivo == "cierre_rechazado") {
+    $texto_motivo = "Cierre rechazado";
+} else if ($motivo == "creacion_rechazada") {
+    $texto_motivo = "Cierre rechazado";
+}
+//Se llama al controlador
 
-// Notificación al estudiante
-$enlace = "/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id=".$id_proyecto;
+require_once '..\..\Controladores\proyectoControlador.php';
 
-$sqlNotif = "
-    INSERT INTO notificaciones (usuario_id, titulo, contenido, enlace, leido, creado_en)
-    VALUES (?, 'Solicitud cancelada', ?, ?, 0, NOW())
-";
-$contenido = "Has cancelado tu solicitud para el proyecto: <b>".htmlspecialchars($titulo_proyecto)."</b>.";
+$proyectoControlador = new ProyectoControlador();
 
-$stmtNotif = $conn->prepare($sqlNotif);
-$stmtNotif->bind_param("iss", $id_usuario, $contenido, $enlace);
-$stmtNotif->execute();
+// Actualización de estados
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && ($_POST['action'] ?? '') == 'actualizarestadoRechazo' && $rol == "supervisor") {
+    $proyectoControlador->actualizarestadoRechazo($_POST, $id, $rol);
+}
 
-// Redirigir con modal
-header("Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id=$id_proyecto&cancelada=1");
-exit;
+
+ob_start();
+?>
+<div class="container-fluid py-4">
+    <div class="row mb-3 align-items-center">
+        <div class="row mb-1">
+            <div class="col-6">
+                <h3>Comentario</h3>
+            </div>
+            <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
+                <a href="tabla.php" class="btn btn-danger w-100 w-md-auto">Regresar</a>
+            </div>
+            <form method="POST" action="comentarios.php">
+                <div class="row mb-1">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label">Motivo</label>
+                        <input type="text" class="form-control" id="exampleFormControlInput1" value="<?php echo $texto_motivo ?? null; ?>" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleFormControlTextarea1" class="form-label">Comentario</label>
+                        <textarea class="form-control" name="comentario" id="InputFormLimpiar2" rows="3" required></textarea>
+                    </div>
+                    <input type="hidden" name="tipo" value="<?php echo $motivo; ?>">
+                    <input type="hidden" name="action" value="actualizarestadoRechazo">
+                    <input type="hidden" name="id_proyectos" value="<?php echo $id_proyectos; ?>">
+                    <div class="row mb-1">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-danger">Confirmar</button>
+                        </div>
+                    </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php
+$contenido = ob_get_clean();
+$titulo = "Comentarios";
+$bodyClass = "proyectos-page";
+
+include __DIR__ . '/../../layout.php';
 ?>
