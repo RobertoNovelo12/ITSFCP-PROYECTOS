@@ -1094,10 +1094,6 @@ html.sidebar-collapsed-initial .submenu {
   color: var(--color-texto-principal);
 }
 
-.dropdown-item{
-  color: var(--color-texto-principal);
-}
-
 .image-container {
   border-radius: 8px;
   flex-shrink: 0;
@@ -4164,4 +4160,27 @@ select:focus {
   max-height: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/*Dropdown de detalles del proyecto*/
+
+.texto-cortado{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 90%;
+    display: inline-block;
+}
+
+.dropdown-item{
+  color: var(--color-texto-principal);
+}
+
+.dropdown-menu{
+    white-space: normal;
+}
+
+.dropdown-item{
+    white-space: normal;
+    word-break: break-word;
 }

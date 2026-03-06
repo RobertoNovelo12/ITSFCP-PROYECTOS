@@ -40,7 +40,7 @@ ob_start();
                 <a href="tabla.php" class="btn btn-danger">Regresar</a>
             </div>
             <div class="row mb-1">
-                <h5>Información de proyectos</h5>
+                <h5>Información de proyecto</h5>
                 <?php foreach ($proyectos as $proyecto): ?>
                     <div class="mb-3">
                         <label for="exampleFormControlInput1" class="form-label">Nombre del proyecto</label>
@@ -94,13 +94,15 @@ ob_start();
                         $restantes = count($subtematicas) - 1;
                         ?>
                         <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
                                 type="button" data-bs-toggle="dropdown">
 
-                                <?php echo $primera; ?>
-                                <?php if ($restantes > 0) { ?>
-                                    <span class="text-muted">+<?php echo $restantes; ?></span>
-                                <?php } ?>
+                                <span class="texto-cortado">
+                                    <?php echo $primera; ?>
+                                    <?php if ($restantes > 0) { ?>
+                                        <span class="text-muted">+<?php echo $restantes; ?></span>
+                                    <?php } ?>
+                                </span>
 
                             </button>
 
