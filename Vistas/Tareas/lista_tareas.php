@@ -49,7 +49,7 @@ include __DIR__ . '/../../mensaje.php';
             <div class="col-md-6">
                 <h3 class="mb-0 fw-bold">Lista de Tareas</h3>
             </div>
-        <div class="col-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-2 mt-md-0">
+            <div class="col-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-2 mt-md-0">
                 <a href="tabla.php?id_proyectos=<?php echo $id_proyectos; ?>" class="btn btn-danger px-4">Regresar</a>
             </div>
         </div>
@@ -69,76 +69,83 @@ include __DIR__ . '/../../mensaje.php';
                         <tbody class="text-center">
                             <?php
                             if ($rol == "investigador" || $rol == "supervisor") {
-                                foreach ($tarea as $tar) {
-                                    echo "<tr>";
-                                    echo "<th scope='row'>{$tar['id_asignacion']}</th>";
-                                    echo "<th scope='row'>{$tar['estudiante']}</th>";
-                                    echo "<td><span class='badge text-bg-{$tareaControlador->EstiloEstadoLista($tar['estados_tarea'])}'>"
-                                        . htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') .
-                                        "</span></td>";
-                                    echo "<td>{$tar['fecha_revision']}</td>";
-                                    echo "<td>{$tar['fecha_correccion']}</td>";
-                                    echo "<td>{$tar['fecha_aprobacion']}</td>";
-                                    echo "<td>{$tareaControlador->botonesAccionLista($tar['id_asignacion'],$rol,$tar['estados_tarea'],$tar['tipo'],$id_proyectos,$tar['id_tarea'])}</td>";
-                                    echo "</tr>";
-                                }
-                            } ?>
+                                    foreach ($tarea as $tar) {
+                                        echo "<tr>";
+                                        echo "<th scope='row'>{$tar['id_asignacion']}</th>";
+                                        echo "<th scope='row'>{$tar['estudiante']}</th>";
+                                        echo "<td><span class='badge text-bg-{$tareaControlador->EstiloEstadoLista($tar['estados_tarea'])}'>"
+                                            . htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') .
+                                            "</span></td>";
+                                        echo "<td>{$tar['fecha_revision']}</td>";
+                                        echo "<td>{$tar['fecha_correccion']}</td>";
+                                        echo "<td>{$tar['fecha_aprobacion']}</td>";
+                                        echo "<td>{$tareaControlador->botonesAccionLista($tar['id_asignacion'],$rol,$tar['estados_tarea'],$tar['tipo'],$id_proyectos,$tar['id_tarea'])}</td>";
+                                        echo "</tr>";
+                                    }
+                                } ?>
                         </tbody>
                     </table>
                 </div>
-                <?php foreach ($tarea as $tar): ?>
-                    <div class="card mb-3" id="tarjeta_móvil" style="width: 18rem;">
-                        <div class="card-body">
-                            <h5 class="card-title"><strong><?php echo $tar['id_asignacion']; ?></strong></h5>
-                            <p class="card-text"><strong><?php echo  $tar['estudiante']; ?></strong></p>
-                        </div>
+                <?php
+                if (!empty($tarea)) {
+                    foreach ($tarea as $tar): ?>
+                        <div class="card mb-3" id="tarjeta_móvil" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title"><strong><?php echo $tar['id_asignacion']; ?></strong></h5>
+                                <p class="card-text"><strong><?php echo  $tar['estudiante']; ?></strong></p>
+                            </div>
 
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <strong>Estado </strong>
-                                        <span class="badge text-bg-<?= $tareaControlador->EstiloEstadoLista($tar['estados_tarea']) ?>">
-                                            <?= htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') ?>
-                                        </span>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label class="text-center"><strong>Estado </strong></label>
+                                            <span class="badge text-bg-<?= $tareaControlador->EstiloEstadoLista($tar['estados_tarea']) ?>">
+                                                <?= htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') ?>
+                                            </span>
 
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
-                            <li class="list-group-item">
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label class="text-center"><strong>Fecha Revisión </strong></label>
+                                            <p class="card-text"><?php echo $tar['fecha_revision'] ?></p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label class="text-center"><strong>Fecha Corrección </strong></label>
+                                            <p class="card-text"><?php echo $tar['fecha_correccion'] ?></p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <label class="text-center"><strong>Fecha Aprobación </strong></label>
+                                            <p class="card-text"><?php echo $tar['fecha_aprobacion'] ?></p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <div class="card-body">
                                 <div class="row">
                                     <div class="col-12">
-                                        <strong>Fecha Revisión </strong>
-                                        <p class="card-text"><?php echo $tar['fecha_revision'] ?></p>
+                                        <?php echo $tareaControlador->botonesAccionLista($tar['id_asignacion'], $rol, $tar['estados_tarea'], null); ?>
                                     </div>
-                                </div>
-                            </li>
-                            <li class="list-group-item">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <strong>Fecha Corrección </strong>
-                                        <p class="card-text"><?php echo $tar['fecha_correccion'] ?></p>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="list-group-item">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <strong>Fecha Aprobación </strong>
-                                        <p class="card-text"><?php echo $tar['fecha_aprobacion'] ?></p>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-12">
-                                    <?php echo $tareaControlador->botonesAccionLista($tar['id_asignacion'], $rol, $tar['estados_tarea'], null); ?>
                                 </div>
                             </div>
                         </div>
+                    <?php endforeach;
+                } else { ?>
+                    <div class="alert alert-info text-center">
+                        No hay tareas asignadas disponibles.
                     </div>
-                <?php endforeach;  ?>
+                <?php } ?>
             </div>
         </div>
     </div>
