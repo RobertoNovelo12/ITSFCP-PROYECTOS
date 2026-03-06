@@ -17,8 +17,7 @@ class ProyectoControlador
         if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
             //General
             $proyecto->actualizarProyectosVencidos();
-            $numerofiltro =  $this->numerofiltro("Total");
-            $proyectos = $proyecto->obtenerProyectos($id, $rol, $numerofiltro, $buscar);
+            $proyectos = $proyecto->obtenerProyectos($id, $rol, $buscar);
             return $proyectos;
         } else {
             $proyectos = []; // evita undefined variable
@@ -521,7 +520,7 @@ class ProyectoControlador
         return $boton;
     }
 
-    //CREAR TEMATICA
+    //OBTENER TEMATICA
     public function tematica()
     {
         global $conn;
@@ -595,11 +594,21 @@ class ProyectoControlador
                     $AlumnosCantidad = $datos['AlumnosCantidad'];
 
                     $modalidad = $datos['Modalidad'];
+                    $subtematicas = $_POST['subtematicas'] ?? [];
+
+                    if (empty($subtematicas)) {
+                        die("Datos incompletos");
+                    }
+
                     if ($action === 'registrarProyecto') {
                         global $conn;
                         $proyecto = new Proyectos($conn);
                         $proyecto->actualizarProyectosVencidos();
-                        $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+                        $proyectoId = $proyecto->registrarProyecto($id_investigador, $id_estadoP, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+
+                        foreach ($subtematicas as $idSub) {
+                            $proyecto->vincularSubtematica($proyectoId, $idSub);
+                        }
                         header("Location: crear.php?mensaje=1");
                         exit();
                     }
@@ -647,16 +656,19 @@ class ProyectoControlador
                     $AlumnosCantidad = $datos['AlumnosCantidad'];
 
                     $modalidad = $datos['Modalidad'];
-                    $id_subtematica = $datos['Subtematica'];
+                    $subtematicas = $_POST['subtematicas'] ?? [];
 
-                    if ($id_subtematica == "") {
-                        die("Se debe elegir una Subtematica");
+                    if (empty($subtematicas)) {
+                        die("Datos incompletos");
                     }
 
                     if ($action == 'editarProyecto') {
                         global $conn;
                         $proyecto = new Proyectos($conn);
-                        $proyecto->editarProyecto($id_proyecto, $id_investigador, $id_tematica, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+                        $proyecto->editarProyecto($id_proyecto, $id_investigador, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad);
+                        foreach ($subtematicas as $idSub) {
+                            $proyecto->ActualizarvincularSubtematica($id_proyecto, $idSub);
+                        }
                         header("Location: editar.php?id_proyectos=" . $id_proyecto);
                         exit();
                     }
@@ -669,6 +681,22 @@ class ProyectoControlador
         } else {
             die("Los datos no fueron enviados ha acabado para registrar proyectos");
         }
+    }
+
+    public function subtematicasProyecto($id_proyecto)
+    {
+        global $conn;
+        $proyecto = new Proyectos($conn);
+        $proyecto->actualizarProyectosVencidos();
+        return $proyecto->obtenersubtematicasProyecto($id_proyecto);
+    }
+
+        public function obtenersubtematicas($id_tematica)
+    {
+        global $conn;
+        $proyecto = new Proyectos($conn);
+        $proyecto->actualizarProyectosVencidos();
+        return $proyecto->obtenersubtematicas($id_tematica);
     }
 
 
@@ -726,7 +754,13 @@ class ProyectoControlador
     {
         global $conn;
         $proyecto = new Proyectos($conn);
-        return $proyecto->obtenerProyecto($id_proyecto);
+        $proy = $proyecto->obtenerProyecto($id_proyecto);
+        if ($proy != []) {
+            return $proy;
+        } else {
+            $proy = []; // evita undefined variable
+            return $proy;
+        }
     }
     public function datosinvestigador($id_proyecto)
     {
