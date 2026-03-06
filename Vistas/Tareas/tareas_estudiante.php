@@ -20,9 +20,7 @@ $tareaControlador = new TareaControlador();
 
 // Traer TODAS las tareas del estudiante
 $tareas = $tareaControlador->listarTareasEstudiante($id_usuario);
-// ======================
 // GENERAR CONTENIDO
-// ======================
 ob_start();
 ?>
 <div class="container-fluid py-4">
@@ -32,7 +30,7 @@ ob_start();
         <div class="col-md-6">
             <h3 class="mb-0">Tareas</h3>
         </div>
-            <div class="col-12 col-md-6 text-md-end text-center mb-2 mb-md-0">
+        <div class="col-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-2 mt-md-0">
                 <a href="../../Vistas/Proyectos/tabla.php" class="btn btn-danger w-100 w-md-auto">Regresar</a>
             </div>
         </div>
@@ -56,7 +54,7 @@ ob_start();
                 </div>
 
                 <!-- INSTRUCCIONES LIMITADAS -->
-                <p class="descripcion-limit mt-2">
+                <p class="text-muted descripcion-limit mt-2">
                     <?= htmlspecialchars($tarea['instrucciones']) ?>
                 </p>
 
