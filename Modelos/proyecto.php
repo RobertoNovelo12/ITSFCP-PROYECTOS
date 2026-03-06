@@ -689,7 +689,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         if (!$stmt->execute()) {
             die("Error en execute(): " . $stmt->error);
         }
-        
     }
 
 
@@ -743,12 +742,11 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             $stmtSeg->bind_param("si", $estado, $id_proyectos);
             $stmtSeg->execute();
         }
-        
     }
 
     public function actualizarestado($id_proyectos, $numeroEstado, $porcentaje = null)
     {
-        
+
         // 1. Actualizar estado
         $sql = "UPDATE proyectos 
             SET id_estadoP = ?, actualizado_en = NOW() 
@@ -846,7 +844,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
                 $stmtSeg->execute();
             }
         }
-
     }
 
     //Para la operación de porcentaje de avance
@@ -895,17 +892,73 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
     //DETALLES DEL PROYECTO
     function obtenerProyecto($id_proyecto)
     {
-        $sql = "SELECT proy.id_proyectos, espr.nombre as estado_proyecto, tema.nombre_tematica as tematica, subt.nombre_subtematica as subtematica, peri.periodo, CASE WHEN CURDATE() BETWEEN peri.fecha_inicio AND peri.fecha_final THEN 'Activo' WHEN CURDATE() < peri.fecha_inicio THEN 'Terminado' ELSE 'Terminado'  END AS estado_periodo, proy.titulo, proy.descripcion, proy.objetivo, proy.fecha_inicio, proy.fecha_fin, proy.presupuesto, proy.creado_en, proy.requisitos, proy.pre_requisitos, proy.modalidad, proy.cantidad_estudiante FROM gestion_proyectos.proyectos as proy
-JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP
-JOIN tematica as tema ON tema.id_tematica = proy.id_tematica
-JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica
-JOIN periodos as peri ON peri.id_periodos = proy.id_periodos
-WHERE proy.id_proyectos = ?;";
+        $sql = "SELECT 
+proy.id_proyectos,
+espr.nombre AS estado_proyecto,
+tema.nombre_tematica AS tematica,
+GROUP_CONCAT(subt.nombre_subtematica) AS subtematicas,
+peri.periodo,
+
+CASE 
+WHEN CURDATE() BETWEEN peri.fecha_inicio AND peri.fecha_final THEN 'Activo'
+WHEN CURDATE() < peri.fecha_inicio THEN 'Pendiente'
+ELSE 'Terminado'
+END AS estado_periodo,
+
+proy.titulo,
+proy.descripcion,
+proy.objetivo,
+proy.fecha_inicio,
+proy.fecha_fin,
+proy.presupuesto,
+proy.creado_en,
+proy.requisitos,
+proy.pre_requisitos,
+proy.modalidad,
+proy.cantidad_estudiante
+
+FROM proyectos AS proy
+
+JOIN estados_proyectos AS espr 
+ON proy.id_estadoP = espr.id_estadoP
+
+JOIN proyectos_subtematica AS proy_sub 
+ON proy.id_proyectos = proy_sub.id_proyectos
+
+JOIN subtematica AS subt 
+ON proy_sub.id_subtematica = subt.id_subtematica
+
+JOIN tematica AS tema 
+ON tema.id_tematica = subt.id_tematica
+
+JOIN periodos AS peri 
+ON peri.id_periodos = proy.id_periodos
+
+WHERE proy.id_proyectos = ?
+GROUP BY 
+proy.id_proyectos,
+espr.nombre,
+tema.nombre_tematica,
+peri.periodo,
+proy.titulo,
+proy.descripcion,
+proy.objetivo,
+proy.fecha_inicio,
+proy.fecha_fin,
+proy.presupuesto,
+proy.creado_en,
+proy.requisitos,
+proy.pre_requisitos,
+proy.modalidad,
+proy.cantidad_estudiante;";
 
         $params = [$id_proyecto];
         $types  = "i";
 
         $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            die("Error en prepare: " . $this->con->error);
+        }
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
