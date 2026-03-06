@@ -23,7 +23,7 @@ if ($id_asignacion == null) {
     die("ERROR: No se recibió id_asignacion");
 }
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
-$tipo = $_GET['tipo'] ?? null;
+$tipo = $_POST["tipo"] ?? $_GET['tipo'] ?? null;
 require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
@@ -37,7 +37,14 @@ if ($action == 'editarTareaRevisar') {
     $tareaControlador->editarTareaRevisar($_POST, $rol, $id_proyecto);
 }
 if ($action == 'actualizarestado') {
-    $tareaControlador->actualizarestado($_GET['id_tarea'], $rol, $_GET['tipo'], $id_proyecto, $id_asignacion);
+    $tareaControlador->actualizarestado(
+    $_GET['id_tarea'],
+    $rol,
+    $_GET['tipo'],
+    $_GET['id_proyectos'],  
+    $_GET['id_asignacion']
+);
+
 }
 
 // ======================
