@@ -1094,6 +1094,10 @@ html.sidebar-collapsed-initial .submenu {
   color: var(--color-texto-principal);
 }
 
+.dropdown-item{
+  color: var(--color-texto-principal);
+}
+
 .image-container {
   border-radius: 8px;
   flex-shrink: 0;

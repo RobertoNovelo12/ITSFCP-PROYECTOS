@@ -87,8 +87,32 @@ ob_start();
                 </div>
                 <div class="col-md">
                     <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Subtemática</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['subtematica']; ?>">
+                        <label class="form-label">Subtemáticas</label>
+                        <?php
+                        $subtematicas = explode(",", $proyecto['subtematicas']);
+                        $primera = trim($subtematicas[0]);
+                        $restantes = count($subtematicas) - 1;
+                        ?>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                                type="button" data-bs-toggle="dropdown">
+
+                                <?php echo $primera; ?>
+                                <?php if ($restantes > 0) { ?>
+                                    <span class="text-muted">+<?php echo $restantes; ?></span>
+                                <?php } ?>
+
+                            </button>
+
+                            <ul class="dropdown-menu w-100">
+                                <?php
+                                $subtematicas = explode(",", $proyecto['subtematicas']);
+                                foreach ($subtematicas as $sub) {
+                                    echo "<li><span class='dropdown-item'>" . trim($sub) . "</span></li>";
+                                }
+                                ?>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -254,10 +278,10 @@ ob_start();
         <?php endif; ?>
         </div>
     </div>
-<?php
-$contenido = ob_get_clean();
-$titulo = "Detalles de proyecto";
-$bodyClass = "proyectos-page";
+    <?php
+    $contenido = ob_get_clean();
+    $titulo = "Detalles de proyecto";
+    $bodyClass = "proyectos-page";
 
-include __DIR__ . '/../../layout.php';
-?>
+    include __DIR__ . '/../../layout.php';
+    ?>
