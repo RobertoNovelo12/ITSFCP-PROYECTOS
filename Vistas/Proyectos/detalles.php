@@ -94,7 +94,7 @@ ob_start();
                         $restantes = count($subtematicas) - 1;
                         ?>
                         <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
+                            <button class="form-control btn dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
                                 type="button" data-bs-toggle="dropdown">
 
                                 <span class="texto-cortado">

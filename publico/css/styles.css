@@ -4170,17 +4170,24 @@ select:focus {
     white-space: nowrap;
     max-width: 90%;
     display: inline-block;
+    
 }
 
-.dropdown-item{
+.dropdown{
+    width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--borde-menu);
+  background-color: var(--fondo-inputs);
   color: var(--color-texto-principal);
+
 }
 
 .dropdown-menu{
-    white-space: normal;
+    white-space: normal;    
 }
 
 .dropdown-item{
     white-space: normal;
     word-break: break-word;
+    color: var(--color-texto-principal);
 }
