@@ -127,8 +127,7 @@ INNER JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica
         END) AS estado
         FROM tematica as tema
 INNER JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica
-WHERE tema.id_tematica = ?;
-";
+WHERE tema.id_tematica = ?;";
         // Preparar y ejecutar
         $stmt = $this->con->prepare($sql);
 
@@ -151,8 +150,6 @@ WHERE tema.id_tematica = ?;
 FROM tematica AS tema
 INNER JOIN subtematica AS subt 
     ON tema.id_tematica = subt.id_tematica
-INNER JOIN proyectos_subtematica AS prsu 
-    ON prsu.id_subtematica = subt.id_subtematica
 WHERE tema.id_tematica = ?;";
         // Preparar y ejecutar
         $stmt2 = $this->con->prepare($sql2);
@@ -349,11 +346,6 @@ FROM gestion_proyectos.tematica AS tema;";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param("ss", $nombre, $descripcion);
 
-        if ($stmt->execute()) {
-            return ["success" => true, "message" => "Temática registrada correctamente."];
-        } else {
-            return ["success" => false, "message" => "Error al registrar la temática."];
-        }
         return $stmt->insert_id;
     }
 
@@ -362,36 +354,66 @@ FROM gestion_proyectos.tematica AS tema;";
         $sql_sub = "INSERT INTO subtematica (id_tematica, nombre_subtematica, estado) VALUES (?, ?, 1);";
         $stmt_sub = $this->con->prepare($sql_sub);
         $stmt_sub->bind_param("is", $id_tematica, $nombre_subtematica);
-        if ($stmt_sub->execute()) {
-            return ["success" => true, "message" => "Subtemática registrada correctamente."];
-        } else {
-            return ["success" => false, "message" => "Error al registrar la temática."];
+        return $stmt_sub->execute();
+    }
+
+    public function obtenerIdsSubtematicas($id_tematica)
+    {
+        $sql = "SELECT id_subtematica FROM subtematica WHERE id_tematica = ?";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_tematica);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        $ids = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $ids[] = $row['id_subtematica'];
         }
+
+        return $ids;
     }
 
     public function editarTematica($nombre, $descripcion, $id_tematica)
     {
-        $sql = "UPDATE tematica SET nombre_tematica = ?, descripcion_tematica = ? WHERE id_tematica = ?;";
+        $sql = "UPDATE tematica 
+            SET nombre_tematica = ?, descripcion_tematica = ? 
+            WHERE id_tematica = ?";
+
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("ss", $nombre, $descripcion, $id_tematica);
+        $stmt->bind_param("ssi", $nombre, $descripcion, $id_tematica);
+
         if ($stmt->execute()) {
-            return ["success" => true, "message" => "Temática registrada correctamente."];
-        } else {
-            return ["success" => false, "message" => "Error al registrar la temática."];
+            return true;
         }
-        return $stmt->insert_id;
+
+        return false;
     }
 
-    public function editarSubtematica($id_tematica, $nombre_subtematica)
+    public function editarSubtematica($id_subtematica, $nombre_subtematica)
     {
-        $sql_sub = "UPDATE subtematica SET nombre_subtematica = ? WHERE id_tematica = ?;";
+        $sql_sub = "UPDATE subtematica SET nombre_subtematica = ? WHERE id_subtematica = ?;";
         $stmt_sub = $this->con->prepare($sql_sub);
-        $stmt_sub->bind_param("si", $nombre_subtematica, $id_tematica);
-        if ($stmt_sub->execute()) {
-            return ["success" => true, "message" => "Subtemática registrada correctamente."];
-        } else {
-            return ["success" => false, "message" => "Error al registrar la temática."];
-        }
+        $stmt_sub->bind_param("si", $nombre_subtematica, $id_subtematica);
+        return $stmt_sub->execute();
+    }
+
+    public function eliminar_tematica($id_tematica)
+    {
+        $sql = "UPDATE tematica SET estado = 0 WHERE id_tematica = ?;";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_tematica);
+
+        return $stmt->execute();
+    }
+
+    public function eliminar_subtematica($id_subtematica)
+    {
+        $sql = "DELETE FROM subtematica WHERE id_subtematica = ?;";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_subtematica);
+
+        return $stmt->execute();
     }
 }
-

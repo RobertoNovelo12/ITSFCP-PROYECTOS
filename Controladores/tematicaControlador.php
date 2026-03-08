@@ -31,9 +31,9 @@ class tematicaControlador
         global $conn;
 
         if ($rol == "supervisor") {
-        $tematica = new Tematica($conn);
-        $tema = $tematica->obtenerTematicasEditar($id_tematica);
-        return $tema;
+            $tematica = new Tematica($conn);
+            $tema = $tematica->obtenerTematicasEditar($id_tematica);
+            return $tema;
         } else {
             $tema = []; // evita undefined variable
             return $tema;
@@ -49,15 +49,9 @@ class tematicaControlador
 
         global $conn;
 
-        $sql = "UPDATE tematicas SET estado = 0 WHERE id_tematica = ?;";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id_tematica);
-
-        if ($stmt->execute()) {
-            return ["success" => true, "message" => "Temática desactivada correctamente."];
-        } else {
-            return ["success" => false, "message" => "Error al desactivada la temática."];
-        }
+        $tematica = new Tematica($conn);
+        $tematica->eliminar_tematica($id_tematica);
+        return 0;
     }
 
     public function encabezadosPrincipal($rol)
@@ -93,7 +87,7 @@ class tematicaControlador
         return $opciones;
     }
 
-        //Para obtener el número del filtro de la tabla
+    //Para obtener el número del filtro de la tabla
     public function numerofiltro($action)
     {
 
@@ -262,7 +256,7 @@ class tematicaControlador
     //Crear temática
     public function registrarTematica($data, $rol, $subtematicas = [])
     {
-        if ($rol !== 'supervisor') {
+        if ($rol != 'supervisor') {
             die("No tienes permiso para registrar temáticas.");
         }
 
@@ -296,53 +290,59 @@ class tematicaControlador
         exit;
     }
 
-     //Crear temática
-    public function editarTematica($data, $rol, $subtematicas = [])
+    //Editar temática y subtematica
+    public function editarTematica($rol, $data, $subtematicas = [])
     {
-        if ($rol !== 'supervisor') {
+        if ($rol != 'supervisor') {
             die("No tienes permiso para editar temáticas.");
         }
 
         global $conn;
+        $tematica = new Tematica($conn);
 
         $id_tematica = $data['id_tematica'];
         $nombre = trim($data['NombreTematica']);
         $descripcion = trim($data['Descripcion']);
 
-        $tematica = new Tematica($conn);
+        // Obtener IDs actuales de la BD
+        $ids_bd = $tematica->obtenerIdsSubtematicas($id_tematica);
 
-        // 1️ Actualizar temática
-        $id_tematica = $tematica->editarTematica($nombre, $descripcion, $id_tematica);
+        // Actualizar temática
+        $ok = $tematica->editarTematica($nombre, $descripcion, $id_tematica);
 
-        if (!$id_tematica) {
+        if (!$ok) {
             header("Location: crear.php?error=1");
             exit;
         }
 
-        // 2️ Actualizar subtemáticas
-        if (!empty($subtematicas)) {
-            foreach ($subtematicas as $sub) {
-                $tematica->editarSubtematica($id_tematica, $sub['nombre']);
+        $ids_form = [];
+
+        foreach ($subtematicas as $sub) {
+
+            $nombre_sub = trim($sub['nombre']);
+            $id = $sub['id'];
+
+            if ($nombre_sub == '') continue;
+
+            if (empty($id)) {
+
+                // INSERT
+                $tematica->registrarsubtematica($id_tematica, $nombre_sub);
+            } else {
+
+                // UPDATE
+                $tematica->editarSubtematica($id, $nombre_sub);
+
+                $ids_form[] = $id;
             }
         }
 
-        // 3 Actualizar subtemáticas
-        if (!empty($subtematicas)) {
-            foreach ($subtematicas as $sub) {
-                $tematica->editarSubtematica($id_tematica, $sub['nombre']);
-            }
-        }
+        // Eliminar subtemáticas que ya no están en el formulario
+        $ids_eliminar = array_diff($ids_bd, $ids_form);
 
-        // 3 Actualizar subtemáticas
-        if (!empty($subtematicas)) {
-            foreach ($subtematicas as $sub) {
-                $tematica->editarSubtematica($id_tematica, $sub['nombre']);
-            }
+        foreach ($ids_eliminar as $id) {
+            $tematica->eliminar_subtematica($id);
         }
-
-        // 4 Limpiar sesión
-        unset($_SESSION['tematica_temp']);
-        unset($_SESSION['subtematicas']);
 
         header("Location: tabla.php?mensaje=1");
         exit;
