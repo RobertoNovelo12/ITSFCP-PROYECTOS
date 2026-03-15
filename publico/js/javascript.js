@@ -341,24 +341,3 @@ function abrirMensaje() {
     myModal.show();
   });
 }
-
-//PARA AÑADIR INPUTS SUBTEMATICAS
-let index = document.querySelectorAll(".subtematica").length;
-
-let html = `
-<div class="subtematica">
-
-<input type="hidden" name="subtematicas[${index}][id]" value="">
-
-<input class="form-control" 
-name="subtematicas[${index}][nombre]" 
-placeholder="Nueva subtemática">
-
-<button type="button" onclick="this.parentElement.remove()">
-Eliminar
-</button>
-
-</div>
-`;
-
-document.getElementById("listaSubtematicas").insertAdjacentHTML("beforeend", html);

@@ -5,223 +5,124 @@ error_reporting(E_ALL);
 
 session_start();
 
-   //VALIDACIÓN DE SESIÓN
+/* VALIDACIÓN DE SESIÓN */
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
 
-$rol = $_SESSION['rol'];
-$id  = $_SESSION['id_usuario'];
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = intval($_SESSION['id_usuario']);
 
-   //VARIABLES DE SESIÓN TEMPORALES
-
-// Subtemáticas temporales
-if (!isset($_SESSION['subtematicas'])) {
-    $_SESSION['subtematicas'] = [];
-}
-
-// Datos temporales de la temática
-if (!isset($_SESSION['tematica_temp'])) {
-    $_SESSION['tematica_temp'] = [
-        'nombre' => '',
-        'descripcion' => ''
-    ];
-}
-
-   //FUNCIÓN PARA GUARDAR DATOS DE TEMÁTICA
-function guardarTematicaTemp()
-{
-    $_SESSION['tematica_temp']['nombre'] = $_POST['NombreTematica'] ?? $_SESSION['tematica_temp']['nombre'];
-    $_SESSION['tematica_temp']['descripcion'] = $_POST['Descripcion'] ?? $_SESSION['tematica_temp']['descripcion'];
-}
-
-   //AGREGAR SUBTEMÁTICA
-if (isset($_POST['agregar_sub'])) {
-
-    guardarTematicaTemp();
-
-    $_SESSION['subtematicas'][] = [
-        'id'     => uniqid(),
-        'nombre' => trim($_POST['nombre_sub'])
-    ];
-
-    header("Location: crear.php");
-    exit;
-}
-
-   //ACTUALIZAR SUBTEMÁTICA
-if (isset($_POST['actualizar_sub'])) {
-
-    guardarTematicaTemp();
-
-    foreach ($_SESSION['subtematicas'] as &$sub) {
-        if ($sub['id'] === $_POST['id_sub']) {
-            $sub['nombre'] = trim($_POST['nombre_sub']);
-            break;
-        }
-    }
-    unset($sub);
-
-    header("Location: crear.php");
-    exit;
-}
-
-   //ELIMINAR SUBTEMÁTICA
-if (isset($_GET['eliminar_sub'])) {
-
-    // NO perder los datos actuales de la temática
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        guardarTematicaTemp();
-    }
-
-    $_SESSION['subtematicas'] = array_values(
-        array_filter(
-            $_SESSION['subtematicas'],
-            fn($s) => $s['id'] !== $_GET['eliminar_sub']
-        )
-    );
-
-    header("Location: crear.php");
-    exit;
-}
-
-   //DETECTAR EDICIÓN DE SUBTEMÁTICA
-
-$editando = false;
-$subEditar = null;
-
-if (isset($_GET['editar_sub'])) {
-    foreach ($_SESSION['subtematicas'] as $sub) {
-        if ($sub['id'] === $_GET['editar_sub']) {
-            $editando = true;
-            $subEditar = $sub;
-            break;
-        }
-    }
-}
-
-   //CANCELAR CREACIÓN
-if (isset($_GET['cancelar'])) {
-    unset($_SESSION['tematica_temp'], $_SESSION['subtematicas']);
-    header("Location: tabla.php");
-    exit;
-}
-
-   //ENVÍO AL CONTROLADOR
+/* CONTROLADOR */
 require_once '../../Controladores/tematicaControlador.php';
 
 $action = $_POST['action'] ?? null;
 
 if ($action === 'registrarTematica') {
+
     $tematicaControlador = new TematicaControlador();
+
+    $subtematicas = $_POST['subtematicas'] ?? [];
+
     $tematicaControlador->registrarTematica(
         $_POST,
         $rol,
-        $_SESSION['subtematicas']
+        $subtematicas
     );
 }
+
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
-<div class="container-fluid py-4">
-    <div class="row mb-3">
-        <div class="col-6">
-            <h3>Crear Temática</h3>
+
+<form method="POST" action="" id="formCrearTematica">
+
+    <input type="hidden" name="action" value="registrarTematica">
+
+    <div class="container-fluid py-4">
+
+        <!-- ENCABEZADO -->
+        <div class="row mb-3">
+
+            <div class="col-6">
+                <h3>Crear Temática</h3>
+            </div>
+
+            <div class="col-6 text-end">
+                <a href="tabla.php" class="btn btn-danger">Regresar</a>
+            </div>
+
         </div>
-        <div class="col-6 text-end">
-            <a href="crear.php?cancelar=1" class="btn btn-danger">Regresar</a>
-        </div>
-    </div>
 
-    <form method="POST" action="crear.php">
-
-        <input type="hidden" name="action" value="registrarTematica">
-
-        <!-- DATOS DE TEMÁTICA -->
+        <!-- DATOS TEMÁTICA -->
         <h5>Información de la temática</h5>
 
         <div class="mb-3">
-            <label class="form-label">Nombre de la temática</label>
-            <input type="text"
-                   name="NombreTematica"
-                   class="form-control"
-                   value="<?= htmlspecialchars($_SESSION['tematica_temp']['nombre']) ?>"
-                   required>
+
+            <label class="form-label">Nombre</label>
+
+            <input
+                type="text"
+                id="NombreTematica"
+                name="NombreTematica"
+                class="form-control"
+                required>
+
         </div>
 
         <div class="mb-3">
+
             <label class="form-label">Descripción</label>
-            <textarea name="Descripcion"
-                      class="form-control"
-                      rows="3"
-                      required><?= htmlspecialchars($_SESSION['tematica_temp']['descripcion']) ?></textarea>
+
+            <textarea
+                name="Descripcion"
+                class="form-control"
+                required></textarea>
+
         </div>
 
-        <!-- TABLA SUBTEMÁTICAS -->
-        <h5>Subtemáticas</h5>
+        <!-- SUBTEMÁTICAS -->
+        <h5>Subtemáticas (<span id="contadorSubtematicas">0 / 10</span>)</h5>
 
-        <table class="table table-hover text-center align-middle">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Nombre</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php if (empty($_SESSION['subtematicas'])): ?>
-                <tr>
-                    <td colspan="3">No hay subtemáticas</td>
-                </tr>
-            <?php endif; ?>
-
-            <?php foreach ($_SESSION['subtematicas'] as $i => $sub): ?>
-                <tr>
-                    <td><?= $i + 1 ?></td>
-                    <td><?= htmlspecialchars($sub['nombre']) ?></td>
-                    <td>
-                        <a href="?editar_sub=<?= $sub['id'] ?>" class="btn btn-warning btn-sm">Editar</a>
-                        <a href="?eliminar_sub=<?= $sub['id'] ?>"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('¿Eliminar subtemática?')">Eliminar</a>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
-
-        <!-- FORM SUBTEMÁTICA -->
         <hr>
-        <h5><?= $editando ? 'Editar subtemática' : 'Agregar subtemática' ?></h5>
 
-        <input type="hidden" name="id_sub" value="<?= $subEditar['id'] ?? '' ?>">
+        <!-- DESKTOP -->
 
-        <div class="row g-2 mb-3">
-            <div class="col-md-8">
-                <input type="text"
-                       name="nombre_sub"
-                       class="form-control"
-                       value="<?= $subEditar['nombre'] ?? '' ?>"
-                       required>
-            </div>
-            <div class="col-md-4">
-                <button type="submit"
-                        name="<?= $editando ? 'actualizar_sub' : 'agregar_sub' ?>"
-                        class="btn btn-<?= $editando ? 'warning' : 'success' ?> w-100">
-                    <?= $editando ? 'Actualizar' : 'Agregar' ?>
-                </button>
-            </div>
+        <div id="listaSubtematicas"></div>
+
+
+        <!-- BOTÓN AGREGAR -->
+        <div class="mt-3">
+
+            <button
+                type="button"
+                class="btn btn-agregar-sub w-100"
+                onclick="agregarSubtematica()">
+                Agregar subtemática
+            </button>
+
         </div>
 
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary">Crear temática</button>
-        </div>
-    </form>
-</div>
+        <hr>
+
+        <button
+            type="submit"
+            class="btn btn-guardar-tematica">
+
+            Crear temática
+
+        </button>
+
+    </div>
+
+</form>
+
+<script src="../../publico/js/subtematicas.js"></script>
 
 <?php
+
 $contenido = ob_get_clean();
 $titulo = "Crear temática";
 $bodyClass = "proyectos-page";

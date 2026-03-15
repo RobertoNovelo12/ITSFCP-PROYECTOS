@@ -291,56 +291,49 @@ class tematicaControlador
     }
 
     //Editar temática y subtematica
-    public function editarTematica($rol, $data, $subtematicas = [])
+    public function editarTematica($rol)
     {
+
         if ($rol != 'supervisor') {
-            die("No tienes permiso para editar temáticas.");
+            die("No tienes permiso.");
         }
 
         global $conn;
+
         $tematica = new Tematica($conn);
 
-        $id_tematica = $data['id_tematica'];
-        $nombre = trim($data['NombreTematica']);
-        $descripcion = trim($data['Descripcion']);
+        $id_tematica = $_POST['id_tematica'];
+        $nombre = trim($_POST['NombreTematica']);
+        $descripcion = trim($_POST['Descripcion']);
 
-        // Obtener IDs actuales de la BD
+        $subtematicas = $_POST['subtematicas'] ?? [];
+
         $ids_bd = $tematica->obtenerIdsSubtematicas($id_tematica);
 
-        // Actualizar temática
-        $ok = $tematica->editarTematica($nombre, $descripcion, $id_tematica);
-
-        if (!$ok) {
-            header("Location: crear.php?error=1");
-            exit;
-        }
-
+        $tematica->editarTematica($nombre, $descripcion, $id_tematica);
+        
         $ids_form = [];
-
         foreach ($subtematicas as $sub) {
 
-            $nombre_sub = trim($sub['nombre']);
             $id = $sub['id'];
+            $nombre_sub = trim($sub['nombre']);
 
             if ($nombre_sub == '') continue;
 
             if (empty($id)) {
 
-                // INSERT
-                $tematica->registrarsubtematica($id_tematica, $nombre_sub);
+                $tematica->registrarsubtematica(intval($id_tematica), $nombre_sub);
             } else {
 
-                // UPDATE
                 $tematica->editarSubtematica($id, $nombre_sub);
 
                 $ids_form[] = $id;
             }
         }
 
-        // Eliminar subtemáticas que ya no están en el formulario
         $ids_eliminar = array_diff($ids_bd, $ids_form);
-
         foreach ($ids_eliminar as $id) {
+
             $tematica->eliminar_subtematica($id);
         }
 

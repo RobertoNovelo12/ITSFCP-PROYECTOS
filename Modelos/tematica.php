@@ -342,16 +342,17 @@ FROM gestion_proyectos.tematica AS tema;";
 
     public function registrarTematica($nombre, $descripcion)
     {
-        $sql = "INSERT INTO tematica (nombre_tematica, descripcion_tematica, estado) VALUES (?, ?, 1);";
+        $sql = "INSERT INTO tematica (nombre_tematica, descripcion_tematica) VALUES (?, ?);";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param("ss", $nombre, $descripcion);
+        $stmt -> execute();
 
         return $stmt->insert_id;
     }
 
     public function registrarsubtematica($id_tematica, $nombre_subtematica)
     {
-        $sql_sub = "INSERT INTO subtematica (id_tematica, nombre_subtematica, estado) VALUES (?, ?, 1);";
+        $sql_sub = "INSERT INTO subtematica (id_tematica, nombre_subtematica) VALUES (?, ?);";
         $stmt_sub = $this->con->prepare($sql_sub);
         $stmt_sub->bind_param("is", $id_tematica, $nombre_subtematica);
         return $stmt_sub->execute();
