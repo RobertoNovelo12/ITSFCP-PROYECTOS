@@ -73,7 +73,6 @@ include __DIR__ . '/../../mensaje.php';
                         <div class="mb-3">
                             <label for="select1" class="form-label">Temática</label>
                             <select class="form-select" name="Tematica" id="select1" aria-label="Default select example">
-                                <option value=''>Seleccione una temática</option>
                                 <?php foreach ($tematica as $tema): ?>
                                     <option value="<?php echo $tema['id_tematica'] ?>"><?php echo $tema['nombre_tematica'] ?></option>
                                 <?php endforeach ?>

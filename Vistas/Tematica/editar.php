@@ -31,9 +31,7 @@ if ($action === 'Modificar') {
     $subtematicas = $_POST['subtematicas'] ?? [];
 
     $tematicaControlador->editarTematica(
-        $_POST,
-        $rol,
-        $subtematicas
+        $rol
     );
 }
 
@@ -44,132 +42,147 @@ include __DIR__ . '/../../error.php';
 
 <form method="POST" action="" id="formCrearTematica">
 
-<input type="hidden" name="action" value="Modificar">
+    <input type="hidden" name="action" value="Modificar">
 
-<input type="hidden" name="id_tematica" value="<?= $tematica['id_tematica'] ?>">
+    <input type="hidden" name="id_tematica" value="<?= $tematica['id_tematica'] ?>">
 
-<div class="container-fluid py-4">
+    <div class="container-fluid py-4">
 
-<!-- ENCABEZADO -->
+        <!-- ENCABEZADO -->
 
-<div class="row mb-3">
+        <div class="row mb-3">
 
-<div class="col-6">
-<h3>Editar Temática</h3>
-</div>
+            <div class="col-6">
+                <h3>Editar Temática</h3>
+            </div>
 
-<div class="col-6 text-end">
-<a href="tabla.php" class="btn btn-danger">Regresar</a>
-</div>
+            <div class="col-6 text-end">
+                <a href="tabla.php" class="btn btn-danger">Regresar</a>
+            </div>
 
-</div>
-
-
-<!-- DATOS TEMATICA -->
-
-<h5>Información de la temática</h5>
-
-<div class="mb-3">
-
-<label class="form-label">Nombre</label>
-
-<input
-type="text"
-id="NombreTematica"
-name="NombreTematica"
-class="form-control"
-value="<?= htmlspecialchars($tematica['nombre']) ?>"
-required>
-
-</div>
-
-<div class="mb-3">
-
-<label class="form-label">Descripción</label>
-
-<textarea
-name="Descripcion"
-class="form-control"
-required><?= htmlspecialchars($tematica['descripcion']) ?></textarea>
-
-</div>
+        </div>
 
 
-<!-- SUBTEMATICAS -->
+        <!-- DATOS TEMATICA -->
 
-<h5>Subtemáticas (<span id="contadorSubtematicas">0 / 10</span>)</h5>
+        <h5>Información de la temática</h5>
 
-<hr>
+        <div class="mb-3">
+
+            <label class="form-label">Estado</label>
+
+            <select name="Estado" class="form-select">
+
+                <option value="0" <?= $tematica['estado'] == "Desactivado" ? 'selected' : '' ?>>
+                    Desactivado
+                </option>
+
+                <option value="1" <?= $tematica['estado'] == "Activo" ? 'selected' : '' ?>>
+                    Activo
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label class="form-label">Nombre</label>
+
+            <input
+                type="text"
+                id="NombreTematica"
+                name="NombreTematica"
+                class="form-control"
+                value="<?= htmlspecialchars($tematica['nombre']) ?>"
+                required>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label class="form-label">Descripción</label>
+
+            <textarea
+                name="Descripcion"
+                class="form-control"
+                required><?= htmlspecialchars($tematica['descripcion']) ?></textarea>
+
+        </div>
 
 
-<!-- CONTENEDOR (MISMO QUE CREAR) -->
+        <!-- SUBTEMATICAS -->
 
-<div id="listaSubtematicas">
+        <h5>Subtemáticas (<span id="contadorSubtematicas">0 / 10</span>)</h5>
 
-<?php foreach ($subtematicas as $i => $sub): ?>
+        <hr>
 
-<div class="subtematica row mb-3 align-items-center g-2">
+        <div id="listaSubtematicas">
 
-<input type="hidden"
-name="subtematicas[<?= $i ?>][id]"
-value="<?= $sub['id'] ?>">
+            <?php foreach ($subtematicas as $i => $sub): ?>
 
-<div class="col-12 col-md-8">
+                <div class="subtematica row mb-3 align-items-center g-2">
 
-<input
-class="form-control subtematica-input"
-name="subtematicas[<?= $i ?>][nombre]"
-value="<?= htmlspecialchars($sub['nombre']) ?>"
-required>
+                    <input type="hidden"
+                        name="subtematicas[<?= $i ?>][id]"
+                        value="<?= $sub['id'] ?>">
 
-</div>
+                    <div class="col-12 col-md-8">
 
-<div class="col-12 col-md-4">
+                        <input
+                            class="form-control subtematica-input"
+                            name="subtematicas[<?= $i ?>][nombre]"
+                            value="<?= htmlspecialchars($sub['nombre']) ?>"
+                            required>
 
-<button
-type="button"
-class="btn btn-eliminar-sub w-100"
-onclick="eliminarSub(this)">
+                    </div>
 
-Eliminar
+                    <div class="col-12 col-md-4">
 
-</button>
+                        <button
+                            type="button"
+                            class="btn btn-eliminar-sub w-100"
+                            onclick="eliminarSub(this)">
 
-</div>
+                            Eliminar
 
-</div>
+                        </button>
 
-<?php endforeach; ?>
+                    </div>
 
-</div>
+                </div>
+
+            <?php endforeach; ?>
+
+        </div>
 
 
-<!-- BOTON AGREGAR -->
+        <!-- BOTON AGREGAR -->
 
-<div class="mt-3">
+        <div class="mt-3">
 
-<button
-type="button"
-class="btn btn-agregar-sub w-100"
-onclick="agregarSubtematica()">
+            <button
+                type="button"
+                class="btn btn-agregar-sub w-100"
+                onclick="agregarSubtematica()">
 
-Agregar subtemática
+                Agregar subtemática
 
-</button>
+            </button>
 
-</div>
+        </div>
 
-<hr>
+        <hr>
 
-<button
-type="submit"
-class="btn btn-guardar-tematica">
+        <button
+            type="submit"
+            class="btn btn-guardar-tematica">
 
-Guardar cambios
+            Guardar cambios
 
-</button>
+        </button>
 
-</div>
+    </div>
 
 </form>
 

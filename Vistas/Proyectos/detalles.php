@@ -9,13 +9,10 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
+
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"];
-
-$action = $_POST['action'] ?? null;
-
-//Se llama al controlador
 
 require_once '..\..\Controladores\proyectoControlador.php';
 
@@ -27,263 +24,288 @@ $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
 if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
     $estudiantes = $proyectoControlador->datosestudiantes($id_proyecto);
 }
-// GENERAR CONTENIDO
+
 ob_start();
 ?>
+
 <div class="container-fluid py-4">
-    <div class="row mb-3 align-items-center">
-        <div class="row mb-1">
-            <div class="col-6">
-                <h3>Detalles del Proyecto</h3>
-            </div>
-            <div class="col-6 text-end">
-                <a href="tabla.php" class="btn btn-danger">Regresar</a>
-            </div>
-            <div class="row mb-1">
-                <h5>Información de proyecto</h5>
-                <?php foreach ($proyectos as $proyecto): ?>
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Nombre del proyecto</label>
-                        <input type="text" disabled class="form-control" id="InputFormLimpiar1" value="<?php echo $proyecto['titulo']; ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="exampleFormControlTextarea1" class="form-label">Descripcion breve</label>
-                        <textarea class="form-control" disabled id="InputFormLimpiar2" rows="3"><?php echo $proyecto['descripcion']; ?></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="exampleFormControlTextarea1" class="form-label">Objetivos</label>
-                        <textarea class="form-control" disabled id="InputFormLimpiar3" rows="3"><?php echo $proyecto['objetivo']; ?></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="exampleFormControlTextarea1" class="form-label">Pre-requisitos</label>
-                        <textarea class="form-control" disabled id="InputFormLimpiar4" rows="3"><?php echo $proyecto['pre_requisitos']; ?></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="exampleFormControlTextarea1" class="form-label">Requisitos</label>
-                        <textarea class="form-control" disabled id="InputFormLimpiar5" rows="3"><?php echo $proyecto['requisitos']; ?></textarea>
-                    </div>
-            </div>
-            <div class="row mb-1">
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Cantidad alumnos permitidos</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['cantidad_estudiante']; ?>">
-                    </div>
-                </div>
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Temática</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['tematica']; ?>">
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-1">
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Modalidad</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['modalidad']; ?>">
-                    </div>
 
-                </div>
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label class="form-label">Subtemáticas</label>
-                        <?php
-                        $subtematicas = explode(",", $proyecto['subtematicas']);
-                        $primera = trim($subtematicas[0]);
-                        $restantes = count($subtematicas) - 1;
-                        ?>
-                        <div class="dropdown">
-                            <button class="form-control btn dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
-                                type="button" data-bs-toggle="dropdown">
+    <div class="row mb-3">
 
-                                <span class="texto-cortado">
-                                    <?php echo $primera; ?>
-                                    <?php if ($restantes > 0) { ?>
-                                        <span class="text-muted">+<?php echo $restantes; ?></span>
-                                    <?php } ?>
-                                </span>
-
-                            </button>
-
-                            <ul class="dropdown-menu w-100">
-                                <?php
-                                $subtematicas = explode(",", $proyecto['subtematicas']);
-                                foreach ($subtematicas as $sub) {
-                                    echo "<li><span class='dropdown-item'>" . trim($sub) . "</span></li>";
-                                }
-                                ?>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-1">
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Presupuesto</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['presupuesto']; ?>">
-                    </div>
-                </div>
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Periodo</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['periodo'] . ' - ' . $proyecto['estado_periodo'];  ?>">
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-1">
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Fecha inicio</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['fecha_inicio']; ?>">
-                    </div>
-                </div>
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Fecha final</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['fecha_fin']; ?>">
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-1">
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Estado</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['estado_proyecto']; ?>">
-                    </div>
-                </div>
-                <div class="col-md">
-                    <div class="mb-3">
-                        <label for="exampleFormControlInput1" class="form-label">Fecha de creación</label>
-                        <input type="text" disabled class="form-control" id="exampleFormControlInput1" value="<?php echo $proyecto['creado_en']; ?>">
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-        <div class="col-12">
-            <h5>Información del investigador</h5>
+        <div class="col-6">
+            <h3>Detalles del Proyecto</h3>
         </div>
-        <div class="row mb-1">
-            <?php foreach ($investigador as $invest): ?>
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="exampleFormControlInput1" class="form-label">Nombre completo</label>
-                            <input type="text" disabled class="form-control" id="InputFormLimpiar1" value="<?php echo $invest['nombre'] . ' ' . $invest['apellido_paterno'] . ' ' . $invest['apellido_materno']; ?>">
-                        </div>
-                    </div>
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="exampleFormControlTextarea1" class="form-label">Área de conocimientos</label>
-                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['area_conocimiento']; ?>"></input>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="exampleFormControlTextarea1" class="form-label">Subárea de conomientos</label>
-                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['subarea']; ?>"></input>
-                        </div>
-                    </div>
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="exampleFormControlTextarea1" class="form-label">Nivel de SNI</label>
-                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['nivel_sni']; ?>"></input>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="exampleFormControlTextarea1" class="form-label">Grado acádemico</label>
-                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['grado_academico']; ?>"></input>
-                        </div>
-                    </div>
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="exampleFormControlTextarea1" class="form-label">Línea de investigación</label>
-                            <input class="form-control" disabled id="InputFormLimpiar2" value="<?php echo $invest['linea_investigacion']; ?>"></input>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+
+        <div class="col-6 text-end">
+            <a href="tabla.php" class="btn btn-danger">Regresar</a>
         </div>
-        <?php if ($rol == "supervisor" || $rol == "profesor" || $rol == "investigador"): ?>
-            <div class="row mb-1">
-                <div class="col-12">
-                    <h5>Estudiantes involucrados</h5>
-                </div>
-                <div class="col-12">
-                    <div class="table-responsive">
-                        <table class="table table-light" id="tabla_informacion">
-                            <thead class="text-center">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Carrera</th>
-                                    <th>Área conocimientos</th>
-                                    <th>Subárea conocimientos</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-center">
-                                <?php foreach ($estudiantes as $alumno):
-                                    echo "<tr>";
-                                    echo "<th scope='row'>{$alumno['id_usuarios']}</th>";
-                                    echo "<td>{$alumno['nombre']} {$alumno['apellido_paterno']} {$alumno['apellido_materno']}</td>";
-                                    echo "<td>{$alumno['carrera']}</td>";
-                                    echo "<td>{$alumno['area']}</td>";
-                                    echo "<td>{$alumno['subarea']}</td>";
-                                    echo "</tr>";
-                                endforeach;
-                                ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <?php foreach ($estudiantes as $alumno): ?>
-                <div class="card mb-3" id="tarjeta_móvil" style="width: 18rem;">
-                    <div class="card-body">
-                        <h5 class="card-title"><b><?php echo $alumno['id_usuarios']; ?></b></h5>
-                        <p class="card-text"><b><?php echo $alumno['nombre'] .  ' ' . $alumno['apellido_paterno'] . ' ' . $alumno['apellido_materno']; ?></b></p>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <div class="row">
-                                <div class="col-12">
-                                    <label><b>Carrera</b></label>
-                                    <p class="card-text"><?php echo $alumno['carrera']; ?></p>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="row">
-                                <div class="col-12">
-                                    <label><b>Área de conocimientos</b></label>
-                                    <p class="card-text"><?php echo $alumno['area']; ?></p>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="row">
-                                <div class="col-12">
-                                    <label><b>Subárea de conomientos</b></label>
-                                    <p class="card-text"><?php echo $alumno['subarea']; ?></p>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-        </div>
+
     </div>
-    <?php
-    $contenido = ob_get_clean();
-    $titulo = "Detalles de proyecto";
-    $bodyClass = "proyectos-page";
 
-    include __DIR__ . '/../../layout.php';
-    ?>
+
+    <?php foreach ($proyectos as $proyecto): ?>
+
+        <!-- INFORMACIÓN DEL PROYECTO -->
+
+        <div class="card mb-4 shadow-sm">
+
+            <div class="card-header">
+                <b>Información del proyecto</b>
+            </div>
+
+            <div class="card-body">
+
+                <h5><?= htmlspecialchars($proyecto['titulo']) ?></h5>
+
+                <p class="text-muted">
+                    <?= nl2br(htmlspecialchars($proyecto['descripcion'])) ?>
+                </p>
+
+                <hr>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <dl>
+
+                            <dt>Objetivos</dt>
+                            <dd><?= nl2br(htmlspecialchars($proyecto['objetivo'])) ?></dd>
+
+                            <dt>Pre-requisitos</dt>
+                            <dd><?= nl2br(htmlspecialchars($proyecto['pre_requisitos'])) ?></dd>
+
+                            <dt>Requisitos</dt>
+                            <dd><?= nl2br(htmlspecialchars($proyecto['requisitos'])) ?></dd>
+
+                        </dl>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <dl>
+
+                            <dt>Cantidad alumnos</dt>
+                            <dd><?= $proyecto['cantidad_estudiante'] ?></dd>
+
+                            <dt>Temática</dt>
+                            <dd><?= $proyecto['tematica'] ?></dd>
+
+                            <dt>Modalidad</dt>
+                            <dd><?= $proyecto['modalidad'] ?></dd>
+
+                            <dt>Presupuesto</dt>
+                            <dd>$<?= number_format($proyecto['presupuesto'], 2) ?></dd>
+
+                            <dt>Periodo</dt>
+                            <dd><?= $proyecto['periodo'] ?> - <?= $proyecto['estado_periodo'] ?></dd>
+
+                            <dt>Fecha inicio</dt>
+                            <dd><?= $proyecto['fecha_inicio'] ?></dd>
+
+                            <dt>Fecha final</dt>
+                            <dd><?= $proyecto['fecha_fin'] ?></dd>
+
+                            <dt>Estado</dt>
+                            <dd>
+                                <span class="badge bg-success">
+                                    <?= $proyecto['estado_proyecto'] ?>
+                                </span>
+                            </dd>
+
+                            <dt>Fecha creación</dt>
+                            <dd><?= $proyecto['creado_en'] ?></dd>
+
+                        </dl>
+
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <b>Subtemáticas</b>
+
+                <div class="mt-2">
+
+                    <?php
+                    $subs = explode(",", $proyecto['subtematicas']);
+                    foreach ($subs as $sub) {
+                        echo "<span class='badge bg-primary me-2 mb-2'>" . trim($sub) . "</span>";
+                    }
+                    ?>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    <?php endforeach; ?>
+
+
+    <!-- INVESTIGADOR -->
+
+    <div class="card mb-4 shadow-sm">
+
+        <div class="card-header">
+            <b>Investigador</b>
+        </div>
+
+        <div class="card-body">
+
+            <?php foreach ($investigador as $invest): ?>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <dl>
+
+                            <dt>Nombre completo</dt>
+                            <dd>
+                                <?= $invest['nombre'] . " " . $invest['apellido_paterno'] . " " . $invest['apellido_materno'] ?>
+                            </dd>
+
+                            <dt>Área conocimiento</dt>
+                            <dd><?= $invest['area_conocimiento'] ?></dd>
+
+                            <dt>Subárea</dt>
+                            <dd><?= $invest['subarea'] ?></dd>
+
+                        </dl>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <dl>
+
+                            <dt>Nivel SNI</dt>
+                            <dd><?= $invest['nivel_sni'] ?></dd>
+
+                            <dt>Grado académico</dt>
+                            <dd><?= $invest['grado_academico'] ?></dd>
+
+                            <dt>Línea investigación</dt>
+                            <dd><?= $invest['linea_investigacion'] ?></dd>
+
+                        </dl>
+
+                    </div>
+
+                </div>
+
+            <?php endforeach; ?>
+
+        </div>
+
+    </div>
+
+
+
+    <?php if ($rol == "supervisor" || $rol == "profesor" || $rol == "investigador"): ?>
+
+        <h5 class="mb-3">Estudiantes involucrados</h5>
+
+        <!-- TABLA (LAPTOP) -->
+
+        <div class="table-responsive d-none d-md-block">
+
+            <table class="table table-striped text-center">
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Carrera</th>
+                        <th>Área</th>
+                        <th>Subárea</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <?php foreach ($estudiantes as $alumno): ?>
+
+                        <tr>
+
+                            <td><?= $alumno['id_usuarios'] ?></td>
+
+                            <td>
+                                <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] . " " . $alumno['apellido_materno'] ?>
+                            </td>
+
+                            <td><?= $alumno['carrera'] ?></td>
+
+                            <td><?= $alumno['area'] ?></td>
+
+                            <td><?= $alumno['subarea'] ?></td>
+
+                        </tr>
+
+                    <?php endforeach; ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- TARJETAS (MÓVIL) -->
+
+        <div class="d-md-none">
+
+            <?php foreach ($estudiantes as $alumno): ?>
+
+                <div class="card mb-3">
+
+                    <div class="card-body">
+
+                        <h5 class="card-title">
+                            <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] ?>
+                        </h5>
+
+                        <ul class="list-group list-group-flush">
+
+                            <li class="list-group-item">
+                                <b>ID:</b> <?= $alumno['id_usuarios'] ?>
+                            </li>
+
+                            <li class="list-group-item">
+                                <b>Carrera:</b> <?= $alumno['carrera'] ?>
+                            </li>
+
+                            <li class="list-group-item">
+                                <b>Área:</b> <?= $alumno['area'] ?>
+                            </li>
+
+                            <li class="list-group-item">
+                                <b>Subárea:</b> <?= $alumno['subarea'] ?>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+            <?php endforeach; ?>
+
+        </div>
+
+    <?php endif; ?>
+
+</div>
+
+<?php
+$contenido = ob_get_clean();
+$titulo = "Detalles de proyecto";
+$bodyClass = "proyectos-page";
+
+include __DIR__ . '/../../layout.php';
+?>

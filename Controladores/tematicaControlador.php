@@ -40,6 +40,20 @@ class tematicaControlador
         }
     }
 
+        public function indexDetalles($rol, $id_tematica)
+    {
+        global $conn;
+
+        if ($rol == "supervisor") {
+            $tematica = new Tematica($conn);
+            $tema = $tematica->obtenerTematicasDetalles($id_tematica);
+            return $tema;
+        } else {
+            $tema = []; // evita undefined variable
+            return $tema;
+        }
+    }
+
     public function eliminar_tematica($id_tematica, $rol)
     {
         // Lógica para cambiar de estado una temática a desactivado
@@ -50,7 +64,7 @@ class tematicaControlador
         global $conn;
 
         $tematica = new Tematica($conn);
-        $tematica->eliminar_tematica($id_tematica);
+        $tematica->eliminar_tematica($id_tematica, 0);
         return 0;
     }
 
@@ -62,6 +76,8 @@ class tematicaControlador
                 'Descripción',
                 'Subtemáticas',
                 'Estado',
+                'Creación',
+                'Modificación',
                 'Acciones'
             ];
         } else {
@@ -210,16 +226,9 @@ class tematicaControlador
                 break;
             case 'Desactivar':
                 $boton = '
-                <a href="editar.php?action=actualizarestado&id_tematica=' . $id1 . '&tipo=Inactivo" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
+                <a href="tabla.php?&id_tematica=' . $id1 . '&action=desactivar_tematica" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar temática"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-</svg></a>';
-                break;
-            case 'Eliminar':
-                $boton = '<a href="editar.php?id_subtematica=' . $id1 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Elimunar subtemática"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
 </svg></a>';
                 break;
             case 'Guardar':
@@ -244,8 +253,7 @@ class tematicaControlador
                     $boton .= $this->obtenerbotones("Detalles", $id);
                     $boton .= $this->obtenerbotones("Desactivar", $id);
                 } elseif ($estado == "Desactivado") {
-                    $boton = $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Activar", $id);
+                    $boton .= $this->obtenerbotones("Detalles", $id);
                 }
                 break;
         }
@@ -254,7 +262,7 @@ class tematicaControlador
     }
 
     //Crear temática
-    public function registrarTematica($data, $rol, $subtematicas = [])
+    public function registrarTematica($rol)
     {
         if ($rol != 'supervisor') {
             die("No tienes permiso para registrar temáticas.");
@@ -262,8 +270,9 @@ class tematicaControlador
 
         global $conn;
 
-        $nombre = trim($data['NombreTematica']);
-        $descripcion = trim($data['Descripcion']);
+        $nombre = trim($_POST['NombreTematica']);
+        $descripcion = trim($_POST['Descripcion']);
+        $subtematicas = $_POST['subtematicas'] ?? [];
 
         $tematica = new Tematica($conn);
 
@@ -305,36 +314,52 @@ class tematicaControlador
         $id_tematica = $_POST['id_tematica'];
         $nombre = trim($_POST['NombreTematica']);
         $descripcion = trim($_POST['Descripcion']);
+        $estado = trim($_POST['Estado']);
 
         $subtematicas = $_POST['subtematicas'] ?? [];
 
         $ids_bd = $tematica->obtenerIdsSubtematicas($id_tematica);
+        $conn->begin_transaction();
 
-        $tematica->editarTematica($nombre, $descripcion, $id_tematica);
-        
-        $ids_form = [];
-        foreach ($subtematicas as $sub) {
+        try {
+            $tematica->editarTematica($nombre, $descripcion, $id_tematica);
 
-            $id = $sub['id'];
-            $nombre_sub = trim($sub['nombre']);
 
-            if ($nombre_sub == '') continue;
+            //Proceso de registrar y actualizar subtematica
+            $ids_form = [];
+            foreach ($subtematicas as $sub) {
 
-            if (empty($id)) {
 
-                $tematica->registrarsubtematica(intval($id_tematica), $nombre_sub);
-            } else {
+                $id = $sub['id'] ?? null;
+                $nombre_sub = trim($sub['nombre'] ?? '');
 
-                $tematica->editarSubtematica($id, $nombre_sub);
+                if ($nombre_sub == '') continue;
+                $tematica->comparar_Duplicidad_Subtematica($id_tematica, $nombre_sub, $id);
 
-                $ids_form[] = $id;
+                if ($id === 'nuevo' || empty($id)) {
+
+                    $tematica->registrarsubtematica(intval($id_tematica), $nombre_sub);
+                } else {
+
+                    $tematica->editarSubtematica($id, $nombre_sub);
+
+                    $ids_form[] = $id;
+                }
             }
-        }
+            //Proceso de eliminar subtematicas
+            //Revisa las IDs del formulario y las extraidas de la base de datos para comparar
+            $ids_eliminar = array_diff($ids_bd, $ids_form);
+            if (!empty($ids_eliminar)) {
+                foreach ($ids_eliminar as $id) {
+                    $tematica->eliminar_subtematica($id, 0);
+                }
+            }
 
-        $ids_eliminar = array_diff($ids_bd, $ids_form);
-        foreach ($ids_eliminar as $id) {
+            $conn->commit();
+        } catch (Exception $e) {
 
-            $tematica->eliminar_subtematica($id);
+            $conn->rollback();
+            die($e->getMessage());
         }
 
         header("Location: tabla.php?mensaje=1");

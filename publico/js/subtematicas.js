@@ -3,54 +3,42 @@ const maxSubtematicas = 5; //Cantidad máxima de subtematicas
 
 /* ACTUALIZAR CONTADOR */
 
-function actualizarContador(){
+function actualizarContador() {
+  const total = document.querySelectorAll(".subtematica-input").length;
 
-const total = document.querySelectorAll('.subtematica-input').length;
+  const contador = document.getElementById("contadorSubtematicas");
 
-const contador = document.getElementById("contadorSubtematicas");
+  if (contador) {
+    contador.textContent = `${total} / ${maxSubtematicas}`;
+  }
 
-if(contador){
+  const boton = document.querySelector(".btn-agregar-sub");
 
-contador.textContent = `${total} / ${maxSubtematicas}`;
-
+  if (total >= maxSubtematicas) {
+    boton.disabled = true;
+  } else {
+    boton.disabled = false;
+  }
 }
-
-const boton = document.querySelector(".btn-agregar-sub");
-
-if(total >= maxSubtematicas){
-
-boton.disabled = true;
-
-}else{
-
-boton.disabled = false;
-
-}
-
-}
-
 
 /* AGREGAR SUBTEMATICA */
 
-function agregarSubtematica(){
+function agregarSubtematica() {
+  const lista = document.getElementById("listaSubtematicas");
 
-const lista = document.getElementById("listaSubtematicas");
+  const total = document.querySelectorAll(".subtematica-input").length;
 
-const total = document.querySelectorAll('.subtematica-input').length;
+  if (total >= maxSubtematicas) {
+    alert("Se alcanzó el límite de subtemáticas");
+    return;
+  }
 
-if(total >= maxSubtematicas){
-
-alert("Se alcanzó el límite de subtemáticas");
-return;
-
-}
-
-const html = `
-<div class="subtematica-item mb-3">
+  const html = `
+<div class="subtematica row mb-3 align-items-center g-2">
 
 <input type="hidden" name="subtematicas[${contadorSub}][id]" value="nuevo">
 
-<div class="subtematica-contenido d-flex gap-2">
+<div class="col-12 col-md-8">
 
 <input
 class="form-control subtematica-input"
@@ -58,9 +46,13 @@ name="subtematicas[${contadorSub}][nombre]"
 placeholder="Nueva subtemática"
 required>
 
+</div>
+
+<div class="col-12 col-md-4">
+
 <button
 type="button"
-class="btn btn-eliminar-sub"
+class="btn btn-eliminar-sub w-100"
 onclick="eliminarSub(this)">
 Eliminar
 </button>
@@ -70,113 +62,90 @@ Eliminar
 </div>
 `;
 
-lista.insertAdjacentHTML("beforeend", html);
+  lista.insertAdjacentHTML("beforeend", html);
 
-contadorSub++;
+  contadorSub++;
 
-actualizarContador();
-
+  actualizarContador();
 }
-
 
 /*ELIMINAR SUBTEMATICA*/
 
-function eliminarSub(btn){
+function eliminarSub(btn) {
 
-const item = btn.closest(".subtematica-item");
+  const item = btn.closest(".subtematica");
 
-if(item){
-item.remove();
+  if (item) {
+    item.remove();
+  }
+
+  actualizarContador();
 }
-
-actualizarContador();
-
-}
-
 
 /* EVITAR DUPLICADOS */
 
-function hayDuplicados(){
+function hayDuplicados() {
+  const valores = [];
 
-const valores = [];
+  let duplicado = false;
 
-let duplicado = false;
+  document.querySelectorAll(".subtematica-input").forEach((input) => {
+    const valor = input.value.trim().toLowerCase();
 
-document.querySelectorAll(".subtematica-input").forEach(input => {
+    if (valor === "") return;
 
-const valor = input.value.trim().toLowerCase();
+    if (valores.includes(valor)) {
+      duplicado = true;
+    }
 
-if(valor === "") return;
+    valores.push(valor);
+  });
 
-if(valores.includes(valor)){
-
-duplicado = true;
-
+  return duplicado;
 }
-
-valores.push(valor);
-
-});
-
-return duplicado;
-
-}
-
 
 /* INICIALIZAR */
 
 document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("formCrearTematica");
 
-const form = document.getElementById("formCrearTematica");
+  if (!form) return;
 
-if(!form) return;
+  contadorSub = document.querySelectorAll(".subtematica-input").length;
 
-/* Crear primera subtemática automáticamente */
+  /* Crear primera subtemática automáticamente */
 
-if(document.querySelectorAll('.subtematica-input').length === 0){
+  if (contadorSub === 0) {
+    agregarSubtematica();
+  }
 
-agregarSubtematica();
+  /* Validación al enviar */
 
-}
+  form.addEventListener("submit", function (e) {
+    const subs = document.querySelectorAll(".subtematica-input");
 
-/* Validación al enviar */
+    if (subs.length === 0) {
+      alert("Debes agregar al menos una subtemática");
+      e.preventDefault();
+      return;
+    }
 
-form.addEventListener("submit", function(e){
+    /* Verificar duplicados */
 
-const subs = document.querySelectorAll('.subtematica-input');
+    if (hayDuplicados()) {
+      alert("No se permiten subtemáticas duplicadas");
+      e.preventDefault();
+      return;
+    }
 
-if(subs.length === 0){
+    /* Limpiar inputs vacíos */
 
-alert("Debes agregar al menos una subtemática");
-e.preventDefault();
-return;
+    subs.forEach((input) => {
+      if (input.value.trim() === "") {
+        input.removeAttribute("name");
+      }
+    });
+  });
 
-}
-
-/* Verificar duplicados */
-
-if(hayDuplicados()){
-
-alert("No se permiten subtemáticas duplicadas");
-e.preventDefault();
-return;
-
-}
-
-/* Limpiar inputs vacíos */
-
-subs.forEach(input => {
-
-if(input.value.trim() === ""){
-
-input.removeAttribute("name");
-
-}
-
-});
-
-});
-
-actualizarContador();
-
+  actualizarContador();
 });
