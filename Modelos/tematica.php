@@ -116,17 +116,12 @@ INNER JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica";
     public function obtenerTematicasEditar($id_tematica)
     {
 
-        $sql = "SELECT DISTINCT tema.id_tematica, tema.nombre_tematica as nombre, tema.descripcion_tematica as descripcion, 
-	(SELECT COUNT(*) 
-        FROM subtematica as subt
-        WHERE tema.id_tematica = subt.id_tematica) AS total,
+        $sql = "SELECT DISTINCT id_tematica, nombre_tematica as nombre, descripcion_tematica as descripcion, 
         (CASE 
-            WHEN tema.estado = 1 THEN 'Activo'
+            WHEN estado = 1 THEN 'Activo'
             ELSE 'Desactivado'
         END) AS estado
-        FROM tematica as tema
-INNER JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica
-WHERE tema.id_tematica = ?;";
+        FROM tematica WHERE id_tematica = ?;";
         // Preparar y ejecutar
         $stmt = $this->con->prepare($sql);
 
@@ -177,15 +172,11 @@ WHERE tema.id_tematica = ? AND subt.estado=1;";
     {
 
         $sql = "SELECT DISTINCT tema.id_tematica, tema.nombre_tematica as nombre, tema.descripcion_tematica as descripcion, 
-	(SELECT COUNT(*) 
-        FROM subtematica as subt
-        WHERE tema.id_tematica = subt.id_tematica) AS total,
         (CASE 
             WHEN tema.estado = 1 THEN 'Activo'
             ELSE 'Desactivado'
         END) AS estado
         FROM tematica as tema
-INNER JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica
 WHERE tema.id_tematica = ?;";
         // Preparar y ejecutar
         $stmt = $this->con->prepare($sql);
@@ -251,16 +242,20 @@ WHERE tema.id_tematica = ?;";
 
         switch ($rol) {
             case 'supervisor':
-                $base = "SELECT DISTINCT tema.id_tematica, tema.nombre_tematica as tematica, tema.descripcion_tematica as descripcion, tema.fecha_creacion AS creacion, tema.fecha_modificacion AS modificacion,
-	(SELECT COUNT(*) 
-        FROM subtematica as subt
-        WHERE tema.id_tematica = subt.id_tematica) AS total,
-        (CASE 
+                $base = "SELECT 
+                area.id_tematica,
+                area.nombre_tematica AS nombre,
+                area.descripcion_tematica AS descripcion,
+                area.fecha_creacion AS creacion,
+                area.fecha_modificacion AS modificacion,
+                (SELECT COUNT(*) FROM subtematicas as subt WHERE subt.id_tematica = area.id.tematica AND subt.estado = 1) AS total,
+                (CASE 
             WHEN tema.estado = 1 THEN 'Activo'
             ELSE 'Desactivado'
         END) AS estado
-        FROM tematica as tema
-INNER JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica ";
+            FROM tematica AS tema
+            LEFT JOIN tema subt 
+                ON subt.id_tematica = tema.id_tematica";
                 break;
 
             default:
@@ -271,7 +266,7 @@ INNER JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica ";
         }
 
         // --- Filtro por estado ---
-        if ($filtro != 2) { // 2 significa "Total", no filtrar
+        if ($filtro == 0 || $filtro == 1) { // 2 significa "Total", no filtrar
             $where[] = "tema.estado = ? ";
             $params[] = $filtro;
             $types   .= "i";

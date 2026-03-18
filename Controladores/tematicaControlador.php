@@ -91,9 +91,9 @@ class tematicaControlador
         switch ($rol) {
             case 'supervisor':
                 $opciones = [
-                    'Total'       => "Total ({$filtros[0]['Total']})",
-                    'Activo'     => "Activos ({$filtros[0]['Activo']})",
-                    'Desactivado'  => "Desactivados ({$filtros[0]['Desactivado']})"
+                    'Total'       => "Total ({$filtros[0]['Total']} en total)",
+                    'Activo'     => "Activos ({$filtros[0]['Activo']} en total)",
+                    'Desactivado'  => "Desactivados ({$filtros[0]['Desactivado']} en total)"
                 ];
                 break;
             default:
@@ -207,11 +207,6 @@ class tematicaControlador
     {
         $boton = "";
         switch ($tipo) {
-            case 'Activar':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_tematica=' . $id1 . '&tipo=Activo" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Activar temática"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
-                break;
             case 'Editar Tematica':
                 $boton = '<a href="editar.php?id_tematica=' . $id1 . '" type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Editar temática"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
@@ -230,9 +225,6 @@ class tematicaControlador
         data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar temática"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
 </svg></a>';
-                break;
-            case 'Guardar':
-                $boton = '<button type="submit" class="btn btn-primary">Guardar cambios</button>';
                 break;
             default:
                 break;
@@ -353,6 +345,10 @@ class tematicaControlador
                 foreach ($ids_eliminar as $id) {
                     $tematica->eliminar_subtematica($id, 0);
                 }
+            }
+
+            if ($estado == 0) {
+                $tematica->eliminar_tematica($id, $estado);
             }
 
             $conn->commit();

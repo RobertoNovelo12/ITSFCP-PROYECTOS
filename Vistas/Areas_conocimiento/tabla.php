@@ -18,38 +18,39 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 $buscar = $_GET['buscar'] ?? '';
 $pagina = intval($_GET['pagina'] ?? 1);
 
-include "../../Controladores/tematicaControlador.php";
+include "../../Controladores/areaconocimientoControlador.php";
 
-$tematicaControlador = new tematicaControlador();
+$areaControlador = new AreaConocimientoControlador();
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_tematica') {
     $id_tematica = intval($_GET['id_tematica']);
-    $tematicaControlador->$action= "eliminar";
+    $areaControlador->$action = "eliminar";
 }
 
 
-if (!method_exists($tematicaControlador, $action)) {
+if (!method_exists($areaControlador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");
 }
 
-$resultado = $tematicaControlador->$action($rol, $buscar);
+$resultado = $areaControlador->$action($rol, $buscar);
 
 if (is_string($resultado)) {
     $resultado = json_decode($resultado, true);
 }
 
-$tematica = $resultado['tematica'] ?? [];
+$area = $resultado['area'] ?? [];
 
 $paginacion = $resultado['paginacion'] ?? [
-    'total' => count($tematica),
+    'total' => count($area),
     'por_pagina' => 6,
     'pagina' => $pagina,
-    'total_paginas' => max(1, ceil(count($tematica) / 6))
+    'total_paginas' => max(1, ceil(count($area) / 6))
 ];
 
-$filtros = $tematicaControlador->filtros($rol);
-$encabezados = $tematicaControlador->encabezadosPrincipal($rol);
-$opciones = $tematicaControlador->opciones($rol, $filtros);
+$filtros = $areaControlador->filtros($rol);
+
+$encabezados = $areaControlador->encabezadosPrincipal($rol);
+$opciones = $areaControlador->opciones($rol, $filtros);
 
 ob_start();
 include __DIR__ . '/../../mensaje.php';
@@ -61,13 +62,13 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row mb-4 align-items-center">
 
         <div class="col-12 col-md-6">
-            <h3 class="fw-bold mb-2 mb-md-0">Temáticas</h3>
+            <h3 class="fw-bold mb-2 mb-md-0">Áreas de conocimientos</h3>
         </div>
 
         <div class="col-12 col-md-6 text-md-end">
             <?php if ($rol == "supervisor"): ?>
                 <a href="crear.php" class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i> Crear temática
+                    <i class="bi bi-plus-lg"></i> Crear área de conocimiento
                 </a>
             <?php endif; ?>
         </div>
@@ -93,7 +94,7 @@ include __DIR__ . '/../../mensaje.php';
                 <input type="text"
                     name="buscar"
                     class="form-control"
-                    placeholder="Buscar temática..."
+                    placeholder="Buscar Área..."
                     value="<?= htmlspecialchars($buscar) ?>">
                 <button type="submit" class="btn btn-primary">
                     Buscar
@@ -115,37 +116,37 @@ include __DIR__ . '/../../mensaje.php';
             </thead>
             <tbody>
                 <?php if ($rol == "supervisor"): ?>
-                    <?php foreach ($tematica as $tem): ?>
+                    <?php foreach ($area as $ar): ?>
                         <tr>
-                            <td><?= $tem['tematica'] ?></td>
-                            <td title="<?= htmlspecialchars($tem['descripcion']) ?>">
-                                <?= strlen($tem['descripcion']) > 60
-                                    ? substr($tem['descripcion'], 0, 60) . '...'
-                                    : $tem['descripcion']; ?>
+                            <td><?= $ar['nombre'] ?></td>
+                            <td title="<?= htmlspecialchars($ar['descripcion']) ?>">
+                                <?= strlen($ar['descripcion']) > 60
+                                    ? substr($ar['descripcion'], 0, 60) . '...'
+                                    : $ar['descripcion']; ?>
                             </td>
-                            <td><?= $tem['total'] ?></td>
+                            <td><?= $ar['total'] ?></td>
                             <td>
-                                <span class="badge rounded-pill text-bg-<?php echo $tematicaControlador->EstiloEstadoLista($tem['estado']); ?>">
-                                    <?= htmlspecialchars($tem['estado']) ?>
+                                <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar['estado']); ?>">
+                                    <?= htmlspecialchars($ar['estado']) ?>
                                 </span>
                             </td>
                             <td>
-                                <?= date("d/m/Y", strtotime($tem['creacion'])) ?>
+                                <?= date("d/m/Y", strtotime($ar['creacion'])) ?>
                                 <br>
-                                <?= date("H:i", strtotime($tem['creacion'])) ?>
+                                <?= date("H:i", strtotime($ar['creacion'])) ?>
                             </td>
                             <td>
                                 <?php
-                                if (!empty($tem['modificacion'])) {
-                                    echo date("d/m/Y", strtotime($tem['modificacion'])) . "<br>";
-                                    echo date("H:i", strtotime($tem['modificacion']));
+                                if (!empty($ar['modificacion'])) {
+                                    echo date("d/m/Y", strtotime($ar['modificacion'])) . "<br>";
+                                    echo date("H:i", strtotime($ar['modificacion']));
                                 } else {
                                     echo "No modificado";
                                 }
                                 ?>
                             </td>
                             <td>
-                                <?= $tematicaControlador->botonesAccionPrincipal($tem['id_tematica'], $rol, $tem['estado']) ?>
+                                <?= $areaControlador->botonesAccionPrincipal($ar['id_area'], $rol, $ar['estado']) ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -153,7 +154,7 @@ include __DIR__ . '/../../mensaje.php';
                     <tr>
                         <td colspan="7">
                             <div class="alert alert-danger">
-                                No tiene permiso para editar la temática y subtemática
+                                No tiene permiso para editar el área y subarea de
                             </div>
                         </td>
                     </tr>
@@ -165,20 +166,20 @@ include __DIR__ . '/../../mensaje.php';
     <!-- TARJETAS MOVIL -->
 
     <div class="d-block d-md-none">
-        <?php foreach ($tematica as $tematica_item): ?>
+        <?php foreach ($area as $ar_item): ?>
             <div class="card shadow-sm mb-3">
                 <div class="card-body text-center">
                     <h5 class="fw-bold">
-                        <?= $tematica_item['tematica'] ?>
+                        <?= $ar_item['tematica'] ?>
                     </h5>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <strong>Descripción</strong>
-                        <p class="mb-0" title="<?= htmlspecialchars($tematica_item['descripcion']) ?>">
-                            <?= strlen($tematica_item['descripcion']) > 60
-                                ? substr($tematica_item['descripcion'], 0, 60) . '...'
-                                : $tematica_item['descripcion']; ?>
+                        <p class="mb-0" title="<?= htmlspecialchars($ar_item['descripcion']) ?>">
+                            <?= strlen($ar_item['descripcion']) > 60
+                                ? substr($ar_item['descripcion'], 0, 60) . '...'
+                                : $ar_item['descripcion']; ?>
                         </p>
                     </li>
                     <li class="list-group-item">
@@ -186,17 +187,17 @@ include __DIR__ . '/../../mensaje.php';
                             <div class="col-6">
                                 <strong>Creación</strong>
                                 <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($tematica_item['creacion'])) ?>
+                                    <?= date("d/m/Y", strtotime($ar_item['creacion'])) ?>
                                     <br>
-                                    <?= date("H:i", strtotime($tematica_item['creacion'])) ?>
+                                    <?= date("H:i", strtotime($ar_item['creacion'])) ?>
                                 </p>
                             </div>
                             <div class="col-6">
                                 <strong>Modificación</strong>
                                 <br>
-                                <?php if (!empty($tematica_item['modificacion'])) {
-                                    echo date("d/m/Y", strtotime($tematica_item['modificacion'])) . "<br>";
-                                    echo date("H:i", strtotime($tematica_item['modificacion']));
+                                <?php if (!empty($ar_item['modificacion'])) {
+                                    echo date("d/m/Y", strtotime($ar_item['modificacion'])) . "<br>";
+                                    echo date("H:i", strtotime($ar_item['modificacion']));
                                 } else {
                                     echo "No modificado";
                                 } ?>
@@ -208,14 +209,14 @@ include __DIR__ . '/../../mensaje.php';
                             <div class="col-6">
                                 <strong>Subtemáticas</strong>
                                 <p class="mb-0">
-                                    <?= $tematica_item['total'] ?>
+                                    <?= $ar_item['total'] ?>
                                 </p>
                             </div>
                             <div class="col-6">
                                 <strong>Estado</strong>
                                 <br>
-                                <span class="badge rounded-pill text-bg-<?php echo $tematicaControlador->EstiloEstadoLista($tematica_item['estado']); ?>">
-                                    <?= htmlspecialchars($tematica_item['estado']) ?>
+                                <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar_item['estado']); ?>">
+                                    <?= htmlspecialchars($ar_item['estado']) ?>
                                 </span>
                             </div>
                         </div>
@@ -223,7 +224,7 @@ include __DIR__ . '/../../mensaje.php';
                 </ul>
                 <div class="card-body">
                     <div class="d-flex justify-content-center gap-2">
-                        <?php echo $tematicaControlador->botonesAccionPrincipal($tematica_item['id_tematica'], $rol, $tematica_item['estado']); ?>
+                        <?php echo $areaControlador->botonesAccionPrincipal($ar_item['id_area'], $rol, $ar_item['estado']); ?>
                     </div>
                 </div>
             </div>
@@ -259,7 +260,7 @@ include __DIR__ . '/../../mensaje.php';
 <?php
 
 $contenido = ob_get_clean();
-$titulo = "Tematica y subtematica";
+$titulo = "Área y subarea de conocimientos";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';

@@ -19,9 +19,9 @@ require_once '../../Controladores/tematicaControlador.php';
 
 $action = $_POST['action'] ?? null;
 
-if ($action === 'registrarArea_conocimineto') {
+if ($action === 'registrarTematica') {
 
-    $tematicaControlador = new AreaConocimientoControlador();
+    $tematicaControlador = new TematicaControlador();
 
     $subtematicas = $_POST['subtematicas'] ?? [];
 
