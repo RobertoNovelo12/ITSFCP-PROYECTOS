@@ -1,23 +1,20 @@
 <?php
 
-require_once __DIR__ . '/../Modelos/tematica.php';
+require_once __DIR__ . '/../Modelos/periodo.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 
-
-
-class tematicaControlador
-{
+class periodoControlador{
 
     //Obtener datos
     public function index($rol, $buscar = null)
     {
         global $conn;
 
-        $tematica = new Tematica($conn);
+        $Periodo = new Periodo($conn);
 
         if ($rol == "supervisor") {
             //Revisión de estados de tarea
-            $tema = $tematica->obtenerTematicas($rol, $buscar);
+            $tema = $Periodo->obtenerPeriodo($rol, $buscar);
             return $tema;
         } else {
             $tema = []; // evita undefined variable
@@ -26,13 +23,13 @@ class tematicaControlador
     }
 
     //Obtener datos para editar
-    public function indexEditar($rol, $id_tematica)
+    public function indexEditar($rol, $id_periodo)
     {
         global $conn;
 
         if ($rol == "supervisor") {
-            $tematica = new Tematica($conn);
-            $tema = $tematica->obtenerTematicasEditar($id_tematica);
+            $Periodo = new Periodo($conn);
+            $tema = $Periodo->obtenerPeriodoEditar($id_periodo);
             return $tema;
         } else {
             $tema = []; // evita undefined variable
@@ -40,13 +37,13 @@ class tematicaControlador
         }
     }
 
-        public function indexDetalles($rol, $id_tematica)
+        public function indexDetalles($rol, $id_periodo)
     {
         global $conn;
 
         if ($rol == "supervisor") {
-            $tematica = new Tematica($conn);
-            $tema = $tematica->obtenerTematicasDetalles($id_tematica);
+            $Periodo = new Periodo($conn);
+            $tema = $Periodo->obtenerPeriodoDetalles($id_periodo);
             return $tema;
         } else {
             $tema = []; // evita undefined variable
@@ -54,7 +51,7 @@ class tematicaControlador
         }
     }
 
-    public function eliminar_tematica($id_tematica, $rol)
+    public function eliminar_periodo($id_periodo, $rol)
     {
         // Lógica para cambiar de estado una temática a desactivado
         if ($rol !== 'supervisor') {
@@ -63,8 +60,8 @@ class tematicaControlador
 
         global $conn;
 
-        $tematica = new Tematica($conn);
-        $tematica->eliminar_tematica($id_tematica, 0);
+        $Periodo = new Periodo($conn);
+        $Periodo->eliminar_periodo($id_periodo, 0);
         return 0;
     }
 
@@ -128,10 +125,10 @@ class tematicaControlador
     public function filtros($rol)
     {
         global $conn;
-        $tematica = new Tematica($conn);
+        $Periodo = new Periodo($conn);
         //Datos filtros
         if ($rol == "supervisor") {
-            $tema = $tematica->obtenerTematicasDatosFiltro($rol);
+            $tema = $Periodo->obtenerPeriodoDatosFiltro($rol);
             return $tema;
         } else {
             $tema = []; // evita undefined variable
@@ -144,14 +141,14 @@ class tematicaControlador
     public function Total($rol, $buscar = null)
     {
         global $conn;
-        $tematica = new Tematica($conn);
+        $Periodo = new Periodo($conn);
         //Datos filtros
         if ($rol == "supervisor") {
-            $tematicas = $tematica->obtenerTematicasTablaFiltro(2, $rol, $buscar);
-            return $tematicas;
+            $Periodos = $Periodo->obtenerPeriodoTablaFiltro(2, $rol, $buscar);
+            return $Periodos;
         } else {
-            $tematicas = []; // evita undefined variable
-            return $tematicas;
+            $Periodos = []; // evita undefined variable
+            return $Periodos;
         }
     }
 
@@ -159,14 +156,14 @@ class tematicaControlador
     public function Activo($rol, $buscar = null)
     {
         global $conn;
-        $tematica = new Tematica($conn);
+        $periodo = new Periodo($conn);
         //Datos filtros
         if ($rol == "supervisor") {
-            $tematicas = $tematica->obtenerTematicasTablaFiltro(1, $rol, $buscar);
-            return $tematicas;
+            $periodo = $periodo->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
+            return $periodo;
         } else {
-            $tematicas = []; // evita undefined variable
-            return $tematicas;
+            $periodo = []; // evita undefined variable
+            return $periodo;
         }
     }
 
@@ -174,14 +171,14 @@ class tematicaControlador
     public function Desactivado($rol, $buscar = null)
     {
         global $conn;
-        $proyecto = new Tematica($conn);
+        $proyecto = new Periodo($conn);
         //Datos filtros
         if ($rol == "supervisor") {
-            $tematicas = $proyecto->obtenerTematicasTablaFiltro(0, $rol, $buscar);
-            return $tematicas;
+            $periodo = $proyecto->obtenerPeriodoTablaFiltro(0, $rol, $buscar);
+            return $periodo;
         } else {
-            $tematicas = []; // evita undefined variable
-            return $tematicas;
+            $periodo = []; // evita undefined variable
+            return $periodo;
         }
     }
 
@@ -207,22 +204,22 @@ class tematicaControlador
     {
         $boton = "";
         switch ($tipo) {
-            case 'Editar Tematica':
-                $boton = '<a href="editar.php?id_tematica=' . $id1 . '" type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Editar temática"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+            case 'Editar Periodo':
+                $boton = '<a href="editar.php?id_periodos=' . $id1 . '" type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Editar periodo"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
   <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
   <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
 </svg></a>';
                 break;
             case 'Detalles':
-                $boton = '<a href="detalles.php?id_tematica=' . $id1 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la temática"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
+                $boton = '<a href="detalles.php?id_periodos=' . $id1 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la periodo"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
             case 'Desactivar':
                 $boton = '
-                <a href="tabla.php?&id_tematica=' . $id1 . '&action=desactivar_tematica" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar temática"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                <a href="tabla.php?&id_periodos=' . $id1 . '&action=desactivar_periodo" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar periodo"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
 </svg></a>';
                 break;
@@ -241,7 +238,7 @@ class tematicaControlador
 
             case 'supervisor':
                 if (in_array($estado, ["Activo"])) {
-                    $boton = $this->obtenerbotones("Editar Tematica", $id);
+                    $boton = $this->obtenerbotones("Editar Periodo", $id);
                     $boton .= $this->obtenerbotones("Detalles", $id);
                     $boton .= $this->obtenerbotones("Desactivar", $id);
                 } elseif ($estado == "Desactivado") {
@@ -254,41 +251,34 @@ class tematicaControlador
     }
 
     //Crear temática
-    public function registrarTematica($rol)
+    public function registrarPeriodo($rol)
     {
         if ($rol != 'supervisor') {
-            die("No tienes permiso para registrar temáticas.");
+            die("No tienes permiso para registrar periodo.");
         }
 
         global $conn;
 
-        $nombre = trim($_POST['NombreTematica']);
-        $descripcion = trim($_POST['Descripcion']);
-        $subtematicas = $_POST['subtematicas'] ?? [];
+        $nombre = trim($_POST['NombrePeriodo']);
+        $inicio = $_POST['fecha_inicio'];
+        $final = $_POST['fecha_final'];
 
-        $tematica = new Tematica($conn);
+        $periodo = new Periodo($conn);
 
-        // 1️ Insertar temática
-        $id_tematica = $tematica->registrarTematica($nombre, $descripcion);
+        // 1️ Insertar periodo
+        $id_periodo = $periodo->registrarPeriodo($nombre);
 
-        if (!$id_tematica) {
+        if (!$id_periodo) {
             header("Location: crear.php?error=1");
             exit;
-        }
-
-        // 2️ Insertar subtemáticas
-        if (!empty($subtematicas)) {
-            foreach ($subtematicas as $sub) {
-                $tematica->registrarSubtematica($id_tematica, $sub['nombre']);
-            }
         }
 
         header("Location: tabla.php?mensaje=1");
         exit;
     }
 
-    //Editar temática y subtematica
-    public function editarTematica($rol)
+    //Editar periodo
+    public function editarPeriodo($rol)
     {
 
         if ($rol != 'supervisor') {
@@ -297,56 +287,17 @@ class tematicaControlador
 
         global $conn;
 
-        $tematica = new Tematica($conn);
+        $periodo = new Periodo($conn);
 
-        $id_tematica = $_POST['id_tematica'];
-        $nombre = trim($_POST['NombreTematica']);
-        $descripcion = trim($_POST['Descripcion']);
-        $estado = trim($_POST['Estado']);
+        $id_periodo = $_POST['id_periodos'];
+        $nombre = trim($_POST['NombrePeriodo']);
 
-        $subtematicas = $_POST['subtematicas'] ?? [];
 
-        $ids_bd = $tematica->obtenerIdsSubtematicas($id_tematica);
         $conn->begin_transaction();
 
         try {
-            $tematica->editarTematica($nombre, $descripcion, $id_tematica);
-
-
-            //Proceso de registrar y actualizar subtematica
-            $ids_form = [];
-            foreach ($subtematicas as $sub) {
-
-
-                $id = $sub['id'] ?? null;
-                $nombre_sub = trim($sub['nombre'] ?? '');
-
-                if ($nombre_sub == '') continue;
-                $tematica->comparar_Duplicidad_Subtematica($id_tematica, $nombre_sub, $id);
-
-                if ($id === 'nuevo' || empty($id)) {
-
-                    $tematica->registrarsubtematica(intval($id_tematica), $nombre_sub);
-                } else {
-
-                    $tematica->editarSubtematica($id, $nombre_sub);
-
-                    $ids_form[] = $id;
-                }
-            }
-            //Proceso de eliminar subtematicas
-            //Revisa las IDs del formulario y las extraidas de la base de datos para comparar
-            $ids_eliminar = array_diff($ids_bd, $ids_form);
-            if (!empty($ids_eliminar)) {
-                foreach ($ids_eliminar as $id) {
-                    $tematica->eliminar_subtematica($id, 0);
-                }
-            }
-
-            if ($estado == 0) {
-                $tematica->eliminar_tematica($id, $estado);
-            }
-
+            $periodo->editarPeriodo($nombre, $id_periodo);
+          
             $conn->commit();
         } catch (Exception $e) {
 
@@ -358,3 +309,4 @@ class tematicaControlador
         exit;
     }
 }
+?>

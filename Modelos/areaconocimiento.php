@@ -71,7 +71,7 @@ FROM areas_conocimiento AS area;";
         }
 
         if (!empty($where)) {
-            $sql .= " WHERE area.estodo = 1 " . implode(" AND ", $where);
+            $sql .= " WHERE " . implode(" AND ", $where);
         }
 
         // AGRUPACIÓN NECESARIA

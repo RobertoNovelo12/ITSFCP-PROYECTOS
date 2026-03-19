@@ -21,14 +21,12 @@ $action = $_POST['action'] ?? null;
 
 if ($action === 'registrarArea_conocimineto') {
 
-    $tematicaControlador = new AreaConocimientoControlador();
+    $tematicaControlador = new tematicaControlador();
 
     $subtematicas = $_POST['subtematicas'] ?? [];
 
     $tematicaControlador->registrarTematica(
-        $_POST,
-        $rol,
-        $subtematicas
+        $rol
     );
 }
 

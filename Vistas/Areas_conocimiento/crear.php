@@ -15,20 +15,20 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 /* CONTROLADOR */
-require_once '../../Controladores/tematicaControlador.php';
+require_once '../../Controladores/areaconocimientoControlador.php';
 
 $action = $_POST['action'] ?? null;
 
-if ($action === 'registrarTematica') {
+if ($action === 'registrarArea') {
 
-    $tematicaControlador = new TematicaControlador();
+    $areaControlador = new AreaConocimientoControlador();
 
-    $subtematicas = $_POST['subtematicas'] ?? [];
+    $subareas = $_POST['subarea'] ?? [];
 
-    $tematicaControlador->registrarTematica(
+    $areaControlador->registrarArea(
         $_POST,
         $rol,
-        $subtematicas
+        $subareas
     );
 }
 
@@ -37,9 +37,9 @@ include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
 
-<form method="POST" action="" id="formCrearTematica">
+<form method="POST" action="" id="formCrearArea">
 
-    <input type="hidden" name="action" value="registrarTematica">
+    <input type="hidden" name="action" value="registrarArea">
 
     <div class="container-fluid py-4">
 
@@ -47,7 +47,7 @@ include __DIR__ . '/../../error.php';
         <div class="row mb-3">
 
             <div class="col-6">
-                <h3>Crear Temática</h3>
+                <h3>Crear Área de conocimiento</h3>
             </div>
 
             <div class="col-6 text-end">
@@ -56,75 +56,64 @@ include __DIR__ . '/../../error.php';
 
         </div>
 
-        <!-- DATOS TEMÁTICA -->
-        <h5>Información de la temática</h5>
+        <!-- DATOS ÁREA -->
+        <h5>Información del área</h5>
 
         <div class="mb-3">
-
             <label class="form-label">Nombre</label>
 
             <input
                 type="text"
-                id="NombreTematica"
-                name="NombreTematica"
+                id="NombreArea"
+                name="NombreArea"
                 class="form-control"
                 required>
-
         </div>
 
         <div class="mb-3">
-
             <label class="form-label">Descripción</label>
 
             <textarea
                 name="Descripcion"
                 class="form-control"
                 required></textarea>
-
         </div>
 
-        <!-- SUBTEMÁTICAS -->
-        <h5>Subtemáticas (<span id="contadorSubtematicas">0 / 10</span>)</h5>
+        <!-- SUBÁREAS -->
+        <h5>Subáreas (<span id="contadorSubarea">0 / 5</span>)</h5>
 
         <hr>
 
-        <!-- DESKTOP -->
-
-        <div id="listaSubtematicas"></div>
-
+        <div id="listaSubarea"></div>
 
         <!-- BOTÓN AGREGAR -->
         <div class="mt-3">
-
             <button
                 type="button"
                 class="btn btn-agregar-sub w-100"
-                onclick="agregarSubtematica()">
-                Agregar subtemática
+                onclick="agregarSubarea()">
+                Agregar subárea
             </button>
-
         </div>
 
         <hr>
 
         <button
             type="submit"
-            class="btn btn-guardar-tematica">
-
-            Crear temática
-
+            class="btn btn-guardar-area">
+            Crear área
         </button>
 
     </div>
 
 </form>
 
-<script src="../../publico/js/subtematicas.js"></script>
+<script src="../../publico/js/subareas.js"></script>
 
 <?php
 
 $contenido = ob_get_clean();
-$titulo = "Crear temática";
+$titulo = "Crear Área de conocimiento";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';

@@ -172,10 +172,10 @@ class AreaConocimientoControlador
     public function Desactivado($rol, $buscar = null)
     {
         global $conn;
-        $proyecto = new AreaConocimiento($conn);
+        $areaConocimiento = new AreaConocimiento($conn);
         //Datos filtros
         if ($rol == "supervisor") {
-            $areaConocimientos = $proyecto->obtenerAreasTablaFiltro($buscar, 0);
+            $areaConocimientos = $areaConocimiento->obtenerAreasTablaFiltro($buscar, 0);
             return $areaConocimientos;
         } else {
             $areaConocimientos = []; // evita undefined variable
