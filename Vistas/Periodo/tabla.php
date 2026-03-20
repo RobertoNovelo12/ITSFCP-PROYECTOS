@@ -18,13 +18,14 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 $buscar = $_GET['buscar'] ?? '';
 $pagina = intval($_GET['pagina'] ?? 1);
 
-include "../../Controladores/periodo.php";
+include "../../Controladores/periodoControlador.php";
 
 $periodoControlador = new periodoControlador();
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_periodo') {
     $id_periodos = intval($_GET['id_periodos']);
-    $periodoControlador->$action= "eliminar";
+    $action = "eliminar";
+    $periodoControlador->$action($id_periodos, $rol);
 }
 
 
@@ -61,13 +62,13 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row mb-4 align-items-center">
 
         <div class="col-12 col-md-6">
-            <h3 class="fw-bold mb-2 mb-md-0">Temáticas</h3>
+            <h3 class="fw-bold mb-2 mb-md-0">Periodos</h3>
         </div>
 
         <div class="col-12 col-md-6 text-md-end">
             <?php if ($rol == "supervisor"): ?>
                 <a href="crear.php" class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i> Crear temática
+                    <i class="bi bi-plus-lg"></i> Crear Periodo
                 </a>
             <?php endif; ?>
         </div>
@@ -93,7 +94,7 @@ include __DIR__ . '/../../mensaje.php';
                 <input type="text"
                     name="buscar"
                     class="form-control"
-                    placeholder="Buscar temática..."
+                    placeholder="Buscar..."
                     value="<?= htmlspecialchars($buscar) ?>">
                 <button type="submit" class="btn btn-primary">
                     Buscar
@@ -119,24 +120,19 @@ include __DIR__ . '/../../mensaje.php';
                         <tr>
                             <td><?= $per['periodo'] ?></td>
                             <td>
-                                <span class="badge rounded-pill text-bg-<?php echo $peraticaControlador->EstiloEstadoLista($per['estado']); ?>">
+                                <?= date("d/m/Y", strtotime($per['inicio'])) ?>
+                                <br>
+                                <?= date("H:i", strtotime($per['inicio'])) ?>
+                            </td>
+                            <td>
+                                <?= date("d/m/Y", strtotime($per['final'])) ?>
+                                <br>
+                                <?= date("H:i", strtotime($per['final'])) ?>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estado']); ?>">
                                     <?= htmlspecialchars($per['estado']) ?>
                                 </span>
-                            </td>
-                            <td>
-                                <?= date("d/m/Y", strtotime($per['Inicio'])) ?>
-                                <br>
-                                <?= date("H:i", strtotime($per['Inicio'])) ?>
-                            </td>
-                            <td>
-                                <?php
-                                if (!empty($per['final'])) {
-                                    echo date("d/m/Y", strtotime($per['final'])) . "<br>";
-                                    echo date("H:i", strtotime($per['final']));
-                                } else {
-                                    echo "No modificado";
-                                }
-                                ?>
                             </td>
                             <td>
                                 <?= $periodoControlador->botonesAccionPrincipal($per['id_periodos'], $rol, $per['estado']) ?>
@@ -147,7 +143,7 @@ include __DIR__ . '/../../mensaje.php';
                     <tr>
                         <td colspan="7">
                             <div class="alert alert-danger">
-                                No tiene permiso para editar la temática y subtemática
+                                No tiene permiso para editar el periodo
                             </div>
                         </td>
                     </tr>
@@ -170,39 +166,20 @@ include __DIR__ . '/../../mensaje.php';
                     <li class="list-group-item">
                         <div class="row text-center">
                             <div class="col-6">
-                                <strong>Creación</strong>
+                                <strong>Fecha inicio</strong>
                                 <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($periodo_item['creacion'])) ?>
+                                    <?= date("d/m/Y", strtotime($periodo_item['inicio'])) ?>
                                     <br>
-                                    <?= date("H:i", strtotime($periodo_item['creacion'])) ?>
+                                    <?= date("H:i", strtotime($periodo_item['inicio'])) ?>
                                 </p>
                             </div>
                             <div class="col-6">
-                                <strong>Final</strong>
-                                <br>
-                                <?php if (!empty($periodo_item['modificacion'])) {
-                                    echo date("d/m/Y", strtotime($periodo_item['modificacion'])) . "<br>";
-                                    echo date("H:i", strtotime($periodo_item['modificacion']));
-                                } else {
-                                    echo "No modificado";
-                                } ?>
-                            </div>
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Subtemáticas</strong>
+                                <strong>Fecha final</strong>
                                 <p class="mb-0">
-                                    <?= $periodo_item['total'] ?>
+                                    <?= date("d/m/Y", strtotime($periodo_item['final'])) ?>
+                                    <br>
+                                    <?= date("H:i", strtotime($periodo_item['final'])) ?>
                                 </p>
-                            </div>
-                            <div class="col-6">
-                                <strong>Estado</strong>
-                                <br>
-                                <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($periodo_item['estado']); ?>">
-                                    <?= htmlspecialchars($periodo_item['estado']) ?>
-                                </span>
                             </div>
                         </div>
                     </li>

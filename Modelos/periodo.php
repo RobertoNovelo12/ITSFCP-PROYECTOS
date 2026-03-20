@@ -20,7 +20,7 @@ class Periodo
   SUM(CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 1 ELSE 0 END) AS Activo,
   SUM(CASE WHEN CURDATE() < fecha_inicio THEN 1 ELSE 0 END) AS Pendiente,
   SUM(CASE WHEN CURDATE() > fecha_final THEN 1 ELSE 0 END) AS Terminado
-FROM periodos ORDER BY periodo DESC
+FROM periodos WHERE estado = 1 ORDER BY periodo DESC
 LIMIT 1;";
                 $stmt = $this->con->prepare($sql);
                 break;
@@ -46,14 +46,18 @@ LIMIT 1;";
         $where = [];
 
         $sql = "SELECT 
-                per.id_periodos,
-                per.periodo,
-                per.fecha_inicio AS inicio,
-                area.fecha_final AS final,
-                (CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-                CASE WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
-                CASE WHEN CURDATE() > fecha_final THEN 'Terminado' END) AS estado
-            FROM periodo";
+    id_periodos,
+    periodo,
+    fecha_inicio AS inicio,
+    fecha_final AS final,
+    fecha_creacion AS crear,
+    fecha_modificacion AS modificar,
+    CASE 
+        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
+        WHEN CURDATE() > fecha_final THEN 'Terminado'
+    END AS estado
+FROM periodos ";
 
         // Filtros
 
@@ -75,9 +79,11 @@ LIMIT 1;";
         // MEJORAR: SI buscar es fecha inicio, fecha final o periodo
 
         if (!empty($buscar)) {
-            $where[] = "fecha_inicio LIKE ?";
-            $params[] = "%$buscar%";
-            $types .= "s";
+        $where[] = "(fecha_inicio LIKE ? OR fecha_final LIKE ? OR periodo LIKE ?)";
+        $params[] = "%$buscar%";
+        $params[] = "%$buscar%";
+        $params[] = "%$buscar%";
+        $types .= "sss";
         }
 
         if (!empty($where)) {
@@ -117,80 +123,64 @@ LIMIT 1;";
     }
 
     public function obtenerCantidadPeriodo($buscar = null, $filtro = 2)
-    {
-        if ($filtro == 2) {
-            // Si el filtro es 2 (Total), no aplicamos ninguna condición adicional
-            $sql = "SELECT COUNT(*) AS total FROM periodos as per WHERE 1";
-            $params = [];
-            $types  = "";
-            // MEJORAR: SI buscar es fecha inicio, fecha final o periodo
-            if (!empty($buscar)) {
-                $sql .= " AND per.fecha_inicio LIKE ?";
-                $params[] = "%$buscar%";
-                $types   .= "s";
-            }
+{
+    $sql = "SELECT COUNT(*) AS total FROM periodos";
+    $params = [];
+    $types = "";
+    $where = [];
 
-            $stmt = $this->con->prepare($sql);
-
-
-            if (!empty($params)) {
-                $stmt->bind_param($types, ...$params);
-            } else {
-                // No hay parámetros para enlazar
-            }
-            $stmt->execute();
-            $resultado = $stmt->get_result()->fetch_assoc();
-            return $resultado['total'];   // OBTENER EL NUMERO TOTAL DE AREAS
-        } else {
-
-            $sql = "SELECT COUNT(*) AS total FROM periodos as per ";
-            $params = [];
-            $types = "";
-            $where = [];
-
-            // Filtros
-
-            switch ($filtro) {
-                case 0: //Terminado
-                    $where[] = " CURDATE() > fecha_final";
-                    break;
-                case 1: //Pendiente
-                    $where[] = " CURDATE() < fecha_inicio";
-                case 2:
-                    $where[] = " CURDATE() BETWEEN fecha_inicio AND fecha_final";
-                    break;
-                case 3:
-                    break;
-                default:
-                    break;
-            }
-
-            if (!empty($buscar)) {
-                $where[] = "fecha_inicio LIKE ?";
-                $params[] = "%$buscar%";
-                $types .= "s";
-            }
-
-            if (!empty($where)) {
-                $sql .= " WHERE " . implode(" AND ", $where);
-            }
-
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param($types, ...$params);
-        }
-        $stmt->execute();
-        $resultado = $stmt->get_result()->fetch_assoc();
-        return $resultado['total'];   // OBTENER EL NUMERO TOTAL DE AREAS
+    // Filtros
+    switch ($filtro) {
+        case 0: // Terminado
+            $where[] = "CURDATE() > fecha_final";
+            break;
+        case 1: // Pendiente
+            $where[] = "CURDATE() < fecha_inicio";
+            break;
+        case 2: // Activo
+            $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
+            break;
+        case 3: // Total
+            // No filtro
+            break;
     }
+
+    // Búsqueda
+    if (!empty($buscar)) {
+        $where[] = "(fecha_inicio LIKE ? OR fecha_final LIKE ? OR periodo LIKE ?)";
+        $params[] = "%$buscar%";
+        $params[] = "%$buscar%";
+        $params[] = "%$buscar%";
+        $types .= "sss";
+    }
+
+    // Construcción del WHERE
+    if (!empty($where)) {
+        $sql .= " WHERE " . implode(" AND ", $where);
+    }
+
+    $stmt = $this->con->prepare($sql);
+
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+
+    $stmt->execute();
+    $resultado = $stmt->get_result()->fetch_assoc();
+
+    return $resultado['total'];
+}
 
 
     // EDICIÓN
     public function obtenerPeriodoEditar($id_periodos)
     {
         $sql = "SELECT id_periodos, periodo, fecha_inicio, fecha_final,
-        (CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-                CASE WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
-                CASE WHEN CURDATE() > fecha_final THEN 'Terminado' END) AS estado
+        CASE 
+        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
+        WHEN CURDATE() > fecha_final THEN 'Terminado'
+    END AS estado
                 FROM periodos
                 WHERE id_periodos = ?";
 
@@ -210,10 +200,12 @@ LIMIT 1;";
     //Obtener datos para detalles
     public function obtenerPeriodoDetalles($id_periodos)
     {
-        $sql = "SELECT id_periodos, periodo, fecha_inicio, fecha_final,
-        (CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-                CASE WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
-                CASE WHEN CURDATE() > fecha_final THEN 'Terminado' END) AS estado
+        $sql = "SELECT id_periodos, periodo, fecha_inicio, fecha_final, fecha_creacion, fecha_modificacion,
+        CASE 
+        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
+        WHEN CURDATE() > fecha_final THEN 'Terminado'
+    END AS estado
                 FROM periodos
                 WHERE id_periodos = ?";
 
@@ -224,7 +216,7 @@ LIMIT 1;";
         $periodo = $stmt->get_result()->fetch_assoc();
 
         if (!$periodo) {
-            throw new Exception("Periodo no encontrada");
+            throw new Exception("Periodo no encontrado");
         }
 
         return $periodo;
@@ -233,7 +225,7 @@ LIMIT 1;";
     //Crea Periodo
     public function registrarPeriodo($periodo, $fecha_inicio, $fecha_final)
     {
-        $sql_sub = "INSERT INTO periodos (periodo, fecha_inicio, fecha_final) VALUES (?, ?, ?);";
+        $sql_sub = "INSERT INTO periodos (periodo, fecha_inicio, fecha_final, estado) VALUES (?, ?, ?, 1);";
         $stmt_sub = $this->con->prepare($sql_sub);
         $stmt_sub->bind_param("sss", $periodo, $fecha_inicio, $fecha_final);
         $stmt_sub->execute();
@@ -253,22 +245,17 @@ LIMIT 1;";
     }
 
     // ELIMINAR (SOFT DELETE)
-    public function eliminar_periodo($id_area, $estado)
+    public function eliminar_periodo($id_periodo, $estado)
     {
 
-        $sql = "UPDATE periodos SET estado = ? WHERE id_area = ?";
+        $sql = "UPDATE periodos SET estado = 0 WHERE id_periodos = ?";
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("ii", $estado, $id_area);
+        $stmt->bind_param("ii", $estado, $id_periodo);
         $stmt->execute();
-
-        $sql2 = "UPDATE subareas_conocimiento SET estado = ? WHERE id_area = ?";
-        $stmt2 = $this->con->prepare($sql2);
-        $stmt2->bind_param("ii", $estado, $id_area);
-        $stmt2->execute();
         return 0;
     }
-    //Busca duplicidad de subareas
-    public function comparar_Duplicidad_Subperiodo($id_area, $nombre)
+    //Busca duplicidad de periodos
+    public function comparar_Duplicidad_Subperiodo($id_peridos, $periodo)
     {
         $sql = "SELECT COUNT(*) as total
             FROM periodos
@@ -277,36 +264,22 @@ LIMIT 1;";
             AND estado = 1";
 
         if (!empty($id_excluir)) {
-            $sql .= " AND id_subarea != ?";
+            $sql .= " AND id_periodoss != ?";
         }
 
         $stmt = $this->con->prepare($sql);
 
         if (!empty($id_excluir)) {
-            $stmt->bind_param("isi", $id_area, $nombre, $id_excluir);
+            $stmt->bind_param("isi", $id_peridos, $periodo, $id_excluir);
         } else {
-            $stmt->bind_param("is", $id_area, $nombre);
+            $stmt->bind_param("is", $id_peridos, $periodo);
         }
 
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
 
         if ($result['total'] > 0) {
-            throw new Exception("La Subarea ya existe en esta Área de conocimiento");
+            throw new Exception("El periodo ya existe");
         }
-    }
-    //Obtener las ID de subáreas
-    public function obtenerIdsSubareas($id_area)
-    {
-        $sql = "SELECT id_subarea FROM subareas_conocimiento WHERE id_area = ? AND estado = 1";
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_area);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $ids = [];
-        while ($row = $result->fetch_assoc()) {
-            $ids[] = $row['id_subarea'];
-        }
-        return $ids;
     }
 }

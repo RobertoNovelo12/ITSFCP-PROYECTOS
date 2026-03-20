@@ -14,7 +14,7 @@ class periodoControlador{
 
         if ($rol == "supervisor") {
             //Revisión de estados de tarea
-            $tema = $Periodo->obtenerPeriodo($rol, $buscar);
+            $tema = $Periodo->obtenerPeriodoTablaFiltro($buscar, 3);
             return $tema;
         } else {
             $tema = []; // evita undefined variable
@@ -51,17 +51,17 @@ class periodoControlador{
         }
     }
 
-    public function eliminar_periodo($id_periodo, $rol)
+    public function eliminar($id_periodo, $rol)
     {
         // Lógica para cambiar de estado una temática a desactivado
         if ($rol !== 'supervisor') {
-            die("Error: No tienes permiso para eliminar temáticas.");
+            die("Error: No tienes permiso para eliminar periodo.");
         }
 
         global $conn;
 
         $Periodo = new Periodo($conn);
-        $Periodo->eliminar_periodo($id_periodo, 0);
+        $Periodo->eliminar_periodo($id_periodo, 0); // 0 Desactivado
         return 0;
     }
 
@@ -69,12 +69,10 @@ class periodoControlador{
     {
         if ($rol == "supervisor") {
             $encabezados = [
-                'Temática',
-                'Descripción',
-                'Subtemáticas',
+                'Periodo',
+                'Fecha Inicio',
+                'Fecha Final',
                 'Estado',
-                'Creación',
-                'Modificación',
                 'Acciones'
             ];
         } else {
@@ -90,7 +88,8 @@ class periodoControlador{
                 $opciones = [
                     'Total'       => "Total ({$filtros[0]['Total']} en total)",
                     'Activo'     => "Activos ({$filtros[0]['Activo']} en total)",
-                    'Desactivado'  => "Desactivados ({$filtros[0]['Desactivado']} en total)"
+                    'Pendiente'  => "Pendientes ({$filtros[0]['Pendiente']} en total)",
+                    'Terminado'  => "Terminados ({$filtros[0]['Terminado']} en total)",
                 ];
                 break;
             default:
@@ -107,13 +106,16 @@ class periodoControlador{
         $numerofiltro = 0;
         switch ($action) {
             case 'Total':
-                $numerofiltro = 2;
+                $numerofiltro = 3;
                 break;
             case 'Activo':
                 $numerofiltro = 0;
                 break;
             case 'Desactivado':
                 $numerofiltro = 1;
+                break;
+            case 'Pendiente':
+                $numerofiltro = 2;
                 break;
             default:
                 break;
@@ -144,7 +146,7 @@ class periodoControlador{
         $Periodo = new Periodo($conn);
         //Datos filtros
         if ($rol == "supervisor") {
-            $Periodos = $Periodo->obtenerPeriodoTablaFiltro(2, $rol, $buscar);
+            $Periodos = $Periodo->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
             return $Periodos;
         } else {
             $Periodos = []; // evita undefined variable
@@ -159,7 +161,7 @@ class periodoControlador{
         $periodo = new Periodo($conn);
         //Datos filtros
         if ($rol == "supervisor") {
-            $periodo = $periodo->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
+            $periodo = $periodo->obtenerPeriodoTablaFiltro(0, $rol, $buscar);
             return $periodo;
         } else {
             $periodo = []; // evita undefined variable
@@ -167,14 +169,28 @@ class periodoControlador{
         }
     }
 
-    //Desactivados
-    public function Desactivado($rol, $buscar = null)
+    //Pendientes
+    public function Pendiente($rol, $buscar = null)
     {
         global $conn;
         $proyecto = new Periodo($conn);
         //Datos filtros
         if ($rol == "supervisor") {
-            $periodo = $proyecto->obtenerPeriodoTablaFiltro(0, $rol, $buscar);
+            $periodo = $proyecto->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
+            return $periodo;
+        } else {
+            $periodo = []; // evita undefined variable
+            return $periodo;
+        }
+    }
+    //Terminados
+        public function Terminado($rol, $buscar = null)
+    {
+        global $conn;
+        $proyecto = new Periodo($conn);
+        //Datos filtros
+        if ($rol == "supervisor") {
+            $periodo = $proyecto->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
             return $periodo;
         } else {
             $periodo = []; // evita undefined variable
@@ -189,7 +205,10 @@ class periodoControlador{
             case 'Activo':
                 $estilo = "success";
                 break;
-            case 'Desactivado':
+            case 'Pendiente':
+                $estilo = "warning";
+                break;
+            case 'Terminado':
                 $estilo = "danger";
                 break;
             default:
@@ -241,7 +260,11 @@ class periodoControlador{
                     $boton = $this->obtenerbotones("Editar Periodo", $id);
                     $boton .= $this->obtenerbotones("Detalles", $id);
                     $boton .= $this->obtenerbotones("Desactivar", $id);
-                } elseif ($estado == "Desactivado") {
+                } elseif ($estado == "Pendiente") {
+                    $boton = $this->obtenerbotones("Editar Periodo", $id);
+                    $boton .= $this->obtenerbotones("Detalles", $id);
+                    $boton .= $this->obtenerbotones("Desactivar", $id);
+                } elseif ($estado == "Terminado") {
                     $boton .= $this->obtenerbotones("Detalles", $id);
                 }
                 break;
@@ -259,14 +282,14 @@ class periodoControlador{
 
         global $conn;
 
-        $nombre = trim($_POST['NombrePeriodo']);
-        $inicio = $_POST['fecha_inicio'];
-        $final = $_POST['fecha_final'];
+        $periodo = trim($_POST['periodo']);
+        $fecha_inicio = $_POST['fecha_inicio'];
+        $fecha_final = $_POST['fecha_final'];
 
         $periodo = new Periodo($conn);
 
         // 1️ Insertar periodo
-        $id_periodo = $periodo->registrarPeriodo($nombre, $inicio, $final);
+        $id_periodo = $periodo->registrarPeriodo($periodo, $fecha_inicio, $fecha_final);
 
         if (!$id_periodo) {
             header("Location: crear.php?error=1");
@@ -287,16 +310,16 @@ class periodoControlador{
 
         global $conn;
 
-        $periodo = new Periodo($conn);
+        $periodos = new Periodo($conn);
 
         $id_periodo = $_POST['id_periodos'];
-        $nombre = trim($_POST['NombrePeriodo']);
-
+        $periodo = trim($_POST['periodo']);
+        $fecha_inicio = $_POST['fecha_inicio'];
+        $fecha_final = $_POST['fecha_final'];
 
         $conn->begin_transaction();
-
         try {
-            $periodo->editarPeriodo($nombre, $id_periodo);
+            $periodos->editarPeriodo($periodo, $fecha_inicio, $fecha_final, $id_periodo);
           
             $conn->commit();
         } catch (Exception $e) {
