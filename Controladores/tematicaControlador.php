@@ -8,134 +8,128 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 class tematicaControlador
 {
 
+private $conn;
+
+        private function esSupervisor($rol)
+    {
+        return $rol === 'supervisor';
+    }
+
+        // Sanitizar entradas
+    private function limpiar($dato)
+    {
+        return htmlspecialchars(trim($dato), ENT_QUOTES, 'UTF-8');
+    }
+
+
     //Obtener datos
     public function index($rol, $buscar = null)
     {
-        global $conn;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
 
-        $tematica = new Tematica($conn);
+            $tematica = new Tematica($this->conn);
+            return $tematica->obtenerTematicas($rol, $buscar);
 
-        if ($rol == "supervisor") {
-            //Revisión de estados de tarea
-            $tema = $tematica->obtenerTematicas($rol, $buscar);
-            return $tema;
-        } else {
-            $tema = []; // evita undefined variable
-            return $tema;
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
     //Obtener datos para editar
     public function indexEditar($rol, $id_tematica)
     {
-        global $conn;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
 
-        if ($rol == "supervisor") {
-            $tematica = new Tematica($conn);
-            $tema = $tematica->obtenerTematicasEditar($id_tematica);
-            return $tema;
-        } else {
-            $tema = []; // evita undefined variable
-            return $tema;
+            $tematica = new Tematica($this->conn);
+            return $tematica->obtenerTematicasEditar((int)$id_tematica);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-        public function indexDetalles($rol, $id_tematica)
+    public function indexDetalles($rol, $id_tematica)
     {
-        global $conn;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
 
-        if ($rol == "supervisor") {
-            $tematica = new Tematica($conn);
-            $tema = $tematica->obtenerTematicasDetalles($id_tematica);
-            return $tema;
-        } else {
-            $tema = []; // evita undefined variable
-            return $tema;
+            $tematica = new Tematica($this->conn);
+            return $tematica->obtenerTematicasDetalles((int)$id_tematica);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
     public function eliminar_tematica($id_tematica, $rol)
     {
-        // Lógica para cambiar de estado una temática a desactivado
-        if ($rol !== 'supervisor') {
-            die("Error: No tienes permiso para eliminar temáticas.");
+        if (!$this->esSupervisor($rol)) {
+            throw new Exception("No tienes permiso para eliminar temáticas.");
         }
 
-        global $conn;
+        try {
+            $tematica = new Tematica($this->conn);
+            $tematica->eliminar_tematica((int)$id_tematica, 0);
+            return 0;
 
-        $tematica = new Tematica($conn);
-        $tematica->eliminar_tematica($id_tematica, 0);
-        return 0;
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return -1;
+        }
     }
 
     public function encabezadosPrincipal($rol)
     {
-        if ($rol == "supervisor") {
-            $encabezados = [
-                'Temática',
-                'Descripción',
-                'Subtemáticas',
-                'Estado',
-                'Creación',
-                'Modificación',
-                'Acciones'
-            ];
-        } else {
-            $encabezados = [];
-        }
-        return $encabezados;
+        return $this->esSupervisor($rol) ? [
+            'Temática',
+            'Descripción',
+            'Subtemáticas',
+            'Estado',
+            'Creación',
+            'Modificación',
+            'Acciones'
+        ] : [];
     }
 
     public function opciones($rol, $filtros)
     {
-        switch ($rol) {
-            case 'supervisor':
-                $opciones = [
-                    'Total'       => "Total ({$filtros[0]['Total']} en total)",
-                    'Activo'     => "Activos ({$filtros[0]['Activo']} en total)",
-                    'Desactivado'  => "Desactivados ({$filtros[0]['Desactivado']} en total)"
-                ];
-                break;
-            default:
-                $opciones = [];
-                break;
-        }
-        return $opciones;
+        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
+
+        return [
+            'Total' => "Total ({$filtros[0]['Total']} en total)",
+            'Activo' => "Activos ({$filtros[0]['Activo']} en total)",
+            'Desactivado' => "Desactivados ({$filtros[0]['Desactivado']} en total)"
+        ];
     }
 
     //Para obtener el número del filtro de la tabla
     public function numerofiltro($action)
     {
-
-        $numerofiltro = 0;
-        switch ($action) {
-            case 'Total':
-                $numerofiltro = 2;
-                break;
-            case 'Activo':
-                $numerofiltro = 0;
-                break;
-            case 'Desactivado':
-                $numerofiltro = 1;
-                break;
-            default:
-                break;
-        }
-        return $numerofiltro;
+        return match ($action) {
+            'Total' => 2,
+            'Activo' => 0,
+            'Desactivado' => 1,
+            default => 0,
+        };
     }
 
     //Datos filtros GENERAL
     public function filtros($rol)
     {
-        global $conn;
-        $tematica = new Tematica($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $tema = $tematica->obtenerTematicasDatosFiltro($rol);
-            return $tema;
-        } else {
-            $tema = []; // evita undefined variable
-            return $tema;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $tematica = new Tematica($this->conn);
+            return $tematica->obtenerTematicasDatosFiltro($rol);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
@@ -143,63 +137,56 @@ class tematicaControlador
     //Total
     public function Total($rol, $buscar = null)
     {
-        global $conn;
-        $tematica = new Tematica($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $tematicas = $tematica->obtenerTematicasTablaFiltro(2, $rol, $buscar);
-            return $tematicas;
-        } else {
-            $tematicas = []; // evita undefined variable
-            return $tematicas;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $tematica = new Tematica($this->conn);
+            return $tematica->obtenerTematicasTablaFiltro(2, $rol, $buscar);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
     //Activos
     public function Activo($rol, $buscar = null)
     {
-        global $conn;
-        $tematica = new Tematica($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $tematicas = $tematica->obtenerTematicasTablaFiltro(1, $rol, $buscar);
-            return $tematicas;
-        } else {
-            $tematicas = []; // evita undefined variable
-            return $tematicas;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $tematica = new Tematica($this->conn);
+            return $tematica->obtenerTematicasTablaFiltro(1, $rol, $buscar);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
+
 
     //Desactivados
     public function Desactivado($rol, $buscar = null)
     {
-        global $conn;
-        $proyecto = new Tematica($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $tematicas = $proyecto->obtenerTematicasTablaFiltro(0, $rol, $buscar);
-            return $tematicas;
-        } else {
-            $tematicas = []; // evita undefined variable
-            return $tematicas;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $tematica = new Tematica($this->conn);
+            return $tematica->obtenerTematicasTablaFiltro(0, $rol, $buscar);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
     public function EstiloEstadoLista($estado)
     {
-        switch ($estado) {
-
-            case 'Activo':
-                $estilo = "success";
-                break;
-            case 'Desactivado':
-                $estilo = "danger";
-                break;
-            default:
-                $estilo = "info";
-                break;
-        }
-        return $estilo;
+        return match ($estado) {
+            'Activo' => "success",
+            'Desactivado' => "danger",
+            default => "info"
+        };
     }
 
     //BOTONES
@@ -235,126 +222,118 @@ class tematicaControlador
     //Botones de acción en la tabla 
     public function botonesAccionPrincipal($id, $rol, $estado = null)
     {
+        if (!$this->esSupervisor($rol)) return "";
+
         $boton = "";
 
-        switch ($rol) {
-
-            case 'supervisor':
-                if (in_array($estado, ["Activo"])) {
-                    $boton = $this->obtenerbotones("Editar Tematica", $id);
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Desactivar", $id);
-                } elseif ($estado == "Desactivado") {
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                }
-                break;
+        if ($estado === "Activo") {
+            $boton .= $this->obtenerbotones("Editar Tematica", $id);
+            $boton .= $this->obtenerbotones("Detalles", $id);
+            $boton .= $this->obtenerbotones("Desactivar", $id);
+        } elseif ($estado === "Desactivado") {
+            $boton .= $this->obtenerbotones("Detalles", $id);
         }
 
         return $boton;
     }
 
     //Crear temática
-    public function registrarTematica($rol)
+        public function registrarTematica($rol)
     {
-        if ($rol != 'supervisor') {
-            die("No tienes permiso para registrar temáticas.");
+        if (!$this->esSupervisor($rol)) {
+            throw new Exception("No tienes permiso.");
         }
 
-        global $conn;
+        try {
+            $nombre = $this->limpiar($_POST['NombreTematica']);
+            $descripcion = $this->limpiar($_POST['Descripcion']);
+            $subtematicas = $_POST['subtematicas'] ?? [];
 
-        $nombre = trim($_POST['NombreTematica']);
-        $descripcion = trim($_POST['Descripcion']);
-        $subtematicas = $_POST['subtematicas'] ?? [];
+            $tematica = new Tematica($this->conn);
 
-        $tematica = new Tematica($conn);
+            $id_tematica = $tematica->registrarTematica($nombre, $descripcion);
 
-        // 1️ Insertar temática
-        $id_tematica = $tematica->registrarTematica($nombre, $descripcion);
+            if (!$id_tematica) {
+                header("Location: crear.php?error=1");
+                exit;
+            }
 
-        if (!$id_tematica) {
-            header("Location: crear.php?error=1");
+            foreach ($subtematicas as $sub) {
+                if (!empty($sub['nombre'])) {
+                    $tematica->registrarSubtematica($id_tematica, $this->limpiar($sub['nombre']));
+                }
+            }
+
+            header("Location: tabla.php?mensaje=1");
+            exit;
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            header("Location: crear.php?error=2");
             exit;
         }
-
-        // 2️ Insertar subtemáticas
-        if (!empty($subtematicas)) {
-            foreach ($subtematicas as $sub) {
-                $tematica->registrarSubtematica($id_tematica, $sub['nombre']);
-            }
-        }
-
-        header("Location: tabla.php?mensaje=1");
-        exit;
     }
 
     //Editar temática y subtematica
     public function editarTematica($rol)
     {
-
-        if ($rol != 'supervisor') {
-            die("No tienes permiso.");
+        if (!$this->esSupervisor($rol)) {
+            throw new Exception("No tienes permiso.");
         }
 
-        global $conn;
-
-        $tematica = new Tematica($conn);
-
-        $id_tematica = $_POST['id_tematica'];
-        $nombre = trim($_POST['NombreTematica']);
-        $descripcion = trim($_POST['Descripcion']);
-        $estado = trim($_POST['Estado']);
-
-        $subtematicas = $_POST['subtematicas'] ?? [];
-
-        $ids_bd = $tematica->obtenerIdsSubtematicas($id_tematica);
-        $conn->begin_transaction();
+        $this->conn->begin_transaction();
 
         try {
+            $tematica = new Tematica($this->conn);
+
+            $id_tematica = (int)$_POST['id_tematica'];
+            $nombre = $this->limpiar($_POST['NombreTematica']);
+            $descripcion = $this->limpiar($_POST['Descripcion']);
+            $estado = (int)$_POST['Estado'];
+
+            $subtematicas = $_POST['subtematicas'] ?? [];
+            $ids_bd = $tematica->obtenerIdsSubtematicas($id_tematica);
+
             $tematica->editarTematica($nombre, $descripcion, $id_tematica);
 
-
-            //Proceso de registrar y actualizar subtematica
             $ids_form = [];
+
             foreach ($subtematicas as $sub) {
-
-
                 $id = $sub['id'] ?? null;
-                $nombre_sub = trim($sub['nombre'] ?? '');
+                $nombre_sub = $this->limpiar($sub['nombre'] ?? '');
 
-                if ($nombre_sub == '') continue;
+                if ($nombre_sub === '') continue;
+
                 $tematica->comparar_Duplicidad_Subtematica($id_tematica, $nombre_sub, $id);
 
                 if ($id === 'nuevo' || empty($id)) {
-
-                    $tematica->registrarsubtematica(intval($id_tematica), $nombre_sub);
+                    $tematica->registrarsubtematica($id_tematica, $nombre_sub);
                 } else {
-
-                    $tematica->editarSubtematica($id, $nombre_sub);
-
+                    $tematica->editarSubtematica((int)$id, $nombre_sub);
                     $ids_form[] = $id;
                 }
             }
-            //Proceso de eliminar subtematicas
-            //Revisa las IDs del formulario y las extraidas de la base de datos para comparar
+
             $ids_eliminar = array_diff($ids_bd, $ids_form);
-            if (!empty($ids_eliminar)) {
-                foreach ($ids_eliminar as $id) {
-                    $tematica->eliminar_subtematica($id, 0);
-                }
+
+            foreach ($ids_eliminar as $id) {
+                $tematica->eliminar_subtematica($id, 0);
             }
 
-            if ($estado == 0) {
-                $tematica->eliminar_tematica($id, $estado);
+            if ($estado === 0) {
+                $tematica->eliminar_tematica($id_tematica, $estado);
             }
 
-            $conn->commit();
+            $this->conn->commit();
+
+            header("Location: tabla.php?mensaje=1");
+            exit;
+
         } catch (Exception $e) {
-
-            $conn->rollback();
-            die($e->getMessage());
+            $this->conn->rollback();
+            error_log($e->getMessage());
+            header("Location: tabla.php?error=1");
+            exit;
         }
-
-        header("Location: tabla.php?mensaje=1");
-        exit;
     }
 }

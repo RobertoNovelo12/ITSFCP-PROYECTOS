@@ -6,216 +6,197 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 class periodoControlador{
 
     //Obtener datos
+    private $conn;
+
+    public function __construct($conexion)
+    {
+        $this->conn = $conexion;
+    }
+
+    //Validar rol
+    private function esSupervisor($rol)
+    {
+        return $rol === 'supervisor';
+    }
+
+    //Sanitizar datos
+    private function limpiar($dato)
+    {
+        return htmlspecialchars(trim($dato), ENT_QUOTES, 'UTF-8');
+    }
+
+    //Obtener datos
     public function index($rol, $buscar = null)
     {
-        global $conn;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
 
-        $Periodo = new Periodo($conn);
+            $Periodo = new Periodo($this->conn);
+            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 3);
 
-        if ($rol == "supervisor") {
-            //Revisión de estados de tarea
-            $tema = $Periodo->obtenerPeriodoTablaFiltro($buscar, 3);
-            return $tema;
-        } else {
-            $tema = []; // evita undefined variable
-            return $tema;
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-    //Obtener datos para editar
     public function indexEditar($rol, $id_periodo)
     {
-        global $conn;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
 
-        if ($rol == "supervisor") {
-            $Periodo = new Periodo($conn);
-            $tema = $Periodo->obtenerPeriodoEditar($id_periodo);
-            return $tema;
-        } else {
-            $tema = []; // evita undefined variable
-            return $tema;
+            $Periodo = new Periodo($this->conn);
+            return $Periodo->obtenerPeriodoEditar((int)$id_periodo);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-        public function indexDetalles($rol, $id_periodo)
+    public function indexDetalles($rol, $id_periodo)
     {
-        global $conn;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
 
-        if ($rol == "supervisor") {
-            $Periodo = new Periodo($conn);
-            $tema = $Periodo->obtenerPeriodoDetalles($id_periodo);
-            return $tema;
-        } else {
-            $tema = []; // evita undefined variable
-            return $tema;
+            $Periodo = new Periodo($this->conn);
+            return $Periodo->obtenerPeriodoDetalles((int)$id_periodo);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
     public function eliminar($id_periodo, $rol)
     {
-        // Lógica para cambiar de estado una temática a desactivado
-        if ($rol !== 'supervisor') {
-            die("Error: No tienes permiso para eliminar periodo.");
+        if (!$this->esSupervisor($rol)) {
+            throw new Exception("No tienes permiso para eliminar periodo.");
         }
 
-        global $conn;
+        try {
+            $Periodo = new Periodo($this->conn);
+            $Periodo->eliminar_periodo((int)$id_periodo, 0);
+            return 0;
 
-        $Periodo = new Periodo($conn);
-        $Periodo->eliminar_periodo($id_periodo, 0); // 0 Desactivado
-        return 0;
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return -1;
+        }
     }
 
     public function encabezadosPrincipal($rol)
     {
-        if ($rol == "supervisor") {
-            $encabezados = [
-                'Periodo',
-                'Fecha Inicio',
-                'Fecha Final',
-                'Estado',
-                'Acciones'
-            ];
-        } else {
-            $encabezados = [];
-        }
-        return $encabezados;
+        return $this->esSupervisor($rol) ? [
+            'Periodo',
+            'Fecha Inicio',
+            'Fecha Final',
+            'Estado',
+            'Acciones'
+        ] : [];
     }
 
     public function opciones($rol, $filtros)
     {
-        switch ($rol) {
-            case 'supervisor':
-                $opciones = [
-                    'Total'       => "Total ({$filtros[0]['Total']} en total)",
-                    'Activo'     => "Activos ({$filtros[0]['Activo']} en total)",
-                    'Pendiente'  => "Pendientes ({$filtros[0]['Pendiente']} en total)",
-                    'Terminado'  => "Terminados ({$filtros[0]['Terminado']} en total)",
-                ];
-                break;
-            default:
-                $opciones = [];
-                break;
-        }
-        return $opciones;
+        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
+
+        return [
+            'Total' => "Total ({$filtros[0]['Total']} en total)",
+            'Activo' => "Activos ({$filtros[0]['Activo']} en total)",
+            'Pendiente' => "Pendientes ({$filtros[0]['Pendiente']} en total)",
+            'Terminado' => "Terminados ({$filtros[0]['Terminado']} en total)"
+        ];
     }
 
-    //Para obtener el número del filtro de la tabla
     public function numerofiltro($action)
     {
-
-        $numerofiltro = 0;
-        switch ($action) {
-            case 'Total':
-                $numerofiltro = 3;
-                break;
-            case 'Activo':
-                $numerofiltro = 0;
-                break;
-            case 'Desactivado':
-                $numerofiltro = 1;
-                break;
-            case 'Pendiente':
-                $numerofiltro = 2;
-                break;
-            default:
-                break;
-        }
-        return $numerofiltro;
+        return match ($action) {
+            'Total' => 3,
+            'Activo' => 0,
+            'Desactivado' => 1,
+            'Pendiente' => 2,
+            default => 0,
+        };
     }
 
-    //Datos filtros GENERAL
     public function filtros($rol)
     {
-        global $conn;
-        $Periodo = new Periodo($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $tema = $Periodo->obtenerPeriodoDatosFiltro($rol);
-            return $tema;
-        } else {
-            $tema = []; // evita undefined variable
-            return $tema;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $Periodo = new Periodo($this->conn);
+            return $Periodo->obtenerPeriodoDatosFiltro($rol);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-    //Datos tabla por filtro
-    //Total
     public function Total($rol, $buscar = null)
     {
-        global $conn;
-        $Periodo = new Periodo($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $Periodos = $Periodo->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
-            return $Periodos;
-        } else {
-            $Periodos = []; // evita undefined variable
-            return $Periodos;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $Periodo = new Periodo($this->conn);
+            return $Periodo->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-    //Activos
     public function Activo($rol, $buscar = null)
     {
-        global $conn;
-        $periodo = new Periodo($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $periodo = $periodo->obtenerPeriodoTablaFiltro(0, $rol, $buscar);
-            return $periodo;
-        } else {
-            $periodo = []; // evita undefined variable
-            return $periodo;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $Periodo = new Periodo($this->conn);
+            return $Periodo->obtenerPeriodoTablaFiltro(0, $rol, $buscar);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-    //Pendientes
     public function Pendiente($rol, $buscar = null)
     {
-        global $conn;
-        $proyecto = new Periodo($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $periodo = $proyecto->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
-            return $periodo;
-        } else {
-            $periodo = []; // evita undefined variable
-            return $periodo;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $Periodo = new Periodo($this->conn);
+            return $Periodo->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
-    //Terminados
-        public function Terminado($rol, $buscar = null)
+
+    public function Terminado($rol, $buscar = null)
     {
-        global $conn;
-        $proyecto = new Periodo($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $periodo = $proyecto->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
-            return $periodo;
-        } else {
-            $periodo = []; // evita undefined variable
-            return $periodo;
+        try {
+            if (!$this->esSupervisor($rol)) return [];
+
+            $Periodo = new Periodo($this->conn);
+            return $Periodo->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
     public function EstiloEstadoLista($estado)
     {
-        switch ($estado) {
-
-            case 'Activo':
-                $estilo = "success";
-                break;
-            case 'Pendiente':
-                $estilo = "warning";
-                break;
-            case 'Terminado':
-                $estilo = "danger";
-                break;
-            default:
-                $estilo = "info";
-                break;
-        }
-        return $estilo;
+        return match ($estado) {
+            'Activo' => "success",
+            'Pendiente' => "warning",
+            'Terminado' => "danger",
+            default => "info"
+        };
     }
 
     //BOTONES
@@ -251,85 +232,81 @@ class periodoControlador{
     //Botones de acción en la tabla 
     public function botonesAccionPrincipal($id, $rol, $estado = null)
     {
+        if (!$this->esSupervisor($rol)) return "";
+
         $boton = "";
 
-        switch ($rol) {
-
-            case 'supervisor':
-                if (in_array($estado, ["Activo"])) {
-                    $boton = $this->obtenerbotones("Editar Periodo", $id);
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Desactivar", $id);
-                } elseif ($estado == "Pendiente") {
-                    $boton = $this->obtenerbotones("Editar Periodo", $id);
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Desactivar", $id);
-                } elseif ($estado == "Terminado") {
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                }
-                break;
+        if (in_array($estado, ["Activo", "Pendiente"])) {
+            $boton .= $this->obtenerbotones("Editar Periodo", $id);
+            $boton .= $this->obtenerbotones("Detalles", $id);
+            $boton .= $this->obtenerbotones("Desactivar", $id);
+        } elseif ($estado === "Terminado") {
+            $boton .= $this->obtenerbotones("Detalles", $id);
         }
 
         return $boton;
     }
 
     //Crear temática
-    public function registrarPeriodo($rol)
+        public function registrarPeriodo($rol)
     {
-        if ($rol != 'supervisor') {
-            die("No tienes permiso para registrar periodo.");
+        if (!$this->esSupervisor($rol)) {
+            throw new Exception("No tienes permiso.");
         }
 
-        global $conn;
+        try {
+            $nombre = $this->limpiar($_POST['periodo']);
+            $fecha_inicio = $_POST['fecha_inicio'];
+            $fecha_final = $_POST['fecha_final'];
 
-        $periodo = trim($_POST['periodo']);
-        $fecha_inicio = $_POST['fecha_inicio'];
-        $fecha_final = $_POST['fecha_final'];
+            $Periodo = new Periodo($this->conn);
 
-        $periodo = new Periodo($conn);
+            $id_periodo = $Periodo->registrarPeriodo($nombre, $fecha_inicio, $fecha_final);
 
-        // 1️ Insertar periodo
-        $id_periodo = $periodo->registrarPeriodo($periodo, $fecha_inicio, $fecha_final);
+            if (!$id_periodo) {
+                header("Location: crear.php?error=1");
+                exit;
+            }
 
-        if (!$id_periodo) {
-            header("Location: crear.php?error=1");
+            header("Location: tabla.php?mensaje=1");
+            exit;
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            header("Location: crear.php?error=2");
             exit;
         }
-
-        header("Location: tabla.php?mensaje=1");
-        exit;
     }
 
-    //Editar periodo
     public function editarPeriodo($rol)
     {
-
-        if ($rol != 'supervisor') {
-            die("No tienes permiso.");
+        if (!$this->esSupervisor($rol)) {
+            throw new Exception("No tienes permiso.");
         }
 
-        global $conn;
+        $this->conn->begin_transaction();
 
-        $periodos = new Periodo($conn);
-
-        $id_periodo = $_POST['id_periodos'];
-        $periodo = trim($_POST['periodo']);
-        $fecha_inicio = $_POST['fecha_inicio'];
-        $fecha_final = $_POST['fecha_final'];
-
-        $conn->begin_transaction();
         try {
-            $periodos->editarPeriodo($periodo, $fecha_inicio, $fecha_final, $id_periodo);
-          
-            $conn->commit();
+            $Periodo = new Periodo($this->conn);
+
+            $id_periodo = (int)$_POST['id_periodos'];
+            $nombre = $this->limpiar($_POST['periodo']);
+            $fecha_inicio = $_POST['fecha_inicio'];
+            $fecha_final = $_POST['fecha_final'];
+
+            $Periodo->editarPeriodo($nombre, $fecha_inicio, $fecha_final, $id_periodo);
+
+            $this->conn->commit();
+
+            header("Location: tabla.php?mensaje=1");
+            exit;
+
         } catch (Exception $e) {
-
-            $conn->rollback();
-            die($e->getMessage());
+            $this->conn->rollback();
+            error_log($e->getMessage());
+            header("Location: tabla.php?error=1");
+            exit;
         }
-
-        header("Location: tabla.php?mensaje=1");
-        exit;
     }
 }
 ?>
