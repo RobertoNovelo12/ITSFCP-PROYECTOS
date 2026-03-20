@@ -266,7 +266,7 @@ class periodoControlador{
         $periodo = new Periodo($conn);
 
         // 1️ Insertar periodo
-        $id_periodo = $periodo->registrarPeriodo($nombre);
+        $id_periodo = $periodo->registrarPeriodo($nombre, $inicio, $final);
 
         if (!$id_periodo) {
             header("Location: crear.php?error=1");

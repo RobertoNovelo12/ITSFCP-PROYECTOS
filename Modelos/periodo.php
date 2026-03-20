@@ -230,20 +230,18 @@ LIMIT 1;";
         return $periodo;
     }
 
-    // CREAR
-
-
-    //Crea subareas
+    //Crea Periodo
     public function registrarPeriodo($periodo, $fecha_inicio, $fecha_final)
     {
         $sql_sub = "INSERT INTO periodos (periodo, fecha_inicio, fecha_final) VALUES (?, ?, ?);";
         $stmt_sub = $this->con->prepare($sql_sub);
         $stmt_sub->bind_param("sss", $periodo, $fecha_inicio, $fecha_final);
-        return $stmt_sub->execute();
+        $stmt_sub->execute();
+        return $stmt_sub->insert_id;
     }
 
     // ACTUALIZAR
-    public function editarArea($periodo, $fecha_inicio, $fecha_final, $id_periodos)
+    public function editarPeriodo($periodo, $fecha_inicio, $fecha_final, $id_periodos)
     {
         $sql = "UPDATE periodos
                 SET periodo = ?, fecha_inicio = ?, fecha_final = ?
@@ -255,10 +253,10 @@ LIMIT 1;";
     }
 
     // ELIMINAR (SOFT DELETE)
-    public function eliminar_area($id_area, $estado)
+    public function eliminar_periodo($id_area, $estado)
     {
 
-        $sql = "UPDATE areas_conocimiento SET estado = ? WHERE id_area = ?";
+        $sql = "UPDATE periodos SET estado = ? WHERE id_area = ?";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param("ii", $estado, $id_area);
         $stmt->execute();
