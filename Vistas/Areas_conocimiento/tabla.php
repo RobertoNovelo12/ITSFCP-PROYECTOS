@@ -22,9 +22,14 @@ include "../../Controladores/areaconocimientoControlador.php";
 
 $areaControlador = new AreaConocimientoControlador();
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_tematica') {
-    $id_tematica = intval($_GET['id_tematica']);
-    $areaControlador->$action = "eliminar";
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_area') {
+    $id_area = intval($_GET['id_area']);
+    
+    $areaControlador->eliminar_area($id_area, $rol);
+
+    // Redirigir para evitar doble ejecución
+    header("Location: tabla.php");
+    exit;
 }
 
 

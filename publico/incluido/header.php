@@ -20,7 +20,7 @@ if ($usuario_logeado) {
     require_once __DIR__ . '/../config/conexion.php';
 
     // Recuperar últimas 5 notificaciones
-    $stmt = $conn->prepare("SELECT * FROM notificaciones WHERE usuario_id = ? ORDER BY creado_en DESC LIMIT 5");
+    $stmt = $conn->prepare("SELECT * FROM notificaciones WHERE id_usuarios = ? ORDER BY creado_en DESC LIMIT 5");
     $stmt->bind_param("i", $_SESSION['id_usuario']);
     $stmt->execute();
     $resultado = $stmt->get_result();

@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             u.estado_usuario,
             r.nombre AS rol
         FROM usuarios u
-        LEFT JOIN usuarios_roles ur ON u.id_usuarios = ur.id_usuario
+        LEFT JOIN usuarios_roles ur ON u.id_usuarios = ur.id_usuarios
         LEFT JOIN roles r ON ur.id_rol = r.id_roles
         WHERE u.correo_institucional = ?
         LIMIT 1

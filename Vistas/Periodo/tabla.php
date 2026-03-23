@@ -22,12 +22,16 @@ include "../../Controladores/periodoControlador.php";
 
 $periodoControlador = new periodoControlador();
 
+
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_periodo') {
     $id_periodos = intval($_GET['id_periodos']);
-    $action = "eliminar";
-    $periodoControlador->$action($id_periodos, $rol);
-}
+    
+    $periodoControlador->eliminar($id_periodos, $rol);
 
+    // Redirigir para evitar doble ejecución
+    header("Location: tabla.php");
+    exit;
+}
 
 if (!method_exists($periodoControlador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");

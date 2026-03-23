@@ -3,10 +3,10 @@
 require_once __DIR__ . '/../Modelos/periodo.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 
-class periodoControlador{
+class periodoControlador
+{
 
-    //Obtener datos
-    private $conn;
+
 
     //Validar rol
     private function esSupervisor($rol)
@@ -23,12 +23,13 @@ class periodoControlador{
     //Obtener datos
     public function index($rol, $buscar = null)
     {
+        //Obtener datos
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             return $Periodo->obtenerPeriodoTablaFiltro($buscar, 3);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -37,12 +38,13 @@ class periodoControlador{
 
     public function indexEditar($rol, $id_periodo)
     {
+        //Obtener datos
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             return $Periodo->obtenerPeriodoEditar((int)$id_periodo);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -51,12 +53,13 @@ class periodoControlador{
 
     public function indexDetalles($rol, $id_periodo)
     {
+        //Obtener datos
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             return $Periodo->obtenerPeriodoDetalles((int)$id_periodo);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -65,15 +68,16 @@ class periodoControlador{
 
     public function eliminar($id_periodo, $rol)
     {
+        //Obtener datos
+        global $conn;
         if (!$this->esSupervisor($rol)) {
             throw new Exception("No tienes permiso para eliminar periodo.");
         }
 
         try {
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             $Periodo->eliminar_periodo((int)$id_periodo, 0);
             return 0;
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return -1;
@@ -116,12 +120,13 @@ class periodoControlador{
 
     public function filtros($rol)
     {
+        //Obtener datos
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             return $Periodo->obtenerPeriodoDatosFiltro($rol);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -130,12 +135,13 @@ class periodoControlador{
 
     public function Total($rol, $buscar = null)
     {
+        //Obtener datos
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             return $Periodo->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -144,12 +150,13 @@ class periodoControlador{
 
     public function Activo($rol, $buscar = null)
     {
+        //Obtener datos
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             return $Periodo->obtenerPeriodoTablaFiltro(0, $rol, $buscar);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -158,12 +165,13 @@ class periodoControlador{
 
     public function Pendiente($rol, $buscar = null)
     {
+        //Obtener datos
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             return $Periodo->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -172,12 +180,13 @@ class periodoControlador{
 
     public function Terminado($rol, $buscar = null)
     {
+        //Obtener datos
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
             return $Periodo->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -243,18 +252,20 @@ class periodoControlador{
     }
 
     //Crear temática
-        public function registrarPeriodo($rol)
+    public function registrarPeriodo($rol)
     {
         if (!$this->esSupervisor($rol)) {
             throw new Exception("No tienes permiso.");
         }
 
+        //Obtener datos
+        global $conn;
         try {
             $nombre = $this->limpiar($_POST['periodo']);
             $fecha_inicio = $_POST['fecha_inicio'];
             $fecha_final = $_POST['fecha_final'];
 
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
 
             $id_periodo = $Periodo->registrarPeriodo($nombre, $fecha_inicio, $fecha_final);
 
@@ -265,7 +276,6 @@ class periodoControlador{
 
             header("Location: tabla.php?mensaje=1");
             exit;
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             header("Location: crear.php?error=2");
@@ -277,12 +287,14 @@ class periodoControlador{
     {
         if (!$this->esSupervisor($rol)) {
             throw new Exception("No tienes permiso.");
-        }
+        }        //Obtener datos
+        global $conn;
 
-        $this->conn->begin_transaction();
+
+        $conn->begin_transaction();
 
         try {
-            $Periodo = new Periodo($this->conn);
+            $Periodo = new Periodo($conn);
 
             $id_periodo = (int)$_POST['id_periodos'];
             $nombre = $this->limpiar($_POST['periodo']);
@@ -291,17 +303,15 @@ class periodoControlador{
 
             $Periodo->editarPeriodo($nombre, $fecha_inicio, $fecha_final, $id_periodo);
 
-            $this->conn->commit();
+            $conn->commit();
 
             header("Location: tabla.php?mensaje=1");
             exit;
-
         } catch (Exception $e) {
-            $this->conn->rollback();
+            $conn->rollback();
             error_log($e->getMessage());
             header("Location: tabla.php?error=1");
             exit;
         }
     }
 }
-?>

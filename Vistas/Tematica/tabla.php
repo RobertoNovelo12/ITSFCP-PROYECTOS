@@ -21,12 +21,15 @@ $pagina = intval($_GET['pagina'] ?? 1);
 include "../../Controladores/tematicaControlador.php";
 
 $tematicaControlador = new tematicaControlador();
-
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_tematica') {
     $id_tematica = intval($_GET['id_tematica']);
-    $tematicaControlador->$action= "eliminar";
-}
+    
+    $tematicaControlador->eliminar_tematica($id_tematica, $rol);
 
+    // Redirigir para evitar doble ejecución
+    header("Location: tabla.php");
+    exit;
+}
 
 if (!method_exists($tematicaControlador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");

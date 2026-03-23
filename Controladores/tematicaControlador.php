@@ -8,7 +8,7 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 class tematicaControlador
 {
 
-private $conn;
+
 
         private function esSupervisor($rol)
     {
@@ -25,10 +25,11 @@ private $conn;
     //Obtener datos
     public function index($rol, $buscar = null)
     {
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
             return $tematica->obtenerTematicas($rol, $buscar);
 
         } catch (Exception $e) {
@@ -40,10 +41,11 @@ private $conn;
     //Obtener datos para editar
     public function indexEditar($rol, $id_tematica)
     {
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
             return $tematica->obtenerTematicasEditar((int)$id_tematica);
 
         } catch (Exception $e) {
@@ -54,10 +56,11 @@ private $conn;
 
     public function indexDetalles($rol, $id_tematica)
     {
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
             return $tematica->obtenerTematicasDetalles((int)$id_tematica);
 
         } catch (Exception $e) {
@@ -71,9 +74,10 @@ private $conn;
         if (!$this->esSupervisor($rol)) {
             throw new Exception("No tienes permiso para eliminar temáticas.");
         }
+        global $conn;
 
         try {
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
             $tematica->eliminar_tematica((int)$id_tematica, 0);
             return 0;
 
@@ -121,10 +125,11 @@ private $conn;
     //Datos filtros GENERAL
     public function filtros($rol)
     {
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
             return $tematica->obtenerTematicasDatosFiltro($rol);
 
         } catch (Exception $e) {
@@ -137,10 +142,11 @@ private $conn;
     //Total
     public function Total($rol, $buscar = null)
     {
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
             return $tematica->obtenerTematicasTablaFiltro(2, $rol, $buscar);
 
         } catch (Exception $e) {
@@ -152,10 +158,11 @@ private $conn;
     //Activos
     public function Activo($rol, $buscar = null)
     {
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
             return $tematica->obtenerTematicasTablaFiltro(1, $rol, $buscar);
 
         } catch (Exception $e) {
@@ -168,10 +175,11 @@ private $conn;
     //Desactivados
     public function Desactivado($rol, $buscar = null)
     {
+        global $conn;
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
             return $tematica->obtenerTematicasTablaFiltro(0, $rol, $buscar);
 
         } catch (Exception $e) {
@@ -244,12 +252,14 @@ private $conn;
             throw new Exception("No tienes permiso.");
         }
 
+        global $conn;
+
         try {
             $nombre = $this->limpiar($_POST['NombreTematica']);
             $descripcion = $this->limpiar($_POST['Descripcion']);
             $subtematicas = $_POST['subtematicas'] ?? [];
 
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
 
             $id_tematica = $tematica->registrarTematica($nombre, $descripcion);
 
@@ -281,10 +291,12 @@ private $conn;
             throw new Exception("No tienes permiso.");
         }
 
-        $this->conn->begin_transaction();
+        global $conn;
+
+        $conn->begin_transaction();
 
         try {
-            $tematica = new Tematica($this->conn);
+            $tematica = new Tematica($conn);
 
             $id_tematica = (int)$_POST['id_tematica'];
             $nombre = $this->limpiar($_POST['NombreTematica']);
@@ -324,13 +336,13 @@ private $conn;
                 $tematica->eliminar_tematica($id_tematica, $estado);
             }
 
-            $this->conn->commit();
+            $conn->commit();
 
             header("Location: tabla.php?mensaje=1");
             exit;
 
         } catch (Exception $e) {
-            $this->conn->rollback();
+            $conn->rollback();
             error_log($e->getMessage());
             header("Location: tabla.php?error=1");
             exit;
