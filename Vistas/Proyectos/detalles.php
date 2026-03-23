@@ -165,14 +165,14 @@ ob_start();
 
                             <dt>Nombre completo</dt>
                             <dd>
-                                <?= $invest['nombre'] . " " . $invest['apellido_paterno'] . " " . $invest['apellido_materno'] ?>
+                                <?= $invest['investigador']['nombre'] . " " . $invest['investigador']['apellido_paterno'] . " " . $invest['investigador']['apellido_materno'] ?>
                             </dd>
 
                             <dt>Área conocimiento</dt>
-                            <dd><?= $invest['area_conocimiento'] ?></dd>
+                            <dd><?= $invest['area']['area_conocimiento'] ?></dd>
 
                             <dt>Subárea</dt>
-                            <dd><?= $invest['subarea'] ?></dd>
+                            <dd><?= $invest['investigador']['subarea'] ?></dd>
 
                         </dl>
 
@@ -183,13 +183,13 @@ ob_start();
                         <dl>
 
                             <dt>Nivel SNI</dt>
-                            <dd><?= $invest['nivel_sni'] ?></dd>
+                            <dd><?= $invest['investigador']['nivel_sni'] ?></dd>
 
                             <dt>Grado académico</dt>
-                            <dd><?= $invest['grado_academico'] ?></dd>
+                            <dd><?= $invest['investigador']['grado_academico'] ?></dd>
 
                             <dt>Línea investigación</dt>
-                            <dd><?= $invest['linea_investigacion'] ?></dd>
+                            <dd><?= $invest['lineas']['linea_investigacion'] ?></dd>
 
                         </dl>
 
@@ -233,17 +233,17 @@ ob_start();
 
                         <tr>
 
-                            <td><?= $alumno['id_usuarios'] ?></td>
+                            <td><?= $alumno['estudiante']['id_usuarios'] ?></td>
 
                             <td>
-                                <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] . " " . $alumno['apellido_materno'] ?>
+                                <?= $alumno['estudiante']['nombre'] . " " . $alumno['estudiante']['apellido_paterno'] . " " . $alumno['estudiante']['apellido_materno'] ?>
                             </td>
 
-                            <td><?= $alumno['carrera'] ?></td>
+                            <td><?= $alumno['estudiante']['carrera'] ?></td>
 
-                            <td><?= $alumno['area'] ?></td>
+                            <td><?= $alumno['area']['area'] ?></td>
 
-                            <td><?= $alumno['subarea'] ?></td>
+                            <td><?= $alumno['area']['subarea'] ?></td>
 
                         </tr>
 

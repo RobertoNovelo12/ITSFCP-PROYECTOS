@@ -8,11 +8,6 @@ class periodoControlador{
     //Obtener datos
     private $conn;
 
-    public function __construct($conexion)
-    {
-        $this->conn = $conexion;
-    }
-
     //Validar rol
     private function esSupervisor($rol)
     {

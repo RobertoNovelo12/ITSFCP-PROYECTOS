@@ -54,9 +54,7 @@ $filtros = $proyectoControlador->filtros($id_usuario, $rol);
 $encabezados = $proyectoControlador->encabezados($rol);
 $opciones = $proyectoControlador->datosopciones($rol, $filtros);
 
-// ======================
 // GENERAR CONTENIDO
-// ======================
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>

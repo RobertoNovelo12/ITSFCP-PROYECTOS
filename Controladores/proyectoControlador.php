@@ -7,7 +7,7 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 
 class ProyectoControlador
 {
-    private $conn;
+
 
     //Validar roles permitidos
     private function rolValido($rol)
@@ -18,10 +18,11 @@ class ProyectoControlador
     //Método base reutilizable
     private function obtenerDatos($id, $rol, $buscar, $filtro = null, $tipo = 'general')
     {
+        global $conn;
         try {
             if (!$this->rolValido($rol)) return [];
 
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
 
             //Actualizar vencidos
             $proyecto->actualizarProyectosVencidos();
@@ -186,8 +187,9 @@ class ProyectoControlador
     //Porcentaje de avance
     public function obtenerPorcentajeAvance($id_proyecto)
     {
+        global $conn;
         try {
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
 
             $porcentaje = $proyecto->obtenerTareasAvance((int)$id_proyecto);
 
@@ -353,8 +355,9 @@ class ProyectoControlador
     //TEMATICA
     public function tematica()
     {
+        global $conn;
         try {
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
             $proyecto->actualizarProyectosVencidos();
 
             return $proyecto->tematica() ?? [];
@@ -367,8 +370,9 @@ class ProyectoControlador
     //SUBTEMATICAS
     public function subtematicas($id)
     {
+        global $conn;
         try {
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
             $proyecto->actualizarProyectosVencidos();
 
             return $proyecto->obtenersubtematica((int)$id);
@@ -381,8 +385,9 @@ class ProyectoControlador
     //PERIODO
     public function obtenerperiodo()
     {
+        global $conn;
         try {
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
             $proyecto->actualizarProyectosVencidos();
 
             return $proyecto->obtenerperiodo() ?? [];
@@ -395,8 +400,9 @@ class ProyectoControlador
     //INSTITUTO
     public function obtenerInstituto()
     {
+        global $conn;
         try {
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
             $proyecto->actualizarProyectosVencidos();
 
             return $proyecto->obtenerinstituto() ?? [];
@@ -424,6 +430,7 @@ class ProyectoControlador
 
     public function registrarProyecto($datos, $id, $rol)
     {
+        global $conn;
         try {
             $this->validarMetodo('POST');
             $this->validarAcceso($rol, ['investigador', 'profesor']);
@@ -439,7 +446,7 @@ class ProyectoControlador
 
             $instituto = $this->obtenerInstituto()[0] ?? null;
 
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
             $proyecto->actualizarProyectosVencidos();
 
             $proyectoId = $proyecto->registrarProyecto(
@@ -473,6 +480,7 @@ class ProyectoControlador
     /* EDITAR PROYECTO */
     public function editarProyecto($datos, $id_usuario, $rol)
     {
+        global $conn;
         try {
             $this->validarMetodo('POST');
             $this->validarAcceso($rol, ['investigador', 'profesor']);
@@ -487,7 +495,7 @@ class ProyectoControlador
                 throw new Exception("Datos incompletos");
             }
 
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
 
             $proyecto->editarProyecto(
                 $id_proyecto,
@@ -535,6 +543,7 @@ class ProyectoControlador
     /* ACCIÓN DE RECHAZAR CIERRE */
     public function actualizarestadoRechazo($data, $id_usuario, $rol)
     {
+        global $conn;
         try {
             $this->validarMetodo('POST');
             $this->validarAcceso($rol, ['supervisor']);
@@ -543,7 +552,7 @@ class ProyectoControlador
                 throw new Exception("Datos incompletos");
             }
 
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
             $proyecto->actualizarProyectosVencidos();
 
             $proyecto->actualizarEstadoProyectoRechazo(
@@ -562,11 +571,12 @@ class ProyectoControlador
     //Actualizar estado de proyectos sin comentarios
     public function actualizarestado($id_proyecto, $rol, $tipo)
     {
+        global $conn;
         try {
             $this->validarMetodo('GET');
             $this->validarAcceso($rol, ['supervisor', 'investigador', 'profesor']);
 
-            $proyecto = new Proyectos($this->conn);
+            $proyecto = new Proyectos($conn);
             $proyecto->actualizarProyectosVencidos();
 
             $estado = $this->numerofiltro($tipo);
@@ -597,13 +607,35 @@ class ProyectoControlador
     {
         global $conn;
         $proyecto = new Proyectos($conn);
-        return $proyecto->obtenerProyectoInvestigador($id_proyecto);
+        $investigador = $proyecto->obtenerProyectoInvestigador($id_proyecto);
+
+        // Obtener id_usuario del investigador
+        $id_usuario = $investigador[0]['id_usuario'] ?? null;
+
+        $area = $proyecto->obtenerUsuarioArea($id_usuario);
+        $lineas = $proyecto->obtenerInvestigadorLinea($id_proyecto);
+
+        return [
+            "investigador" => $investigador,
+            "area" => $area,
+            "lineas" => $lineas
+        ];
     }
     public function datosestudiantes($id_proyecto)
     {
         global $conn;
         $proyecto = new Proyectos($conn);
-        return $proyecto->obtenerProyectoEstudiante($id_proyecto);
+        $estudiante = $proyecto->obtenerProyectoInvestigador($id_proyecto);
+
+        // Obtener id_usuario del investigador
+        $id_usuario = $estudiante[0]['id_usuario'] ?? null;
+
+        $area = $proyecto->obtenerUsuarioArea($id_usuario);
+
+        return [
+            "estudiante" => $estudiante,
+            "area" => $area
+        ];
     }
 
     public function comentarios($id_proyecto)

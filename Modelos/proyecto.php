@@ -15,7 +15,7 @@ class Proyectos
     public function actualizarProyectosVencidos()
     {
         $hoy = date("Y-m-d");
-
+        // 6 - Vencido
         $sql = "UPDATE proyectos 
             SET id_estadoP = 6
             WHERE id_estadoP IN (2, 3, 5, 7)
@@ -966,15 +966,66 @@ proy.cantidad_estudiante;";
 
     function obtenerProyectoInvestigador($id_proyecto)
     {
-        $sql = "SELECT usua.nombre, usua.apellido_paterno, usua.apellido_materno, arco.nombre_area as area_conocimiento, subco.nombre_subarea as subarea, nisn.nombre as nivel_sni, grac.nombre as grado_academico, liin.nombre as linea_investigacion  FROM gestion_proyectos.investigadores as inve
+        $sql = "SELECT usua.nombre, usua.apellido_paterno, usua.apellido_materno, nisn.nombre as nivel_sni, grac.nombre as grado_academico FROM gestion_proyectos.investigadores as inve
 JOIN usuarios as usua ON usua.id_usuarios = inve.id_usuario
-JOIN areas_conocimiento as arco ON arco.id_area = inve.id_area
-JOIN subareas_conocimiento as subco ON arco.id_area = subco.id_area
 JOIN niveles_sni as nisn ON nisn.id_nivel = inve.id_nivel_sni
 JOIN grados_academicos as grac ON grac.id_grado = inve.id_grado
-JOIN lineas_investigacion as liin ON liin.id_linea = inve.id_linea
 JOIN proyectos as proy ON proy.id_investigador = inve.id_usuario
-WHERE proy.id_proyectos = ?;";
+WHERE proy.id_proyectos = ?";
+
+        $params = [$id_proyecto];
+        $types  = "i";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    function obtenerUsuarioArea($id_usuario)
+    {
+        $sql = "SELECT arco.nombre_area as area_conocimiento, group_concat(subco.nombre_subarea) as subarea  FROM usuarios as us 
+JOIN usuarios_subareas as ussu ON ussu.id_usuarios = us.id_usuarios
+JOIN subareas_conocimiento as subco ON ussu.id_subarea = subco.id_subarea
+JOIN areas_conocimiento as arco ON arco.id_area = subco.id_area
+WHERE us.id_usuarios = ?
+GROUP BY us.id_usuarios, subco.id_subarea, arco.id_area;";
+
+        $params = [$id_usuario];
+        $types  = "i";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+
+    function obtenerInvestigadorLinea($id_proyecto)
+    {
+        $sql = "SELECT liin.nombre as linea FROM gestion_proyectos.investigadores as inve
+JOIN investigador_lineas_investigacion as inliin ON inliin.id_usuario = inve.id_usuario 
+JOIN lineas_investigacion as liin ON liin.id_linea = inliin.id_linea
+JOIN proyectos as proy ON proy.id_investigador = inve.id_usuario
+WHERE proy.id_proyectos = ?";
+
+        $params = [$id_proyecto];
+        $types  = "i";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    function obtenerProyectoTematica($id_proyecto)
+    {
+        $sql = "SELECT tema.nombre_tematica, s.nombre_subtematica AS subtematicas FROM gestion_proyectos.proyectos as pro
+JOIN proyectos_subtematica as prsu ON prsu.id_proyectos = pro.id_proyectos
+JOIN subtematica as s ON s.id_subtematica = prsu.id_subtematica
+JOIN tematica as tema ON s.id_tematica = tema.id_tematica
+WHERE pro.id_proyectos = ?
+GROUP BY pro.id_proyectos, tema.id_tematica";
 
         $params = [$id_proyecto];
         $types  = "i";
@@ -987,14 +1038,12 @@ WHERE proy.id_proyectos = ?;";
 
     function obtenerProyectoEstudiante($id_proyecto)
     {
-        $sql = "SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno, carr.nombre_carrera as carrera, arco.nombre_area as area, subco.nombre_subarea as subarea FROM gestion_proyectos.estudiantes as estu 
+        $sql = "SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno, carr.nombre_carrera as carrera FROM gestion_proyectos.estudiantes as estu 
 JOIN usuarios AS usua ON usua.id_usuarios = estu.id_usuario
-JOIN areas_conocimiento as arco ON arco.id_area = estu.id_area
-JOIN subareas_conocimiento as subco ON arco.id_area = subco.id_area
 JOIN carreras as carr ON carr.id_carrera = estu.id_carrera
 JOIN proyectos_usuarios as prus ON prus.id_usuarios = estu.id_usuario
 JOIN proyectos as proy ON proy.id_proyectos = prus.id_proyectos
-WHERE proy.id_proyectos = ?;";
+WHERE proy.id_proyectos = ?";
 
         $params = [$id_proyecto];
         $types  = "i";
