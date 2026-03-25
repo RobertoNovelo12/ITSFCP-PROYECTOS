@@ -21,6 +21,9 @@ $proyectoControlador = new ProyectoControlador();
 $proyectos = $proyectoControlador->datosproyecto($id_proyecto);
 $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
 
+$dat_inv = $investigador['investigador'] ?? [];
+$dat_area_inv = $investigador['area'] ?? [];
+$datos_linea_inv = $investigador['lineas'] ?? [];
 if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
     $estudiantes = $proyectoControlador->datosestudiantes($id_proyecto);
 }
@@ -154,53 +157,41 @@ ob_start();
         </div>
 
         <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Nombre completo</dt>
+                        <dd>
+                            <?= $dat_inv['nombre'] . " " . $dat_inv['apellido_paterno'] . " " . $dat_inv['apellido_materno'] ?>
+                        </dd>
 
-            <?php foreach ($investigador as $invest): ?>
+                        <dt>Área conocimiento</dt>
+                        <dd><?= $dat_area_inv['area_conocimiento'] ? $dat_area_inv['area_conocimiento'] : "No tiene área asignada" ?></dd>
 
-                <div class="row">
+                        <dt>Subárea</dt>
+                        <dd><?= $dat_area_inv['subarea'] ? $dat_area_inv['subarea'] : "No tiene subárea asignada" ?></dd>
 
-                    <div class="col-md-6">
-
-                        <dl>
-
-                            <dt>Nombre completo</dt>
-                            <dd>
-                                <?= $invest['investigador']['nombre'] . " " . $invest['investigador']['apellido_paterno'] . " " . $invest['investigador']['apellido_materno'] ?>
-                            </dd>
-
-                            <dt>Área conocimiento</dt>
-                            <dd><?= $invest['area']['area_conocimiento'] ?></dd>
-
-                            <dt>Subárea</dt>
-                            <dd><?= $invest['investigador']['subarea'] ?></dd>
-
-                        </dl>
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <dl>
-
-                            <dt>Nivel SNI</dt>
-                            <dd><?= $invest['investigador']['nivel_sni'] ?></dd>
-
-                            <dt>Grado académico</dt>
-                            <dd><?= $invest['investigador']['grado_academico'] ?></dd>
-
-                            <dt>Línea investigación</dt>
-                            <dd><?= $invest['lineas']['linea_investigacion'] ?></dd>
-
-                        </dl>
-
-                    </div>
+                    </dl>
 
                 </div>
 
-            <?php endforeach; ?>
+                <div class="col-md-6">
 
+                    <dl>
+
+                        <dt>Nivel SNI</dt>
+                        <dd><?= $dat_inv['nivel_sni'] ?></dd>
+
+                        <dt>Grado académico</dt>
+                        <dd><?= $dat_inv['grado_academico'] ?></dd>
+
+                        <dt>Línea investigación</dt>
+                        <dd><?= $datos_linea_inv['linea'] ?></dd>
+
+                    </dl>
+                </div>
+            </div>
         </div>
-
     </div>
 
 
@@ -229,21 +220,21 @@ ob_start();
 
                 <tbody>
 
-                    <?php foreach ($estudiantes as $alumno): ?>
+                    <?php foreach ($estudiantes['estudiante']  as $alumno): ?>
 
                         <tr>
 
-                            <td><?= $alumno['estudiante']['id_usuarios'] ?></td>
+                            <td><?= $alumno['id_usuarios'] ?></td>
 
                             <td>
-                                <?= $alumno['estudiante']['nombre'] . " " . $alumno['estudiante']['apellido_paterno'] . " " . $alumno['estudiante']['apellido_materno'] ?>
+                                <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] . " " . $alumno['apellido_materno'] ?>
                             </td>
 
-                            <td><?= $alumno['estudiante']['carrera'] ?></td>
+                            <td><?= $alumno['carrera'] ?></td>
 
-                            <td><?= $alumno['area']['area'] ?></td>
+                            <td><?= $estudiantes['area']['area'] ?? "No tiene área" ?></td>
 
-                            <td><?= $alumno['area']['subarea'] ?></td>
+                            <td><?= $estudiantes['area']['subarea'] ?? "No tiene subárea" ?></td>
 
                         </tr>
 
@@ -260,7 +251,7 @@ ob_start();
 
         <div class="d-md-none">
 
-            <?php foreach ($estudiantes as $alumno): ?>
+            <?php foreach ($estudiantes['estudiante'] as $alumno): ?>
 
                 <div class="card mb-3">
 
@@ -281,11 +272,11 @@ ob_start();
                             </li>
 
                             <li class="list-group-item">
-                                <b>Área:</b> <?= $alumno['area'] ?>
+                                <b>Área:</b> <?= $estudiantes['area']['area'] ?? "No tiene área" ?>
                             </li>
 
                             <li class="list-group-item">
-                                <b>Subárea:</b> <?= $alumno['subarea'] ?>
+                                <b>Subárea:</b> <?= $estudiantes['area']['subarea'] ?? "No tiene subárea" ?>
                             </li>
 
                         </ul>

@@ -129,7 +129,7 @@ include __DIR__ . '/../../mensaje.php';
                                     <td><span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado']); ?>"><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td><?= $proyecto['periodo'] ?? '-' ?></td>
                                     <!-- Avances -->
-                                        <td><?= $proyecto['total'] ?? '0' ?></td>
+                                    <td><?= $proyecto['total'] ?? '0' ?></td>
 
                                     <!-- Acciones -->
                                     <td>

@@ -178,51 +178,50 @@ $bodyClass = "proyectos-page";
 include __DIR__ . '/../../layout.php';
 ?>
 <script>
-const subtematicasProyecto = <?= json_encode($subtematicasProyecto ?? []); ?>;
+    const subtematicasProyecto = <?= json_encode($subtematicasProyecto ?? []); ?>;
 
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
 
-    const selectTematica = document.getElementById("select1");
-    const selectSub = document.getElementById("select2");
+        const selectTematica = document.getElementById("select1");
+        const selectSub = document.getElementById("select2");
 
-    //  IDs ORIGINALES del proyecto (NO se modifican)
-    const subProyectoIds = Array.isArray(subtematicasProyecto)
-        ? subtematicasProyecto.map(s => Number(s.id_subtematica))
-        : [];
+        //  IDs ORIGINALES del proyecto (NO se modifican)
+        const subProyectoIds = Array.isArray(subtematicasProyecto) ?
+            subtematicasProyecto.map(s => Number(s.id_subtematica)) : [];
 
-    function cargarSubtematicas() {
+        function cargarSubtematicas() {
 
-        const idTematica = selectTematica.value;
-        selectSub.innerHTML = "";
+            const idTematica = selectTematica.value;
+            selectSub.innerHTML = "";
 
-        if (!idTematica) return;
+            if (!idTematica) return;
 
-        fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + idTematica)
-            .then(r => r.json())
-            .then(data => {
+            fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + idTematica)
+                .then(r => r.json())
+                .then(data => {
 
-                data.forEach(item => {
+                    data.forEach(item => {
 
-                    const opt = document.createElement("option");
-                    opt.value = item.id_subtematica;
-                    opt.textContent = item.nombre_subtematica;
+                        const opt = document.createElement("option");
+                        opt.value = item.id_subtematica;
+                        opt.textContent = item.nombre_subtematica;
 
-                    // SOLO marcar si pertenece al proyecto
-                    if (subProyectoIds.includes(Number(item.id_subtematica))) {
-                        opt.selected = true;
-                    }
+                        // SOLO marcar si pertenece al proyecto
+                        if (subProyectoIds.includes(Number(item.id_subtematica))) {
+                            opt.selected = true;
+                        }
 
-                    selectSub.appendChild(opt);
+                        selectSub.appendChild(opt);
+                    });
                 });
-            });
-    }
+        }
 
-    // Cambio de temática
-    selectTematica.addEventListener("change", cargarSubtematicas);
+        // Cambio de temática
+        selectTematica.addEventListener("change", cargarSubtematicas);
 
-    // Carga inicial
-    if (selectTematica.value) {
-        cargarSubtematicas();
-    }
-});
+        // Carga inicial
+        if (selectTematica.value) {
+            cargarSubtematicas();
+        }
+    });
 </script>

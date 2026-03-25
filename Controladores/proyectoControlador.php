@@ -531,15 +531,6 @@ class ProyectoControlador
         return $proyecto->obtenersubtematicasProyecto($id_proyecto);
     }
 
-    public function obtenersubtematicas($id_tematica)
-    {
-        global $conn;
-        $proyecto = new Proyectos($conn);
-        $proyecto->actualizarProyectosVencidos();
-        return $proyecto->obtenersubtematicas($id_tematica);
-    }
-
-
     /* ACCIÓN DE RECHAZAR CIERRE */
     public function actualizarestadoRechazo($data, $id_usuario, $rol)
     {
@@ -610,7 +601,7 @@ class ProyectoControlador
         $investigador = $proyecto->obtenerProyectoInvestigador($id_proyecto);
 
         // Obtener id_usuario del investigador
-        $id_usuario = $investigador[0]['id_usuario'] ?? null;
+        $id_usuario = $investigador['id_usuarios'] ?? null;
 
         $area = $proyecto->obtenerUsuarioArea($id_usuario);
         $lineas = $proyecto->obtenerInvestigadorLinea($id_proyecto);
@@ -625,10 +616,10 @@ class ProyectoControlador
     {
         global $conn;
         $proyecto = new Proyectos($conn);
-        $estudiante = $proyecto->obtenerProyectoInvestigador($id_proyecto);
+        $estudiante = $proyecto->obtenerProyectoEstudiante($id_proyecto);
 
         // Obtener id_usuario del investigador
-        $id_usuario = $estudiante[0]['id_usuario'] ?? null;
+        $id_usuario = $estudiante['id_usuario'] ?? null;
 
         $area = $proyecto->obtenerUsuarioArea($id_usuario);
 

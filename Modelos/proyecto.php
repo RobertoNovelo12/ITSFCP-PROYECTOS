@@ -69,7 +69,7 @@ JOIN proyectos_usuarios AS prus
         ON proy.id_proyectos = prus.id_proyectos
 
 JOIN estudiantes AS estu 
-        ON estu.id_usuario = prus.id_usuarios
+        ON estu.id_usuarios = prus.id_usuarios
 
 JOIN estados_proyectos AS espr 
         ON proy.id_estadoP = espr.id_estadoP
@@ -86,7 +86,7 @@ LEFT JOIN tareas AS tare
 LEFT JOIN tareas_usuarios AS taus 
         ON taus.id_tarea = tare.id_tarea
 
-WHERE estu.id_usuario = ?
+WHERE estu.id_usuarios = ?
 ";
                 $params[] = $id;
                 $types .= "i";
@@ -109,7 +109,7 @@ WHERE estu.id_usuario = ?
 FROM gestion_proyectos.proyectos AS proy
 
 JOIN investigadores AS inv 
-        ON inv.id_usuario = proy.id_investigador
+        ON inv.id_usuarios = proy.id_investigador
 
 JOIN estados_proyectos AS espr 
         ON proy.id_estadoP = espr.id_estadoP
@@ -148,7 +148,7 @@ WHERE proy.id_investigador = ?
 FROM gestion_proyectos.proyectos AS proy
 
 JOIN investigadores AS inv 
-        ON inv.id_usuario = proy.id_investigador
+        ON inv.id_usuarios = proy.id_investigador
 
 JOIN estados_proyectos AS espr 
         ON proy.id_estadoP = espr.id_estadoP
@@ -246,9 +246,9 @@ LEFT JOIN tareas_usuarios AS taus
   SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido
 FROM gestion_proyectos.proyectos AS proy
 JOIN proyectos_usuarios AS prus ON proy.id_proyectos = prus.id_proyectos
-JOIN estudiantes AS estu ON prus.id_usuarios = estu.id_usuario
+JOIN estudiantes AS estu ON prus.id_usuarios = estu.id_usuarios
 JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
-WHERE estu.id_usuario = ?;";
+WHERE estu.id_usuarios = ?;";
 
                 $stmt = $this->con->prepare($sql);
                 $stmt->bind_param("i", $id);
@@ -265,7 +265,7 @@ WHERE estu.id_usuario = ?;";
   SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido,
   SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END) AS Cierrerechazado
 FROM gestion_proyectos.proyectos AS proy
-JOIN investigadores AS inv ON inv.id_usuario = proy.id_investigador
+JOIN investigadores AS inv ON inv.id_usuarios = proy.id_investigador
 JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
 WHERE proy.id_investigador = ?;";
 
@@ -320,14 +320,14 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
                     SUM(CASE WHEN taus.id_estadoT = 1 THEN 1 ELSE 0 END) AS total
                 FROM proyectos proy
                 JOIN proyectos_usuarios prus ON proy.id_proyectos = prus.id_proyectos
-                JOIN estudiantes estu ON estu.id_usuario = prus.id_usuarios
+                JOIN estudiantes estu ON estu.id_usuarios = prus.id_usuarios
                 JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
                 JOIN periodos peri ON proy.id_periodos = peri.id_periodos
                 LEFT JOIN tbl_seguimiento tbse ON tbse.id_proyectos = proy.id_proyectos
                 LEFT JOIN tareas tare ON tare.id_avances = tbse.id_avances
                 LEFT JOIN tareas_usuarios taus ON taus.id_tarea = tare.id_tarea
                 ";
-                $where[] = "estu.id_usuario = ?";
+                $where[] = "estu.id_usuarios = ?";
                 $params[] = $id;
                 $types .= "i";
                 break;
@@ -340,7 +340,7 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
                     espr.nombre AS estado, peri.periodo,
                     SUM(CASE WHEN taus.id_estadoT = 2 THEN 1 ELSE 0 END) AS total
                 FROM proyectos proy
-                JOIN investigadores inv ON inv.id_usuario = proy.id_investigador
+                JOIN investigadores inv ON inv.id_usuarios = proy.id_investigador
                 JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
                 JOIN periodos peri ON proy.id_periodos = peri.id_periodos
                 LEFT JOIN tbl_seguimiento tbse ON tbse.id_proyectos = proy.id_proyectos
@@ -429,8 +429,8 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
                 case 'estudiante':
                     $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
 JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
-JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
-WHERE estu.id_usuario = ?";
+JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuarios
+WHERE estu.id_usuarios = ?";
 
                     $params = [$id];
                     $types  = "i";
@@ -446,7 +446,7 @@ WHERE estu.id_usuario = ?";
                 case 'investigador':
                 case 'profesor':
                     $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
-JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
+JOIN investigadores as inv ON inv.id_usuarios = proy.id_investigador
 WHERE proy.id_investigador = ?";
 
                     $params = [$id];
@@ -491,8 +491,8 @@ WHERE proy.id_investigador = ?";
                 case 'estudiante':
                     $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
 JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
-JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
-WHERE estu.id_usuario = ? AND proy.id_estadoP = ?";
+JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuarios
+WHERE estu.id_usuarios = ? AND proy.id_estadoP = ?";
 
                     $params = [$id, $numerofiltro];
                     $types  = "ii";
@@ -509,7 +509,7 @@ WHERE estu.id_usuario = ? AND proy.id_estadoP = ?";
                 case 'investigador':
                 case 'profesor':
                     $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
-JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
+JOIN investigadores as inv ON inv.id_usuarios = proy.id_investigador
 WHERE proy.id_investigador = ? AND proy.id_estadoP = ?";
 
                     $params = [$id, $numerofiltro];
@@ -562,7 +562,7 @@ WHERE proy.id_estadoP = ?";
     {
         $sql = "SELECT sub.id_subtematica, sub.nombre_subtematica FROM gestion_proyectos.subtematica as sub
 JOIN tematica as te ON sub.id_tematica = te.id_tematica
-WHERE te.id_tematica = ?";
+WHERE te.id_tematica = ? AND sub.estado = 1";
 
         $params = [$id_tematica];
         $types  = "i";
@@ -715,7 +715,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         }
         // Insertar comentario
         $sql = "INSERT INTO proyectos_comentarios 
-            (id_proyectos, id_usuario, tipo, comentario, fecha)
+            (id_proyectos, id_usuarios, tipo, comentario, fecha)
             VALUES (?, ?, ?, ?, CURDATE())";
 
         $stmt = $this->con->prepare($sql);
@@ -966,11 +966,11 @@ proy.cantidad_estudiante;";
 
     function obtenerProyectoInvestigador($id_proyecto)
     {
-        $sql = "SELECT usua.nombre, usua.apellido_paterno, usua.apellido_materno, nisn.nombre as nivel_sni, grac.nombre as grado_academico FROM gestion_proyectos.investigadores as inve
-JOIN usuarios as usua ON usua.id_usuarios = inve.id_usuario
+        $sql = "SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno, nisn.nombre as nivel_sni, grac.nombre as grado_academico FROM gestion_proyectos.investigadores as inve
+JOIN usuarios as usua ON usua.id_usuarios = inve.id_usuarios
 JOIN niveles_sni as nisn ON nisn.id_nivel = inve.id_nivel_sni
 JOIN grados_academicos as grac ON grac.id_grado = inve.id_grado
-JOIN proyectos as proy ON proy.id_investigador = inve.id_usuario
+JOIN proyectos as proy ON proy.id_investigador = inve.id_usuarios
 WHERE proy.id_proyectos = ?";
 
         $params = [$id_proyecto];
@@ -979,7 +979,7 @@ WHERE proy.id_proyectos = ?";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $stmt->get_result()->fetch_assoc();
     }
 
     function obtenerUsuarioArea($id_usuario)
@@ -997,16 +997,16 @@ GROUP BY us.id_usuarios, subco.id_subarea, arco.id_area;";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $stmt->get_result()->fetch_assoc();
     }
 
 
     function obtenerInvestigadorLinea($id_proyecto)
     {
         $sql = "SELECT liin.nombre as linea FROM gestion_proyectos.investigadores as inve
-JOIN investigador_lineas_investigacion as inliin ON inliin.id_usuario = inve.id_usuario 
+JOIN investigador_lineas_investigacion as inliin ON inliin.id_usuarios = inve.id_usuarios 
 JOIN lineas_investigacion as liin ON liin.id_linea = inliin.id_linea
-JOIN proyectos as proy ON proy.id_investigador = inve.id_usuario
+JOIN proyectos as proy ON proy.id_investigador = inve.id_usuarios
 WHERE proy.id_proyectos = ?";
 
         $params = [$id_proyecto];
@@ -1015,21 +1015,14 @@ WHERE proy.id_proyectos = ?";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $stmt->get_result()->fetch_assoc();
     }
 
-    function obtenerProyectoTematica($id_proyecto)
+    public function obtenersubtematicasProyecto($id_proyecto)
     {
-        $sql = "SELECT tema.nombre_tematica, s.nombre_subtematica AS subtematicas FROM gestion_proyectos.proyectos as pro
-JOIN proyectos_subtematica as prsu ON prsu.id_proyectos = pro.id_proyectos
-JOIN subtematica as s ON s.id_subtematica = prsu.id_subtematica
-JOIN tematica as tema ON s.id_tematica = tema.id_tematica
-WHERE pro.id_proyectos = ?
-GROUP BY pro.id_proyectos, tema.id_tematica";
-
+        $sql = "SELECT sub.id_subtematica FROM proyectos_subtematica as sub JOIN subtematica as sub2 ON sub.id_subtematica = sub2.id_subtematica WHERE sub.id_proyectos = ? AND sub2.estado = 1";
         $params = [$id_proyecto];
-        $types  = "i";
-
+        $types = "i";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
@@ -1039,9 +1032,9 @@ GROUP BY pro.id_proyectos, tema.id_tematica";
     function obtenerProyectoEstudiante($id_proyecto)
     {
         $sql = "SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno, carr.nombre_carrera as carrera FROM gestion_proyectos.estudiantes as estu 
-JOIN usuarios AS usua ON usua.id_usuarios = estu.id_usuario
+JOIN usuarios AS usua ON usua.id_usuarios = estu.id_usuarios
 JOIN carreras as carr ON carr.id_carrera = estu.id_carrera
-JOIN proyectos_usuarios as prus ON prus.id_usuarios = estu.id_usuario
+JOIN proyectos_usuarios as prus ON prus.id_usuarios = estu.id_usuarios
 JOIN proyectos as proy ON proy.id_proyectos = prus.id_proyectos
 WHERE proy.id_proyectos = ?";
 
@@ -1062,7 +1055,7 @@ WHERE proy.id_proyectos = ?";
         ELSE 'Rechazo'
     END AS tipo, CONCAT(usua.nombre, ' ', usua.apellido_paterno, ' ', usua.apellido_materno) as nombre_completo, prco.comentario, prco.fecha FROM gestion_proyectos.proyectos_comentarios as prco
 JOIN proyectos as proy ON proy.id_proyectos = prco.id_proyectos
-JOIN usuarios as usua ON usua.id_usuarios = prco.id_usuario
+JOIN usuarios as usua ON usua.id_usuarios = prco.id_usuarios
 Where proy.id_proyectos = ? ORDER BY fecha DESC;";
 
         $params = [$id_proyecto];
