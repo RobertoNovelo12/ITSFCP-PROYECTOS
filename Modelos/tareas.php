@@ -65,10 +65,10 @@ INNER JOIN tbl_seguimiento s
 
 LEFT JOIN tareas_usuarios taus
         ON taus.id_tarea = t.id_tarea
-       AND taus.id_usuario = ?
+       AND taus.id_usuarios = ?
 
 INNER JOIN tipo_tarea tt 
-        ON t.id_tipotarea = tt.id_tareatipo
+        ON t.id_tareatipo = tt.id_tareatipo
 
 LEFT JOIN estados_tarea est 
         ON t.id_estadoT = est.id_estadoT   -- Estado de la plantilla
@@ -115,7 +115,7 @@ INNER JOIN tbl_seguimiento s
         ON t.id_avances = s.id_avances
 
 INNER JOIN tipo_tarea tt 
-        ON t.id_tipotarea = tt.id_tareatipo
+        ON t.id_tareatipo = tt.id_tareatipo
 
 LEFT JOIN estados_tarea est 
         ON t.id_estadoT = est.id_estadoT -- Estado plantilla
@@ -169,13 +169,13 @@ ORDER BY t.id_tarea ASC;
 
             FROM tareas_usuarios tu
             INNER JOIN usuarios u 
-                ON tu.id_usuario = u.id_usuarios
+                ON tu.id_usuarios = u.id_usuarios
             INNER JOIN estados_tarea et 
                 ON tu.id_estadoT = et.id_estadoT
             INNER JOIN tareas ta 
                 ON ta.id_tarea = tu.id_tarea
             INNER JOIN tipo_tarea tita
-                ON ta.id_tipotarea = tita.id_tareatipo
+                ON ta.id_tareatipo = tita.id_tareatipo
 
             WHERE tu.id_tarea = ?
             ORDER BY estudiante ASC
@@ -214,8 +214,8 @@ ORDER BY t.id_tarea ASC;
         FROM tareas_usuarios tu
         INNER JOIN tareas t 
             ON t.id_tarea = tu.id_tarea
-        INNER JOIN tipo_tarea as tita ON t.id_tipotarea = tita.id_tareatipo
-        WHERE tu.id_usuario = ?
+        INNER JOIN tipo_tarea as tita ON t.id_tareatipo = tita.id_tareatipo
+        WHERE tu.id_usuarios = ?
         ORDER BY tu.id_asignacion DESC
     ";
 
@@ -333,7 +333,7 @@ ORDER BY t.id_tarea ASC;
             SELECT 1
             FROM tareas_usuarios AS taus
             WHERE taus.id_tarea = ?
-            AND taus.id_usuario = prus.id_usuarios
+            AND taus.id_usuarios = prus.id_usuarios
         )
     ";
         // justo antes de $stmtUsuario = $this->con->prepare($sqlUsuario);
@@ -351,11 +351,11 @@ ORDER BY t.id_tarea ASC;
         $stmtUsuario->close();
 
         // Insert seguro (evita duplicados)
-        $sqlInsert = "INSERT INTO tareas_usuarios (id_tarea, id_usuario, id_estadoT)
+        $sqlInsert = "INSERT INTO tareas_usuarios (id_tarea, id_usuarios, id_estadoT)
         SELECT ?, ?, 1
         WHERE NOT EXISTS (
             SELECT 1 FROM tareas_usuarios 
-            WHERE id_tarea = ? AND id_usuario = ?
+            WHERE id_tarea = ? AND id_usuarios = ?
         )
     ";
 
@@ -415,11 +415,11 @@ ORDER BY t.id_tarea ASC;
             $stmtAlumnos->close();
 
             // INSERT seguro (evita duplicados)
-            $sqlInsert = "INSERT INTO tareas_usuarios (id_tarea, id_usuario, id_estadoT)
+            $sqlInsert = "INSERT INTO tareas_usuarios (id_tarea, id_usuarios, id_estadoT)
             SELECT ?, ?, 1
             WHERE NOT EXISTS (
                 SELECT 1 FROM tareas_usuarios 
-                WHERE id_tarea = ? AND id_usuario = ?
+                WHERE id_tarea = ? AND id_usuarios = ?
             )
         ";
             $stmtInsert = $this->con->prepare($sqlInsert);
@@ -491,7 +491,7 @@ esta.nombre AS estado,
         FROM tareas_usuarios a
         INNER JOIN tareas t ON t.id_tarea = a.id_tarea
         INNER JOIN tbl_seguimiento as tbse ON t.id_avances = tbse.id_avances 
-        INNER JOIN tipo_tarea tt ON tt.id_tareatipo = t.id_tipotarea
+        INNER JOIN tipo_tarea tt ON tt.id_tareatipo = t.id_tareatipo
         INNER JOIN estados_tarea as esta ON esta.id_estadoT = a.id_estadoT
         WHERE a.id_asignacion = ?
         LIMIT 1";
@@ -524,7 +524,7 @@ esta.nombre AS estado,
                     tare.archivo_tipo,
                     esta.nombre as estado
                  FROM tareas AS tare
-                 JOIN tipo_tarea AS tita ON tare.id_tipotarea = tita.id_tareatipo
+                 JOIN tipo_tarea AS tita ON tare.id_tareatipo = tita.id_tareatipo
                  JOIN estados_tarea as esta ON esta.id_estadoT = tare.id_estadoT
                  WHERE tare.id_tarea = ?";
 

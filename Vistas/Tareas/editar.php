@@ -30,9 +30,7 @@ if ($action == 'actualizarestado' && isset($_GET['id_tarea'])) {
     $tareaControlador->actualizarestado($_GET['id_tarea'], $rol, $_GET['tipo'], $id_proyectos);
 }
 
-// ======================
 // GENERAR CONTENIDO
-// ======================
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
@@ -94,6 +92,36 @@ include __DIR__ . '/../../mensaje.php';
                     </div>
                 </div>
             </form>
+            <div class="timeline">
+
+                <?php foreach ($historialAgrupado as $fecha => $items): ?>
+
+                    <!-- SECCIÓN -->
+                    <div class="timeline-section">
+                        <h4 class="timeline-date"><?= $fecha ?></h4>
+
+                        <?php foreach ($items as $item): ?>
+
+                            <div class="timeline-item">
+                                <div class="timeline-icon">
+                                    <i class="fa fa-comment"></i>
+                                </div>
+
+                                <div class="timeline-content">
+                                    <h5><?= $item['estado'] ?></h5>
+                                    <p><?= $item['comentario'] ?></p>
+                                    <span class="time">
+                                        <?= date("H:i", strtotime($item['fecha'])) ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                        <?php endforeach; ?>
+                    </div>
+
+                <?php endforeach; ?>
+
+            </div>
         </div>
     </div>
 </div>
