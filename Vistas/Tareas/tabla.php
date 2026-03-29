@@ -36,9 +36,7 @@ if (!is_array($tarea)) {
     die("Error: La acción '$action' no devolvió un array válido.");
 }
 $encabezados = $tareaControlador->encabezadosPrincipal($rol);
-// ======================
 // GENERAR CONTENIDO
-// ======================
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>

@@ -2631,9 +2631,7 @@ select:focus {
   flex: 1;
 }
 
-/* ========================================
-   MEDIA QUERIES - RESPONSIVE
-   ======================================== */
+/* MEDIA QUERIES - RESPONSIVE */
 
 /* Tablets y pantallas medianas (768px - 991px) */
 @media (max-width: 991px) {
@@ -2720,6 +2718,24 @@ select:focus {
 
   .config-text {
     font-size: 0.9rem;
+  }
+
+  /*Línea de tiempo de actividad de tareas*/
+  .timeline {
+    padding-left: 30px;
+  }
+
+  .timeline li::before {
+    left: -22px;
+  }
+
+  .timeline-header {
+    flex-direction: column;
+  }
+
+  .fecha {
+    margin-top: 3px;
+    font-size: 12px;
   }
 }
 
@@ -2816,6 +2832,24 @@ select:focus {
     font-size: 0.85rem;
     line-height: 1.4;
   }
+
+  /*Línea de tiempo de actividad de tareas*/
+  .timeline {
+    padding-left: 30px;
+  }
+
+  .timeline li::before {
+    left: -22px;
+  }
+
+  .timeline-header {
+    flex-direction: column;
+  }
+
+  .fecha {
+    margin-top: 3px;
+    font-size: 12px;
+  }
 }
 
 /* Móviles muy pequeños (menos de 375px) */
@@ -2841,6 +2875,24 @@ select:focus {
 
   .config-text {
     font-size: 0.8rem;
+  }
+
+  /*Línea de tiempo de actividad de tareas*/
+  .timeline {
+    padding-left: 30px;
+  }
+
+  .timeline li::before {
+    left: -22px;
+  }
+
+  .timeline-header {
+    flex-direction: column;
+  }
+
+  .fecha {
+    margin-top: 3px;
+    font-size: 12px;
   }
 }
 
@@ -4242,20 +4294,20 @@ select:focus {
 }
 
 /* Tematicas y subtematicas*/
-.subtematica-item{
-padding:10px 0;
-border-bottom:1px solid var(--borde-menu);
+.subtematica-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--borde-menu);
 }
 
-.subtematica-contenido{
-display:flex;
-gap:10px;
-align-items:center;
-padding: 10px;
+.subtematica-contenido {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
 }
 
-.subtematica-input{
-flex:1;
+.subtematica-input {
+  flex: 1;
 }
 
 .subtematica-input {
@@ -4305,43 +4357,114 @@ flex:1;
 }
 
 /*Línea de tiempo - Timeline de Tareas*/
-ul.timeline {
-    list-style-type: none;
-    position: relative;
-}
-ul.timeline:before {
-    content: ' ';
-    background: #d4d9df;
-    display: inline-block;
-    position: absolute;
-    left: 29px;
-    width: 2px;
-    height: 100%;
-    z-index: 400;
-}
-ul.timeline > li {
-    margin: 20px 0;
-    padding-left: 20px;
-}
-ul.timeline > li:before {
-    content: ' ';
-    background: white;
-    display: inline-block;
-    position: absolute;
-    border-radius: 50%;
-    border: 3px solid #22c0e8;
-    left: 20px;
-    width: 20px;
-    height: 20px;
-    z-index: 400;
-}
-/*Separación por secciones*/
-.timeline-section {
-    margin-bottom: 30px;
+
+/*SUMARY CON DETAILS*/
+
+/* Estilos opcionales para mejorar apariencia */
+details {
+  margin: 10px 0;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
 }
 
-.timeline-date {
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #555;
+summary {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+summary::-webkit-details-marker {
+  color: #007BFF;
+  /* Cambia el color del ícono */
+}
+
+/*LÍNEA DE TIEMPO*/
+/* DETAILS */
+details {
+  margin-top: 10px;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* TIMELINE BASE */
+.timeline {
+  list-style: none;
+  position: relative;
+  margin: 20px 0;
+  padding-left: 40px;
+}
+
+/* LÍNEA VERTICAL */
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: #d4d9df;
+}
+
+/* ITEM */
+.timeline li {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+/* CÍRCULO */
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 5px;
+  width: 14px;
+  height: 14px;
+  background: white;
+  border: 3px solid #22c0e8;
+  border-radius: 50%;
+}
+
+/* CONTENIDO */
+.timeline-content {
+  background: #f9f9f9;
+  padding: 12px 15px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* HEADER */
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* TITULO */
+.titulo {
+  font-weight: bold;
+}
+
+/* FECHA */
+.fecha {
+  font-size: 1rem;
+  color: #777;
+}
+
+/* COMENTARIO */
+.comentario {
+  margin-top: 5px;
+}
+
+/* COLORES POR ROL */
+.estudiante {
+  color: #0d6efd;
+}
+
+.investigador {
+  color: #ffc107;
 }

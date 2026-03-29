@@ -19,9 +19,7 @@ require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
 $tarea = $tareaControlador->mostrarEditarTarea($id_tarea, $rol);
-// ======================
 // GENERAR CONTENIDO
-// ======================
 ob_start();
 ?>
 

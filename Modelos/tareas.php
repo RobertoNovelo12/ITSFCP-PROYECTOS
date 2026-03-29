@@ -154,11 +154,6 @@ ORDER BY t.id_tarea ASC;
                 -- Estado actual de la entrega
                 et.nombre AS estados_tarea,
 
-                -- Fechas claves
-                tu.fecha_revision,
-                tu.fecha_correccion,
-                tu.fecha_aprobacion,
-
                 -- Datos del archivo entregado
                 tu.archivo,
                 tu.archivo_nombre,
@@ -376,11 +371,11 @@ ORDER BY t.id_tarea ASC;
         }
     }
 
-    public function actualizarestado($id_tarea, $numeroEstado)
+    public function actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentario)
     {
-        // 1. ACTIVAR TAREA (estado 1)
+        // 1. ACTIVAR TAREA (estado 1) //ACTIVAR LA TAREA A TODOS LOS ALUMNOS
         if ($numeroEstado == 1) {
-
+            //Estado de la tarea en general
             $sql = "UPDATE tareas 
                     SET id_estadoT = ? 
                     WHERE id_tarea = ?";
@@ -398,8 +393,10 @@ ORDER BY t.id_tarea ASC;
             $stmtProyecto = $this->con->prepare($sqlProyecto);
             $stmtProyecto->bind_param("i", $id_tarea);
             $stmtProyecto->execute();
+
             $proy = $stmtProyecto->get_result()->fetch_assoc();
             $stmtProyecto->close();
+
             $id_proyectos = $proy['id_proyectos'];
             $id_tarea     = $proy['id_tarea'];
 
@@ -424,6 +421,7 @@ ORDER BY t.id_tarea ASC;
         ";
             $stmtInsert = $this->con->prepare($sqlInsert);
 
+
             while ($al = $alumnos->fetch_assoc()) {
                 $stmtInsert->bind_param(
                     "iiii",
@@ -437,35 +435,37 @@ ORDER BY t.id_tarea ASC;
         } else {
             // 2. OTROS ESTADOS (REVISAR, CORREGIR, APROBAR)
             switch ($numeroEstado) {
-                case 2: // Revisar
-                    $sql = "UPDATE tareas_usuarios 
-                    SET id_estadoT = ?, fecha_revision = CURDATE() 
-                    WHERE id_tarea = ?";
-                    break;
-
+                case 2: // Revisar (Enviado)
                 case 3: // Corregir
+                case 5:    // Aprobar
+                    //Consulta a la tabla de tareas_usuarios
                     $sql = "UPDATE tareas_usuarios 
-                    SET id_estadoT = ?, fecha_correccion = CURDATE() 
+                    SET id_estadoT = ?
                     WHERE id_tarea = ?";
-                    break;
+                    //Consulta a la tabla de tareas_historial
+                    if ($id_asignacion != null) {
+                        $sql2 = "INSERT INTO tareas_historial (id_asignacion, id_estadoT, id_usuarios, comentario, fecha)
+                    VALUES (?, ?, ?, ?, CURDATE())";
+                    }
 
-                case 5: // Aprobar
-                    $sql = "UPDATE tareas_usuarios 
-                    SET id_estadoT = ?, fecha_aprobacion = CURDATE() 
-                    WHERE id_tarea = ?";
+
                     break;
-                case 6: // Entregado
+                /*case 6: // Entregado
                     $sql = "UPDATE tareas_usuarios 
                     SET id_estadoT = ? 
                     WHERE id_tarea = ?";
-                    break;
-
+                    break;*/
                 default:
                     die("Estado no válido");
             }
             $stmt = $this->con->prepare($sql);
             $stmt->bind_param("ii", $numeroEstado, $id_tarea);
             $stmt->execute();
+            if ($id_asignacion != null) {
+                $stmt2 = $this->con->prepare($sql2);
+                $stmt2->bind_param("iiis", $id_asignacion, $numeroEstado, $id_usuarios, $comentario);
+                $stmt2->execute();
+            }
         }
     }
 
@@ -486,8 +486,7 @@ esta.nombre AS estado,
             t.instrucciones,
             tt.descripcion_tipo AS tipo_tarea,
 
-            a.contenido,
-            a.comentarios
+            a.contenido
         FROM tareas_usuarios a
         INNER JOIN tareas t ON t.id_tarea = a.id_tarea
         INNER JOIN tbl_seguimiento as tbse ON t.id_avances = tbse.id_avances 
@@ -512,7 +511,7 @@ esta.nombre AS estado,
     //Obtener información de tarea con seguimiento para modificar los datos
     function obtenerTareaGeneral($id_tarea)
     {
-        // 1) OBTENER TAREA
+        // OBTENER TAREA
         $sqlTarea = "SELECT 
                     tare.id_tarea,
                     tita.descripcion_tipo AS tipo,
@@ -534,5 +533,33 @@ esta.nombre AS estado,
         $tarea = $stmt->get_result()->fetch_assoc();
 
         return $tarea;
+    }
+    //OBTENR INFORMACIÓN DEL HISTORIAL DE TAREA PARA EL TIMELINE
+    public function linea_tiempo_tarea($id_asignacion)
+    {
+
+        $sqlHistorial = "SELECT 
+                    CASE id_estadoT
+                WHEN 2 THEN 'Enviado'
+                WHEN 3 THEN 'Corregir'
+                WHEN 5 THEN 'Aprobado'
+            END AS estado,(
+        SELECT 1 
+        FROM  estudiantes
+        WHERE id_usuarios = tahi.id_usuarios
+    ) AS esEstudiante, comentario, fecha FROM tareas_historial AS tahi
+                 WHERE id_asignacion = ?";
+
+        $stmt = $this->con->prepare($sqlHistorial);
+        $stmt->bind_param("i", $id_asignacion);
+        $stmt->execute();
+        $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $historialAgrupado = [];
+        //Para agrupar el historial por fechas
+        foreach ($historial as $item) {
+            $fecha = date("d/m/Y", strtotime($item['fecha']));
+            $historialAgrupado[$fecha][] = $item;
+        }
+        return $historialAgrupado;
     }
 }

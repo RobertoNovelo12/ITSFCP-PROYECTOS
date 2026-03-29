@@ -28,7 +28,7 @@ if (!method_exists($tareaControlador, $action)) {
 //Se ejecuta la acción del controlador
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
-    $tareaControlador->actualizarestado($id_tarea, $rol, $_GET['tipo'], $id_proyectos);
+    $tareaControlador->actualizarestado($id_tarea, $rol, $_GET['tipo'], $id_proyectos, null, null, null);
 }
 //EJECUTAR ACCION
 $tarea = $tareaControlador->$action($id_tarea, $rol);
@@ -36,9 +36,7 @@ if (!is_array($tarea)) {
     die("Error: La acción '$action' no devolvió un array válido.");
 }
 $encabezados = $tareaControlador->encabezadosLista($rol);
-// ======================
 // GENERAR CONTENIDO
-// ======================
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
@@ -76,9 +74,6 @@ include __DIR__ . '/../../mensaje.php';
                                         echo "<td><span class='badge text-bg-{$tareaControlador->EstiloEstadoLista($tar['estados_tarea'])}'>"
                                             . htmlspecialchars($tar['estados_tarea'] ?? '-', ENT_QUOTES, 'UTF-8') .
                                             "</span></td>";
-                                        echo "<td>{$tar['fecha_revision']}</td>";
-                                        echo "<td>{$tar['fecha_correccion']}</td>";
-                                        echo "<td>{$tar['fecha_aprobacion']}</td>";
                                         echo "<td>{$tareaControlador->botonesAccionLista($tar['id_asignacion'],$rol,$tar['estados_tarea'],$tar['tipo'],$id_proyectos,$tar['id_tarea'])}</td>";
                                         echo "</tr>";
                                     }

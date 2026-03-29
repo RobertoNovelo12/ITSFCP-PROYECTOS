@@ -29,27 +29,14 @@ $tareaControlador = new TareaControlador();
 
 // DATOS
 $datos = $tareaControlador->mostrarTarea($id_asignacion, $rol);
-
-if ($action == 'editarTareaEstudiante') {
-    $tareaControlador->editarTareaEstudiante($_POST, $rol, $id_proyecto);
-}
-if ($action == 'editarTareaRevisar') {
-    $tareaControlador->editarTareaRevisar($_POST, $rol, $id_proyecto);
-}
-if ($action == 'actualizarestado') {
-    $tareaControlador->actualizarestado(
-    $_GET['id_tarea'],
-    $rol,
-    $_GET['tipo'],
-    $_GET['id_proyectos'],  
-    $_GET['id_asignacion']
-);
-
+$historialAgrupado = $tareaControlador->info_linea_tiempo($id_asignacion, $id);
+//PASAR AL LADO DEL CONTROLADOR
+if ($action == 'editar') {
+    $tareaControlador->editar($_POST, $rol, $id_proyecto, $id_asignacion, $id);
 }
 
-// ======================
+
 // GENERAR VISTA
-// ======================
 ob_start();
 
 ?>
@@ -87,19 +74,12 @@ ob_start();
 
         <form action="tarea.php" method="POST" enctype="multipart/form-data">
             <div class="row mb-1">
-
-                <?php if ($rol == "estudiante"): ?>
-                    <input type="hidden" name="action" value="editarTareaEstudiante">
-                <?php endif; ?>
-
-                <?php if ($rol == "investigador"): ?>
-                    <input type="hidden" name="action" value="editarTareaRevisar">
-                <?php endif; ?>
+                <input type="hidden" name="action" value="editar">
                 <input type="hidden" name="id_tarea" value="<?= $datos['id_tarea']; ?>">
                 <input type="hidden" name="id_proyectos" value="<?= $datos['id_proyectos']; ?>">
                 <input type="hidden" name="id_asignacion" value="<?= $datos['id_asignacion']; ?>">
 
-                <?php echo $tareaControlador->tareas($datos['tipo_tarea'], $rol, $datos) ?? ""; ?>
+                <?php echo $tareaControlador->tareas($datos['tipo_tarea'], $rol, $datos) ?? ""; ?> <!--Para generar las tareas según el tipos-->
             </div>
 
             <div class="row mb-1">
@@ -108,6 +88,51 @@ ob_start();
                 </div>
             </div>
         </form>
+        <div class="row mb-1">
+            <div class="mb-3">
+                <details>
+                    <summary>Línea de tiempo de acciones</summary>
+
+                    <ul class="timeline">
+
+                        <?php foreach ($historialAgrupado as $fecha => $items): ?>
+
+                            <?php foreach ($items as $item): ?>
+
+                                <li>
+
+                                    <div class="timeline-content">
+
+                                        <div class="timeline-header">
+                                            <span class="titulo 
+                                <?= ($item['esEstudiante'] == 1) ? 'estudiante' : 'investigador' ?>">
+
+                                                <?= ($item['esEstudiante'] == 1 ? 'Estudiante' : 'Investigador') ?>
+                                                - <?= $item['estado'] ?>
+
+                                            </span>
+
+                                            <span class="fecha">
+                                                <?= $fecha ?> - <?= date("H:i", strtotime($item['fecha'])) ?>
+                                            </span>
+                                        </div>
+
+                                        <p class="comentario">
+                                            <?= $item['comentario'] ?>
+                                        </p>
+
+                                    </div>
+
+                                </li>
+
+                            <?php endforeach; ?>
+
+                        <?php endforeach; ?>
+
+                    </ul>
+                </details>
+            </div>
+        </div>
 
     </div>
 </div>
