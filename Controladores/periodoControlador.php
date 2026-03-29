@@ -204,7 +204,7 @@ class periodoControlador
     }
 
     //BOTONES
-    public function obtenerbotones($tipo, $id1 = null)
+    private function obtenerbotones($tipo, $id1 = null)
     {
         $boton = "";
         switch ($tipo) {
@@ -250,23 +250,39 @@ class periodoControlador
 
         return $boton;
     }
-
-    //Crear temática
-    public function registrarPeriodo($rol)
+    //Crear Periodo
+    function registrarPeriodo($rol)
     {
-        if (!$this->esSupervisor($rol)) {
-            throw new Exception("No tienes permiso.");
-        }
 
-        //Obtener datos
         global $conn;
         try {
+            $datos = $this->generarPeriodoAutomatico();
+
             $nombre = $this->limpiar($_POST['periodo']);
             $fecha_inicio = $_POST['fecha_inicio'];
             $fecha_final = $_POST['fecha_final'];
 
-            $Periodo = new Periodo($conn);
 
+            if ($_POST['FechaFinal'] < $_POST['FechaInicio']) {
+                die("La fecha final no puede ser menor a la fecha de inicio");
+            }
+
+            if (
+                $_POST['fechaInicio'] !== $datos['inicio'] ||
+                $_POST['fechaFinal'] !== $datos['fin']
+            ) {
+                die("Datos manipulados");
+            }
+
+            $Periodo = new Periodo($conn);
+            // Verificar si ya existe
+            $verificacion = $Periodo->comparar_duplicidad_periodo($nombre);
+
+            if ($verificacion) {
+                return $verificacion; // Ya existe
+            }
+
+            // Si no existe, lo crea
             $id_periodo = $Periodo->registrarPeriodo($nombre, $fecha_inicio, $fecha_final);
 
             if (!$id_periodo) {
@@ -275,10 +291,9 @@ class periodoControlador
             }
 
             header("Location: tabla.php?mensaje=1");
-            exit;
         } catch (Exception $e) {
             error_log($e->getMessage());
-            header("Location: crear.php?error=2");
+            header("Location: crear.php?error=1");
             exit;
         }
     }
@@ -312,6 +327,26 @@ class periodoControlador
             error_log($e->getMessage());
             header("Location: tabla.php?error=1");
             exit;
+        }
+    }
+
+    function generarPeriodoAutomatico()
+    {
+        $anio = date("Y");
+        $mes = date("n");
+
+        if ($mes <= 6) {
+            return [
+                "nombre" => $anio . "-1",
+                "inicio" => date("Y-m-d", strtotime("$anio-01-01")),
+                "fin"    => date("Y-m-d", strtotime("$anio-06-30"))
+            ];
+        } else {
+            return [
+                "nombre" => $anio . "-2",
+                "inicio" => date("Y-m-d", strtotime("$anio-07-01")),
+                "fin"    => date("Y-m-d", strtotime("$anio-12-31"))
+            ];
         }
     }
 }

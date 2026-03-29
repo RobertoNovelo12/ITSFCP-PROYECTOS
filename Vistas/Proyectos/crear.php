@@ -129,8 +129,11 @@ include __DIR__ . '/../../mensaje.php';
                         <div class="col-md">
                             <div class="mb-3">
                                 <label for="InputFormLimpiar9" class="form-label">Fecha final</label>
-                                <input type="date" class="form-control" name="FechaFinal" id="InputFormLimpiar9" aria-describedby="FechaFinal" min="<?php echo $periodo['FechaInicio'] ?>" max="<?php echo $periodo['FechaFinal'] ?>" required>
+                                <input type="date" class="form-control" name="FechaFinal" id="InputFormLimpiar9" aria-describedby="FechaFinal" min="<?php echo $periodo['FechaInicio'] ?>" max="<?= date('Y-m-d', strtotime('+1 year')) ?>" required>
                             </div>
+                        </div>
+                        <div class="alert alert-warning" role="alert">
+                            Los proyectos pueden durar un máximo de 1 año
                         </div>
                     </div>
                     <div class="row mb-1">

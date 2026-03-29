@@ -35,27 +35,28 @@ include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
 
-<form method="POST" action="" id="formCrearTematica">
 
-    <input type="hidden" name="action" value="registrarTematica">
+<div class="container-fluid py-4">
 
-    <div class="container-fluid py-4">
+    <!-- ENCABEZADO -->
+    <div class="row mb-3">
 
-        <!-- ENCABEZADO -->
-        <div class="row mb-3">
-
-            <div class="col-6">
-                <h3>Crear Temática</h3>
-            </div>
-
-            <div class="col-6 text-end">
-                <a href="tabla.php" class="btn btn-danger">Regresar</a>
-            </div>
-
+        <div class="col-6">
+            <h3>Crear Temática</h3>
         </div>
 
-        <!-- DATOS TEMÁTICA -->
-        <h5>Información de la temática</h5>
+        <div class="col-6 text-end">
+            <a href="tabla.php" class="btn btn-danger">Regresar</a>
+        </div>
+
+    </div>
+
+    <!-- DATOS TEMÁTICA -->
+    <h5>Información de la temática</h5>
+
+    <form method="POST" action="" id="formCrearTematica">
+
+        <input type="hidden" name="action" value="registrarTematica">
 
         <div class="mb-3">
 
@@ -113,7 +114,7 @@ include __DIR__ . '/../../error.php';
 
         </button>
 
-    </div>
+</div>
 
 </form>
 

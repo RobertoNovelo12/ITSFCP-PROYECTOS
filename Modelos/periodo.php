@@ -79,11 +79,11 @@ FROM periodos ";
         // MEJORAR: SI buscar es fecha inicio, fecha final o periodo
 
         if (!empty($buscar)) {
-        $where[] = "(fecha_inicio LIKE ? OR fecha_final LIKE ? OR periodo LIKE ?)";
-        $params[] = "%$buscar%";
-        $params[] = "%$buscar%";
-        $params[] = "%$buscar%";
-        $types .= "sss";
+            $where[] = "(fecha_inicio LIKE ? OR fecha_final LIKE ? OR periodo LIKE ?)";
+            $params[] = "%$buscar%";
+            $params[] = "%$buscar%";
+            $params[] = "%$buscar%";
+            $types .= "sss";
         }
 
         if (!empty($where)) {
@@ -123,53 +123,53 @@ FROM periodos ";
     }
 
     public function obtenerCantidadPeriodo($buscar = null, $filtro = 2)
-{
-    $sql = "SELECT COUNT(*) AS total FROM periodos";
-    $params = [];
-    $types = "";
-    $where = [];
+    {
+        $sql = "SELECT COUNT(*) AS total FROM periodos";
+        $params = [];
+        $types = "";
+        $where = [];
 
-    // Filtros
-    switch ($filtro) {
-        case 0: // Terminado
-            $where[] = "CURDATE() > fecha_final";
-            break;
-        case 1: // Pendiente
-            $where[] = "CURDATE() < fecha_inicio";
-            break;
-        case 2: // Activo
-            $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
-            break;
-        case 3: // Total
-            // No filtro
-            break;
+        // Filtros
+        switch ($filtro) {
+            case 0: // Terminado
+                $where[] = "CURDATE() > fecha_final";
+                break;
+            case 1: // Pendiente
+                $where[] = "CURDATE() < fecha_inicio";
+                break;
+            case 2: // Activo
+                $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
+                break;
+            case 3: // Total
+                // No filtro
+                break;
+        }
+
+        // Búsqueda
+        if (!empty($buscar)) {
+            $where[] = "(fecha_inicio LIKE ? OR fecha_final LIKE ? OR periodo LIKE ?)";
+            $params[] = "%$buscar%";
+            $params[] = "%$buscar%";
+            $params[] = "%$buscar%";
+            $types .= "sss";
+        }
+
+        // Construcción del WHERE
+        if (!empty($where)) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+
+        $stmt = $this->con->prepare($sql);
+
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+
+        $stmt->execute();
+        $resultado = $stmt->get_result()->fetch_assoc();
+
+        return $resultado['total'];
     }
-
-    // Búsqueda
-    if (!empty($buscar)) {
-        $where[] = "(fecha_inicio LIKE ? OR fecha_final LIKE ? OR periodo LIKE ?)";
-        $params[] = "%$buscar%";
-        $params[] = "%$buscar%";
-        $params[] = "%$buscar%";
-        $types .= "sss";
-    }
-
-    // Construcción del WHERE
-    if (!empty($where)) {
-        $sql .= " WHERE " . implode(" AND ", $where);
-    }
-
-    $stmt = $this->con->prepare($sql);
-
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-
-    $stmt->execute();
-    $resultado = $stmt->get_result()->fetch_assoc();
-
-    return $resultado['total'];
-}
 
 
     // EDICIÓN
@@ -255,12 +255,11 @@ FROM periodos ";
         return 0;
     }
     //Busca duplicidad de periodos
-    public function comparar_Duplicidad_Subperiodo($id_peridos, $periodo)
+    public function comparar_duplicidad_periodo($periodo)
     {
         $sql = "SELECT COUNT(*) as total
             FROM periodos
-            WHERE id_periodos = ?
-            AND LOWER(periodo) = LOWER(?)
+            WHERE LOWER(periodo) = LOWER(?)
             AND estado = 1";
 
         if (!empty($id_excluir)) {
@@ -269,14 +268,12 @@ FROM periodos ";
 
         $stmt = $this->con->prepare($sql);
 
-        if (!empty($id_excluir)) {
-            $stmt->bind_param("isi", $id_peridos, $periodo, $id_excluir);
-        } else {
-            $stmt->bind_param("is", $id_peridos, $periodo);
-        }
+        $stmt->bind_param("is", $periodo);
+
 
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
+        return $result;
 
         if ($result['total'] > 0) {
             throw new Exception("El periodo ya existe");
