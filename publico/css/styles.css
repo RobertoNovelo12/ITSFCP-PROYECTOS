@@ -4346,13 +4346,13 @@ select:focus {
 }
 
 /*Botón guardar*/
-.btn-guardar-tematica {
+.btn-guardar {
   background: var(--color-primario);
   border: none;
   color: white;
 }
 
-.btn-guardar-tematica:hover {
+.btn-guardar:hover {
   background: var(--hover-boton);
 }
 

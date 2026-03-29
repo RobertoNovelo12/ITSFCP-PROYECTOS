@@ -289,7 +289,7 @@ class TareaControlador
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
             case 'Guardar':
-                $boton = '<button type="submit" class="btn btn-primary">Guardar cambios</button>';
+                $boton = '<button type="submit" class="btn btn-guardar">Guardar cambios</button>';
                 break;
             default:
                 break;
@@ -311,7 +311,7 @@ class TareaControlador
                 $boton = '<button type="submit" name="tipo" value="Corregir" class="btn btn-info">Solicitar corregir</button>';
                 break;
             case 'Guardar':
-                $boton = '<button type="submit" name="tipo" value="Guardar" class="btn btn-primary">Guardar cambios</button>';
+                $boton = '<button type="submit" name="tipo" value="Guardar" class="btn btn-guardar">Guardar cambios</button>';
                 break;
             default:
                 break;
@@ -395,7 +395,7 @@ class TareaControlador
                     $boton  .= $this->obtenerbotonesTarea("Solicitar Corregir");
                     $boton  .= $this->obtenerbotonesTarea("Guardar");
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente"])) {
-                    $boton  = $this->obtenerbotonesTarea("Guardar");
+                    //$boton  = $this->obtenerbotonesTarea("Guardar");
                 } elseif (in_array($estado, ["Sin activar"])) {
                     $boton  = $this->obtenerbotonesTarea("Activar");
                     $boton  .= $this->obtenerbotonesTarea("Guardar");
@@ -460,6 +460,8 @@ class TareaControlador
                 $archivo_tipo
             );
 
+            $conn->commit();
+
             // REDIRECCIÓN SEGURA
             header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
             exit();
@@ -494,6 +496,7 @@ class TareaControlador
                 $this->editarTareaRevisar($datos, $id_proyecto);
                 $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyectos, $id_asignacion, $id, $datos['comentarios']);
             }
+            $conn->commit();
         } catch (Exception $e) {
             error_log($e->getMessage());
             header("Location: editar.php?error=1");

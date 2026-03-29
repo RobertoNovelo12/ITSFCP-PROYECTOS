@@ -15,13 +15,12 @@ class Periodo
 
         switch ($rol) {
             case 'supervisor':
-                $sql = "SELECT DISTINCT 
+                $sql = "SELECT 
   COUNT(*) AS Total,
-  SUM(CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 1 ELSE 0 END) AS Activo,
-  SUM(CASE WHEN CURDATE() < fecha_inicio THEN 1 ELSE 0 END) AS Pendiente,
-  SUM(CASE WHEN CURDATE() > fecha_final THEN 1 ELSE 0 END) AS Terminado
-FROM periodos WHERE estado = 1 ORDER BY periodo DESC
-LIMIT 1;";
+  COALESCE(SUM(CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 1 ELSE 0 END), 0) AS Activo,
+  COALESCE(SUM(CASE WHEN CURDATE() > fecha_final THEN 1 ELSE 0 END), 0) AS Terminado
+FROM periodos 
+WHERE estado = 1;";
                 $stmt = $this->con->prepare($sql);
                 break;
             default:
@@ -51,12 +50,10 @@ LIMIT 1;";
     fecha_inicio AS inicio,
     fecha_final AS final,
     fecha_creacion AS crear,
-    fecha_modificacion AS modificar,
     CASE 
-        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
+        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'        
         WHEN CURDATE() > fecha_final THEN 'Terminado'
-    END AS estado
+    END AS estados
 FROM periodos ";
 
         // Filtros
@@ -65,12 +62,10 @@ FROM periodos ";
             case 0: //Terminado
                 $where[] = " CURDATE() > fecha_final";
                 break;
-            case 1: //Pendiente
-                $where[] = " CURDATE() < fecha_inicio";
-            case 2:
+            case 1:
                 $where[] = " CURDATE() BETWEEN fecha_inicio AND fecha_final";
                 break;
-            case 3:
+            case 2:
                 break;
             default:
                 break;
@@ -87,7 +82,7 @@ FROM periodos ";
         }
 
         if (!empty($where)) {
-            $sql .= " WHERE " . implode(" AND ", $where);
+            $sql .= " WHERE estado = 1 AND " . implode(" AND ", $where);
         }
 
         // AGRUPACIÓN NECESARIA
@@ -134,9 +129,6 @@ FROM periodos ";
             case 0: // Terminado
                 $where[] = "CURDATE() > fecha_final";
                 break;
-            case 1: // Pendiente
-                $where[] = "CURDATE() < fecha_inicio";
-                break;
             case 2: // Activo
                 $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
                 break;
@@ -156,7 +148,7 @@ FROM periodos ";
 
         // Construcción del WHERE
         if (!empty($where)) {
-            $sql .= " WHERE " . implode(" AND ", $where);
+            $sql .= " WHERE estado = 1 AND " . implode(" AND ", $where);
         }
 
         $stmt = $this->con->prepare($sql);
@@ -175,10 +167,9 @@ FROM periodos ";
     // EDICIÓN
     public function obtenerPeriodoEditar($id_periodos)
     {
-        $sql = "SELECT id_periodos, periodo, fecha_inicio, fecha_final,
+        $sql = "SELECT id_periodos, periodo AS nombre, fecha_inicio AS inicio, fecha_final AS fin,
         CASE 
         WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
         WHEN CURDATE() > fecha_final THEN 'Terminado'
     END AS estado
                 FROM periodos
@@ -203,7 +194,6 @@ FROM periodos ";
         $sql = "SELECT id_periodos, periodo, fecha_inicio, fecha_final, fecha_creacion, fecha_modificacion,
         CASE 
         WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
         WHEN CURDATE() > fecha_final THEN 'Terminado'
     END AS estado
                 FROM periodos
@@ -225,58 +215,75 @@ FROM periodos ";
     //Crea Periodo
     public function registrarPeriodo($periodo, $fecha_inicio, $fecha_final)
     {
-        $sql_sub = "INSERT INTO periodos (periodo, fecha_inicio, fecha_final, estado) VALUES (?, ?, ?, 1);";
-        $stmt_sub = $this->con->prepare($sql_sub);
-        $stmt_sub->bind_param("sss", $periodo, $fecha_inicio, $fecha_final);
-        $stmt_sub->execute();
-        return $stmt_sub->insert_id;
-    }
-
-    // ACTUALIZAR
-    public function editarPeriodo($periodo, $fecha_inicio, $fecha_final, $id_periodos)
-    {
-        $sql = "UPDATE periodos
-                SET periodo = ?, fecha_inicio = ?, fecha_final = ?
-                WHERE id_periodos = ?";
+        $sql = "INSERT INTO periodos (periodo, fecha_inicio, fecha_final, estado, fecha_creacion) 
+            VALUES (?, ?, ?, 1, NOW())";
 
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("issi", $periodo, $fecha_inicio, $fecha_final, $id_periodos);
-        return $stmt->execute();
+
+        if (!$stmt) {
+            throw new Exception("Error en prepare: " . $this->con->error);
+        }
+
+        $stmt->bind_param("sss", $periodo, $fecha_inicio, $fecha_final);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute: " . $stmt->error);
+        }
+
+        return $stmt->insert_id;
     }
 
     // ELIMINAR (SOFT DELETE)
-    public function eliminar_periodo($id_periodo, $estado)
+    public function eliminar_periodo($id_periodo)
     {
+        $sql = "UPDATE periodos 
+            SET estado = 0, fecha_modificacion = NOW() 
+            WHERE id_periodos = ?";
 
-        $sql = "UPDATE periodos SET estado = 0 WHERE id_periodos = ?";
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("ii", $estado, $id_periodo);
-        $stmt->execute();
-        return 0;
-    }
-    //Busca duplicidad de periodos
-    public function comparar_duplicidad_periodo($periodo)
-    {
-        $sql = "SELECT COUNT(*) as total
-            FROM periodos
-            WHERE LOWER(periodo) = LOWER(?)
-            AND estado = 1";
 
-        if (!empty($id_excluir)) {
-            $sql .= " AND id_periodoss != ?";
+        if (!$stmt) {
+            throw new Exception("Error en prepare: " . $this->con->error);
         }
 
-        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_periodo);
 
-        $stmt->bind_param("is", $periodo);
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute: " . $stmt->error);
+        }
 
+        return $stmt->affected_rows;
+    }
+    //Busca duplicidad de periodos
+    public function comparar_duplicidad_periodo($nombre, $fecha_inicio, $fecha_fin)
+    {
+        // VALIDAR SOLAPAMIENTO (solo activos)
+        $sql1 = "SELECT COUNT(*) as total 
+        FROM periodos 
+        WHERE estado = 1
+        AND (? <= fecha_final AND ? >= fecha_inicio)";
 
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        return $result;
+        $stmt1 = $this->con->prepare($sql1);
+        $stmt1->bind_param("ss", $fecha_inicio, $fecha_fin);
+        $stmt1->execute();
+        $res1 = $stmt1->get_result()->fetch_assoc();
 
-        if ($result['total'] > 0) {
-            throw new Exception("El periodo ya existe");
+        if ($res1['total'] > 0) {
+            return 1;
+        }
+
+        // VALIDAR NOMBRE ÚNICO
+        $sql2 = "SELECT COUNT(*) as total 
+        FROM periodos 
+        WHERE periodo = ? AND estado = 1";
+
+        $stmt2 = $this->con->prepare($sql2);
+        $stmt2->bind_param("s", $nombre);
+        $stmt2->execute();
+        $res2 = $stmt2->get_result()->fetch_assoc();
+
+        if ($res2['total'] > 0) {
+            return 1;
         }
     }
 }

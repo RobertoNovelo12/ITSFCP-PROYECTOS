@@ -41,7 +41,7 @@ include __DIR__ . '/../../mensaje.php';
             </div>
 
             <?php foreach ($proyecto as $p): ?>
-                <form method="POST" id="formProyecto" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/editar.php">
+                <form method="POST" id="formProyecto" action="">
                     <input type="hidden" id="input_hidden" name="action" value="editarProyecto">
 
                     <div class="row mb-1">

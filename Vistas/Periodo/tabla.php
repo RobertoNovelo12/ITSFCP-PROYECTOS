@@ -25,7 +25,7 @@ $periodoControlador = new periodoControlador();
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_periodo') {
     $id_periodos = intval($_GET['id_periodos']);
-    
+
     $periodoControlador->eliminar($id_periodos, $rol);
 
     // Redirigir para evitar doble ejecución
@@ -125,21 +125,23 @@ include __DIR__ . '/../../mensaje.php';
                             <td><?= $per['periodo'] ?></td>
                             <td>
                                 <?= date("d/m/Y", strtotime($per['inicio'])) ?>
-                                <br>
-                                <?= date("H:i", strtotime($per['inicio'])) ?>
                             </td>
                             <td>
                                 <?= date("d/m/Y", strtotime($per['final'])) ?>
-                                <br>
-                                <?= date("H:i", strtotime($per['final'])) ?>
                             </td>
                             <td>
-                                <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estado']); ?>">
-                                    <?= htmlspecialchars($per['estado']) ?>
+                                <?= date("d/m/Y", strtotime($per['crear'])) ?>
+                            </td>
+                            <td>
+                                <?= date("H:i", strtotime($per['crear'])) ?>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
+                                    <?= htmlspecialchars($per['estados']) ?>
                                 </span>
                             </td>
                             <td>
-                                <?= $periodoControlador->botonesAccionPrincipal($per['id_periodos'], $rol, $per['estado']) ?>
+                                <?= $periodoControlador->botonesAccionPrincipal($per['id_periodos'], $rol, $per['estados']) ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -190,7 +192,7 @@ include __DIR__ . '/../../mensaje.php';
                 </ul>
                 <div class="card-body">
                     <div class="d-flex justify-content-center gap-2">
-                        <?php echo $periodoControlador->botonesAccionPrincipal($periodo_item['id_periodos'], $rol, $periodo_item['estado']); ?>
+                        <?php echo $periodoControlador->botonesAccionPrincipal($periodo_item['id_periodos'], $rol, $periodo_item['estados']); ?>
                     </div>
                 </div>
             </div>

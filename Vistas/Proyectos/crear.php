@@ -139,7 +139,7 @@ include __DIR__ . '/../../mensaje.php';
                     <div class="row mb-1">
                         <div class="col-12 text-center">
                             <?php if ($periodo['estado'] == "Activo") { ?>
-                                <button type="submit" class="btn btn-primary">Enviar solicitud de proyecto</button>
+                                <button type="submit" class="btn btn-guardar">Enviar solicitud de proyecto</button>
                             <?php } else {
                             ?>
                                 <div class="alert alert-danger" role="alert">

@@ -239,11 +239,11 @@ LEFT JOIN tareas_usuarios AS taus
             case 'estudiante':
                 $sql = "SELECT 
   COUNT(*) AS Total,
-  SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END) AS Activos,
-  SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END) AS PorAprobar,
-  SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END) AS Cierre,
-  SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END) AS PorCerrar,
-  SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido
+  COALESCE(SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END),0) AS Activos,
+  COALESCE(SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END),0) AS PorAprobar,
+  COALESCE(SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END),0) AS Cierre,
+  COALESCE(SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END),0) AS PorCerrar,
+  COALESCE(SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END),0) AS Vencido
 FROM gestion_proyectos.proyectos AS proy
 JOIN proyectos_usuarios AS prus ON proy.id_proyectos = prus.id_proyectos
 JOIN estudiantes AS estu ON prus.id_usuarios = estu.id_usuarios
@@ -257,13 +257,13 @@ WHERE estu.id_usuarios = ?;";
             case 'profesor':
                 $sql = "SELECT 
   COUNT(*) AS Total,
-  SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END) AS Activos,
-  SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END) AS PorAprobar,
-  SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END) AS Cierre,
-  SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END) AS PorCerrar,
-  SUM(CASE WHEN espr.nombre='Rechazado' THEN 1 ELSE 0 END) AS Rechazados,
-  SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido,
-  SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END) AS Cierrerechazado
+  COALESCE(SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END),0) AS Activos,
+  COALESCE(SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END),0) AS PorAprobar,
+  COALESCE(SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END),0) AS Cierre,
+  COALESCE(SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END),0) AS PorCerrar,
+  COALESCE(SUM(CASE WHEN espr.nombre='Rechazado' THEN 1 ELSE 0 END),0) AS Rechazados,
+  COALESCE(SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END),0) AS Vencido,
+  COALESCE(SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END),0) AS Cierrerechazado
 FROM gestion_proyectos.proyectos AS proy
 JOIN investigadores AS inv ON inv.id_usuarios = proy.id_investigador
 JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
@@ -313,11 +313,10 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
         switch ($rol) {
 
             case 'estudiante':
-                $base = "
-                SELECT 
+                $base = "SELECT 
                     proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
                     espr.nombre AS estado, peri.periodo,
-                    SUM(CASE WHEN taus.id_estadoT = 1 THEN 1 ELSE 0 END) AS total
+                    COALESCE(SUM(CASE WHEN taus.id_estadoT = 1 THEN 1 ELSE 0 END),0) AS total
                 FROM proyectos proy
                 JOIN proyectos_usuarios prus ON proy.id_proyectos = prus.id_proyectos
                 JOIN estudiantes estu ON estu.id_usuarios = prus.id_usuarios
@@ -334,11 +333,10 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
 
             case 'investigador':
             case 'profesor':
-                $base = "
-                SELECT 
+                $base = "SELECT 
                     proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
                     espr.nombre AS estado, peri.periodo,
-                    SUM(CASE WHEN taus.id_estadoT = 2 THEN 1 ELSE 0 END) AS total
+                    COALESCE(SUM(CASE WHEN taus.id_estadoT = 2 THEN 1 ELSE 0 END),0) AS total
                 FROM proyectos proy
                 JOIN investigadores inv ON inv.id_usuarios = proy.id_investigador
                 JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP

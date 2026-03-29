@@ -29,14 +29,14 @@ class periodoControlador
             if (!$this->esSupervisor($rol)) return [];
 
             $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 3);
+            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 2);
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
     }
 
-    public function indexEditar($rol, $id_periodo)
+    public function indexEditar($rol, $id_periodos)
     {
         //Obtener datos
         global $conn;
@@ -44,7 +44,7 @@ class periodoControlador
             if (!$this->esSupervisor($rol)) return [];
 
             $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoEditar((int)$id_periodo);
+            return $Periodo->obtenerPeriodoEditar((int)$id_periodos);
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -65,22 +65,38 @@ class periodoControlador
             return [];
         }
     }
-
+    //Cambia de estado a 0 - Desactivado administrativamente
     public function eliminar($id_periodo, $rol)
     {
-        //Obtener datos
-        global $conn;
         if (!$this->esSupervisor($rol)) {
             throw new Exception("No tienes permiso para eliminar periodo.");
         }
 
+        if (!$id_periodo) {
+            throw new Exception("ID inválido");
+        }
+
+        global $conn;
+        $conn->begin_transaction();
+
         try {
             $Periodo = new Periodo($conn);
-            $Periodo->eliminar_periodo((int)$id_periodo, 0);
-            return 0;
+
+            $filas = $Periodo->eliminar_periodo((int)$id_periodo);
+
+            if ($filas === 0) {
+                throw new Exception("No se actualizó ningún registro");
+            }
+
+            $conn->commit();
+
+            header("Location: tabla.php?mensaje=1");
+            exit;
         } catch (Exception $e) {
+            $conn->rollback();
             error_log($e->getMessage());
-            return -1;
+            header("Location: tabla.php?error=1");
+            exit;
         }
     }
 
@@ -90,6 +106,8 @@ class periodoControlador
             'Periodo',
             'Fecha Inicio',
             'Fecha Final',
+            'Fecha Creación',
+            'Hora Creación',
             'Estado',
             'Acciones'
         ] : [];
@@ -102,7 +120,6 @@ class periodoControlador
         return [
             'Total' => "Total ({$filtros[0]['Total']} en total)",
             'Activo' => "Activos ({$filtros[0]['Activo']} en total)",
-            'Pendiente' => "Pendientes ({$filtros[0]['Pendiente']} en total)",
             'Terminado' => "Terminados ({$filtros[0]['Terminado']} en total)"
         ];
     }
@@ -110,11 +127,10 @@ class periodoControlador
     public function numerofiltro($action)
     {
         return match ($action) {
-            'Total' => 3,
-            'Activo' => 0,
-            'Desactivado' => 1,
-            'Pendiente' => 2,
-            default => 0,
+            'Total' => 2,
+            'Activo' => 1,
+            'Terminado' => 0,
+            default => 0
         };
     }
 
@@ -140,8 +156,8 @@ class periodoControlador
         try {
             if (!$this->esSupervisor($rol)) return [];
 
-            $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
+            $Periodo = new Periodo($conn); // 3 de filtro para no activar el filtro
+            return $Periodo->obtenerPeriodoTablaFiltro(2, $rol, $buscar);
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -156,14 +172,14 @@ class periodoControlador
             if (!$this->esSupervisor($rol)) return [];
 
             $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro(0, $rol, $buscar);
+            return $Periodo->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
     }
 
-    public function Pendiente($rol, $buscar = null)
+    /* public function Pendiente($rol, $buscar = null)
     {
         //Obtener datos
         global $conn;
@@ -176,7 +192,7 @@ class periodoControlador
             error_log($e->getMessage());
             return [];
         }
-    }
+    }*/
 
     public function Terminado($rol, $buscar = null)
     {
@@ -186,7 +202,7 @@ class periodoControlador
             if (!$this->esSupervisor($rol)) return [];
 
             $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro(3, $rol, $buscar);
+            return $Periodo->obtenerPeriodoTablaFiltro(2, $rol, $buscar);
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -196,8 +212,8 @@ class periodoControlador
     public function EstiloEstadoLista($estado)
     {
         return match ($estado) {
-            'Activo' => "success",
-            'Pendiente' => "warning",
+            'Activo' => "success",/*
+            'Pendiente' => "warning",*/
             'Terminado' => "danger",
             default => "info"
         };
@@ -240,7 +256,7 @@ class periodoControlador
 
         $boton = "";
 
-        if (in_array($estado, ["Activo", "Pendiente"])) {
+        if (in_array($estado, ["Activo"])) {
             $boton .= $this->obtenerbotones("Editar Periodo", $id);
             $boton .= $this->obtenerbotones("Detalles", $id);
             $boton .= $this->obtenerbotones("Desactivar", $id);
@@ -255,77 +271,37 @@ class periodoControlador
     {
 
         global $conn;
+
+        $conn->begin_transaction();
         try {
             $datos = $this->generarPeriodoAutomatico();
 
-            $nombre = $this->limpiar($_POST['periodo']);
-            $fecha_inicio = $_POST['fecha_inicio'];
-            $fecha_final = $_POST['fecha_final'];
-
-
-            if ($_POST['FechaFinal'] < $_POST['FechaInicio']) {
+            if ($datos['fin'] < $datos['inicio']) {
                 die("La fecha final no puede ser menor a la fecha de inicio");
-            }
-
-            if (
-                $_POST['fechaInicio'] !== $datos['inicio'] ||
-                $_POST['fechaFinal'] !== $datos['fin']
-            ) {
-                die("Datos manipulados");
             }
 
             $Periodo = new Periodo($conn);
             // Verificar si ya existe
-            $verificacion = $Periodo->comparar_duplicidad_periodo($nombre);
+            $verificacion = $this->comparar_duplicidad_periodo($datos['nombre'], $datos['inicio'], $datos['fin']);
 
             if ($verificacion) {
-                return $verificacion; // Ya existe
-            }
-
-            // Si no existe, lo crea
-            $id_periodo = $Periodo->registrarPeriodo($nombre, $fecha_inicio, $fecha_final);
-
-            if (!$id_periodo) {
-                header("Location: crear.php?error=1");
+                $conn->rollback();
+                header("Location: tabla.php?error=duplicado");
                 exit;
             }
 
-            header("Location: tabla.php?mensaje=1");
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            header("Location: crear.php?error=1");
-            exit;
-        }
-    }
+            // Si no existe, lo crea
+            $id_periodo = $Periodo->registrarPeriodo($datos['nombre'], $datos['inicio'], $datos['fin']);
 
-    public function editarPeriodo($rol)
-    {
-        if (!$this->esSupervisor($rol)) {
-            throw new Exception("No tienes permiso.");
-        }        //Obtener datos
-        global $conn;
-
-
-        $conn->begin_transaction();
-
-        try {
-            $Periodo = new Periodo($conn);
-
-            $id_periodo = (int)$_POST['id_periodos'];
-            $nombre = $this->limpiar($_POST['periodo']);
-            $fecha_inicio = $_POST['fecha_inicio'];
-            $fecha_final = $_POST['fecha_final'];
-
-            $Periodo->editarPeriodo($nombre, $fecha_inicio, $fecha_final, $id_periodo);
-
+            if (!$id_periodo) {
+                header("Location: tabla.php?error=1");
+                exit;
+            }
             $conn->commit();
-
             header("Location: tabla.php?mensaje=1");
-            exit;
         } catch (Exception $e) {
-            $conn->rollback();
             error_log($e->getMessage());
-            header("Location: tabla.php?error=1");
+            header("Location: tabla.php?error=2");
             exit;
         }
     }
@@ -348,5 +324,13 @@ class periodoControlador
                 "fin"    => date("Y-m-d", strtotime("$anio-12-31"))
             ];
         }
+    }
+
+    public function comparar_duplicidad_periodo($nombre, $fecha_inicio, $fecha_final)
+    {
+        global $conn;
+        $Periodo = new Periodo($conn);
+        // Verificar si ya existe
+        return $Periodo->comparar_duplicidad_periodo($nombre, $fecha_inicio, $fecha_final);
     }
 }
