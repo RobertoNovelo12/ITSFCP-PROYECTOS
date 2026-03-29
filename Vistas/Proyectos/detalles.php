@@ -20,6 +20,7 @@ $proyectoControlador = new ProyectoControlador();
 
 $proyectos = $proyectoControlador->datosproyecto($id_proyecto);
 $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
+$subtematicas = $proyectoControlador->subtematicasProyecto($id_proyecto);
 
 $dat_inv = $investigador['investigador'] ?? [];
 $dat_area_inv = $investigador['area'] ?? [];
@@ -112,7 +113,7 @@ ob_start();
 
                             <dt>Estado</dt>
                             <dd>
-                                <span class="badge bg-success">
+                                <span class="badge bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
                                     <?= $proyecto['estado_proyecto'] ?>
                                 </span>
                             </dd>
@@ -133,9 +134,9 @@ ob_start();
                 <div class="mt-2">
 
                     <?php
-                    $subs = explode(",", $proyecto['subtematicas']);
-                    foreach ($subs as $sub) {
-                        echo "<span class='badge bg-primary me-2 mb-2'>" . trim($sub) . "</span>";
+                    //$subs = explode(",", $proyecto['subtematicas']);
+                    foreach ($subtematicas as $sub) {
+                        echo "<span class='badge bg-primary me-2 mb-2'>" . trim($sub['nombre']) . "</span>";
                     }
                     ?>
 

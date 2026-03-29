@@ -175,8 +175,8 @@ class ProyectoControlador
     public function EstiloEstado($estado)
     {
         return match ($estado) {
-            'Cierre rechazado', 'Rechazado' => "danger",
-            'Por cerrar', 'Por aprobar' => "warning",
+            'Cierre rechazado', 'Rechazado', 'Terminado' => "danger",
+            'Por cerrar', 'Por aprobar', 'Pendiente' => "warning",
             'Vencido' => "secondary",
             'Activo' => "success",
             'Cierre' => "dark",
@@ -368,7 +368,7 @@ class ProyectoControlador
     }
 
     //SUBTEMATICAS
-    public function subtematicas($id)
+    /*public function subtematicas($id)
     {
         global $conn;
         try {
@@ -380,7 +380,7 @@ class ProyectoControlador
             error_log($e->getMessage());
             return [];
         }
-    }
+    }*/
 
     //PERIODO
     public function obtenerperiodo()
@@ -525,10 +525,14 @@ class ProyectoControlador
 
     public function subtematicasProyecto($id_proyecto)
     {
-        global $conn;
+                global $conn;
+        try {
         $proyecto = new Proyectos($conn);
         $proyecto->actualizarProyectosVencidos();
         return $proyecto->obtenersubtematicasProyecto($id_proyecto);
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /* ACCIÓN DE RECHAZAR CIERRE */

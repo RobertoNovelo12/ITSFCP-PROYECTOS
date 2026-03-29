@@ -18,7 +18,7 @@ class Proyectos
         // 6 - Vencido
         $sql = "UPDATE proyectos 
             SET id_estadoP = 6
-            WHERE id_estadoP IN (2, 3, 5, 7)
+            WHERE id_estadoP IN (2, 3, 4 , 5, 7)
               AND fecha_fin < ?";
 
         $stmt = $this->con->prepare($sql);
@@ -572,6 +572,7 @@ WHERE te.id_tematica = ? AND sub.estado = 1";
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
+    //AÑADIR FUNCIÓN EN PERIODOS QUE NO PUEDE CREAR UN PERIODO QUE YA VENCIÓ LA FECHA Y CUANDO UN PERIODO ESTE ACTIVO
 
     public function obtenerperiodo()
     {
@@ -591,7 +592,7 @@ LIMIT 1;";
         $stmt = $this->con->prepare($sql);
 
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $stmt->get_result()->fetch_assoc();
     }
 
     public function obtenerinstituto()
@@ -896,7 +897,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
 proy.id_proyectos,
 espr.nombre AS estado_proyecto,
 tema.nombre_tematica AS tematica,
-GROUP_CONCAT(subt.nombre_subtematica) AS subtematicas,
 peri.periodo,
 
 CASE 
@@ -938,19 +938,7 @@ WHERE proy.id_proyectos = ?
 GROUP BY 
 proy.id_proyectos,
 espr.nombre,
-tema.nombre_tematica,
-peri.periodo,
-proy.titulo,
-proy.descripcion,
-proy.objetivo,
-proy.fecha_inicio,
-proy.fecha_fin,
-proy.presupuesto,
-proy.creado_en,
-proy.requisitos,
-proy.pre_requisitos,
-proy.modalidad,
-proy.cantidad_estudiante;";
+tema.nombre_tematica;";
 
         $params = [$id_proyecto];
         $types  = "i";
@@ -1020,7 +1008,7 @@ WHERE proy.id_proyectos = ?";
 
     public function obtenersubtematicasProyecto($id_proyecto)
     {
-        $sql = "SELECT sub.id_subtematica FROM proyectos_subtematica as sub JOIN subtematica as sub2 ON sub.id_subtematica = sub2.id_subtematica WHERE sub.id_proyectos = ? AND sub2.estado = 1";
+        $sql = "SELECT sub.id_subtematica, sub2.nombre_subtematica AS nombre FROM proyectos_subtematica as sub JOIN subtematica as sub2 ON sub.id_subtematica = sub2.id_subtematica WHERE sub.id_proyectos = ? AND sub2.estado = 1";
         $params = [$id_proyecto];
         $types = "i";
         $stmt = $this->con->prepare($sql);

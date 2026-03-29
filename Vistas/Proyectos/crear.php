@@ -93,57 +93,59 @@ include __DIR__ . '/../../mensaje.php';
                     </div>
 
                     <!-- Subtemáticas (selección múltiple) -->
-                     <div class="col-md">
-                    <div class="mb-3">
-                        <label class="form-label" for="select2">Subtemáticas</label>
-                        <select name="subtematicas[]" id="select2" class="form-select" multiple required>
-                            
-                        </select>
-                        <small class="text-muted">
-                            Mantén presionada la tecla Ctrl (o Cmd) para seleccionar varias
-                        </small>
-                    </div>
-                    
-                </div>
-                <div class="row mb-1">
                     <div class="col-md">
                         <div class="mb-3">
-                            <label for="InputFormLimpiar7" class="form-label">Presupuesto</label>
-                            <input type="number" class="form-control" name="Presupuesto" id="InputFormLimpiar7" aria-describedby="Presupuesto" min="0" required>
+                            <label class="form-label" for="select2">Subtemáticas</label>
+                            <select name="subtematicas[]" id="select2" class="form-select" multiple required>
+
+                            </select>
+                            <small class="text-muted">
+                                Mantén presionada la tecla Ctrl (o Cmd) para seleccionar varias
+                            </small>
+                        </div>
+
+                    </div>
+                    <div class="row mb-1">
+                        <div class="col-md">
+                            <div class="mb-3">
+                                <label for="InputFormLimpiar7" class="form-label">Presupuesto</label>
+                                <input type="number" class="form-control" name="Presupuesto" id="InputFormLimpiar7" aria-describedby="Presupuesto" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <div class="mb-3">
+                                <label for="InputFormLimpiar7" class="form-label">Periodo</label>
+                                <input type="text" disabled class="form-control" aria-describedby="Periodo" value="<?php echo ($periodo['periodo'] . " - " . $periodo['estado']) ?>">
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="InputFormLimpiar7" class="form-label">Periodo</label>
-                            <?php foreach ($periodo as $pe): ?>
-                                <input type="text" disabled class="form-control" aria-describedby="Periodo" value="<?php echo ($pe['periodo'] . " - " . $pe['estado']) ?>">
-                            <?php endforeach ?>
+                    <div class="row mb-1">
+                        <div class="col-md">
+                            <div class="mb-3">
+                                <label for="InputFormLimpiar8" class="form-label">Fecha inicio</label>
+                                <input type="date" class="form-control" name="FechaInicio" id="InputFormLimpiar8" aria-describedby="FechaInicio" min="<?php echo $periodo['FechaInicio'] ?>" max="<?php echo $periodo['FechaFinal'] ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <div class="mb-3">
+                                <label for="InputFormLimpiar9" class="form-label">Fecha final</label>
+                                <input type="date" class="form-control" name="FechaFinal" id="InputFormLimpiar9" aria-describedby="FechaFinal" min="<?php echo $periodo['FechaInicio'] ?>" max="<?php echo $periodo['FechaFinal'] ?>" required>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="InputFormLimpiar8" class="form-label">Fecha inicio</label>
-                            <?php foreach ($periodo as $pe): ?>
-                                <input type="date" class="form-control" name="FechaInicio" id="InputFormLimpiar8" aria-describedby="FechaInicio" min="<?php echo $pe['FechaInicio'] ?>" max="<?php echo $pe['FechaFinal'] ?>" required>
-                            <?php endforeach ?>
+                    <div class="row mb-1">
+                        <div class="col-12 text-center">
+                            <?php if ($periodo['estado'] == "Activo") { ?>
+                                <button type="submit" class="btn btn-primary">Enviar solicitud de proyecto</button>
+                            <?php } else {
+                            ?>
+                                <div class="alert alert-danger" role="alert">
+                                    No hay periodo activo para crear un proyecto
+                                </div>
+
+                            <?php } ?>
                         </div>
                     </div>
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label for="InputFormLimpiar9" class="form-label">Fecha final</label>
-                            <?php foreach ($periodo as $pe): ?>
-                                <input type="date" class="form-control" name="FechaFinal" id="InputFormLimpiar9" aria-describedby="FechaFinal" min="<?php echo $pe['FechaInicio'] ?>" max="<?php echo $pe['FechaFinal'] ?>" required>
-                            <?php endforeach ?>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-1">
-                    <div class="col-12 text-center">
-                        <button type="submit" class="btn btn-primary">Enviar solicitud de proyecto</button>
-                    </div>
-                </div>
             </form>
         </div>
     </div>
@@ -157,40 +159,39 @@ include __DIR__ . '/../../layout.php';
 ?>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
 
-    const selectTematica = document.getElementById("select1");
-    const selectSub = document.getElementById("select2");
+        const selectTematica = document.getElementById("select1");
+        const selectSub = document.getElementById("select2");
 
-    function cargarSubtematicas() {
+        function cargarSubtematicas() {
 
-        const idTematica = selectTematica.value;
-        if (!idTematica) return;
+            const idTematica = selectTematica.value;
+            if (!idTematica) return;
 
-        fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + idTematica)
-            .then(r => r.json())
-            .then(data => {
+            fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + idTematica)
+                .then(r => r.json())
+                .then(data => {
 
-                selectSub.innerHTML = "";
+                    selectSub.innerHTML = "";
 
-                data.forEach(item => {
+                    data.forEach(item => {
 
-                    const opt = document.createElement("option");
-                    opt.value = item.id_subtematica;
-                    opt.textContent = item.nombre_subtematica;
+                        const opt = document.createElement("option");
+                        opt.value = item.id_subtematica;
+                        opt.textContent = item.nombre_subtematica;
 
-                    selectSub.appendChild(opt);
+                        selectSub.appendChild(opt);
+                    });
                 });
-            });
-    }
+        }
 
-    // Evento al cambiar temática
-    selectTematica.addEventListener("change", cargarSubtematicas);
+        // Evento al cambiar temática
+        selectTematica.addEventListener("change", cargarSubtematicas);
 
-    // cargar automáticamente al abrir
-    if (selectTematica.value) {
-        cargarSubtematicas();
-    }
-});
-
+        // cargar automáticamente al abrir
+        if (selectTematica.value) {
+            cargarSubtematicas();
+        }
+    });
 </script>
