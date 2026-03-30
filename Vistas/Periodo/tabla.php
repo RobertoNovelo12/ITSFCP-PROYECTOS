@@ -177,6 +177,11 @@ include __DIR__ . '/../../mensaje.php';
                     <h5 class="fw-bold">
                         <?= $periodo_item['periodo'] ?>
                     </h5>
+                    <h5 class="fw-bold">
+                        <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
+                            <?= htmlspecialchars($per['estados']) ?>
+                        </span>
+                    </h5>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
@@ -195,6 +200,21 @@ include __DIR__ . '/../../mensaje.php';
                                     <?= date("d/m/Y", strtotime($periodo_item['final'])) ?>
                                     <br>
                                     <?= date("H:i", strtotime($periodo_item['final'])) ?>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <strong>Fecha Creación</strong>
+                                <p class="mb-0">
+                                    <?= date("d/m/Y", strtotime($per['crear'])) ?>
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <strong>Hora Creación</strong>
+                                <p class="mb-0">
+                                    <?= date("H:i", strtotime($per['crear'])) ?>
+
                                 </p>
                             </div>
                         </div>

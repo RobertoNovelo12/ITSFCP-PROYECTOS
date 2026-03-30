@@ -351,4 +351,13 @@ WHERE estado = 1;";
             "desactivado" => ($res['desactivado'] || $res['desactivado_nombre']) ? 1 : 0
         ];
     }
+    //Para el caso de desactivar periodo
+    public function obtenerPorId($id)
+    {
+        $sql = "SELECT estado FROM periodos WHERE id_periodos = ?";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
 }

@@ -37,44 +37,65 @@ include __DIR__ . '/../../error.php';
 <div class="container-fluid py-4">
 
     <!-- ENCABEZADO -->
-    <div class="row mb-3">
+    <div class="row mb-4 align-items-center">
 
-        <div class="col-6">
-            <h3>Editar Periodo</h3>
+        <div class="col-md-6">
+            <h3 class="fw-bold mb-0">Editar periodo</h3>
         </div>
 
-        <div class="col-6 text-end">
-            <a href="tabla.php" class="btn btn-danger">Regresar</a>
+        <div class="col-md-6 text-md-end">
+            <a href="tabla.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar
+            </a>
         </div>
 
     </div>
 
     <!-- DATOS PERIODO -->
-    <h5>Información del periodo</h5>
-    <div class="mb-3">
-        <label class="form-label">Nombre</label>
-        <p class="form-control-plaintext"><?= $datos['nombre']; ?></p>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Fecha inicio</label>
-        <p class="form-control-plaintext"><?= $datos['inicio']; ?></p>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Fecha final</label>
-        <p class="form-control-plaintext"><?= $datos['fin']; ?></p>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Estado</label><br>
-        <p class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($datos['estado']); ?>"><?= $datos['estado']; ?></p>
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Información del periodo</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Nombre</dt>
+                        <dd>
+                            <?= $datos['nombre']; ?>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Estado</dt>
+                        <dd>
+                            <p class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($datos['estado']); ?>"><?= $datos['estado']; ?></p>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha inicial</dt>
+                        <dd><?= $datos['inicio']; ?></dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha final</dt>
+                        <dd><?= $datos['fin']; ?></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
     </div>
     <form action="" method="POST">
         <input type="hidden" name="action" value="eliminar">
 
         <button type="submit" class="btn btn-guardar">
-            Eliminar Periodo
+            Desactivar Periodo
         </button>
     </form>
 </div>

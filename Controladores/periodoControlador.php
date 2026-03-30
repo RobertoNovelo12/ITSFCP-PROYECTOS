@@ -81,22 +81,27 @@ class periodoControlador
 
         try {
 
-            // BLOQUEO DE CONCURRENCIA
-            $sql = "SELECT id_periodos FROM periodos WHERE estado = 1 FOR UPDATE";
-            $stmt = $conn->prepare($sql);
-            $stmt->execute();
-            $res = $stmt->get_result();
+            $Periodo = new Periodo($conn);
 
-            if ($res->num_rows > 0) {
-                throw new Exception("Ya existe un periodo activo");
+            // 🔒 BLOQUEO
+            $Periodo->bloquear_tabla();
+
+            // OBTENER EL PERIODO
+            $periodo = $Periodo->obtenerPorId((int)$id_periodo);
+
+            if ($periodo['estado'] == 1) {
+                $Periodo->desactivarActivos(); // desactiva primero
             }
 
-            $Periodo = new Periodo($conn);
+            if (!$periodo) {
+                throw new Exception("Periodo no encontrado");
+            }
+
 
             $filas = $Periodo->eliminar_periodo((int)$id_periodo);
 
-            if ($filas === 0) {
-                throw new Exception("No se actualizó ningún registro");
+            if ($filas < 0) {
+                throw new Exception("Error al eliminar");
             }
 
             $conn->commit();
@@ -106,7 +111,7 @@ class periodoControlador
         } catch (Exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
-            header("Location: tabla.php?error=1");
+            header("Location: tabla.php?error=10");
             exit;
         }
     }
@@ -233,8 +238,7 @@ class periodoControlador
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
             case 'Desactivar':
-                $boton = '
-                <a href="tabla.php?&id_periodos=' . $id1 . '&action=desactivar_periodo" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="tabla.php?&id_periodos=' . $id1 . '&action=desactivar_periodo" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar periodo"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
 </svg></a>';
@@ -360,14 +364,43 @@ class periodoControlador
 
     public function verificarPeriodo($nombre, $fecha_inicio, $fecha_final)
     {
-               global $conn;
+        global $conn;
         try {
-        $Periodo = new Periodo($conn);
-        // Verificar si ya existe
-        return $Periodo->verificarPeriodo($nombre, $fecha_inicio, $fecha_final);
-    } catch (Exception $e) {
+            $Periodo = new Periodo($conn);
+            // Verificar si ya existe
+            return $Periodo->verificarPeriodo($nombre, $fecha_inicio, $fecha_final);
+        } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
-}
+    }
+
+    public function obtenerEstadoVista()
+    {
+        $datos = $this->generarPeriodoAutomatico();
+
+        $verificar = $this->verificarPeriodo(
+            $datos['nombre'],
+            $datos['inicio'],
+            $datos['fin']
+        );
+
+        // CENTRALIZADA
+        if ($verificar['activo']) {
+            $accion = 'bloqueado';
+            $mensaje = 'Existe un periodo activo, no puede crear otro hasta que termine el activo';
+        } elseif ($verificar['desactivado']) {
+            $accion = 'reactivar';
+            $mensaje = null;
+        } else {
+            $accion = 'crear';
+            $mensaje = null;
+        }
+
+        return [
+            "datos" => $datos,
+            "accion" => $accion,
+            "mensaje" => $mensaje
+        ];
+    }
 }

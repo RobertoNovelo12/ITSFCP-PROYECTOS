@@ -19,8 +19,8 @@ require_once '../../Controladores/periodoControlador.php';
 
 $action = $_POST['action'] ?? null;
 $periodoControlador = new periodoControlador();
-$datos = $periodoControlador->generarPeriodoAutomatico();
-$verificar = $periodoControlador->verificarPeriodo($datos['nombre'], $datos['inicio'], $datos['fin']);
+$estadoVista = $periodoControlador->obtenerEstadoVista();
+$datos = $estadoVista['datos'];
 
 
 if ($action === 'registrarPeriodo') {
@@ -56,36 +56,43 @@ include __DIR__ . '/../../error.php';
     <h5>Información del periodo</h5>
     <div class="mb-3">
         <label class="form-label">Nombre</label>
-        <p class="form-control-plaintext"><?= $datos['nombre']; ?></p>
+        <p class="form-control-plaintext"><?= htmlspecialchars($datos['nombre']); ?>
     </div>
 
     <div class="mb-3">
         <label class="form-label">Fecha inicio</label>
-        <p class="form-control-plaintext"><?= $datos['inicio']; ?></p>
+        <p class="form-control-plaintext"><?= htmlspecialchars($datos['inicio']); ?>
     </div>
 
     <div class="mb-3">
         <label class="form-label">Fecha final</label>
-        <p class="form-control-plaintext"><?= $datos['fin']; ?></p>
+        <p class="form-control-plaintext"><?= htmlspecialchars($datos['fin']); ?>
     </div>
-    <form method="POST">
+    <?php if ($estadoVista['accion'] === 'bloqueado') { ?>
 
-        <?php if ($verificar['activo']) { ?>
-            <div class="alert alert-warning" role="alert">
-                Existe un periodo activo, no puede crear otro hasta que termine el activo
-            </div>
-        <?php } elseif ($verificar['desactivado']) { ?>
-            <input type="hidden" name="action" value="reactivarPeriodo">
-            <button type="submit" class="btn btn-guardar">
-                Reactivar Periodo
-            </button>
-        <?php } elseif ($verificar['activo'] == 0 && $verificar['desactivado'] == 0) { ?>
-            <input type="hidden" name="action" value="registrarPeriodo">
-            <button type="submit" class="btn btn-guardar">
-                Crear Periodo
-            </button>
-        <?php } ?>
-    </form>
+        <div class="alert alert-warning" role="alert">
+            <?= $estadoVista['mensaje']; ?>
+        </div>
+
+    <?php } else { ?>
+
+        <form method="POST">
+
+            <?php if ($estadoVista['accion'] === 'reactivar') { ?>
+                <input type="hidden" name="action" value="reactivarPeriodo">
+                <button type="submit" class="btn btn-guardar">
+                    Reactivar Periodo
+                </button>
+            <?php } else { ?>
+                <input type="hidden" name="action" value="registrarPeriodo">
+                <button type="submit" class="btn btn-guardar">
+                    Crear Periodo
+                </button>
+            <?php } ?>
+
+        </form>
+
+    <?php } ?>
 </div>
 
 

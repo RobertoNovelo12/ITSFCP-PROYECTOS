@@ -55,77 +55,62 @@ ob_start();
         </div>
 
         <div class="card-body">
-
-            <!-- Estado -->
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">
-                    Estado
-                </div>
-                <div class="col-md-9">
-                    <span class="badge rounded-pill text-bg-<?=
-                                                            $periodoControlador->EstiloEstadoLista($periodo['estado']);
-                                                            ?>">
-                        <?= htmlspecialchars($periodo['estado']) ?>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Nombre del periodo -->
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">
-                    Periodo
-                </div>
-                <div class="col-md-9">
-                    <?= htmlspecialchars($periodo['periodo']) ?>
-                </div>
-            </div>
-
-            <!-- Fecha inicio -->
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">
-                    Fecha de inicio
-                </div>
-                <div class="col-md-9">
-                    <?= date("d/m/Y", strtotime($periodo['fecha_inicio'])) . ' ' . date("H:i", strtotime($periodo['fecha_inicio'])) ?>
-                </div>
-            </div>
-
-            <!-- Fecha final -->
             <div class="row">
-                <div class="col-md-3 fw-bold">
-                    Fecha final
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Nombre</dt>
+                        <dd>
+                            <?= htmlspecialchars($periodo['periodo']) ?>
+                        </dd>
+                    </dl>
                 </div>
-                <div class="col-md-9">
-                    <?= date("d/m/Y", strtotime($periodo['fecha_final'])) . ' ' . date("H:i", strtotime($periodo['fecha_final'])) ?>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Estado</dt>
+                        <dd>
+                            <span class="badge rounded-pill text-bg-<?=
+                                                                    $periodoControlador->EstiloEstadoLista($periodo['estado']);
+                                                                    ?>">
+                                <?= htmlspecialchars($periodo['estado']) ?>
+                            </span>
+                        </dd>
+                    </dl>
                 </div>
             </div>
-
-            <!-- Fecha creación -->
             <div class="row">
-                <div class="col-md-3 fw-bold">
-                    Fecha creación
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha inicial</dt>
+                        <?= date("d/m/Y", strtotime($periodo['fecha_inicio'])) ?>
+                    </dl>
                 </div>
-                <div class="col-md-9">
-                    <?= date("d/m/Y", strtotime($periodo['fecha_creacion'])), ' ' . date("H:i", strtotime($periodo['fecha_creacion'])) ?>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha final</dt>
+                        <?= date("d/m/Y", strtotime($periodo['fecha_final'])) ?>
+                    </dl>
                 </div>
             </div>
-
-            <!-- Fecha modificacion -->
             <div class="row">
-                <div class="col-md-3 fw-bold">
-                    Fecha modificación
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha creación</dt>
+                        <?= date("d/m/Y", strtotime($periodo['fecha_creacion'])), ' ' . date("H:i", strtotime($periodo['fecha_creacion'])) ?>
+                    </dl>
                 </div>
-                <div class="col-md-9">
-                    <?php
-                    if (!empty($periodo['fecha_modificacion']) && $periodo['fecha_modificacion'] != "0000-00-00 00:00:00") {
-                        echo date("d/m/Y H:i", strtotime($periodo['fecha_modificacion']));
-                    } else {
-                        echo "No hay modificación";
-                    }
-                    ?>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha modificación</dt>
+                        <?php
+                        if (!empty($periodo['fecha_modificacion']) && $periodo['fecha_modificacion'] != "0000-00-00 00:00:00") {
+                            echo date("d/m/Y H:i", strtotime($periodo['fecha_modificacion']));
+                        } else {
+                            echo "No hay modificación";
+                        }
+                        ?>
+                    </dl>
                 </div>
             </div>
-
         </div>
 
     </div>
