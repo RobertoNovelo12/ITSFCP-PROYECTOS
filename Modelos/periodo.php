@@ -9,70 +9,51 @@ class Periodo
     {
         $this->con = $conn;
     }
-
-    public function obtenerPeriodoDatosFiltro($rol)
+    /**
+     * Obtiene datos para filtros (totales, activos, terminados)
+     */
+    public function obtenerPeriodoDatosFiltro($rol): array
     {
-
-        switch ($rol) {
-            case 'supervisor':
-                $sql = "SELECT 
-  COUNT(*) AS Total,
-  COALESCE(SUM(CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 1 ELSE 0 END), 0) AS Activo,
-  COALESCE(SUM(CASE WHEN CURDATE() > fecha_final THEN 1 ELSE 0 END), 0) AS Terminado
-FROM periodos 
-WHERE estado = 1;";
-                $stmt = $this->con->prepare($sql);
-                break;
-            default:
-                return []; // Retorna un array vacío si el rol no es válido
+        if ($rol !== 'supervisor') {
+            return [];
         }
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    // TABLA PRINCIPAL
-    public function obtenerPeriodoTablaFiltro($buscar, $filtro)
-    {
-        $total = $this->obtenerCantidadPeriodo($buscar, $filtro);
-
-        $por_pagina = 6;
-        $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
-        $desde = ($pagina - 1) * $por_pagina;
-        $total_paginas = ($total > 0) ? ceil($total / $por_pagina) : 1;
-
-        $params = [];
-        $types = "";
-        $where = [];
 
         $sql = "SELECT 
-        id_periodos,
-        periodo,
-        fecha_inicio AS inicio,
-        fecha_final AS final,
-        fecha_creacion AS crear,
-        CASE 
-            WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'        
-            WHEN CURDATE() > fecha_final THEN 'Terminado'
-            ELSE 'Desconocido'
-        END AS estados
-    FROM periodos";
+                    COUNT(*) AS Total,
+                    COALESCE(SUM(CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 1 ELSE 0 END), 0) AS Activo,
+                    COALESCE(SUM(CASE WHEN CURDATE() > fecha_final THEN 1 ELSE 0 END), 0) AS Terminado
+                FROM periodos 
+                WHERE estado = 1";
 
-        // Siempre excluir eliminados (soft delete)
-        $where[] = "estado = 1";
+        $stmt = $this->con->prepare($sql);
 
-        // Filtro por estado lógico (fecha)
-        switch ($filtro) {
-            case 0: // Terminados
-                $where[] = "CURDATE() > fecha_final";
-                break;
+        if (!$stmt) {
+            throw new Exception("Error en prepare (obtenerPeriodoDatosFiltro): " . $this->con->error);
+        }
 
-            case 1: // Activo
-                $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
-                break;
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (obtenerPeriodoDatosFiltro): " . $stmt->error);
+        }
 
-            case 2: // Todos
-                // No se agrega nada
-                break;
+        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $stmt->close(); // liberar recurso
+
+        return $resultado;
+    }
+
+    /**
+     * Método base para construir WHERE dinámico (REUTILIZABLE)
+     */
+    private function construirWhere(&$params, &$types, $buscar, $filtro): string
+    {
+        $where = ["estado = 1"];
+
+        // Filtro lógico
+        if ($filtro === 0) {
+            $where[] = "CURDATE() > fecha_final";
+        } elseif ($filtro === 1) {
+            $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
         }
 
         // Búsqueda
@@ -84,34 +65,71 @@ WHERE estado = 1;";
             $types .= "sss";
         }
 
-        // Construcción correcta del WHERE
-        if (!empty($where)) {
-            $sql .= " WHERE " . implode(" AND ", $where);
-        }
+        return " WHERE " . implode(" AND ", $where);
+    }
 
-        // Orden + paginación
-        $sql .= " ORDER BY id_periodos ASC LIMIT $desde, $por_pagina";
+    /**
+     * Obtiene tabla principal con paginación
+     */
+    public function obtenerPeriodoTablaFiltro($buscar, $filtro): array
+    {
+        /**
+         * Evitamos dependencia directa de $_GET
+         */
+        $pagina = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
+        $por_pagina = 6;
+        $desde = ($pagina - 1) * $por_pagina;
 
-        // Preparar
+        $params = [];
+        $types = "";
+
+        // Total optimizado
+        $total = $this->obtenerCantidadPeriodo($buscar, $filtro);
+        $total_paginas = ($total > 0) ? ceil($total / $por_pagina) : 1;
+
+        $sql = "SELECT 
+                    id_periodos,
+                    periodo,
+                    fecha_inicio AS inicio,
+                    fecha_final AS final,
+                    fecha_creacion AS crear,
+                    CASE 
+                        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'        
+                        WHEN CURDATE() > fecha_final THEN 'Terminado'
+                        ELSE 'Desconocido'
+                    END AS estados
+                FROM periodos";
+
+        $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
+
+        /**
+         * - Evitar inyección (LIMIT seguro con enteros)
+         */
+        $sql .= " ORDER BY id_periodos ASC LIMIT ?, ?";
+
         $stmt = $this->con->prepare($sql);
 
         if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error . "<br>SQL: $sql");
+            throw new Exception("Error en prepare (obtenerPeriodoTablaFiltro): " . $this->con->error);
         }
 
-        // 🔗 Bind dinámico
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
+        // Agregar paginación como enteros
+        $params[] = $desde;
+        $params[] = $por_pagina;
+        $types .= "ii";
 
-        // Ejecutar
+        $stmt->bind_param($types, ...$params);
+
         if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
+            throw new Exception("Error en execute (obtenerPeriodoTablaFiltro): " . $stmt->error);
         }
 
-        // Resultado
+        $data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $stmt->close(); // liberar recurso
+
         return [
-            "periodo" => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
+            "periodo" => $data,
             "paginacion" => [
                 "total" => $total,
                 "por_pagina" => $por_pagina,
@@ -121,96 +139,114 @@ WHERE estado = 1;";
         ];
     }
 
-    public function obtenerCantidadPeriodo($buscar = null, $filtro = 2)
+    /**
+     * Obtiene total de registros con filtros
+     */
+    public function obtenerCantidadPeriodo($buscar = null, $filtro = 2): int
     {
-        $sql = "SELECT COUNT(*) AS total FROM periodos";
         $params = [];
         $types = "";
-        $where = [];
 
-        // Siempre excluir eliminados (soft delete)
-        $where[] = "estado = 1";
-
-        // Filtros
-        switch ($filtro) {
-            case 0: // Terminado
-                $where[] = "CURDATE() > fecha_final";
-                break;
-            case 1: // Activo
-                $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
-                break;
-            case 2: // Total
-                // No filtro
-                break;
-        }
-
-        // Búsqueda
-        if (!empty($buscar)) {
-            $where[] = "(fecha_inicio LIKE ? OR fecha_final LIKE ? OR periodo LIKE ?)";
-            $params[] = "%$buscar%";
-            $params[] = "%$buscar%";
-            $params[] = "%$buscar%";
-            $types .= "sss";
-        }
-
-        // Construcción del WHERE
-        if (!empty($where)) {
-            $sql .= " WHERE " . implode(" AND ", $where);
-        }
+        $sql = "SELECT COUNT(*) AS total FROM periodos";
+        $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
 
         $stmt = $this->con->prepare($sql);
+
+        if (!$stmt) {
+            throw new Exception("Error en prepare (obtenerCantidadPeriodo): " . $this->con->error);
+        }
 
         if (!empty($params)) {
             $stmt->bind_param($types, ...$params);
         }
 
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (obtenerCantidadPeriodo): " . $stmt->error);
+        }
+
         $resultado = $stmt->get_result()->fetch_assoc();
 
-        return $resultado['total'];
+        $stmt->close();
+
+        return (int)($resultado['total'] ?? 0);
     }
 
-
-    // EDICIÓN
-    public function obtenerPeriodoEditar($id_periodos)
+    /**
+     * Obtiene datos para edición
+     */
+    public function obtenerPeriodoEditar($id_periodos): array
     {
-        $sql = "SELECT id_periodos, periodo AS nombre, fecha_inicio AS inicio, fecha_final AS fin,
-        CASE 
-        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-        WHEN CURDATE() > fecha_final THEN 'Terminado'
-    END AS estado
+        $sql = "SELECT 
+                    id_periodos, 
+                    periodo AS nombre, 
+                    fecha_inicio AS inicio, 
+                    fecha_final AS fin,
+                    CASE 
+                        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+                        WHEN CURDATE() > fecha_final THEN 'Terminado'
+                        ELSE 'Desconocido'
+                    END AS estado
                 FROM periodos
                 WHERE id_periodos = ?";
 
         $stmt = $this->con->prepare($sql);
+
+        if (!$stmt) {
+            throw new Exception("Error en prepare (obtenerPeriodoEditar): " . $this->con->error);
+        }
+
         $stmt->bind_param("i", $id_periodos);
-        $stmt->execute();
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (obtenerPeriodoEditar): " . $stmt->error);
+        }
 
         $periodo = $stmt->get_result()->fetch_assoc();
 
+        $stmt->close();
+
         if (!$periodo) {
-            throw new Exception("Periodo no encontrada");
+            throw new Exception("Periodo no encontrado");
         }
 
         return $periodo;
     }
 
-    //Obtener datos para detalles
-    public function obtenerPeriodoDetalles($id_periodos)
+    /**
+     * Obtiene datos para vista de detalles
+     */
+    public function obtenerPeriodoDetalles($id_periodos): array
     {
-        $sql = "SELECT id_periodos, periodo, fecha_inicio, fecha_final, fecha_creacion, fecha_modificacion,
-        CASE 
-        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-        WHEN CURDATE() > fecha_final THEN 'Terminado'
-    END AS estado
+        $sql = "SELECT 
+                    id_periodos, 
+                    periodo, 
+                    fecha_inicio, 
+                    fecha_final, 
+                    fecha_creacion, 
+                    fecha_modificacion,
+                    CASE 
+                        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+                        WHEN CURDATE() > fecha_final THEN 'Terminado'
+                        ELSE 'Desconocido'
+                    END AS estado
                 FROM periodos
                 WHERE id_periodos = ?";
 
         $stmt = $this->con->prepare($sql);
+
+        if (!$stmt) {
+            throw new Exception("Error en prepare (obtenerPeriodoDetalles): " . $this->con->error);
+        }
+
         $stmt->bind_param("i", $id_periodos);
-        $stmt->execute();
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (obtenerPeriodoDetalles): " . $stmt->error);
+        }
 
         $periodo = $stmt->get_result()->fetch_assoc();
+
+        $stmt->close();
 
         if (!$periodo) {
             throw new Exception("Periodo no encontrado");
@@ -245,6 +281,7 @@ WHERE estado = 1;";
         if ($validacion['activo']) {
             throw new Exception("Conflicto: ya existe un periodo activo con ese nombre o fechas.");
         }
+
 
         $sql = "INSERT INTO periodos 
             (periodo, fecha_inicio, fecha_final, estado, fecha_creacion) 
@@ -396,9 +433,13 @@ WHERE estado = 1;";
      * Bloquea únicamente los registros activos.
      * IMPORTANTE: Debe ejecutarse dentro de una transacción.
      *
+     * REQUIERE:
+     * - Motor InnoDB
+     * - Transacción activa
      * @return void
      * @throws Exception
      */
+
     public function bloquear_tabla(): void
     {
         $sql = "SELECT id_periodos 
@@ -455,14 +496,23 @@ WHERE estado = 1;";
 
         return $filas;
     }
-    public function desactivarActivos()
+    public function desactivarActivos(): void
     {
         $sql = "UPDATE periodos 
             SET estado = 0, fecha_modificacion = NOW() 
             WHERE estado = 1";
 
         $stmt = $this->con->prepare($sql);
-        $stmt->execute();
+
+        if (!$stmt) {
+            throw new Exception("Error en prepare (desactivarActivos): " . $this->con->error);
+        }
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (desactivarActivos): " . $stmt->error);
+        }
+
+        $stmt->close();
     }
     //Busca duplicidad de periodos
     /**
@@ -531,8 +581,8 @@ WHERE estado = 1;";
         $stmt->close(); // liberar recurso
 
         return [
-            "activo" => ($res['activo'] || $res['activo_nombre']) ? 1 : 0,
-            "desactivado" => ($res['desactivado'] || $res['desactivado_nombre']) ? 1 : 0
+            "activo" => (int)($res['activo'] || $res['activo_nombre']),
+            "desactivado" => (int)($res['desactivado'] || $res['desactivado_nombre'])
         ];
     }
 

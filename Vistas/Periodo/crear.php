@@ -53,20 +53,36 @@ include __DIR__ . '/../../error.php';
     </div>
 
     <!-- DATOS PERIODO -->
-    <h5>Información del periodo</h5>
-    <div class="mb-3">
-        <label class="form-label">Nombre</label>
-        <p class="form-control-plaintext"><?= htmlspecialchars($datos['nombre']); ?>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Fecha inicio</label>
-        <p class="form-control-plaintext"><?= htmlspecialchars($datos['inicio']); ?>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Fecha final</label>
-        <p class="form-control-plaintext"><?= htmlspecialchars($datos['fin']); ?>
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Información del periodo</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Nombre</dt>
+                        <dd>
+                            <?= htmlspecialchars($datos['nombre']); ?>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha inicial</dt>
+                        <dd><?= htmlspecialchars($datos['inicio']); ?></dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha final</dt>
+                        <dd><?= htmlspecialchars($datos['fin']); ?></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
     </div>
     <?php if ($estadoVista['accion'] === 'bloqueado') { ?>
 
