@@ -20,11 +20,15 @@ require_once '../../Controladores/periodoControlador.php';
 $action = $_POST['action'] ?? null;
 $periodoControlador = new periodoControlador();
 $datos = $periodoControlador->generarPeriodoAutomatico();
-$dat_veri = $periodoControlador->comparar_duplicidad_periodo($datos['nombre'], $datos['inicio'], $datos['fin']);
+$verificar = $periodoControlador->verificarPeriodo($datos['nombre'], $datos['inicio'], $datos['fin']);
 
 
 if ($action === 'registrarPeriodo') {
     $periodoControlador->registrarPeriodo($rol);
+}
+
+if ($action === 'reactivarPeriodo') {
+    $periodoControlador->reactivar($datos['nombre']);
 }
 
 ob_start();
@@ -50,33 +54,38 @@ include __DIR__ . '/../../error.php';
 
     <!-- DATOS PERIODO -->
     <h5>Información del periodo</h5>
-    <?php if ($dat_veri == 0) { ?>
-        <div class="mb-3">
-            <label class="form-label">Nombre</label>
-            <p class="form-control-plaintext"><?= $datos['nombre']; ?></p>
-        </div>
+    <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <p class="form-control-plaintext"><?= $datos['nombre']; ?></p>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Fecha inicio</label>
-            <p class="form-control-plaintext"><?= $datos['inicio']; ?></p>
-        </div>
+    <div class="mb-3">
+        <label class="form-label">Fecha inicio</label>
+        <p class="form-control-plaintext"><?= $datos['inicio']; ?></p>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Fecha final</label>
-            <p class="form-control-plaintext"><?= $datos['fin']; ?></p>
-        </div>
-        <form method="POST">
+    <div class="mb-3">
+        <label class="form-label">Fecha final</label>
+        <p class="form-control-plaintext"><?= $datos['fin']; ?></p>
+    </div>
+    <form method="POST">
+
+        <?php if ($verificar['activo']) { ?>
+            <div class="alert alert-warning" role="alert">
+                Existe un periodo activo, no puede crear otro hasta que termine el activo
+            </div>
+        <?php } elseif ($verificar['desactivado']) { ?>
+            <input type="hidden" name="action" value="reactivarPeriodo">
+            <button type="submit" class="btn btn-guardar">
+                Reactivar Periodo
+            </button>
+        <?php } elseif ($verificar['activo'] == 0 && $verificar['desactivado'] == 0) { ?>
             <input type="hidden" name="action" value="registrarPeriodo">
-
             <button type="submit" class="btn btn-guardar">
                 Crear Periodo
             </button>
-        </form>
-    <?php } else { ?>
-        <div class="alert alert-warning" role="alert">
-            Existe un periodo activo, no puede crear otro hasta que termine el activo
-        </div>
-    <?php }  ?>
+        <?php } ?>
+    </form>
 </div>
 
 

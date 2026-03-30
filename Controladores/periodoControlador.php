@@ -80,6 +80,17 @@ class periodoControlador
         $conn->begin_transaction();
 
         try {
+
+            // BLOQUEO DE CONCURRENCIA
+            $sql = "SELECT id_periodos FROM periodos WHERE estado = 1 FOR UPDATE";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute();
+            $res = $stmt->get_result();
+
+            if ($res->num_rows > 0) {
+                throw new Exception("Ya existe un periodo activo");
+            }
+
             $Periodo = new Periodo($conn);
 
             $filas = $Periodo->eliminar_periodo((int)$id_periodo);
@@ -157,7 +168,7 @@ class periodoControlador
             if (!$this->esSupervisor($rol)) return [];
 
             $Periodo = new Periodo($conn); // 3 de filtro para no activar el filtro
-            return $Periodo->obtenerPeriodoTablaFiltro(2, $rol, $buscar);
+            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 2);
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -172,27 +183,12 @@ class periodoControlador
             if (!$this->esSupervisor($rol)) return [];
 
             $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
+            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 1);
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
     }
-
-    /* public function Pendiente($rol, $buscar = null)
-    {
-        //Obtener datos
-        global $conn;
-        try {
-            if (!$this->esSupervisor($rol)) return [];
-
-            $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro(1, $rol, $buscar);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }*/
 
     public function Terminado($rol, $buscar = null)
     {
@@ -202,7 +198,7 @@ class periodoControlador
             if (!$this->esSupervisor($rol)) return [];
 
             $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro(2, $rol, $buscar);
+            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 0);
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -274,23 +270,20 @@ class periodoControlador
 
         $conn->begin_transaction();
         try {
+            $Periodo = new Periodo($conn);
+            // BLOQUEO DE CONCURRENCIA
+            $res = $Periodo->bloquear_tabla();
+
+            if ($res->num_rows > 0) {
+                throw new Exception("Ya existe un periodo activo");
+            }
+
             $datos = $this->generarPeriodoAutomatico();
 
             if ($datos['fin'] < $datos['inicio']) {
-                die("La fecha final no puede ser menor a la fecha de inicio");
+                throw new Exception("La fecha final no puede ser menor...");
             }
 
-            $Periodo = new Periodo($conn);
-            // Verificar si ya existe
-            $verificacion = $this->comparar_duplicidad_periodo($datos['nombre'], $datos['inicio'], $datos['fin']);
-
-            if ($verificacion) {
-                $conn->rollback();
-                header("Location: tabla.php?error=duplicado");
-                exit;
-            }
-
-            // Si no existe, lo crea
             $id_periodo = $Periodo->registrarPeriodo($datos['nombre'], $datos['inicio'], $datos['fin']);
 
             if (!$id_periodo) {
@@ -299,9 +292,48 @@ class periodoControlador
             }
             $conn->commit();
             header("Location: tabla.php?mensaje=1");
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            header("Location: tabla.php?error=2");
+            exit;
+        } catch (mysqli_sql_exception $e) {
+            $conn->rollback();
+
+            if ($e->getCode() == 1062) {
+                header("Location: tabla.php?error=duplicado");
+            } else {
+                header("Location: tabla.php?error=2");
+            }
+
+            exit;
+        }
+    }
+
+    public function reactivar($nombre)
+    {
+        global $conn;
+
+        $conn->begin_transaction();
+        try {
+            $Periodo = new Periodo($conn);
+            // BLOQUEO DE CONCURRENCIA
+            $Periodo->bloquear_tabla();
+
+            $periodoExistente = $Periodo->obtenerPorNombre($nombre);
+            // Desactiva el periodo actual - Caso de concurrencia
+            $Periodo->desactivarActivos();
+            // Si no existe, lo crea
+            $Periodo->reactivarPeriodo($periodoExistente['id_periodos']);
+
+            $conn->commit();
+            header("Location: tabla.php?mensaje=1");
+            exit;
+        } catch (mysqli_sql_exception $e) {
+            $conn->rollback();
+
+            if ($e->getCode() == 1062) {
+                header("Location: tabla.php?error=duplicado");
+            } else {
+                header("Location: tabla.php?error=2");
+            }
+
             exit;
         }
     }
@@ -326,11 +358,16 @@ class periodoControlador
         }
     }
 
-    public function comparar_duplicidad_periodo($nombre, $fecha_inicio, $fecha_final)
+    public function verificarPeriodo($nombre, $fecha_inicio, $fecha_final)
     {
-        global $conn;
+               global $conn;
+        try {
         $Periodo = new Periodo($conn);
         // Verificar si ya existe
-        return $Periodo->comparar_duplicidad_periodo($nombre, $fecha_inicio, $fecha_final);
-    }
+        return $Periodo->verificarPeriodo($nombre, $fecha_inicio, $fecha_final);
+    } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+}
 }

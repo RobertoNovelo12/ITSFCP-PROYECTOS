@@ -120,32 +120,42 @@ include __DIR__ . '/../../mensaje.php';
             </thead>
             <tbody>
                 <?php if ($rol == "supervisor"): ?>
-                    <?php foreach ($periodos as $per): ?>
-                        <tr>
-                            <td><?= $per['periodo'] ?></td>
-                            <td>
-                                <?= date("d/m/Y", strtotime($per['inicio'])) ?>
-                            </td>
-                            <td>
-                                <?= date("d/m/Y", strtotime($per['final'])) ?>
-                            </td>
-                            <td>
-                                <?= date("d/m/Y", strtotime($per['crear'])) ?>
-                            </td>
-                            <td>
-                                <?= date("H:i", strtotime($per['crear'])) ?>
-                            </td>
-                            <td>
-                                <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
-                                    <?= htmlspecialchars($per['estados']) ?>
-                                </span>
-                            </td>
-                            <td>
-                                <?= $periodoControlador->botonesAccionPrincipal($per['id_periodos'], $rol, $per['estados']) ?>
-                            </td>
+                    <?php if (!empty($periodos)) { ?>
+                        <?php foreach ($periodos as $per): ?>
+                            <tr>
+                                <td><?= $per['periodo'] ?></td>
+                                <td>
+                                    <?= date("d/m/Y", strtotime($per['inicio'])) ?>
+                                </td>
+                                <td>
+                                    <?= date("d/m/Y", strtotime($per['final'])) ?>
+                                </td>
+                                <td>
+                                    <?= date("d/m/Y", strtotime($per['crear'])) ?>
+                                </td>
+                                <td>
+                                    <?= date("H:i", strtotime($per['crear'])) ?>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
+                                        <?= htmlspecialchars($per['estados']) ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?= $periodoControlador->botonesAccionPrincipal($per['id_periodos'], $rol, $per['estados']) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php } else { ?>
+                        <td colspan="7">
+                            <div class="alert alert-danger">
+                                No hay periodos
+                            </div>
+                        </td>
                         </tr>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 <?php else: ?>
+
                     <tr>
                         <td colspan="7">
                             <div class="alert alert-danger">
