@@ -5,220 +5,362 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 
 class periodoControlador
 {
-
-
-
-    //Validar rol
-    private function esSupervisor($rol)
+    /**
+     * Verifica si el usuario tiene rol de supervisor.
+     *
+     * @param string $rol
+     * @return bool
+     */
+    private function esSupervisor($rol): bool
     {
-        return $rol === 'supervisor';
+        return isset($rol) && $rol === 'supervisor';
     }
 
-    //Sanitizar datos
-    private function limpiar($dato)
+    /**
+     * Sanitiza datos de entrada para prevenir XSS.
+     *
+     * @param string|null $dato
+     * @return string|null
+     */
+    private function limpiar($dato): ?string
     {
-        return htmlspecialchars(trim($dato), ENT_QUOTES, 'UTF-8');
+        return isset($dato) 
+            ? htmlspecialchars(trim($dato), ENT_QUOTES, 'UTF-8') 
+            : null;
     }
 
-    //Obtener datos
-    public function index($rol, $buscar = null)
+    /**
+     * Obtiene listado de periodos con filtro opcional.
+     *
+     * @param string $rol
+     * @param string|null $buscar
+     * @return array
+     */
+    public function index($rol, $buscar = null): array
     {
-        //Obtener datos
         global $conn;
+
         try {
-            if (!$this->esSupervisor($rol)) return [];
+            // Validación de acceso
+            if (!$this->esSupervisor($rol)) {
+                return [];
+            }
+
+            // Sanitización del filtro (evita XSS en vistas)
+            $buscar = $this->limpiar($buscar);
 
             $Periodo = new Periodo($conn);
+
             return $Periodo->obtenerPeriodoTablaFiltro($buscar, 2);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+
+        } catch (Throwable $e) {
+            error_log("Error en index(): " . $e->getMessage());
             return [];
         }
     }
 
-    public function indexEditar($rol, $id_periodos)
+    /**
+     * Obtiene datos de un periodo para edición.
+     *
+     * @param string $rol
+     * @param int $id_periodos
+     * @return array
+     */
+    public function indexEditar($rol, $id_periodos): array
     {
-        //Obtener datos
         global $conn;
+
         try {
-            if (!$this->esSupervisor($rol)) return [];
+            if (!$this->esSupervisor($rol)) {
+                return [];
+            }
+
+            // Validación estricta de ID
+            $id = filter_var($id_periodos, FILTER_VALIDATE_INT);
+
+            if (!$id) {
+                return [];
+            }
 
             $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoEditar((int)$id_periodos);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+
+            return $Periodo->obtenerPeriodoEditar($id);
+
+        } catch (Throwable $e) {
+            error_log("Error en indexEditar(): " . $e->getMessage());
             return [];
         }
     }
 
-    public function indexDetalles($rol, $id_periodo)
+    /**
+     * Obtiene detalles de un periodo específico.
+     *
+     * @param string $rol
+     * @param int $id_periodo
+     * @return array
+     */
+    public function indexDetalles($rol, $id_periodo): array
     {
-        //Obtener datos
         global $conn;
+
         try {
-            if (!$this->esSupervisor($rol)) return [];
+            if (!$this->esSupervisor($rol)) {
+                return [];
+            }
+
+            $id = filter_var($id_periodo, FILTER_VALIDATE_INT);
+
+            if (!$id) {
+                return [];
+            }
 
             $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoDetalles((int)$id_periodo);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+
+            return $Periodo->obtenerPeriodoDetalles($id);
+
+        } catch (Throwable $e) {
+            error_log("Error en indexDetalles(): " . $e->getMessage());
             return [];
         }
     }
-    //Cambia de estado a 0 - Desactivado administrativamente
-    public function eliminar($id_periodo, $rol)
+
+    /**
+     * Desactiva un periodo (borrado lógico).
+     * Implementa control transaccional, bloqueo y validaciones.
+     *
+     * @param int $id_periodo
+     * @param string $rol
+     * @throws Exception
+     */
+    public function eliminar($id_periodo, $rol): void
     {
+        global $conn;
+
+        // Validación de permisos
         if (!$this->esSupervisor($rol)) {
-            throw new Exception("No tienes permiso para eliminar periodo.");
+            throw new Exception("Acceso denegado.");
         }
 
-        if (!$id_periodo) {
-            throw new Exception("ID inválido");
+        // Validación de ID segura
+        $id = filter_var($id_periodo, FILTER_VALIDATE_INT);
+        if (!$id) {
+            throw new Exception("ID de periodo inválido.");
         }
-
-        global $conn;
-        $conn->begin_transaction();
 
         try {
+            // Configuración de transacción segura
+            $conn->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
 
             $Periodo = new Periodo($conn);
 
-            // 🔒 BLOQUEO
+            /**
+             * IMPORTANTE:
+             * El bloqueo debe ser lo más específico posible.
+             * Idealmente usar SELECT ... FOR UPDATE en el modelo.
+             */
             $Periodo->bloquear_tabla();
 
-            // OBTENER EL PERIODO
-            $periodo = $Periodo->obtenerPorId((int)$id_periodo);
-
-            if ($periodo['estado'] == 1) {
-                $Periodo->desactivarActivos(); // desactiva primero
-            }
+            // Obtener periodo con posible bloqueo (depende del modelo)
+            $periodo = $Periodo->obtenerPorId($id, true); // FOR UPDATE
 
             if (!$periodo) {
-                throw new Exception("Periodo no encontrado");
+                throw new Exception("Periodo no encontrado.");
             }
 
-
-            $filas = $Periodo->eliminar_periodo((int)$id_periodo);
-
-            if ($filas < 0) {
-                throw new Exception("Error al eliminar");
+            // Control de estado (regla de negocio)
+            if ((int)$periodo['estado'] === 1) {
+                $Periodo->desactivarActivos();
             }
 
+            // Eliminación lógica
+            $filas = $Periodo->eliminar_periodo($id);
+
+            // Validación robusta de resultado
+            if ($filas === false || $filas === 0) {
+                throw new Exception("No se pudo desactivar el periodo.");
+            }
+
+            // Confirmar transacción
             $conn->commit();
 
+            // Redirección segura
             header("Location: tabla.php?mensaje=1");
             exit;
-        } catch (Exception $e) {
-            $conn->rollback();
-            error_log($e->getMessage());
+
+        } catch (Throwable $e) {
+
+            // Reversión segura
+            if ($conn->errno === 0) {
+                $conn->rollback();
+            }
+
+            error_log("Error en eliminar(): " . $e->getMessage());
+
             header("Location: tabla.php?error=10");
             exit;
         }
     }
 
-    public function encabezadosPrincipal($rol)
-    {
-        return $this->esSupervisor($rol) ? [
-            'Periodo',
-            'Fecha Inicio',
-            'Fecha Final',
-            'Fecha Creación',
-            'Hora Creación',
-            'Estado',
-            'Acciones'
-        ] : [];
+    /**
+ * Retorna los encabezados de la tabla principal.
+ *
+ * @param string $rol
+ * @return array
+ */
+public function encabezadosPrincipal($rol): array
+{
+    if (!$this->esSupervisor($rol)) {
+        return [];
     }
 
-    public function opciones($rol, $filtros)
-    {
-        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
+    return [
+        'Periodo',
+        'Fecha Inicio',
+        'Fecha Final',
+        'Fecha Creación',
+        'Hora Creación',
+        'Estado',
+        'Acciones'
+    ];
+}
 
-        return [
-            'Total' => "Total ({$filtros[0]['Total']} en total)",
-            'Activo' => "Activos ({$filtros[0]['Activo']} en total)",
-            'Terminado' => "Terminados ({$filtros[0]['Terminado']} en total)"
-        ];
+/**
+ * Genera las opciones de filtro con conteo.
+ *
+ * @param string $rol
+ * @param array $filtros
+ * @return array
+ */
+public function opciones($rol, $filtros): array
+{
+    if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) {
+        return [];
     }
 
-    public function numerofiltro($action)
-    {
-        return match ($action) {
-            'Total' => 2,
-            'Activo' => 1,
-            'Terminado' => 0,
-            default => 0
-        };
-    }
+    // Validación defensiva
+    $data = $filtros[0];
 
-    public function filtros($rol)
-    {
-        //Obtener datos
-        global $conn;
-        try {
-            if (!$this->esSupervisor($rol)) return [];
+    return [
+        'Total' => "Total (" . ($data['Total'] ?? 0) . " en total)",
+        'Activo' => "Activos (" . ($data['Activo'] ?? 0) . " en total)",
+        'Terminado' => "Terminados (" . ($data['Terminado'] ?? 0) . " en total)"
+    ];
+}
 
-            $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoDatosFiltro($rol);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+/**
+ * Convierte acción a número de filtro.
+ *
+ * @param string $action
+ * @return int
+ */
+public function numerofiltro($action): int
+{
+    return match ($action) {
+        'Total' => 2,
+        'Activo' => 1,
+        'Terminado' => 0,
+        default => 2 // fallback lógico
+    };
+}
+
+/**
+ * Obtiene datos para filtros.
+ *
+ * @param string $rol
+ * @return array
+ */
+public function filtros($rol): array
+{
+    global $conn;
+
+    try {
+        if (!$this->esSupervisor($rol)) {
             return [];
         }
+
+        $Periodo = new Periodo($conn);
+
+        return $Periodo->obtenerPeriodoDatosFiltro($rol);
+
+    } catch (Throwable $e) {
+        error_log("Error en filtros(): " . $e->getMessage());
+        return [];
     }
+}
 
-    public function Total($rol, $buscar = null)
-    {
-        //Obtener datos
-        global $conn;
-        try {
-            if (!$this->esSupervisor($rol)) return [];
+/**
+ * Método base para evitar duplicación de lógica en filtros.
+ *
+ * @param string $rol
+ * @param int $tipoFiltro
+ * @param string|null $buscar
+ * @return array
+ */
+private function obtenerPorFiltro($rol, int $tipoFiltro, $buscar = null): array
+{
+    global $conn;
 
-            $Periodo = new Periodo($conn); // 3 de filtro para no activar el filtro
-            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 2);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+    try {
+        if (!$this->esSupervisor($rol)) {
             return [];
         }
+
+        // Sanitización preventiva
+        $buscar = $this->limpiar($buscar);
+
+        $Periodo = new Periodo($conn);
+
+        return $Periodo->obtenerPeriodoTablaFiltro($buscar, $tipoFiltro);
+
+    } catch (Throwable $e) {
+        error_log("Error en obtenerPorFiltro(): " . $e->getMessage());
+        return [];
     }
+}
 
-    public function Activo($rol, $buscar = null)
-    {
-        //Obtener datos
-        global $conn;
-        try {
-            if (!$this->esSupervisor($rol)) return [];
+/**
+ * Obtiene todos los periodos.
+ */
+public function Total($rol, $buscar = null): array
+{
+    return $this->obtenerPorFiltro($rol, 2, $buscar);
+}
 
-            $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 1);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
+/**
+ * Obtiene periodos activos.
+ */
+public function Activo($rol, $buscar = null): array
+{
+    return $this->obtenerPorFiltro($rol, 1, $buscar);
+}
 
-    public function Terminado($rol, $buscar = null)
-    {
-        //Obtener datos
-        global $conn;
-        try {
-            if (!$this->esSupervisor($rol)) return [];
+/**
+ * Obtiene periodos terminados.
+ */
+public function Terminado($rol, $buscar = null): array
+{
+    return $this->obtenerPorFiltro($rol, 0, $buscar);
+}
 
-            $Periodo = new Periodo($conn);
-            return $Periodo->obtenerPeriodoTablaFiltro($buscar, 0);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
+/**
+ * Retorna clase de estilo según estado.
+ *
+ * @param string $estado
+ * @return string
+ */
+public function EstiloEstadoLista($estado): string
+{
+    /**
+     * Normalización para evitar errores por mayúsculas/minúsculas
+     */
+    $estado = strtolower(trim($estado));
 
-    public function EstiloEstadoLista($estado)
-    {
-        return match ($estado) {
-            'Activo' => "success",/*
-            'Pendiente' => "warning",*/
-            'Terminado' => "danger",
-            default => "info"
-        };
-    }
+    return match ($estado) {
+        'activo' => "success",
+        'terminado' => "danger",
+        default => "info"
+    };
+}
 
     //BOTONES
     private function obtenerbotones($tipo, $id1 = null)
@@ -277,10 +419,6 @@ class periodoControlador
             $Periodo = new Periodo($conn);
             // BLOQUEO DE CONCURRENCIA
             $res = $Periodo->bloquear_tabla();
-
-            if ($res->num_rows > 0) {
-                throw new Exception("Ya existe un periodo activo");
-            }
 
             $datos = $this->generarPeriodoAutomatico();
 
@@ -341,66 +479,125 @@ class periodoControlador
             exit;
         }
     }
+/**
+ * Genera automáticamente el periodo actual basado en la fecha del sistema.
+ *
+ * Reglas:
+ * - Enero-Junio → periodo 1
+ * - Julio-Diciembre → periodo 2
+ *
+ * @return array
+ */
+public function generarPeriodoAutomatico(): array
+{
 
-    function generarPeriodoAutomatico()
-    {
-        $anio = date("Y");
-        $mes = date("n");
+    $anio = (int) date("Y");
+    $mes  = (int) date("n");
 
-        if ($mes <= 6) {
-            return [
-                "nombre" => $anio . "-1",
-                "inicio" => date("Y-m-d", strtotime("$anio-01-01")),
-                "fin"    => date("Y-m-d", strtotime("$anio-06-30"))
-            ];
-        } else {
-            return [
-                "nombre" => $anio . "-2",
-                "inicio" => date("Y-m-d", strtotime("$anio-07-01")),
-                "fin"    => date("Y-m-d", strtotime("$anio-12-31"))
-            ];
-        }
-    }
-
-    public function verificarPeriodo($nombre, $fecha_inicio, $fecha_final)
-    {
-        global $conn;
-        try {
-            $Periodo = new Periodo($conn);
-            // Verificar si ya existe
-            return $Periodo->verificarPeriodo($nombre, $fecha_inicio, $fecha_final);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
-
-    public function obtenerEstadoVista()
-    {
-        $datos = $this->generarPeriodoAutomatico();
-
-        $verificar = $this->verificarPeriodo(
-            $datos['nombre'],
-            $datos['inicio'],
-            $datos['fin']
-        );
-
-        // CENTRALIZADA
-        if ($verificar['activo']) {
-            $accion = 'bloqueado';
-            $mensaje = 'Existe un periodo activo, no puede crear otro hasta que termine el activo';
-        } elseif ($verificar['desactivado']) {
-            $accion = 'reactivar';
-            $mensaje = null;
-        } else {
-            $accion = 'crear';
-            $mensaje = null;
-        }
-
+    if ($mes <= 6) {
         return [
-            "datos" => $datos,
-            "accion" => $accion,
-            "mensaje" => $mensaje
+            "nombre" => "{$anio}-1",
+            "inicio" => "{$anio}-01-01",
+            "fin"    => "{$anio}-06-30"
         ];
     }
+
+    return [
+        "nombre" => "{$anio}-2",
+        "inicio" => "{$anio}-07-01",
+        "fin"    => "{$anio}-12-31"
+    ];
+}
+
+
+/**
+ * Verifica existencia de conflictos de periodo.
+ *
+ * @param string $nombre
+ * @param string $fecha_inicio
+ * @param string $fecha_final
+ * @return array
+ */
+public function verificarPeriodo($nombre, $fecha_inicio, $fecha_final): array
+{
+    global $conn;
+
+    try {
+        /**
+         * Validación defensiva básica
+         */
+        if (empty($nombre) || empty($fecha_inicio) || empty($fecha_final)) {
+            return ["activo" => 0, "desactivado" => 0];
+        }
+
+        $Periodo = new Periodo($conn);
+
+        return $Periodo->verificarPeriodo($nombre, $fecha_inicio, $fecha_final);
+
+    } catch (Throwable $e) {
+        error_log("Error en verificarPeriodo(): " . $e->getMessage());
+
+        // Respuesta segura por defecto
+        return ["activo" => 0, "desactivado" => 0];
+    }
+}
+
+
+/**
+ * Determina el estado de la vista (crear, reactivar o bloquear).
+ *
+ * Lógica:
+ * - Si hay activo → bloquear creación
+ * - Si existe desactivado → permitir reactivación
+ * - Si no existe → permitir creación
+ *
+ * @return array
+ */
+public function obtenerEstadoVista(): array
+{
+    /**
+     * 1. Generar periodo automático
+     */
+    $datos = $this->generarPeriodoAutomatico();
+
+    /**
+     * 2. Validar conflictos
+     */
+    $verificar = $this->verificarPeriodo(
+        $datos['nombre'],
+        $datos['inicio'],
+        $datos['fin']
+    );
+
+    /**
+     * Validación defensiva (evita errores si modelo falla)
+     */
+    $activo = $verificar['activo'] ?? 0;
+    $desactivado = $verificar['desactivado'] ?? 0;
+
+    /**
+     * 3. Decisión centralizada
+     */
+    if ($activo) {
+        return [
+            "datos" => $datos,
+            "accion" => "bloqueado",
+            "mensaje" => "Existe un periodo activo, no puede crear otro hasta que termine el activo"
+        ];
+    }
+
+    if ($desactivado) {
+        return [
+            "datos" => $datos,
+            "accion" => "reactivar",
+            "mensaje" => null
+        ];
+    }
+
+    return [
+        "datos" => $datos,
+        "accion" => "crear",
+        "mensaje" => null
+    ];
+}
 }
