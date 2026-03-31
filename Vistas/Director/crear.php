@@ -110,10 +110,10 @@ include __DIR__ . '/../../error.php';
                 maxlength="10">
         </div>
 
-                <div class="mb-3">
+        <div class="mb-3">
             <label class="form-label">Fecha inicio</label>
             <input
-                type="text"
+                type="date"
                 name="Fecha_inicio"
                 class="form-control"
                 maxlength="10">

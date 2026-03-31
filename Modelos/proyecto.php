@@ -377,9 +377,11 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
 
         // --- Filtro de búsqueda ---
         if (!empty($buscar)) {
-            $where[] = "proy.titulo LIKE ?";
+            $where[] = "(proy.titulo LIKE ? OR proy.modalidad LIKE ? OR cantidad_estudiante LIKE ?)";
             $params[] = "%$buscar%";
-            $types   .= "s";
+            $params[] = "%$buscar%";
+            $params[] = "%$buscar%";
+            $types .= "sss";
         }
 
         // --- WHERE dinámico ---

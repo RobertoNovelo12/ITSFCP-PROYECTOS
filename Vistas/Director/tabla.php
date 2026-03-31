@@ -125,12 +125,6 @@ include __DIR__ . '/../../mensaje.php';
                                 <td><?= htmlspecialchars($dir['telefono'] ?? '—') ?></td>
                                 <td><?= htmlspecialchars($dir['nombre_grado']) ?></td>
                                 <td>
-                                    <?= date("d/m/Y", strtotime($dir['inicio'])) ?>
-                                </td>
-                                <td>
-                                    <?= date("d/m/Y", strtotime($dir['fin'])) ?>
-                                </td>
-                                <td>
                                     <span class="badge rounded-pill text-bg-<?php echo $directorControlador->EstiloEstadoLista($dir['estados']); ?>">
                                         <?= htmlspecialchars($dir['estados']) ?>
                                     </span>
@@ -191,20 +185,6 @@ include __DIR__ . '/../../mensaje.php';
                             <div class="col-6">
                                 <strong>Grado</strong>
                                 <p class="mb-0"><?= htmlspecialchars($dir['nombre_grado']) ?></p>
-                            </div>
-                        </div>
-                        <div class="row text-center mt-2">
-                            <div class="col-6">
-                                <strong>Fecha creación</strong>
-                                <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($dir['inicio'])) ?>
-                                </p>
-                            </div>
-                            <div class="col-6">
-                                <strong>Hora creación</strong>
-                                <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($dir['fin'])) ?>
-                                </p>
                             </div>
                         </div>
                     </li>

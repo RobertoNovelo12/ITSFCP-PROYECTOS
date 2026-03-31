@@ -50,7 +50,7 @@ ob_start();
                 <h3>Revisar Tarea</h3>
             </div>
             <div class="col-6 text-end">
-                <?php if ($rol == "investigador") { ?>
+                <?php if ($rol == "investigador" || $rol== "supervisor") { ?>
                     <a href="lista_tareas.php?id_tarea=<?= $id_tarea; ?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>
                 <?php } elseif ($rol == "estudiante") { ?>
                     <a href="tareas_estudiante.php?id_tarea=<?= $id_tarea; ?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>

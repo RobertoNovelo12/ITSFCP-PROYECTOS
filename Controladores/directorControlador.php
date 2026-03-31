@@ -133,8 +133,6 @@ class directorControlador
             'Correo',
             'Teléfono',
             'Grado Académico',
-            'Fecha inicio',
-            'Fecha final',
             'Estado',
             'Acciones'
         ];

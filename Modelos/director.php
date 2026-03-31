@@ -19,6 +19,8 @@ class Director
             return [];
         }
 
+        $this->desactivarDirectoresVencidos();
+
         $sql = "SELECT 
                     COUNT(*) AS Total,
                     COALESCE(SUM(CASE WHEN d.estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
@@ -81,9 +83,6 @@ class Director
                     d.correo,
                     d.telefono,
                     g.nombre AS nombre_grado,
-                    d.fecha_creacion AS crear,
-                    d.fecha_inicio AS inicio,
-                    d.fecha_final AS fin,
                     CASE 
                         WHEN d.estado = 1 THEN 'Activo'        
                         WHEN d.estado = 0 THEN 'Desactivado'
