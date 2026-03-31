@@ -1,0 +1,111 @@
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+session_start();
+
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: /ITSFCP-PROYECTOS/index.php");
+    exit;
+}
+
+require_once '../../Controladores/carreraControlador.php';
+
+$carreraControlador = new carreraControlador();
+
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = intval($_SESSION['id_usuario']);
+
+$id_carrera = isset($_GET['id_carrera']) ? intval($_GET['id_carrera']) : 0;
+
+// Obtener datos
+$carrera = $carreraControlador->indexDetalles($rol, $id_carrera);
+
+// Validación
+if (empty($carrera)) {
+    die("No se encontró la carrera.");
+}
+
+ob_start();
+?>
+
+<div class="container-fluid py-4">
+
+    <!-- ENCABEZADO -->
+    <div class="row mb-4 align-items-center">
+
+        <div class="col-md-6">
+            <h3 class="fw-bold mb-0">Detalles de la Carrera</h3>
+        </div>
+
+        <div class="col-md-6 text-md-end">
+            <a href="tabla.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar
+            </a>
+        </div>
+
+    </div>
+
+    <!-- INFORMACIÓN DE LA CARRERA -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Información de la Carrera</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <dl>
+                        <dt>Nombre de la Carrera</dt>
+                        <dd>
+                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha creación</dt>
+                        <?= date("d/m/Y", strtotime($carrera['fecha_creacion'])), ' ' . date("H:i", strtotime($carrera['fecha_creacion'])) ?>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha modificación</dt>
+                        <?php
+                        if (!empty($carrera['fecha_modificacion']) && $carrera['fecha_modificacion'] != "0000-00-00 00:00:00") {
+                            echo date("d/m/Y H:i", strtotime($carrera['fecha_modificacion']));
+                        } else {
+                            echo "No hay modificación";
+                        }
+                        ?>
+                    </dl>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Estado</dt>
+                        <dd>
+                            <span class="badge rounded-pill text-bg-<?= $carreraControlador->EstiloEstadoLista($carrera['estado']); ?>">
+                                <?= htmlspecialchars($carrera['estado']) ?>
+                            </span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php
+
+$contenido = ob_get_clean();
+$titulo = "Detalles Carrera";
+$bodyClass = "proyectos-page";
+
+include __DIR__ . '/../../layout.php';
+?>
