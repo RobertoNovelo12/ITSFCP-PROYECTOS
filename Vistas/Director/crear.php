@@ -29,6 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Regi
     $apellido  = $_POST['Apellido'];
     $correo    = $_POST['Correo'] ?? null;
     $telefono  = $_POST['Telefono'] ?? null;
+    $Fecha_inicio  = $_POST['Fecha_inicio'] ?? null;
+    $Fecha_final  = $_POST['Fecha_final'] ?? null;
 
     // Verificar duplicado por correo (campo UNIQUE de la tabla)
     if (!empty($correo)) {
@@ -36,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Regi
     }
 
     if ($estadoVista['activo'] == 0 && $estadoVista['desactivado'] == 0) {
-        $directorControlador->registrarDirector($rol, $id_grado, $nombre, $apellido, $correo, $telefono);
+        $directorControlador->registrarDirector($rol, $id_grado, $nombre, $apellido, $correo, $telefono, $Fecha_inicio, $Fecha_final);
     } else {
         $mensaje = "Ya existe un director con ese correo, intente con otro";
     }
@@ -104,6 +106,24 @@ include __DIR__ . '/../../error.php';
             <input
                 type="text"
                 name="Telefono"
+                class="form-control"
+                maxlength="10">
+        </div>
+
+                <div class="mb-3">
+            <label class="form-label">Fecha inicio</label>
+            <input
+                type="text"
+                name="Fecha_inicio"
+                class="form-control"
+                maxlength="10">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Fecha final</label>
+            <input
+                type="date"
+                name="Fecha_final"
                 class="form-control"
                 maxlength="10">
         </div>

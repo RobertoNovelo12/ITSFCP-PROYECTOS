@@ -129,12 +129,12 @@ class directorControlador
         if (!$this->esSupervisor($rol)) return [];
         return [
             'Nombre',
-            'Apellido',
+            'Apellidos',
             'Correo',
             'Teléfono',
             'Grado Académico',
-            'Fecha Creación',
-            'Hora Creación',
+            'Fecha inicio',
+            'Fecha final',
             'Estado',
             'Acciones'
         ];
@@ -322,7 +322,7 @@ class directorControlador
     /**
      * Registra un nuevo director.
      */
-    function registrarDirector($rol, $id_grado, $nombre, $apellido, $correo, $telefono)
+    function registrarDirector($rol, $id_grado, $nombre, $apellido, $correo, $telefono, $fecha_inicio, $fecha_final)
     {
         if (!$this->esSupervisor($rol)) return "";
         global $conn;
@@ -339,7 +339,7 @@ class directorControlador
                 throw new Exception("Registro duplicado");
             }
 
-            $id_director = $obj->registrarDirector((int)$id_grado, $nombre, $apellido, $correo ?: null, $telefono ?: null);
+            $id_director = $obj->registrarDirector((int)$id_grado, $nombre, $apellido, $correo ?: null, $telefono ?: null, $fecha_inicio, $fecha_final ?:null);
 
             if (!$id_director) {
                 header("Location: tabla.php?error=1");
@@ -362,7 +362,7 @@ class directorControlador
     /**
      * Edita un director existente.
      */
-    function editarDirector($rol, $id_director, $id_grado, $nombre, $apellido, $correo, $telefono)
+    function editarDirector($rol, $id_director, $id_grado, $nombre, $apellido, $correo, $telefono, $fecha_inicio, $fecha_final, $motivo_fin)
     {
         if (!$this->esSupervisor($rol)) return "";
         global $conn;
@@ -376,7 +376,7 @@ class directorControlador
                 throw new Exception("Registro duplicado");
             }
 
-            $id_director = $obj->editarDirector((int)$id_grado, $nombre, $apellido, $correo ?: null, $telefono ?: null, (int)$id_director);
+            $id_director = $obj->editarDirector((int)$id_grado, $nombre, $apellido, $correo ?: null, $telefono ?: null, (int)$id_director, $fecha_inicio, $fecha_final ?: null, $motivo_fin ?: null);
 
             if (!$id_director) {
                 header("Location: tabla.php?error=10");

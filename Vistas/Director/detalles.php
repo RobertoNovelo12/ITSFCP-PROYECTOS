@@ -97,6 +97,26 @@ ob_start();
             <div class="row">
                 <div class="col-md-6">
                     <dl>
+                        <dt>Fecha inicio</dt>
+                        <?= date("d/m/Y", strtotime($director['inicio'])) ?>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl>
+                        <dt>Fecha final</dt>
+                        <?php
+                        if (!empty($director['fin']) && $director['fin']) {
+                            echo date("d/m/Y", strtotime($director['fin']));
+                        } else {
+                            echo "No hay final definido";
+                        }
+                        ?>
+                    </dl>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <dl>
                         <dt>Fecha creación</dt>
                         <?= date("d/m/Y", strtotime($director['fecha_creacion'])), ' ' . date("H:i", strtotime($director['fecha_creacion'])) ?>
                     </dl>
@@ -111,6 +131,16 @@ ob_start();
                             echo "No hay modificación";
                         }
                         ?>
+                    </dl>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <dl>
+                        <dt>Motivo salida</dt>
+                        <dd>
+                            <?= htmlspecialchars($director['motivo_fin']) ? htmlspecialchars($director['motivo_fin']) : "No hay"  ?>
+                        </dd>
                     </dl>
                 </div>
             </div>

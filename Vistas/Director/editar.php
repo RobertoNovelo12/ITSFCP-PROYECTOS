@@ -31,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Guard
     $apellido  = $_POST['Apellido'];
     $correo    = $_POST['Correo'] ?? null;
     $telefono  = $_POST['Telefono'] ?? null;
+    $Fecha_inicio  = $_POST['Fecha_inicio'] ?? null;
+    $Fecha_final  = $_POST['Fecha_final'] ?? null;
+    $Motivo_fin  = $_POST['Motivo_fin'] ?? null;
 
     // Verificar duplicado de correo excluyendo el registro actual
     if (!empty($correo)) {
@@ -38,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Guard
     }
 
     if ($estadoVista['activo'] == 0 && $estadoVista['desactivado'] == 0) {
-        $directorControlador->editarDirector($rol, $id_director, $id_grado, $nombre, $apellido, $correo, $telefono);
+        $directorControlador->editarDirector($rol, $id_director, $id_grado, $nombre, $apellido, $correo, $telefono, $Fecha_inicio, $Fecha_final, $Motivo_fin);
     } else {
         $mensaje = "Ya existe un director con ese correo, busca otro";
     }
@@ -111,6 +114,31 @@ include __DIR__ . '/../../error.php';
                 name="Correo"
                 class="form-control"
                 value="<?= htmlspecialchars($datos['correo'] ?? ''); ?>">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Fecha inicio</label>
+            <input
+                type="text"
+                name="Fecha_inicio"
+                class="form-control"
+                maxlength="10"
+                value="<?= htmlspecialchars($datos['inicio'] ?? ''); ?>">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Fecha final</label>
+            <input
+                type="date"
+                name="Fecha_final"
+                class="form-control"
+                maxlength="10"
+                value="<?= htmlspecialchars($datos['fin'] ?? ''); ?>">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Motivo de salida</label>
+            <textarea name="Motivo_fin" class="form-control" row="3"><?= htmlspecialchars($datos['motivo_fin'] ?? ''); ?></textarea>
         </div>
 
         <div class="mb-3">

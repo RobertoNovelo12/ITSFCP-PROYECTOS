@@ -82,6 +82,8 @@ class Director
                     d.telefono,
                     g.nombre AS nombre_grado,
                     d.fecha_creacion AS crear,
+                    d.fecha_inicio AS inicio,
+                    d.fecha_final AS fin,
                     CASE 
                         WHEN d.estado = 1 THEN 'Activo'        
                         WHEN d.estado = 0 THEN 'Desactivado'
@@ -153,6 +155,9 @@ class Director
                     apellido,
                     correo,
                     telefono,
+                    fecha_inicio AS inicio,
+                    fecha_final AS fin,
+                    motivo_fin,
                     CASE 
                         WHEN estado = 1 THEN 'Activo'
                         WHEN estado = 0 THEN 'Desactivado'
@@ -187,6 +192,9 @@ class Director
                     d.correo,
                     d.telefono,
                     g.nombre AS nombre_grado,
+                    d.fecha_inicio AS inicio,
+                    d.fecha_final AS fin,
+                    d.motivo_fin,
                     d.fecha_creacion, 
                     d.fecha_modificacion,
                     CASE 
@@ -241,10 +249,12 @@ class Director
      * @param string $apellido
      * @param string|null $correo
      * @param string|null $telefono
+     * @param string|null $fecha_inicio
+     * @param string|null $fecha_final
      * @return int ID insertado
      * @throws Exception
      */
-    public function registrarDirector(int $id_grado, string $nombre, string $apellido, ?string $correo, ?string $telefono): int
+    public function registrarDirector(int $id_grado, string $nombre, string $apellido, ?string $correo, ?string $telefono, ?string $fecha_inicio, ?string $fecha_final): int
     {
         $validacion = $this->verificarDirector($correo);
 
@@ -253,13 +263,13 @@ class Director
         }
 
         $sql = "INSERT INTO director 
-            (id_grado, nombre, apellido, correo, telefono, estado, fecha_creacion) 
-            VALUES (?, ?, ?, ?, ?, 1, NOW())";
+            (id_grado, nombre, apellido, correo, telefono, estado, fecha_creacion, fecha_inicio, fecha_final) 
+            VALUES (?, ?, ?, ?, ?, 1, NOW(), ?, ?)";
 
         $stmt = $this->con->prepare($sql);
         if (!$stmt) throw new Exception("Error en prepare (registrarDirector): " . $this->con->error);
 
-        $stmt->bind_param("issss", $id_grado, $nombre, $apellido, $correo, $telefono);
+        $stmt->bind_param("issssss", $id_grado, $nombre, $apellido, $correo, $telefono, $fecha_inicio, $fecha_final);
         if (!$stmt->execute()) throw new Exception("Error en execute (registrarDirector): " . $stmt->error);
 
         $id = $stmt->insert_id;
@@ -278,19 +288,21 @@ class Director
      * @param string|null $correo
      * @param string|null $telefono
      * @param int $id_director
+     * @param string|null $fecha_inicio
+     * @param string|null $fecha_final
      * @return int ID editado
      * @throws Exception
      */
-    public function editarDirector(int $id_grado, string $nombre, string $apellido, ?string $correo, ?string $telefono, int $id_director): int
+    public function editarDirector(int $id_grado, string $nombre, string $apellido, ?string $correo, ?string $telefono, int $id_director, ?string $fecha_inicio, ?string $fecha_final, $motivo_fin): int
     {
         $sql = "UPDATE director 
-                SET id_grado = ?, nombre = ?, apellido = ?, correo = ?, telefono = ?, fecha_modificacion = NOW() 
+                SET id_grado = ?, nombre = ?, apellido = ?, correo = ?, telefono = ?, fecha_modificacion = NOW(), fecha_inicio = ?, fecha_final = ?, motivo_fin = ?
                 WHERE id_director = ?";
 
         $stmt = $this->con->prepare($sql);
         if (!$stmt) throw new Exception("Error en prepare (editarDirector): " . $this->con->error);
 
-        $stmt->bind_param("issssi", $id_grado, $nombre, $apellido, $correo, $telefono, $id_director);
+        $stmt->bind_param("issssisss", $id_grado, $nombre, $apellido, $correo, $telefono, $id_director, $fecha_inicio, $fecha_final, $motivo_fin);
         if (!$stmt->execute()) throw new Exception("Error en execute (editarDirector): " . $stmt->error);
 
         $stmt->close();
@@ -512,4 +524,34 @@ class Director
             "desactivado" => (int)($res['desactivado'])
         ];
     }
+
+/**
+ * Desactiva directores cuyo periodo ya venció.
+ *
+ * @return int Número de registros afectados
+ * @throws Exception
+ */
+public function desactivarDirectoresVencidos(): int
+{
+    $sql = "UPDATE director 
+            SET estado = 0 
+            WHERE estado = 1 
+            AND fecha_final IS NOT NULL 
+            AND CURDATE() > fecha_final";
+
+    $stmt = $this->con->prepare($sql);
+    if (!$stmt) {
+        throw new Exception("Error en prepare: " . $this->con->error);
+    }
+
+    if (!$stmt->execute()) {
+        throw new Exception("Error en execute: " . $stmt->error);
+    }
+
+    $filasAfectadas = $stmt->affected_rows;
+
+    $stmt->close();
+
+    return $filasAfectadas;
+}
 }
