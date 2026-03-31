@@ -178,8 +178,8 @@ include __DIR__ . '/../../mensaje.php';
                         <?= $periodo_item['periodo'] ?>
                     </h5>
                     <h5 class="fw-bold">
-                        <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
-                            <?= htmlspecialchars($per['estados']) ?>
+                        <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($periodo_item['estados']); ?>">
+                            <?= htmlspecialchars($periodo_item['estados']) ?>
                         </span>
                     </h5>
                 </div>

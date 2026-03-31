@@ -376,7 +376,7 @@ class TareaControlador
         return $boton;
     }
     //Botones para panel de tareas
-    public function botonesAccionTarea($id1, $rol, $estado = null, $id2 = null, $id3 = null, $id4 = null)
+    public function botonesAccionTarea($id1, $rol, $estado = null)
     {
         $boton = "";
 

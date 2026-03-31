@@ -7,9 +7,6 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 
 class tematicaControlador
 {
-
-
-
         private function esSupervisor($rol)
     {
         return $rol === 'supervisor';

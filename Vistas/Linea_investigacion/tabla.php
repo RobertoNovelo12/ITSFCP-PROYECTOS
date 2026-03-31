@@ -18,43 +18,43 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 $buscar = $_GET['buscar'] ?? '';
 $pagina = intval($_GET['pagina'] ?? 1);
 
-include "../../Controladores/periodoControlador.php";
+include "../../Controladores/lineainvestigacionControlador.php";
 
-$periodoControlador = new periodoControlador();
+$lineaControlador = new lineaControlador();
 
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_periodo') {
-    $id_periodos = intval($_GET['id_periodos']);
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_linea') {
+    $id_linea = intval($_GET['id_linea']);
 
-    $periodoControlador->eliminar($id_periodos, $rol);
+    $lineaControlador->eliminar($rol, $id_linea);
 
     // Redirigir para evitar doble ejecución
     header("Location: tabla.php");
     exit;
 }
 
-if (!method_exists($periodoControlador, $action)) {
+if (!method_exists($lineaControlador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");
 }
 
-$resultado = $periodoControlador->$action($rol, $buscar);
+$resultado = $lineaControlador->$action($rol, $buscar);
 
 if (is_string($resultado)) {
     $resultado = json_decode($resultado, true);
 }
 
-$periodos = $resultado['periodo'] ?? [];
+$lineas = $resultado['linea'] ?? [];
 
 $paginacion = $resultado['paginacion'] ?? [
-    'total' => count($periodos),
+    'total' => count($lineas),
     'por_pagina' => 6,
     'pagina' => $pagina,
-    'total_paginas' => max(1, ceil(count($periodos) / 6))
+    'total_paginas' => max(1, ceil(count($lineas) / 6))
 ];
 
-$filtros = $periodoControlador->filtros($rol);
-$encabezados = $periodoControlador->encabezadosPrincipal($rol);
-$opciones = $periodoControlador->opciones($rol, $filtros);
+$filtros = $lineaControlador->filtros($rol);
+$encabezados = $lineaControlador->encabezadosPrincipal($rol);
+$opciones = $lineaControlador->opciones($rol, $filtros);
 
 ob_start();
 include __DIR__ . '/../../mensaje.php';
@@ -66,13 +66,13 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row mb-4 align-items-center">
 
         <div class="col-12 col-md-6">
-            <h3 class="fw-bold mb-2 mb-md-0">Periodos</h3>
+            <h3 class="fw-bold mb-2 mb-md-0">Línea de investigación</h3>
         </div>
 
         <div class="col-12 col-md-6 text-md-end">
             <?php if ($rol == "supervisor"): ?>
                 <a href="crear.php" class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i> Crear Periodo
+                    <i class="bi bi-plus-lg"></i> Crear Línea de investigación
                 </a>
             <?php endif; ?>
         </div>
@@ -120,36 +120,35 @@ include __DIR__ . '/../../mensaje.php';
             </thead>
             <tbody>
                 <?php if ($rol == "supervisor"): ?>
-                    <?php if (!empty($periodos)) { ?>
-                        <?php foreach ($periodos as $per): ?>
+                    <?php if (!empty($lineas)) { ?>
+                        <?php foreach ($lineas as $lin): ?>
                             <tr>
-                                <td><?= $per['periodo'] ?></td>
-                                <td>
-                                    <?= date("d/m/Y", strtotime($per['inicio'])) ?>
+                                <td><?= $lin['nombre'] ?></td>
+                                <td title="<?= htmlspecialchars($lin['descripcion']) ?>">
+                                    <?= strlen($lin['descripcion']) > 60
+                                        ? substr($lin['descripcion'], 0, 60) . '...'
+                                        : $lin['descripcion']; ?>
                                 </td>
                                 <td>
-                                    <?= date("d/m/Y", strtotime($per['final'])) ?>
+                                    <?= date("d/m/Y", strtotime($lin['crear'])) ?>
                                 </td>
                                 <td>
-                                    <?= date("d/m/Y", strtotime($per['crear'])) ?>
+                                    <?= date("H:i", strtotime($lin['crear'])) ?>
                                 </td>
                                 <td>
-                                    <?= date("H:i", strtotime($per['crear'])) ?>
-                                </td>
-                                <td>
-                                    <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
-                                        <?= htmlspecialchars($per['estados']) ?>
+                                    <span class="badge rounded-pill text-bg-<?php echo $lineaControlador->EstiloEstadoLista($lin['estados']); ?>">
+                                        <?= htmlspecialchars($lin['estados']) ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <?= $periodoControlador->botonesAccionPrincipal($per['id_periodos'], $rol, $per['estados']) ?>
+                                    <?= $lineaControlador->botonesAccionPrincipal($lin['id_linea'], $rol, $lin['estados']) ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php } else { ?>
                         <td colspan="7">
                             <div class="alert alert-danger">
-                                No hay periodos
+                                No hay líneas de investigación
                             </div>
                         </td>
                         </tr>
@@ -159,7 +158,7 @@ include __DIR__ . '/../../mensaje.php';
                     <tr>
                         <td colspan="7">
                             <div class="alert alert-danger">
-                                No tiene permiso para editar el periodo
+                                No tiene permiso para editar la línea de investigación
                             </div>
                         </td>
                     </tr>
@@ -171,50 +170,41 @@ include __DIR__ . '/../../mensaje.php';
     <!-- TARJETAS MOVIL -->
 
     <div class="d-block d-md-none">
-        <?php foreach ($periodos as $periodo_item): ?>
+        <?php foreach ($lineas as $linea_item): ?>
             <div class="card shadow-sm mb-3">
                 <div class="card-body text-center">
                     <h5 class="fw-bold">
-                        <?= $periodo_item['periodo'] ?>
+                        <?= $linea_item['nombre'] ?>
                     </h5>
                     <h5 class="fw-bold">
-                        <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
-                            <?= htmlspecialchars($per['estados']) ?>
+                        <span class="badge rounded-pill text-bg-<?php echo $lineaControlador->EstiloEstadoLista($linea_item['estados']); ?>">
+                            <?= htmlspecialchars($linea_item['estados']) ?>
                         </span>
                     </h5>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Fecha inicio</strong>
-                                <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($periodo_item['inicio'])) ?>
-                                    <br>
-                                    <?= date("H:i", strtotime($periodo_item['inicio'])) ?>
-                                </p>
-                            </div>
-                            <div class="col-6">
-                                <strong>Fecha final</strong>
-                                <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($periodo_item['final'])) ?>
-                                    <br>
-                                    <?= date("H:i", strtotime($periodo_item['final'])) ?>
+                            <div class="col-12">
+                                <strong>Descripción</strong>
+                                <p class="mb-0" title="<?= htmlspecialchars($lin['descripcion']) ?>">
+                                    <?= strlen($lin['descripcion']) > 60
+                                        ? substr($lin['descripcion'], 0, 60) . '...'
+                                        : $lin['descripcion']; ?>
                                 </p>
                             </div>
                         </div>
                         <div class="row text-center">
                             <div class="col-6">
-                                <strong>Fecha Creación</strong>
+                                <strong>Fecha creacion</strong>
                                 <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($per['crear'])) ?>
+                                    <?= date("d/m/Y", strtotime($lin['crear'])) ?>
                                 </p>
                             </div>
                             <div class="col-6">
-                                <strong>Hora Creación</strong>
+                                <strong>Hora creación</strong>
                                 <p class="mb-0">
-                                    <?= date("H:i", strtotime($per['crear'])) ?>
-
+                                    <?= date("H:i", strtotime($lin['crear'])) ?>
                                 </p>
                             </div>
                         </div>
@@ -222,7 +212,7 @@ include __DIR__ . '/../../mensaje.php';
                 </ul>
                 <div class="card-body">
                     <div class="d-flex justify-content-center gap-2">
-                        <?php echo $periodoControlador->botonesAccionPrincipal($periodo_item['id_periodos'], $rol, $periodo_item['estados']); ?>
+                        <?php echo $lineaControlador->botonesAccionPrincipal($linea_item['id_linea'], $rol, $linea_item['estados']); ?>
                     </div>
                 </div>
             </div>
@@ -258,7 +248,7 @@ include __DIR__ . '/../../mensaje.php';
 <?php
 
 $contenido = ob_get_clean();
-$titulo = "Períodos";
+$titulo = "Líneas de investigación";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
