@@ -19,7 +19,6 @@ require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
-
 $tematica = $proyectoControlador->tematica();
 $periodo = $proyectoControlador->obtenerperiodo();
 if ($action == 'registrarProyecto') {
@@ -37,7 +36,7 @@ include __DIR__ . '/../../mensaje.php';
             <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
                 <a href="tabla.php" class="btn btn-danger w-100 w-md-auto">Regresar</a>
             </div>
-            <form method="POST" id="formProyecto" action="/ITSFCP-PROYECTOS/Vistas/Proyectos/crear.php">
+            <form method="POST" id="formProyecto" action="">
                 <input type="hidden" id="input_hidden" name="action" value="registrarProyecto">
                 <div class="row mb-1">
                     <h5>Información de proyectos</h5>

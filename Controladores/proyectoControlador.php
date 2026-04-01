@@ -368,7 +368,7 @@ class ProyectoControlador
     }
 
     //SUBTEMATICAS
-    /*public function subtematicas($id)
+    public function subtematicas($id)
     {
         global $conn;
         try {
@@ -380,7 +380,7 @@ class ProyectoControlador
             error_log($e->getMessage());
             return [];
         }
-    }*/
+    }
 
     //PERIODO
     public function obtenerperiodo()
@@ -437,14 +437,17 @@ class ProyectoControlador
 
             $periodo = $this->obtenerPeriodo();
 
-            $id_tematica = $datos['Tematica'] ?? null;
+            //$id_tematica = $datos['Tematica'] ?? null;
             $subtematicas = $datos['subtematicas'] ?? [];
 
-            if (empty($id_tematica) || empty($subtematicas)) {
+            if (empty($subtematicas)) {
                 throw new Exception("Datos incompletos");
             }
 
             $instituto = $this->obtenerInstituto()[0] ?? null;
+            if (!$datos['NombreProyecto']) {
+                throw new Exception("Falta nombre del proyecto");
+            }
 
             $proyecto = new Proyectos($conn);
             $proyecto->actualizarProyectosVencidos();
@@ -470,10 +473,10 @@ class ProyectoControlador
                 $proyecto->vincularSubtematica($proyectoId, (int)$idSub);
             }
 
-            header("Location: crear.php?mensaje=1");
+            header("Location: tabla.php?mensaje=1");
             exit();
         } catch (Exception $e) {
-            return $e->getMessage();
+            die($e->getMessage());
         }
     }
 
@@ -488,10 +491,9 @@ class ProyectoControlador
             $this->obtenerPeriodo();
 
             $id_proyecto = (int)($datos['id_proyectos'] ?? 0);
-            $id_tematica = $datos['Tematica'] ?? null;
             $subtematicas = $datos['subtematicas'] ?? [];
 
-            if (!$id_proyecto || empty($id_tematica) || empty($subtematicas)) {
+            if (!$id_proyecto || empty($subtematicas)) {
                 throw new Exception("Datos incompletos");
             }
 
@@ -516,7 +518,7 @@ class ProyectoControlador
                 $proyecto->ActualizarvincularSubtematica($id_proyecto, (int)$idSub);
             }
 
-            header("Location: editar.php?id_proyectos={$id_proyecto}");
+            header("Location: tabla.php?id_proyectos={$id_proyecto}");
             exit();
         } catch (Exception $e) {
             return $e->getMessage();
@@ -525,11 +527,11 @@ class ProyectoControlador
 
     public function subtematicasProyecto($id_proyecto)
     {
-                global $conn;
+        global $conn;
         try {
-        $proyecto = new Proyectos($conn);
-        $proyecto->actualizarProyectosVencidos();
-        return $proyecto->obtenersubtematicasProyecto($id_proyecto);
+            $proyecto = new Proyectos($conn);
+            $proyecto->actualizarProyectosVencidos();
+            return $proyecto->obtenersubtematicasProyecto($id_proyecto);
         } catch (Exception $e) {
             return $e->getMessage();
         }
@@ -591,12 +593,7 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         $proy = $proyecto->obtenerProyecto($id_proyecto);
-        if ($proy != []) {
-            return $proy;
-        } else {
-            $proy = []; // evita undefined variable
-            return $proy;
-        }
+        return $proy;
     }
     public function datosinvestigador($id_proyecto)
     {

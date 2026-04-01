@@ -218,8 +218,10 @@ LEFT JOIN tareas_usuarios AS taus
             die("Error en execute(): " . $stmt->error . "<br>SQL: $sql");
         }
 
+        $res = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
         $resultado = [
-            "proyectos" => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
+            "proyectos" => $res,
             "paginacion" => [
                 "total_proyectos" => $total_proyectos,
                 "por_pagina"      => $por_pagina,
@@ -291,7 +293,8 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
                 return []; // Retorna un array vacío si el rol no es válido
         }
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $res = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $res;
     }
 
     //DATOS FILTRADOS SEGUN SELECCION
@@ -606,21 +609,20 @@ LIMIT 1;";
     }
 
     //INSERCION DE PROYECTOS
-    public function registrarProyecto($id_investigador, $id_estadoP, $id_tematica, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
+    public function registrarProyecto($id_investigador, $id_estadoP, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
     {
 
         $sql = "INSERT INTO proyectos 
-(id_investigador, id_estadoP, id_tematica, id_instituto, id_periodos, titulo, descripcion, objetivo, fecha_inicio, fecha_fin, presupuesto, actualizado_en, requisitos, pre_requisitos, modalidad, cantidad_estudiante)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
+(id_investigador, id_estadoP, id_instituto, id_periodos, titulo, descripcion, objetivo, fecha_inicio, fecha_fin, presupuesto, actualizado_en, requisitos, pre_requisitos, modalidad, cantidad_estudiante)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
             die("Error en prepare(): " . $this->con->error);
         }
         $stmt->bind_param(
-            "iiiiisssssssssi",
+            "iiiisssssssssi",
             $id_investigador,
             $id_estadoP,
-            $id_tematica,
             $id_instituto,
             $id_periodos,
             $titulo,
@@ -633,7 +635,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             $Pre_requisitos,
             $modalidad,
             $AlumnosCantidad,
-
         );
 
         if (!$stmt) {
@@ -643,10 +644,12 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         if (!$stmt->execute()) {
             die("Error en execute(): " . $stmt->error);
         }
+
+        return $this->con->insert_id;
     }
 
     //ACTUALIZAR PROYECTO
-    public function editarProyecto($id_proyecto, $id_investigador, $id_tematica, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
+    public function editarProyecto($id_proyecto, $id_investigador, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
     {
         $sql = "UPDATE proyectos SET 
                 titulo = ?,
@@ -655,7 +658,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
                 pre_requisitos = ?,
                 requisitos = ?,
                 cantidad_estudiante = ?,
-                id_tematica = ?,
                 modalidad = ?,
                 actualizado_en = NOW(),
                 presupuesto = ?,
@@ -667,14 +669,13 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
             die("Error en prepare(): " . $this->con->error);
         }
         $stmt->bind_param(
-            "sssssiisissii",
+            "sssssiisissi",
             $titulo,
             $descripcion,
             $objetivo,
             $Pre_requisitos,
             $requisitos,
             $AlumnosCantidad,
-            $id_tematica,
             $modalidad,
             $presupuesto,
             $fecha_inicio,
@@ -949,7 +950,7 @@ tema.nombre_tematica;";
         }
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $stmt->get_result()->fetch_assoc();
     }
 
     function obtenerProyectoInvestigador($id_proyecto)
@@ -1053,5 +1054,55 @@ Where proy.id_proyectos = ? ORDER BY fecha DESC;";
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+    //Vincular las subtematicas elegidas al momento de crear un proyecto
+    public function vincularSubtematica($id_proyecto, $id_subtematica)
+    {
+        $sql = "INSERT INTO proyectos_subtematica (id_proyectos, id_subtematica) VALUES (?, ?)";
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            die("Error en prepare(): " . $this->con->error);
+        }
+        $stmt->bind_param("ii", $id_proyecto, $id_subtematica);
+
+        if (!$stmt) {
+            die("Error en prepare(): " . $this->con->error);
+        }
+
+        if (!$stmt->execute()) {
+            die("Error en execute(): " . $stmt->error);
+        }
+    }
+
+    public function ActualizarvincularSubtematica($id_proyecto, $id_subtematica)
+    {
+        $sqleliminar = "DELETE FROM proyectos_subtematica WHERE id_proyectos = ?";
+        $stmtE = $this->con->prepare($sqleliminar);
+        if (!$stmtE) {
+            die("Error en prepare(): " . $this->con->error);
+        }
+        $stmtE->bind_param("i", $id_proyecto);
+
+        if (!$stmtE) {
+            die("Error en prepare(): " . $this->con->error);
+        }
+
+        if (!$stmtE->execute()) {
+            die("Error en execute(): " . $stmtE->error);
+        }
+        $sql = "INSERT INTO  proyectos_subtematica (id_subtematica, id_proyectos) VALUES (?,?)";
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            die("Error en prepare(): " . $this->con->error);
+        }
+        $stmt->bind_param("ii", $id_subtematica, $id_proyecto);
+
+        if (!$stmt) {
+            die("Error en prepare(): " . $this->con->error);
+        }
+
+        if (!$stmt->execute()) {
+            die("Error en execute(): " . $stmt->error);
+        }
     }
 }

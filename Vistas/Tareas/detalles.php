@@ -41,12 +41,12 @@ ob_start();
 
         <div class="mb-3">
             <label>Descripción:</label>
-            <textarea class="form-control" disabled><?= htmlspecialchars($tarea['descripcion']) ?></textarea>
+            <textarea class="form-control" rows="6" disabled><?= htmlspecialchars($tarea['descripcion']) ?></textarea>
         </div>
 
         <div class="mb-3">
             <label>Instrucciones:</label>
-            <textarea class="form-control" disabled><?= htmlspecialchars($tarea['instrucciones']) ?></textarea>
+            <textarea class="form-control" rows="6" disabled><?= htmlspecialchars($tarea['instrucciones']) ?></textarea>
         </div>
 
     </div>

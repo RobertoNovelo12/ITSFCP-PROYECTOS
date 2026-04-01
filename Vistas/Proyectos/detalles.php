@@ -18,7 +18,7 @@ require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
-$proyectos = $proyectoControlador->datosproyecto($id_proyecto);
+$proyecto = $proyectoControlador->datosproyecto($id_proyecto);
 $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
 $subtematicas = $proyectoControlador->subtematicasProyecto($id_proyecto);
 
@@ -47,7 +47,6 @@ ob_start();
     </div>
 
 
-    <?php foreach ($proyectos as $proyecto): ?>
 
         <!-- INFORMACIÓN DEL PROYECTO -->
 
@@ -146,7 +145,6 @@ ob_start();
 
         </div>
 
-    <?php endforeach; ?>
 
 
     <!-- INVESTIGADOR -->
