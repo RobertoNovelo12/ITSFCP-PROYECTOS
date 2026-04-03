@@ -41,7 +41,7 @@ ob_start();
 
     <?php foreach ($tareas as $tarea): ?>
 
-        <!-- TARJETA TIPO GOOGLE CLASSROOM -->
+        <!-- TARJETA TIPO -->
         <div class="card shadow-sm mb-3 tarea-card">
             <div class="card-body">
 
