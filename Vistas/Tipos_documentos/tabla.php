@@ -10,15 +10,13 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
-    
+
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'index';
-$buscar = $_GET['buscar'] ?? '';
-$pagina = intval($_GET['pagina'] ?? 1);
 
-include "../../Controladores/ajustesDocumentoscontrolador.php";
+include "../../Controladores/ajustesTiposDocumentoscontrolador.php";
 
 $ajustesTiposDocumentoscontrolador = new ajustesTiposDocumentoscontrolador();
 
@@ -26,14 +24,12 @@ if (!method_exists($ajustesTiposDocumentoscontrolador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");
 }
 
-$resultado = $ajustesTiposDocumentoscontrolador->$action($rol, $buscar);
-
-if (is_string($resultado)) {
-    $resultado = json_decode($resultado, true);
+$documentos = $ajustesTiposDocumentoscontrolador->$action($rol);
+if (is_string($documentos)) {
+    $documentos = json_decode($documentos, true);
 }
 
-$documentos = $resultado['documentos'] ?? [];
-
+$filtros = $ajustesTiposDocumentoscontrolador->filtros($rol);
 $encabezados = $ajustesTiposDocumentoscontrolador->encabezadosPrincipal($rol);
 $opciones = $ajustesTiposDocumentoscontrolador->opciones($rol, $filtros);
 
@@ -46,24 +42,24 @@ include __DIR__ . '/../../mensaje.php';
     <!-- TITULO -->
     <div class="row mb-4 align-items-center">
 
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-9">
             <h3 class="fw-bold mb-2 mb-md-0">Ajustes de tipos de documentación</h3>
         </div>
     </div>
 
     <!-- FILTROS -->
 
-        <div class="col-12 col-md-4">
-            <select class="form-select"
-                onchange="location.href='tabla.php?action=' + this.value;">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+    <div class="col-12 col-md-4">
+        <select class="form-select"
+            onchange="location.href='tabla.php?action=' + this.value;">
+            <?php foreach ($opciones as $key => $label): ?>
+                <option value="<?= htmlspecialchars($key) ?>"
+                    <?= ($action === $key) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($label) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
     <!-- TABLA LAPTOP -->
     <div class="table-responsive d-none d-md-block">
         <table class="table table-hover text-center align-middle">
@@ -78,21 +74,28 @@ include __DIR__ . '/../../mensaje.php';
             </thead>
             <tbody>
                 <?php if ($rol == "supervisor"): ?>
-                    <?php foreach ($documentos as $cate): ?>
+                    <?php foreach ($documentos as $doc): ?>
                         <tr>
-                            <th scope="row"><?= $cate['id_tipo_documento'] ?? '-' ?></th>
-                            <th scope="row"><?= $cate['nombre'] ?? '-' ?></th>
-                            <td><?= htmlspecialchars($cate['categoria'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td title="<?= htmlspecialchars($cate['descripcion']) ?>">
-                                <?= strlen($cate['descripcion']) > 60
-                                    ? substr($cate['descripcion'], 0, 60) . '...'
-                                    : $cate['descripcion']; ?>
+                            <th scope="row"><?= $doc['nombre'] ?? '-' ?></th>
+                            <td><?= htmlspecialchars(ucfirst($doc['categoria']) ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td title="<?= htmlspecialchars($doc['descripcion']) ?>">
+                                <?= strlen($doc['descripcion']) > 60
+                                    ? substr($doc['descripcion'], 0, 60) . '...'
+                                    : $doc['descripcion']; ?>
                             </td>
-                            <th scope="row"><?= $cate['orden'] ?? '-' ?></th>
-                            <th scope="row"><?= $cate['obligatorio'] ?? '-' ?></th>
+                            <th scope="row"><?= $doc['orden'] ?? '-' ?></th>
+                            <td>
+                                <span class="badge rounded-pill text-bg-<?php echo $ajustesTiposDocumentoscontrolador->EstiloEstado($doc['estados']); ?>">
+                                    <?= htmlspecialchars($doc['estados']) ?>
+                                </span>
+                            </td>
                             <!-- Acciones -->
                             <td>
-                                <a href="editar.php?id_tipo_documento=<?= $id_tipo_documento ?>">Editar</a>
+                                <a href="editar.php?id_tipo_documento=<?= $doc['id_tipo_documento'] ?>" type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    data-bs-custom-class="custom-tooltip" data-bs-title="Editar Tipo de documento"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                                    </svg></a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -119,6 +122,13 @@ include __DIR__ . '/../../mensaje.php';
                         <?= $doc_item['nombre'] ?>
                     </h5>
                 </div>
+                <div class="card-body text-center">
+                    <h5 class="fw-bold">
+                        <span class="badge rounded-pill text-bg-<?php echo $ajustesTiposDocumentoscontrolador->EstiloEstado($doc_item['estados']); ?>">
+                            <?= htmlspecialchars($doc_item['estados']) ?>
+                        </span>
+                    </h5>
+                </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <strong>Descripción</strong>
@@ -128,19 +138,34 @@ include __DIR__ . '/../../mensaje.php';
                                 : $doc_item['descripcion']; ?>
                         </p>
                     </li>
-
                     <li class="list-group-item">
                         <div class="row text-center">
                             <div class="col-6">
-                                <strong>Creación</strong>
+                                <strong>Categoria</strong>
                                 <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($cate['orden'])) ?>
+                                    <?= ucfirst($doc_item['categoria']) ?>
                                 </p>
                             </div>
                             <div class="col-6">
-                                <strong>Creación</strong>
+                                <strong>Orden</strong>
                                 <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($cate['fecha_obligatoriocreado'])) ?>
+                                    <?= $doc_item['orden'] ?>
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <strong>Fecha modificación</strong>
+                                <p class="mb-0">
+                                    <?= date("d/m/Y", strtotime($doc_item['modificar'])) ?>
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <strong>Hora modificación</strong>
+                                <p class="mb-0">
+                                    <?= date("H:i", strtotime($doc_item['modificar'])) ?>
                                 </p>
                             </div>
                         </div>
@@ -148,7 +173,11 @@ include __DIR__ . '/../../mensaje.php';
                 </ul>
                 <div class="card-body">
                     <div class="d-flex justify-content-center gap-2">
-                        <a href="editar.php?id_tipo_documento=<?= $id_tipo_documento ?>">Editar</a>
+                        <a href="editar.php?id_tipo_documento=<?= $doc['id_tipo_documento'] ?>" type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
+                            data-bs-custom-class="custom-tooltip" data-bs-title="Editar Tipo de documento"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                            </svg></a>
                     </div>
                 </div>
             </div>

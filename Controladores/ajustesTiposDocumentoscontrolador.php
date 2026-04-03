@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../Modelos/ajustesdocumentos.php';
+require_once __DIR__ . '/../Modelos/ajustestiposdocumentos.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 
 class ajustesTiposDocumentoscontrolador
@@ -36,7 +36,7 @@ class ajustesTiposDocumentoscontrolador
      * @param string|null $buscar
      * @return array
      */
-    public function index($rol, $buscar = null): array
+    public function index($rol): array
     {
         global $conn;
 
@@ -46,16 +46,25 @@ class ajustesTiposDocumentoscontrolador
                 return [];
             }
 
-            // Sanitización del filtro (evita XSS en vistas)
-            $buscar = $this->limpiar($buscar);
 
             $ajustes = new ajustesdocumentos($conn);
 
-            return $ajustes->obtenerTablaFiltro($buscar, 2);
+            return $ajustes->obtenerTablaFiltro(['proceso', 'final']);
         } catch (Throwable $e) {
             error_log("Error en index(): " . $e->getMessage());
             return [];
         }
+    }
+
+        public function EstiloEstado($estado): string
+    {
+        $estado = strtolower(trim($estado));
+
+        return match ($estado) {
+            'activo' => "success",
+            'desactivado' => "danger",
+            default => "info"
+        };
     }
 
     /**
@@ -125,31 +134,13 @@ class ajustesTiposDocumentoscontrolador
             return [];
         }
 
-        // Validación defensiva
-        $data = $filtros[0];
-
         return [
-            'todos' => "Todos",
-            'proceso' => "Proceso",
-            'final' => "Final"
+            'Todos' => "Todos",
+            'Proceso' => "Proceso",
+            'Final' => "Final"
         ];
     }
 
-    /**
-     * Convierte acción a número de filtro.
-     *
-     * @param string $action
-     * @return int
-     */
-    public function numerofiltro($action): int
-    {
-        return match ($action) {
-            'Total' => 2,
-            'Final' => 1,
-            'Proceso' => 0,
-            default => 2 // fallback lógico
-        };
-    }
 
     /**
      * Obtiene datos para filtros.
@@ -179,11 +170,10 @@ class ajustesTiposDocumentoscontrolador
      * Método base para evitar duplicación de lógica en filtros.
      *
      * @param string $rol
-     * @param int $tipoFiltro
-     * @param string|null $buscar
+     * @param array $tipoFiltro
      * @return array
      */
-    private function obtenerPorFiltro($rol, int $tipoFiltro, $buscar = null): array
+    private function obtenerPorFiltro(string $rol, array $tipoFiltro): array
     {
         global $conn;
 
@@ -192,12 +182,9 @@ class ajustesTiposDocumentoscontrolador
                 return [];
             }
 
-            // Sanitización preventiva
-            $buscar = $this->limpiar($buscar);
-
             $ajustes = new ajustesdocumentos($conn);
 
-            return $ajustes->obtenerTablaFiltro($buscar, $tipoFiltro);
+            return $ajustes->obtenerTablaFiltro($tipoFiltro);
         } catch (Throwable $e) {
             error_log("Error en obtenerPorFiltro(): " . $e->getMessage());
             return [];
@@ -207,25 +194,25 @@ class ajustesTiposDocumentoscontrolador
     /**
      * Obtiene todos los tipos de documentos.
      */
-    public function Todos($rol, $buscar = null): array
+    public function Todos($rol): array
     {
-        return $this->obtenerPorFiltro($rol, 2, $buscar);
+        return $this->obtenerPorFiltro($rol, ['proceso', 'final']);
     }
 
     /**
      * Obtiene los tipos proceso de documentos.
      */
-    public function Proceso($rol, $buscar = null): array
+    public function Proceso($rol): array
     {
-        return $this->obtenerPorFiltro($rol, 0, $buscar);
+        return $this->obtenerPorFiltro($rol, ['proceso']);
     }
 
     /**
      * Obtiene los tipos final de documentos.
      */
-    public function Final($rol, $buscar = null): array
+    public function Final($rol): array
     {
-        return $this->obtenerPorFiltro($rol, 1, $buscar);
+        return $this->obtenerPorFiltro($rol, ['final']);
     }
 
     //BOTONES
@@ -271,10 +258,16 @@ class ajustesTiposDocumentoscontrolador
         return $boton;
     }
 
+    //Registrar
+
     //Editar ajuste de documento
     //REVISAR
-    function editarLinea($rol, $id_tipo_documento, $descripcion, $orden)
+    public function editar($rol, $datos)
     {
+
+        $id_tipo_documento = $datos['id_tipo'];
+        $descripcion = trim($datos['Descripcion']);
+        $orden = trim($datos['Orden']);
 
         if (!$this->esSupervisor($rol)) return "";
         global $conn;
@@ -283,7 +276,7 @@ class ajustesTiposDocumentoscontrolador
         try {
             $ajustes = new ajustesdocumentos($conn);
 
-            $ajustes ->editarLinea($id_tipo_documento, $descripcion, $orden,);
+            $ajustes ->editar($descripcion, $orden, $id_tipo_documento);
 
 
             if (!$id_tipo_documento) {

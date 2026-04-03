@@ -19,9 +19,10 @@ class ajustesdocumentos
         }
 
         $sql = "SELECT 
-                    COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
-                    COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
-                FROM tipo_documento";
+                    COUNT(*) AS Todos,
+                    CASE WHEN categoria = 'proceso' THEN 'Proceso' END AS Proceso,
+                    CASE WHEN categoria = 'final' THEN 'Final' END AS Final
+                FROM tipo_documento  GROUP BY categoria";
 
         $stmt = $this->con->prepare($sql);
 
@@ -42,25 +43,27 @@ class ajustesdocumentos
 
 
     /**
-     * Obtiene tabla principal con paginación
+     * Obtiene tabla principal 
      */
-    public function obtenerTablaFiltro($filtro): array
+    public function obtenerTablaFiltro(array $filtros): array
     {
+        $placeholders = implode(',', array_fill(0, count($filtros), '?'));
 
         $sql = "SELECT 
                     id_tipo_documento,
                     nombre,
                     descripcion,
                     categoria,
+                    orden,
                     fecha_modificacion AS modificar,
                     CASE 
                         WHEN estado = 1 THEN 'Activo'        
                         WHEN estado = 0 THEN 'Desactivado'
                         ELSE 'Desconocido'
                     END AS estados
-                FROM tipo_documento WHERE categoria = ?";
+                FROM tipo_documento WHERE categoria IN ($placeholders)";
 
-        $sql .= " ORDER BY id_tipo_documento";
+        $sql .= " ORDER BY categoria";
 
         $stmt = $this->con->prepare($sql);
 
@@ -68,7 +71,8 @@ class ajustesdocumentos
             throw new Exception("Error en prepare (obtenerTablaFiltro): " . $this->con->error);
         }
 
-        $stmt->bind_param("s",$filtro);
+        $types = str_repeat('s', count($filtros));
+        $stmt->bind_param($types, ...$filtros);
 
         if (!$stmt->execute()) {
             throw new Exception("Error en execute (obtenerTablaFiltro): " . $stmt->error);
@@ -81,20 +85,45 @@ class ajustesdocumentos
         return $data;
     }
 
-   
+
     /**
      * Obtiene datos para edición
      */
     public function obtenerEditar($id_tipo_documento): array
     {
-        //Obtener datos de la plantilla
+        $sql = "SELECT 
+                    id_tipo_documento,
+                    nombre,
+                    descripcion,
+                    categoria,
+                    orden,
+                    fecha_modificacion AS modificar,
+                    CASE 
+                        WHEN estado = 1 THEN 'Activo'        
+                        WHEN estado = 0 THEN 'Desactivado'
+                        ELSE 'Desconocido'
+                    END AS estados
+                FROM tipo_documento WHERE id_tipo_documento = ?";
 
-        global $conn;
+        $sql .= " ORDER BY id_tipo_documento";
 
-        $ajuste = new ajustesdocumentos($conn);
+        $stmt = $this->con->prepare($sql);
 
+        if (!$stmt) {
+            throw new Exception("Error en prepare (obtenerTablaFiltro): " . $this->con->error);
+        }
 
-        return 0;
+        $stmt->bind_param("i", $id_tipo_documento);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (obtenerTablaFiltro): " . $stmt->error);
+        }
+
+        $data = $stmt->get_result()->fetch_assoc();
+
+        $stmt->close(); // liberar recurso
+
+        return $data;
     }
 
         //Editar Tipo de documento
@@ -114,21 +143,21 @@ class ajustesdocumentos
      * @return int ID insertado
      * @throws Exception
      */
-    public function editarLinea(string $nombre, string $descripcion, int $id_tipo_documento): int
+    public function editar(string $descripcion, int $orden, int $id_tipo_documento): int
     {
 
-        $sql = "UPDATE tipo_documento SET nombre = ?, descripcion = ?, fecha_modificacion = NOW() WHERE id_tipo_documento = ?";
+        $sql = "UPDATE tipo_documento SET descripcion = ?, orden = ?, fecha_modificacion = NOW() WHERE id_tipo_documento = ?";
 
         $stmt = $this->con->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en prepare (editarLinea): " . $this->con->error);
+            throw new Exception("Error en prepare (editar): " . $this->con->error);
         }
 
-        $stmt->bind_param("ssi", $nombre, $descripcion, $id_tipo_documento);
+        $stmt->bind_param("sii", $descripcion, $orden, $id_tipo_documento);
 
         if (!$stmt->execute()) {
-            throw new Exception("Error en execute (editarLinea): " . $stmt->error);
+            throw new Exception("Error en execute (editar): " . $stmt->error);
         }
 
         $stmt->close(); // liberar recurso
@@ -176,17 +205,17 @@ class ajustesdocumentos
         $stmt = $this->con->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en prepare (reactivarLinea): " . $this->con->error);
+            throw new Exception("Error en prepare (reactivar): " . $this->con->error);
         }
 
         $stmt->bind_param("i", $id_tipo_documento);
 
         if (!$stmt->execute()) {
-            throw new Exception("Error en execute (reactivarLinea): " . $stmt->error);
+            throw new Exception("Error en execute (reactivar): " . $stmt->error);
         }
 
         if ($stmt->affected_rows === 0) {
-            throw new Exception("La Tipo de documento ya estaba activa o no se pudo actualizar.");
+            throw new Exception("El Tipo de documento ya estaba activa o no se pudo actualizar.");
         }
 
         $stmt->close();
@@ -244,13 +273,13 @@ class ajustesdocumentos
         $stmt = $this->con->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en prepare (eliminar_linea): " . $this->con->error);
+            throw new Exception("Error en prepare (desactivar): " . $this->con->error);
         }
 
         $stmt->bind_param("i", $id_tipo_documentos);
 
         if (!$stmt->execute()) {
-            throw new Exception("Error en execute (eliminar_linea): " . $stmt->error);
+            throw new Exception("Error en execute (desactivar): " . $stmt->error);
         }
 
         $filas = $stmt->affected_rows;
@@ -260,7 +289,7 @@ class ajustesdocumentos
         return $filas;
     }
 
-     /**
+    /**
      * Obtiene una Tipo de documento por ID.
      * OPCIONAL: Permite bloqueo de fila para concurrencia.
      *
