@@ -119,7 +119,7 @@ include __DIR__ . '/../../error.php';
         <div class="mb-3">
             <label class="form-label">Fecha inicio</label>
             <input
-                type="text"
+                type="date"
                 name="Fecha_inicio"
                 class="form-control"
                 maxlength="10"

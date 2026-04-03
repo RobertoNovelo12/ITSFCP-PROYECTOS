@@ -126,8 +126,8 @@ class ProyectoControlador
         $encabezadosBase = [
             'ID',
             'Título',
-            'Fecha Inicio',
-            'Fecha Fin',
+            'Inicio',
+            'Fin',
             'Estado',
             'Período',
             'Pendientes',
