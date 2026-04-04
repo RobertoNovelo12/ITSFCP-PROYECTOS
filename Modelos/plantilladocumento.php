@@ -11,45 +11,20 @@ class plantilladocumento
     }
 
     /**
-     * Obtiene datos para filtros (totales, activos, desactivados)
-     */
-    public function obtenerDatosFiltro($rol): array
-    {
-        if ($rol !== 'supervisor') {
-            return [];
-        }
-
-        $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
-                    COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
-                FROM plantillas_documentos";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerDatosFiltro): " . $this->con->error);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerDatosFiltro): " . $stmt->error);
-        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-        return $resultado;
-    }
-
-
-    /**
      * Método base para construir WHERE dinámico (REUTILIZABLE)
      */
     private function construirWhere(&$params, &$types, $buscar, $filtro): string
     {
         $where = [];
 
-        if ($filtro == 0) $where[] = "estado = 0";
-        if ($filtro == 1) $where[] = "estado = 1";
-        elseif ($filtro == 2) $where[] = "estado IN (0,1)";
+        if ($filtro == 0) $where[] = "activo = 0";
+        if ($filtro == 1) $where[] = "activo = 1";
+        elseif ($filtro == 2) $where[] = "activo IN (0,1)";
 
         if (!empty($buscar)) {
-            $where[] = "(nombre LIKE ? OR categoria LIKE ?)";
+            $where[] = "(nombre LIKE ?)";
             $params[] = "%$buscar%";
-            $params[] = "%$buscar%";
-            $types .= "ss";
+            $types .= "s";
         }
 
         return " WHERE " . implode(" AND ", $where);
@@ -67,20 +42,22 @@ class plantilladocumento
         $params = [];
         $types = "";
 
-        $total = $this->obtenerCantidadGradoAcademico($buscar, $filtro);
+        $total = $this->obtenerCantidad($buscar, $filtro);
         $total_paginas = ($total > 0) ? ceil($total / $por_pagina) : 1;
 
         $sql = "SELECT 
-                    id_plantilla,
-                    nombre,
-                    fecha_modificacion AS modificar,
-                    fecha_creacion AS crear,
+                    d.id_plantilla,
+                    d.nombre,
+                    d.version,
+                    d.nombre_archivo,
+                    d.fecha_modificacion AS modificar,
+                    d.fecha_creacion AS crear,
                     CASE 
-                        WHEN estado = 1 THEN 'Activo'        
-                        WHEN estado = 0 THEN 'Desactivado'
+                        WHEN d.activo = 1 THEN 'Activo'        
+                        WHEN d.activo = 0 THEN 'Desactivado'
                         ELSE 'Desconocido'
-                    END AS estados
-                FROM plantillas_documentos";
+                    END AS activo
+                FROM plantillas_documentos AS d";
 
         $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
         $sql .= " ORDER BY id_plantilla ASC LIMIT ?, ?";
@@ -99,7 +76,7 @@ class plantilladocumento
         $stmt->close();
 
         return [
-            "plantillas_documentos" => $data,
+            "plantillas" => $data,
             "paginacion" => [
                 "total" => $total,
                 "por_pagina" => $por_pagina,
@@ -107,6 +84,29 @@ class plantilladocumento
                 "total_paginas" => $total_paginas
             ]
         ];
+    }
+
+    /**
+     * Obtiene datos para filtros (totales, activos, desactivados)
+     */
+    public function obtenerDatosFiltro($rol): array
+    {
+        if ($rol !== 'supervisor') {
+            return [];
+        }
+
+        $sql = "SELECT 
+                    COUNT(*) AS Total,
+                    COALESCE(SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END), 0) AS Activo,
+                    COALESCE(SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
+                FROM plantillas_documentos";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error en prepare (obtenerDatosFiltro): " . $this->con->error);
+        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerDatosFiltro): " . $stmt->error);
+        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $resultado;
     }
 
     /**
@@ -134,22 +134,23 @@ class plantilladocumento
 
 
     /**
-     * Obtiene datos para vista de detalles
+     * Obtiene datos para vista de detalles de tipos de documentos
      */
     public function obtenerTipos_documentos(): array
     {
         $sql = "SELECT 
-                    id_plantilla, 
-                    nombre
-                FROM plantillas_documentos
-                WHERE activo = 1";
+                    id_tipo_documento, 
+                    nombre,
+                    categoria
+                FROM tipo_documento
+                WHERE estado = 1";
 
         $stmt = $this->con->prepare($sql);
         if (!$stmt) throw new Exception("Error en prepare (obtenerTipos_documentos): " . $this->con->error);
 
         if (!$stmt->execute()) throw new Exception("Error en execute (obtenerTipos_documentos): " . $stmt->error);
 
-        $registro = $stmt->get_result()->fetch_assoc();
+        $registro = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
         if (!$registro) throw new Exception("Tipo de documento no encontrado");
@@ -160,19 +161,21 @@ class plantilladocumento
     /**
      * Obtiene datos para vista de detalles
      */
-    public function obtenerInfoTipos($id_plantilla): array
+    public function obtenerInfoTipos($id_tipo_documento): array
     {
         $sql = "SELECT 
-                    p.id_plantilla, 
-                    p.nombre,
-                    p.version,
-                FROM plantillas_documentos AS p
-                WHERE p.id_plantilla = ?";
+    MAX(p.version) AS ultima_version,
+    t.nombre
+FROM tipo_documento t
+LEFT JOIN plantillas_documentos p 
+    ON t.id_tipo_documento = p.id_tipo_documento
+WHERE t.id_tipo_documento = ?
+GROUP BY t.id_tipo_documento;";
 
         $stmt = $this->con->prepare($sql);
         if (!$stmt) throw new Exception("Error en prepare (obtenerTipos): " . $this->con->error);
 
-        $stmt->bind_param("i", $id_plantilla);
+        $stmt->bind_param("i", $id_tipo_documento);
         if (!$stmt->execute()) throw new Exception("Error en execute (obtenerTipos): " . $stmt->error);
 
         $registro = $stmt->get_result()->fetch_assoc();
@@ -184,71 +187,31 @@ class plantilladocumento
     }
 
     /**
-     * Registra un nuevo Grado Académico.
+     * Registra una nueva Plantilla de documento.
      * IMPORTANTE: Ejecutar dentro de una transacción.
      *
      * @param string $nombre
      * @param int $version
      * @throws Exception
      */
-    public function registrar(string $nombre, int $version, $archivo)
+    public function registrar(int $id_tipo_documento, string $nombre, int $version, string $nombre_archivo, string $ruta_archivo)
     {
 
-        $sql = "INSERT INTO plantillas_documentos 
-            (nombre, version, estado, fecha_creacion) 
-            VALUES (?, 1, NOW())";
+        $sql = "
+        INSERT INTO plantillas_documentos 
+            (id_tipo_documento, nombre, version, ruta, activo, nombre_archivo, fecha_creacion) 
+            VALUES (?, ?, ?, ?, 1, ?, NOW())";
 
         $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (registrarGradoAcademico): " . $this->con->error);
+        if (!$stmt) throw new Exception("Error en prepare (registrar): " . $this->con->error);
 
-        $stmt->bind_param("s", $nombre);
-        if (!$stmt->execute()) throw new Exception("Error en execute (registrarGradoAcademico): " . $stmt->error);
+        $stmt->bind_param("isiss", $id_tipo_documento, $nombre, $version, $ruta_archivo,$nombre_archivo);
+        if (!$stmt->execute()) throw new Exception("Error en execute (registrar): " . $stmt->error);
 
         $id = $stmt->insert_id;
         $stmt->close();
 
         return $id;
-    }
-
-    /**
-     * Reactiva un Grado Académico previamente desactivado.
-     * IMPORTANTE: Ejecutar dentro de transacción.
-     *
-     * @param int $id_grado
-     * @return void
-     * @throws Exception
-     */
-    public function reactivar(int $id_grado): void
-    {
-
-        $sqlDatos = "SELECT nombre FROM plantillas_documentos WHERE id_grado = ?";
-        $stmtDatos = $this->con->prepare($sqlDatos);
-        if (!$stmtDatos) throw new Exception("Error en prepare (reactivar datos): " . $this->con->error);
-
-        $stmtDatos->bind_param("i", $id_grado);
-        $stmtDatos->execute();
-        $datos = $stmtDatos->get_result()->fetch_assoc();
-        $stmtDatos->close();
-
-        if (!$datos) throw new Exception("No se pudieron obtener datos de Grado Académico.");
-
-        $sql = "UPDATE plantillas_documentos 
-            SET estado = 1, 
-                fecha_modificacion = NOW() 
-            WHERE id_grado = ? 
-              AND estado = 0";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (reactivarGradoAcademico): " . $this->con->error);
-
-        $stmt->bind_param("i", $id_grado);
-        if (!$stmt->execute()) throw new Exception("Error en execute (reactivarGradoAcademico): " . $stmt->error);
-
-        if ($stmt->affected_rows === 0) {
-            throw new Exception("El registro ya estaba activo o no se pudo actualizar.");
-        }
-
-        $stmt->close();
     }
 
     /**
@@ -260,7 +223,7 @@ class plantilladocumento
      */
     public function bloquear_tabla(): void
     {
-        $sql = "SELECT id_grado FROM plantillas_documentos WHERE estado = 1 FOR UPDATE";
+        $sql = "SELECT id_plantilla FROM plantillas_documentos WHERE activo = 1 FOR UPDATE";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) throw new Exception("Error en prepare (bloquear_tabla): " . $this->con->error);
         if (!$stmt->execute()) throw new Exception("Error en execute (bloquear_tabla): " . $stmt->error);
@@ -269,25 +232,52 @@ class plantilladocumento
     }
 
     /**
-     * Eliminación lógica (soft delete) de un Grado Académico.
+     * Obtiene una Plantilla de documentos por ID.
+     *
+     * @param int $id_grado
+     * @param bool $forUpdate
+     * @return array|null
+     * @throws Exception
+     */
+    public function obtenerPorId(int $id_plantilla, bool $forUpdate = false): ?array
+    {
+        $sql = "SELECT activo FROM plantillas_documentos WHERE id_plantilla = ?";
+
+        if ($forUpdate) {
+            $sql .= " FOR UPDATE";
+        }
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error en prepare (obtenerPorId): " . $this->con->error);
+
+        $stmt->bind_param("i", $id_plantilla);
+        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerPorId): " . $stmt->error);
+
+        $res = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $res ?: null;
+    }
+
+    /**
+     * Eliminación lógica (soft delete) de plantilla de documentos.
      *
      * @param int $id_grado
      * @return int Número de filas afectadas
      * @throws Exception
      */
-    public function eliminar_plantillas_documentos(int $id_grado): int
+    public function desactivarPorTipo(int $id_tipo_documento): int
     {
-        $sql = "UPDATE plantillas_documentos 
-                SET estado = 0, 
-                    fecha_modificacion = NOW() 
-                WHERE id_grado = ? 
-                  AND estado <> 0";
+        $sql = "UPDATE plantillas_documentos SET activo = 0, fecha_modificacion = NOW() WHERE id_tipo_documento = ? AND activo = 1";
 
         $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (eliminar_plantillas_documentos): " . $this->con->error);
+        if (!$stmt) throw new Exception("Error en prepare (desactivarPorTipo): " . $this->con->error);
 
-        $stmt->bind_param("i", $id_grado);
-        if (!$stmt->execute()) throw new Exception("Error en execute (eliminar_plantillas_documentos): " . $stmt->error);
+        $stmt->bind_param("i", $id_tipo_documento);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (desactivarPorTipo): " . $stmt->error);
+        }
 
         $filas = $stmt->affected_rows;
         $stmt->close();

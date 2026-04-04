@@ -47,14 +47,10 @@ ob_start();
 
         <div class="row mb-1">
             <div class="col-6">
-                <h3>Revisar Tarea</h3>
+                <h3>Historial de plantilla de documento</h3>
             </div>
             <div class="col-6 text-end">
-                <?php if ($rol == "investigador" || $rol== "supervisor") { ?>
-                    <a href="lista_tareas.php?id_tarea=<?= $id_tarea; ?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>
-                <?php } elseif ($rol == "estudiante") { ?>
-                    <a href="tareas_estudiante.php?id_tarea=<?= $id_tarea; ?>&id_proyectos=<?= $id_proyecto; ?>" class="btn btn-danger">Regresar</a>
-                <?php } ?>
+                    <a href="tabla.php?id_plantilla=<?= $id_tarea; ?>" class="btn btn-danger">Regresar</a>
             </div>
         </div>
 

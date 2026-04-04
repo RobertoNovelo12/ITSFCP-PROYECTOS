@@ -16,10 +16,12 @@ $id_usuario = intval($_SESSION['id_usuario']);
 require_once '../../Controladores/plantilladocumentoControlador.php';
 
 $action = $_POST['action'] ?? null;
-$plantilladocumento = new plantilladocumentoControlador();
+$plantilladocumentoControlador = new plantilladocumentoControlador();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Registrar') {
+    $id_tipo_documento = $_POST['id_tipo_documento'] ?? '';
     $nombre = $_POST['nombre'] ?? '';
+    $version = $_POST['version'] ?? 0;
     $archivo = $_FILES['archivo'] ?? null;
 
     if (!$archivo || $archivo['error'] !== UPLOAD_ERR_OK) {
@@ -47,35 +49,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Regi
     // Crear nombre único
     $nombreFinal = uniqid() . "_" . basename($archivo['name']);
 
+    // Determinar carpeta
     $parte_carta = substr(strtolower($nombre), 0, 5);
     $parte_informe_reporte = substr(strtolower($nombre), 0, 7);
-    $carpeta = "";
+
+    //NOTA: NO DEBE MODIFICARSE EL NOMBRE DE LOS REGISTROS DE "TIPO_DOCUMENTO"
+    //ESTO AL COINCIDIR CON ESTA PARTE DEL CÓDIGO
     if ($parte_carta == "carta") {
         $carpeta = "carta";
     } elseif ($parte_informe_reporte == "informe") {
         $carpeta = "informe";
     } elseif ($parte_informe_reporte == "reporte") {
         $carpeta = "reporte";
+    } else {
+        $carpeta = "general";
     }
-    $rutaDestino = "../publico/docs/plantillas/.$carpeta./" . $nombreFinal;
+
+    // Rutas
+    $base = "/ITSFCP-PROYECTOS/publico/docs/plantillas/$carpeta/";
+    $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
+    $rutaBD = $base . $nombreFinal;
 
     // Crear carpeta si no existe
-    if (!is_dir("../publico/docs/plantillas")) {
-        mkdir("../publico/docs/plantillas", 0777, true);
+    $directorio = dirname($rutaFisica);
+    if (!is_dir($directorio)) {
+        mkdir($directorio, 0755, true);
     }
 
     // Mover archivo
-    if (!move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
+    if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
         die("Error al guardar el archivo");
     }
 
     // Guardar en BD
-    $plantilla = new plantilladocumento($conn);
-    $plantilla->registrar($nombre, $version, $rutaDestino);
+    $plantilladocumentoControlador->registrar(
+        $rol,
+        $nombre,
+        $version,
+        $nombreFinal,
+        $rutaBD,
+        $id_tipo_documento
+    );
 }
 
 
-$resultado = $plantilladocumento->indexcrear($rol, $buscar);
+$resultado = $plantilladocumentoControlador->indexcrear($rol);
 
 if (is_string($resultado)) {
     $resultado = json_decode($resultado, true);
@@ -99,24 +117,24 @@ include __DIR__ . '/../../error.php';
     </div>
     <!-- DATOS Plantilla de documento -->
     <form method="POST" action="" enctype="multipart/form-data">
-        <input type="hidden" name="action" value="registrar">
+        <input type="hidden" name="action" value="Registrar">
         <div class="col-md">
             <div class="mb-3">
                 <label for="select" class="form-label">Tipo de documento</label>
-                <select class="form-select" name="Tematica" id="select" aria-label="Default select example">
+                <select class="form-select" name="id_tipo_documento" id="select" aria-label="Default select example">
                     <?php foreach ($resultado as $res): ?>
-                        <option value="<?php echo $res['id_plantilla'] ?>"><?php echo $res['nombre'] ?></option>
+                        <option value="<?php echo $res['id_tipo_documento'] ?>" Select><?php echo $res['nombre'] . " - " . ucfirst($res['categoria']) ?></option>
                     <?php endforeach ?>
                 </select>
             </div>
         </div>
         <div class="mb-3">
             <label for="exampleFormControlInput" class="form-label">Nombre</label>
-            <input type="text" class="form-control" name="NombreProyecto" id="nombre" readonly required>
+            <input type="text" class="form-control" name="nombre" id="nombre" readonly required>
         </div>
         <div class="mb-3">
             <label for="exampleFormControlInput1" class="form-label">Versión</label>
-            <input type="text" class="form-control" name="NombreProyecto" id="version" readonly required>
+            <input type="number" class="form-control" name="version" id="version" readonly required>
         </div>
 
         <div class="mb-3">
@@ -130,7 +148,7 @@ include __DIR__ . '/../../error.php';
             </div>
         </div>
 
-        <button type="submit" name="action" value="Registrar" class="btn btn-guardar">Guardar cambios</button>
+        <button type="submit" class="btn btn-guardar">Guardar cambios</button>
     </form>
 </div>
 
@@ -151,28 +169,26 @@ include __DIR__ . '/../../layout.php';
         const selectVersion = document.getElementById("version");
 
 
-        function cargarSubtematicas() {
+        function cargarPlantillas() {
 
             const idTipoDocumento = selectTipo_documento.value;
-            if (!idTematica) return;
+            if (!idTipoDocumento) return;
 
-            fetch("/ITSFCP-PROYECTOS/Ajax/tipo_documento.php?tipo_documento=" + idTipoDocumento)
+            fetch("/ITSFCP-PROYECTOS/Ajax/plantilla_documento.php?tipo_documento=" + idTipoDocumento)
                 .then(r => r.json())
-                .then(data => {                  
+                .then(data => {
 
-                    data.forEach(item => {
-                    selectNombre.innerHTML = item.nombre;
-                    selectVersion.innerHTML = item.version;
-                    });
+                    document.getElementById("nombre").value = data.nombre;
+                    document.getElementById("version").value = data.version;
                 });
         }
 
-        // Evento al cambiar temática
-        selectTematica.addEventListener("change", cargarSubtematicas);
+        // Evento al cambiar tipo de documento
+        selectTipo_documento.addEventListener("change", cargarPlantillas);
 
         // cargar automáticamente al abrir
-        if (selectTematica.value) {
-            cargarSubtematicas();
+        if (selectTipo_documento.value) {
+            cargarPlantillas();
         }
     });
 </script>

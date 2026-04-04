@@ -7,8 +7,9 @@ if (!isset($_GET['tipo_documento'])) {
 }
 
 $controlador = new plantilladocumentoControlador();
-$subtemas = $controlador->obtenerTipos($_GET['tipo_documento']);
+$data = $controlador->obtenerPlantillas($_GET['tipo_documento']);
 
+// SOLO AQUÍ SE HACE echo
 header('Content-Type: application/json');
-echo json_encode($subtemas);
-?>
+echo json_encode($data);
+exit;
