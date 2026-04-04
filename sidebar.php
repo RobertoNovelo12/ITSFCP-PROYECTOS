@@ -20,6 +20,7 @@ function crearLink($nombre, $rol)
         "Temática" => "/ITSFCP-PROYECTOS/Vistas/Tematica/tabla.php",
         "Área de conocimiento" => "/ITSFCP-PROYECTOS/Vistas/Areas_conocimiento/tabla.php",
         "Ajuste de documentos" => "/ITSFCP-PROYECTOS/Vistas/Tipos_documentos/tabla.php",
+        "Plantillas de documentos" => "/ITSFCP-PROYECTOS/Vistas/Plantillas_documentos/tabla.php",
         "Período" => "/ITSFCP-PROYECTOS/Vistas/Periodo/tabla.php",
         "Instituto" => "/ITSFCP-PROYECTOS/Vistas/Instituto/editar.php",
         "Director" => "/ITSFCP-PROYECTOS/Vistas/Director/tabla.php",
@@ -52,7 +53,7 @@ if ($rol === "estudiante" ||  $rol === "alumno") {
     $mainMenu = ["Principal", "Dashboard"];
     $submenuProyectos = ["Seguimiento"];
     $middleMenu = ["Calendario"];
-    $submenuVerMas = ["Usuarios", "Línea de investigación", "Temática", "Área de conocimiento", "Ajuste de documentos", "Niveles SNI", "Período", "Grados académicos", "Director", "Carreras","Instituto"];
+    $submenuVerMas = ["Usuarios", "Línea de investigación", "Temática", "Área de conocimiento", "Ajuste de documentos", "Plantillas de documentos", "Niveles SNI", "Período", "Grados académicos", "Director", "Carreras", "Instituto"];
     $footerMenus = ["Soporte", "Ajustes"];
 }
 

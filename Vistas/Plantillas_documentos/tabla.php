@@ -26,6 +26,25 @@ if (!method_exists($plantilladocumento, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");
 }
 
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar') {
+    $id_plantilla = intval($_GET['id_plantilla']);
+    $id_tipo_documento = intval($_GET['id_tipo_documento']);
+    $plantilladocumento->desactivar($rol, $id_plantilla, $id_tipo_documento, $id_usuario);
+
+    // Redirigir para evitar doble ejecución
+    header("Location: tabla.php");
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'reactivar') {
+    $id_plantilla = intval($_GET['id_plantilla']);
+    $plantilladocumento->reactivar($rol, $id_plantilla, $id_usuario);
+
+    // Redirigir para evitar doble ejecución
+    header("Location: tabla.php");
+    exit;
+}
+
 $resultado = $plantilladocumento->$action($rol, $buscar);
 
 if (is_string($resultado)) {
@@ -142,12 +161,12 @@ include __DIR__ . '/../../mensaje.php';
                                     </span>
                                 </td>
                                 <td>
-                                    <?= $plantilladocumento->botonesAccionPrincipal($reg['id_plantilla'], $rol, $reg['activo']) ?>
+                                    <?= $plantilladocumento->botonesAccionPrincipal($reg['id_plantilla'], $rol, $reg['activo'], $reg['id_tipo_documento']) ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php } else { ?>
-                        <td colspan="5">
+                        <td colspan="7">
                             <div class="alert alert-danger">
                                 No hay Plantillas registradas
                             </div>
@@ -243,7 +262,7 @@ include __DIR__ . '/../../mensaje.php';
                 </ul>
                 <div class="card-body">
                     <div class="d-flex justify-content-center gap-2">
-                        <?php echo $plantilladocumento->botonesAccionPrincipal($reg['id_plantilla'], $rol, $reg['activo']); ?>
+                        <?php echo $plantilladocumento->botonesAccionPrincipal($reg['id_plantilla'], $rol, $reg['activo'], $reg['id_tipo_documento']); ?>
                     </div>
                 </div>
             </div>

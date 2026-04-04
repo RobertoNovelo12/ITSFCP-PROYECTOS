@@ -173,15 +173,63 @@ WHERE t.id_tipo_documento = ?
 GROUP BY t.id_tipo_documento;";
 
         $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerTipos): " . $this->con->error);
+        if (!$stmt) throw new Exception("Error en prepare (obtenerInfoTipos): " . $this->con->error);
 
         $stmt->bind_param("i", $id_tipo_documento);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerTipos): " . $stmt->error);
+        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerInfoTipos): " . $stmt->error);
 
         $registro = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
         if (!$registro) throw new Exception("Plantillas de documentos no encontrado");
+
+        return $registro;
+    }
+
+    /**
+     * Obtiene datos para vista de detalles
+     */
+    public function obtenerInfoTipo_Registrar($id_tipo_documento): array
+    {
+        $sql = "SELECT t.nombre
+FROM tipo_documento t
+LEFT JOIN plantillas_documentos p 
+    ON t.id_tipo_documento = p.id_tipo_documento
+WHERE t.id_tipo_documento = ?
+GROUP BY t.id_tipo_documento;";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error en prepare (obtenerInfoTipo_Registrar): " . $this->con->error);
+
+        $stmt->bind_param("i", $id_tipo_documento);
+        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerInfoTipo_Registrar): " . $stmt->error);
+
+        $registro = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$registro) throw new Exception("Plantillas de documentos no encontrado");
+
+        return $registro;
+    }
+
+    public function obtenerInfoPlantilla($id_plantilla): array
+    {
+        $sql = "SELECT p.version, t.nombre
+            FROM plantillas_documentos p
+            INNER JOIN tipo_documento t 
+                ON p.id_tipo_documento = t.id_tipo_documento
+            WHERE p.id_plantilla = ?";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error en prepare: " . $this->con->error);
+
+        $stmt->bind_param("i", $id_plantilla);
+        if (!$stmt->execute()) throw new Exception("Error en execute: " . $stmt->error);
+
+        $registro = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$registro) throw new Exception("Plantilla no encontrada");
 
         return $registro;
     }
@@ -205,7 +253,7 @@ GROUP BY t.id_tipo_documento;";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) throw new Exception("Error en prepare (registrar): " . $this->con->error);
 
-        $stmt->bind_param("isiss", $id_tipo_documento, $nombre, $version, $ruta_archivo,$nombre_archivo);
+        $stmt->bind_param("isiss", $id_tipo_documento, $nombre, $version, $ruta_archivo, $nombre_archivo);
         if (!$stmt->execute()) throw new Exception("Error en execute (registrar): " . $stmt->error);
 
         $id = $stmt->insert_id;
@@ -215,19 +263,48 @@ GROUP BY t.id_tipo_documento;";
     }
 
     /**
+     * Registra una nueva Plantilla de documento.
+     * IMPORTANTE: Ejecutar dentro de una transacción.
+     *
+     * @param string $nombre
+     * @param int $version
+     * @throws Exception
+     */
+    public function registrarHistorial(int $id_plantilla, int $id_usuarios, string $accion, string $descripcion)
+    {
+
+        $sql = "
+        INSERT INTO historial_plantillas 
+            (id_plantilla, id_usuarios, accion, descripcion, fecha) 
+            VALUES (?, ?, ?, ?, NOW())";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error en prepare (registrar): " . $this->con->error);
+
+        $stmt->bind_param("iiss", $id_plantilla, $id_usuarios, $accion, $descripcion);
+        if (!$stmt->execute()) throw new Exception("Error en execute (registrar): " . $stmt->error);
+
+        $stmt->close();
+
+        return true;
+    }
+
+
+
+    /**
      * Bloquea únicamente los registros activos.
      * IMPORTANTE: Debe ejecutarse dentro de una transacción.
      *
      * @return void
      * @throws Exception
      */
-    public function bloquear_tabla(): void
+    public function bloquear_tabla($id_tipo_documento): void
     {
-        $sql = "SELECT id_plantilla FROM plantillas_documentos WHERE activo = 1 FOR UPDATE";
+        $sql = "SELECT id_plantilla FROM plantillas_documentos WHERE id_tipo_documento = ? FOR UPDATE";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) throw new Exception("Error en prepare (bloquear_tabla): " . $this->con->error);
+        $stmt->bind_param("i", $id_tipo_documento);
         if (!$stmt->execute()) throw new Exception("Error en execute (bloquear_tabla): " . $stmt->error);
-        $stmt->free_result();
         $stmt->close();
     }
 
@@ -283,5 +360,145 @@ GROUP BY t.id_tipo_documento;";
         $stmt->close();
 
         return $filas;
+    }
+
+    /**
+     * Reactiva una Plantilla de documento previamente desactivado.
+     * IMPORTANTE: Ejecutar dentro de transacción.
+     *
+     * @param int $id_plantilla
+     * @return void
+     * @throws Exception
+     */
+    public function activarVersion(int $id_plantilla): void
+    {
+        // 1. Obtener tipo
+        $sql = "SELECT id_tipo_documento 
+            FROM plantillas_documentos 
+            WHERE id_plantilla = ? FOR UPDATE";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error prepare");
+
+        $stmt->bind_param("i", $id_plantilla);
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$res) throw new Exception("No existe");
+
+        $id_tipo = $res['id_tipo_documento'];
+
+        // 2. Bloquear registros del tipo
+        $sql = "SELECT id_plantilla 
+            FROM plantillas_documentos 
+            WHERE id_tipo_documento = ? 
+            FOR UPDATE";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_tipo);
+        $stmt->execute();
+        $stmt->close();
+
+        // 3. Desactivar todas
+        $sql = "UPDATE plantillas_documentos 
+            SET activo = 0 
+            WHERE id_tipo_documento = ?";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_tipo);
+        $stmt->execute();
+        $stmt->close();
+
+        // 4. Activar seleccionada
+        $sql = "UPDATE plantillas_documentos 
+            SET activo = 1, fecha_modificacion = NOW()
+            WHERE id_plantilla = ?";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_plantilla);
+        $stmt->execute();
+
+        if ($stmt->affected_rows === 0) {
+            throw new Exception("No se pudo activar");
+        }
+
+        $stmt->close();
+    }
+
+    public function obtenerSiguienteVersion($id_tipo_documento): int
+    {
+        $sql = "SELECT COALESCE(MAX(version), 0) + 1 AS version 
+            FROM plantillas_documentos 
+            WHERE id_tipo_documento = ?";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_tipo_documento);
+        $stmt->execute();
+
+        if ($stmt->affected_rows === 0) {
+            throw new Exception("No se pudo activar");
+        }
+
+        $res = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $res ?: null;
+    }
+
+    //OBTENR INFORMACIÓN DEL HISTORIAL DE PLANTILLAS DE DOCUMENTOS PARA EL TIMELINE
+    public function linea_tiempo($id_plantilla)
+    {
+        $sqlHistorial = "SELECT 
+            p.id_plantilla,
+            p.nombre,
+            p.nombre_archivo,
+            p.ruta,
+            u.nombre AS usuario,
+            'Creación' AS tipo_evento,
+            p.fecha_creacion AS fecha,
+            CASE p.activo
+                WHEN 0 THEN 'Desactivado'
+                WHEN 1 THEN 'Activo'
+            END AS estado
+        FROM plantillas_documentos p
+        LEFT JOIN usuarios u ON p.id_usuarios = u.id_usuarios
+        WHERE p.id_plantilla = ?
+
+        UNION ALL
+
+        SELECT 
+            p.id_plantilla,
+            p.nombre,
+            p.nombre_archivo,
+            p.ruta,
+            u.nombre AS usuario,
+            'Modificación' AS tipo_evento,
+            p.fecha_modificacion AS fecha,
+            CASE p.activo
+                WHEN 0 THEN 'Desactivado'
+                WHEN 1 THEN 'Activo'
+            END AS estado
+        FROM plantillas_documentos p
+        LEFT JOIN usuarios u ON p.id_usuarios = u.id_usuarios
+        WHERE p.id_plantilla = ?
+        AND p.fecha_modificacion IS NOT NULL
+
+        ORDER BY fecha DESC";
+
+        $stmt = $this->con->prepare($sqlHistorial);
+        $stmt->bind_param("ii", $id_plantilla, $id_plantilla);
+        $stmt->execute();
+
+        $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $historialAgrupado = [];
+
+        foreach ($historial as $item) {
+            $fecha = date("d/m/Y", strtotime($item['fecha']));
+            $historialAgrupado[$fecha][] = $item;
+        }
+
+        return $historialAgrupado;
     }
 }

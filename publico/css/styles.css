@@ -4456,7 +4456,7 @@ summary {
 }
 
 /* COMENTARIO */
-.comentario {
+.comentario, .descargar {
   margin-top: 5px;
 }
 
@@ -4467,4 +4467,12 @@ summary {
 
 .investigador {
   color: #ffc107;
+}
+
+.activo {
+  color: var(--color-boton-avalar);
+}
+
+.desactivado {
+    color: var(--color-rojo-logout);
 }

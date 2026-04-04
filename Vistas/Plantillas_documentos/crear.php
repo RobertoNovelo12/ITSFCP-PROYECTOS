@@ -85,10 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Regi
     $plantilladocumentoControlador->registrar(
         $rol,
         $nombre,
-        $version,
         $nombreFinal,
         $rutaBD,
-        $id_tipo_documento
+        $id_tipo_documento,
+        $id_usuario
     );
 }
 
