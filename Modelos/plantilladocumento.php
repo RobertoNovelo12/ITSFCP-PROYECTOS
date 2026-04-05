@@ -47,6 +47,7 @@ class plantilladocumento
 
         $sql = "SELECT 
                     d.id_plantilla,
+                    d.id_tipo_documento,
                     d.nombre,
                     d.version,
                     d.nombre_archivo,
@@ -186,35 +187,9 @@ GROUP BY t.id_tipo_documento;";
         return $registro;
     }
 
-    /**
-     * Obtiene datos para vista de detalles
-     */
-    public function obtenerInfoTipo_Registrar($id_tipo_documento): array
+    public function obtenerInfoPlantilla($id_plantilla)
     {
-        $sql = "SELECT t.nombre
-FROM tipo_documento t
-LEFT JOIN plantillas_documentos p 
-    ON t.id_tipo_documento = p.id_tipo_documento
-WHERE t.id_tipo_documento = ?
-GROUP BY t.id_tipo_documento;";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerInfoTipo_Registrar): " . $this->con->error);
-
-        $stmt->bind_param("i", $id_tipo_documento);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerInfoTipo_Registrar): " . $stmt->error);
-
-        $registro = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if (!$registro) throw new Exception("Plantillas de documentos no encontrado");
-
-        return $registro;
-    }
-
-    public function obtenerInfoPlantilla($id_plantilla): array
-    {
-        $sql = "SELECT p.version, t.nombre
+        $sql = "SELECT p.version, t.nombre, t.id_tipo_documento
             FROM plantillas_documentos p
             INNER JOIN tipo_documento t 
                 ON p.id_tipo_documento = t.id_tipo_documento
@@ -292,7 +267,7 @@ GROUP BY t.id_tipo_documento;";
 
 
     /**
-     * Bloquea únicamente los registros activos.
+     * Bloquea registros.
      * IMPORTANTE: Debe ejecutarse dentro de una transacción.
      *
      * @return void
@@ -433,72 +408,78 @@ GROUP BY t.id_tipo_documento;";
             WHERE id_tipo_documento = ?";
 
         $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error en prepare: " . $this->con->error);
+
         $stmt->bind_param("i", $id_tipo_documento);
-        $stmt->execute();
+        if (!$stmt->execute()) throw new Exception("Error en execute: " . $stmt->error);
 
-        if ($stmt->affected_rows === 0) {
-            throw new Exception("No se pudo activar");
-        }
-
-        $res = $stmt->get_result()->fetch_assoc();
+        $resultado = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
-        return $res ?: null;
+        return (int)$resultado['version']; // Devueve el número
     }
 
     //OBTENR INFORMACIÓN DEL HISTORIAL DE PLANTILLAS DE DOCUMENTOS PARA EL TIMELINE
-    public function linea_tiempo($id_plantilla)
+    public function linea_tiempo($id_tipo_documento, $pagina = 1, $por_pagina = 5)
     {
-        $sqlHistorial = "SELECT 
-            p.id_plantilla,
-            p.nombre,
-            p.nombre_archivo,
-            p.ruta,
-            u.nombre AS usuario,
-            'Creación' AS tipo_evento,
-            p.fecha_creacion AS fecha,
-            CASE p.activo
-                WHEN 0 THEN 'Desactivado'
-                WHEN 1 THEN 'Activo'
-            END AS estado
-        FROM plantillas_documentos p
-        LEFT JOIN usuarios u ON p.id_usuarios = u.id_usuarios
-        WHERE p.id_plantilla = ?
+        $pagina = max(1, (int)$pagina);
+        $desde = ($pagina - 1) * $por_pagina;
 
-        UNION ALL
+        // TOTAL
+        $sqlTotal = "SELECT COUNT(*) as total
+                 FROM historial_plantillas h
+                 INNER JOIN plantillas_documentos p 
+                 ON h.id_plantilla = p.id_plantilla
+                 WHERE p.id_tipo_documento = ?";
 
-        SELECT 
-            p.id_plantilla,
-            p.nombre,
-            p.nombre_archivo,
-            p.ruta,
-            u.nombre AS usuario,
-            'Modificación' AS tipo_evento,
-            p.fecha_modificacion AS fecha,
-            CASE p.activo
-                WHEN 0 THEN 'Desactivado'
-                WHEN 1 THEN 'Activo'
-            END AS estado
-        FROM plantillas_documentos p
-        LEFT JOIN usuarios u ON p.id_usuarios = u.id_usuarios
-        WHERE p.id_plantilla = ?
-        AND p.fecha_modificacion IS NOT NULL
+        $stmt = $this->con->prepare($sqlTotal);
+        $stmt->bind_param("i", $id_tipo_documento);
+        $stmt->execute();
+        $total = $stmt->get_result()->fetch_assoc()['total'];
+        $stmt->close();
 
-        ORDER BY fecha DESC";
+        $total_paginas = ceil($total / $por_pagina);
 
-        $stmt = $this->con->prepare($sqlHistorial);
-        $stmt->bind_param("ii", $id_plantilla, $id_plantilla);
+        // DATOS
+        $sql = "SELECT 
+                h.id_plantilla,
+                p.version,
+                p.nombre_archivo,
+                h.accion AS tipo_evento,
+                h.descripcion,
+                h.fecha,
+                u.nombre AS usuario
+            FROM historial_plantillas h
+            INNER JOIN plantillas_documentos p 
+                ON h.id_plantilla = p.id_plantilla
+            LEFT JOIN usuarios u 
+                ON h.id_usuarios = u.id_usuarios
+            WHERE p.id_tipo_documento = ?
+            ORDER BY p.version DESC, h.fecha DESC
+            LIMIT ?, ?";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("iii", $id_tipo_documento, $desde, $por_pagina);
         $stmt->execute();
 
         $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
 
-        $historialAgrupado = [];
-
+        // AGRUPAR POR VERSION
+        $agrupado = [];
         foreach ($historial as $item) {
-            $fecha = date("d/m/Y", strtotime($item['fecha']));
-            $historialAgrupado[$fecha][] = $item;
+            $version = "Versión " . $item['version'];
+            $agrupado[$version][] = $item;
         }
 
-        return $historialAgrupado;
+        return [
+            "datos" => $agrupado,
+            "paginacion" => [
+                "total" => $total,
+                "por_pagina" => $por_pagina,
+                "pagina" => $pagina,
+                "total_paginas" => $total_paginas
+            ]
+        ];
     }
 }

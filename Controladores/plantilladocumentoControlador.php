@@ -164,26 +164,39 @@ class plantilladocumentoControlador
         };
     }
 
+    public function EstiloTimeLine($evento)
+    {
+        $evento = trim($evento);
+        return match ($evento) {
+            'CREACION' => 'success',
+            'NUEVA_VERSION' => 'primary',
+            'REACTIVACION' => 'info',
+            'DESACTIVACION' => 'danger',
+            default => 'secondary'
+        };
+    }
+
     // BOTONES DE TABLA PRINCIPAL
     private function obtenerbotones($estado, $id1 = null, $id2 = null)
     {
         $boton = "";
         switch ($estado) {
             case 'Historial':
-                $boton = '<a href="historial.php?id_plantilla=' . $id1 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="historial.php?id_tipo_documento=' . $id1 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Ver historial de Plantilla"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
             case 'Desactivar':
-                $boton = '<a href="tabla.php?&id_plantilla=' . $id1 . '&id_tipo_documento=' . $id2 . '&action=desactivar" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar periodo"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                $boton = '<a href="tabla.php?id_plantilla=' . $id1 . '&id_tipo_documento=' . $id2 . '&action=desactivar" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar plantilla"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
 </svg></a>';
                 break;
             case 'Reactivar':
-                $boton = '<a href="tabla.php?&id_plantilla=' . $id1 . '&id_tipo_documento=' . $id2 . '&action=reactivar" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar periodo"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                $boton = '<a href="tabla.php?id_plantilla=' . $id1 . '&id_tipo_documento=' . $id2 . '&action=reactivar" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Reactivar plantilla"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/>
+  <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/>
 </svg></a>';
                 break;
             default:
@@ -193,7 +206,7 @@ class plantilladocumentoControlador
     }
 
     // Botones de acción en la tabla
-    public function botonesAccionPrincipal($id, $rol, $estado = null, $id2)
+    public function botonesAccionPrincipal($id, $rol, $estado = null, $id2 = null)
     {
         if (!$this->esSupervisor($rol)) return "";
 
@@ -201,10 +214,10 @@ class plantilladocumentoControlador
 
         if (in_array($estado, ["Activo"])) {
             $boton = $this->obtenerbotones("Desactivar", $id, $id2);
-            $boton .= $this->obtenerbotones("Historial", $id);
+            $boton .= $this->obtenerbotones("Historial", $id2);
         } elseif (in_array($estado, ["Desactivado"])) {
             $boton = $this->obtenerbotones("Reactivar", $id, $id2);
-            $boton .= $this->obtenerbotones("Historial", $id);
+            $boton .= $this->obtenerbotones("Historial", $id2);
         }
         return $boton;
     }
@@ -249,14 +262,11 @@ class plantilladocumentoControlador
             $obj = new plantilladocumento($conn);
             $obj->bloquear_tabla($id_tipo_documento);
 
-            $tipo = $obj->obtenerInfoTipo_Registrar($id_tipo_documento);
-
             $info = $obj->obtenerInfoTipos($id_tipo_documento);
 
             $obj->desactivarPorTipo($id_tipo_documento);
 
             $version = $obj->obtenerSiguienteVersion($id_tipo_documento);
-
 
             $id = $obj->registrar($id_tipo_documento, $nombre, $version, $nombre_archivo, $rutaDestino);
             if (!$id) {
@@ -264,15 +274,14 @@ class plantilladocumentoControlador
                 exit;
             }
 
-
             $accion = "";
             $descripcion = "";
             if ($info['ultima_version'] == null) {
                 $accion = "CREACION";
-                $descripcion = $this->generarDescripcion($accion, $tipo);
+                $descripcion = $this->generarDescripcion($accion, $version, $info['nombre']);
             } else {
                 $accion = "NUEVA_VERSION";
-                $descripcion = $this->generarDescripcion($accion, $tipo);
+                $descripcion = $this->generarDescripcion($accion, $version, $info['nombre']);
             }
 
             $obj->registrarHistorial($id, $id_usuarios_supervisor, $accion, $descripcion);
@@ -293,34 +302,47 @@ class plantilladocumentoControlador
         }
     }
 
-    public function desactivar($rol, $id_plantilla, $id_tipo_documento, $id_usuarios_supervisor)
+    public function desactivar($rol, $id_plantilla, $id_usuario)
     {
         if (!$this->esSupervisor($rol)) {
-            throw new Exception("No tienes permiso para eliminar Plantilla de documento.");
+            throw new Exception("No tienes permiso para desactivar Plantilla de documento.");
         }
-        if (!$id_tipo_documento) {
+        if (!$id_plantilla) {
             throw new Exception("ID inválido");
         }
         global $conn;
         $conn->begin_transaction();
         try {
             $obj = new plantilladocumento($conn);
-            $registro = $obj->obtenerPorId((int)$id_plantilla);
 
+            // 1. Validar existencia
+            $registro = $obj->obtenerPorId($id_plantilla);
             if (!$registro) {
                 throw new Exception("Plantilla no existe");
             }
-            $filas = $obj->desactivarPorTipo((int)$id_tipo_documento);
-            // NO  excepción
+            if ((int)$registro['activo'] === 0) {
+                throw new Exception("La plantilla ya está desactivada");
+            }
 
+            // 2. Obtener tipo REAL desde BD
             $datos = $obj->obtenerInfoPlantilla($id_plantilla);
 
-            $accion = "DESACTIVACION";
-            $descripcion = $this->generarDescripcion($accion, $datos);
-            // solo registra historial si hubo cambio
-            if ($filas > 0) {
-                $obj->registrarHistorial($id_plantilla, $id_usuarios_supervisor, $accion, $descripcion);
+            // 3. Bloquear
+            $obj->bloquear_tabla($datos['id_tipo_documento']);
+
+            // 4. Desactivar
+            $filas = $obj->desactivarPorTipo($datos['id_tipo_documento']);
+
+            if ($filas === 0) {
+                throw new Exception("No había plantillas activas");
             }
+
+            $accion = "DESACTIVACION";
+            $descripcion = $this->generarDescripcion($accion, null, $datos['nombre']);
+            // solo registra historial si hubo cambio
+
+
+            $obj->registrarHistorial($id_plantilla, $id_usuario, $accion, $descripcion);
 
 
             $conn->commit();
@@ -328,7 +350,7 @@ class plantilladocumentoControlador
             exit;
         } catch (Throwable $e) {
             $conn->rollback();
-            error_log("Error en eliminar(): " . $e->getMessage());
+            error_log("Error en desactivar(): " . $e->getMessage());
             header("Location: tabla.php?error=10");
             exit;
         }
@@ -344,6 +366,7 @@ class plantilladocumentoControlador
             $obj = new plantilladocumento($conn);
             $registro = $obj->obtenerPorId($id_plantilla);
 
+
             if (!$registro) {
                 throw new Exception("Plantilla no existe");
             }
@@ -356,7 +379,7 @@ class plantilladocumentoControlador
             $datos = $obj->obtenerInfoPlantilla($id_plantilla);
 
             $accion = "REACTIVACION";
-            $descripcion = $this->generarDescripcion($accion, $datos);
+            $descripcion = $this->generarDescripcion($accion, $datos['version'], null);
 
             $obj->registrarHistorial($id_plantilla, $id_usuarios_supervisor, $accion, $descripcion);
 
@@ -364,46 +387,41 @@ class plantilladocumentoControlador
             $conn->commit();
             header("Location: tabla.php?mensaje=1");
             exit;
-        } catch (mysqli_sql_exception $e) {
+        } catch (Throwable $e) {
             $conn->rollback();
-            if ($e->getCode() == 1062) {
-                header("Location: tabla.php?error=duplicado");
-            } else {
-                header("Location: tabla.php?error=2");
-            }
+            error_log("Error en reactivar(): " . $e->getMessage());
+            header("Location: tabla.php?error=2");
             exit;
         }
     }
 
-    private function generarDescripcion($accion, $datos)
+    private function generarDescripcion($accion, $version = '', $nombre = '')
     {
         switch ($accion) {
             case 'CREACION':
-                return 'Se creó la plantilla versión ' . $datos['version'] . ' para el tipo de documento "' . $datos['nombre'] . '".';
+                return 'Se creó la plantilla versión ' . $version . ' para el tipo de documento "' . $nombre . '".';
 
             case 'NUEVA_VERSION':
-                return 'Se registró una nueva versión ' . $datos['version'] . ' de la plantilla. La versión anterior fue desactivada automáticamente.';
+                return 'Se registró una nueva versión ' . $version . ' de la plantilla. La versión anterior fue desactivada automáticamente.';
 
             case 'REACTIVACION':
-                return 'Se reactivó la versión ' . $datos['version'] . ' y se desactivaron las demás versiones.';
+                return 'Se reactivó la versión ' . $version . ' y se desactivaron las demás versiones.';
 
             case 'DESACTIVACION':
-                return 'Se desactivaron las plantillas activas del tipo de documento "' . $datos['nombre'] . '".';
+                return 'Se desactivaron las plantillas activas del tipo de documento "' . $nombre . '".';
         }
     }
 
-    public function info_linea_tiempo($id_plantilla)
+    public function info_linea_tiempo($id_tipo_documento)
     {
         global $conn;
-        try {
-            $plantilla = new plantilladocumento($conn);
 
-            if ($id_plantilla) {
-                return $plantilla->linea_tiempo($id_plantilla);
-            } else {
-                $datos = []; // evita undefined variable
-                return $datos;
-            }
+        try {
+            $pagina = $_GET['pagina'] ?? 1;
+
+            $obj = new plantilladocumento($conn);
+
+            return $obj->linea_tiempo($id_tipo_documento, $pagina);
         } catch (Exception $e) {
             error_log($e->getMessage());
             header("Location: editar.php?error=1");

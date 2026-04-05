@@ -28,8 +28,7 @@ if (!method_exists($plantilladocumento, $action)) {
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar') {
     $id_plantilla = intval($_GET['id_plantilla']);
-    $id_tipo_documento = intval($_GET['id_tipo_documento']);
-    $plantilladocumento->desactivar($rol, $id_plantilla, $id_tipo_documento, $id_usuario);
+    $plantilladocumento->desactivar($rol, $id_plantilla, $id_usuario);
 
     // Redirigir para evitar doble ejecución
     header("Location: tabla.php");
@@ -113,8 +112,6 @@ include __DIR__ . '/../../mensaje.php';
             </form>
         </div>
     </div>
-
-
     <!-- TABLA LAPTOP -->
     <div class="table-responsive d-none d-md-block">
         <table class="table table-hover text-center align-middle">
