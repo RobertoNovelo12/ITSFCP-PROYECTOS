@@ -96,7 +96,7 @@ include __DIR__ . '/../../mensaje.php';
                         <input type="text"
                             name="buscar"
                             class="form-control"
-                            placeholder="Buscar por titulo, modalidad o cantidad de estudiantes..."
+                            placeholder="Buscar por titulo..."
                             value="<?= htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
                     </form>

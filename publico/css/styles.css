@@ -4476,3 +4476,79 @@ summary {
 .desactivado {
     color: var(--color-rojo-logout);
 }
+
+/*LINEA DE TIEMPO PARA SEGUIMIENTO DE DOCUMENTACION*/
+.timeline-documentacion {
+  font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  display: flex;
+  justify-content: space-between;
+  padding: 40px 20px;
+  position: relative;
+}
+/* Connecting Line */
+.timeline-documentacion::before {
+  content: "";
+  position: absolute;
+  top: 46px;
+  left: 40px;
+  right: 40px;
+  height: 2px;
+  background: #e5e7eb;
+  z-index: 0;
+}
+.timeline-D-item {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  flex: 1;
+  padding: 0 10px;
+}
+.t-dot {
+  width: 14px;
+  height: 14px;
+  background: #3b82f6;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+.t-fecha {
+  font-weight: 700;
+  color: #3b82f6;
+  margin-bottom: 5px;
+}
+.t-contenido h3 {
+  margin: 0 0 5px;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+.t-contenido p {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+@media (max-width: 600px) {
+  .timeline-documentacion {
+    flex-direction: column;
+    gap: 30px;
+  }
+  .timeline-documentacion::before {
+    top: 40px;
+    left: 26px;
+    width: 2px;
+    height: calc(100% - 80px);
+  }
+  .timeline-D-item {
+    text-align: left;
+    padding-left: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .t-dot {
+    margin: 0;
+    position: absolute;
+    left: 20px;
+    top: 5px;
+  }
+}
