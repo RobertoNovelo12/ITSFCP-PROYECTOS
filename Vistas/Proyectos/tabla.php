@@ -53,7 +53,7 @@ $paginacion = $resultado['paginacion'] ?? [
 $filtros = $proyectoControlador->filtros($id_usuario, $rol);
 $encabezados = $proyectoControlador->encabezados($rol);
 $opciones = $proyectoControlador->datosopciones($rol, $filtros);
-
+$todos_alumnos_actividades_completadas = $proyectos['total_terminados'];
 // GENERAR CONTENIDO
 ob_start();
 include __DIR__ . '/../../mensaje.php';
@@ -137,7 +137,8 @@ include __DIR__ . '/../../mensaje.php';
                                             $proyecto['id_proyectos'] ?? 0,
                                             $rol,
                                             $proyecto['estado'] ?? '-',
-                                            $id_usuario
+                                            $id_usuario,
+                                            $todos_alumnos_actividades_completadas
                                         ); ?>
                                     </td>
                                 </tr>
@@ -185,7 +186,9 @@ include __DIR__ . '/../../mensaje.php';
                                     <?= $proyectoControlador->botonesAccion(
                                         $proyecto['id_proyectos'] ?? 0,
                                         $rol,
-                                        $proyecto['estado'] ?? '-'
+                                        $proyecto['estado'] ?? '-',
+                                        null,
+                                        $todos_alumnos_actividades_completadas
                                     ); ?>
                                 </div>
                             </div>

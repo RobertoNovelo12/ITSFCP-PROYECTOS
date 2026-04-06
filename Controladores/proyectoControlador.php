@@ -291,8 +291,14 @@ class ProyectoControlador
     }
 
     //Botones de acción en la tabla 
-    public function botonesAccion($id, $rol, $estado = null, $extra = null)
+    public function botonesAccion($id, $rol, $estado = null, $extra = null, $estado_completados_estudiantes = null)
     {
+        $solicitar = '';
+        if ($estado_completados_estudiantes == true){
+            $solicitar = 'Solicitar cerrar';
+        }else{
+            $solicitar = '';
+        }
         //Mapa de acciones por rol y estado
         $acciones = [
 
@@ -300,11 +306,11 @@ class ProyectoControlador
                 'Activo' => ['Detalles', 'Ver Tareas Alumnos'],
                 'Por cerrar' => ['Detalles', 'Ver Tareas Alumnos'],
                 'Vencido' => ['Detalles', 'Ver Tareas Alumnos'],
-                'Cerrado' => ['Detalles', 'Ver Tareas Alumnos', 'GenerarConstancia'],
+                'Cierre' => ['Detalles', 'Ver Tareas Alumnos', 'GenerarConstancia'],
             ],
 
             'investigador' => [
-                'Activo' => ['Detalles', 'Tareas', 'Editar', 'Comentarios', 'Solicitar cerrar'],
+                'Activo' => ['Detalles', 'Tareas', 'Editar', 'Comentarios', $solicitar],
                 'Por aprobar' => ['Detalles', 'Comentarios'],
                 'Por cerrar' => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre' => ['Detalles', 'Tareas', 'Comentarios'],
@@ -314,7 +320,7 @@ class ProyectoControlador
             ],
 
             'profesor' => [
-                'Activo' => ['Detalles', 'Tareas', 'Editar', 'Comentarios', 'Solicitar cerrar'],
+                'Activo' => ['Detalles', 'Tareas', 'Editar', 'Comentarios', $solicitar],
                 'Por aprobar' => ['Detalles', 'Comentarios'],
                 'Por cerrar' => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre' => ['Detalles', 'Tareas', 'Comentarios'],

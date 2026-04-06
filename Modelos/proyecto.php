@@ -195,7 +195,7 @@ LEFT JOIN tareas_usuarios AS taus
         }
 
         // GROUP BY y LIMIT al final (LIMIT siempre al final de la query)
-        $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
+        $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos DESC LIMIT ?, ?";
 
         // Añadir params para paginación (siempre enteros)
         $params[] = $desde;
@@ -410,6 +410,9 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
         $stmt->execute();
         $filas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+        // --- DETERMINAR SI LOS INTEGRANTES (ALUMNOS) TERMINARON TODAS SUS ACTIVIDADES PARA ACTIVIAR EL BOTÓN 'SOLICITAR CIERRE'
+         
+
         // --- Respuesta final ---
         return json_encode([
             "proyectos" => $filas,
@@ -420,6 +423,10 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
                 "total_paginas"   => $total_paginas
             ]
         ]);
+    }
+
+    public function respuestaSolicitarcierre(){
+        
     }
 
     //OBTENER LA CANTIDAD DE PROYECTOS
@@ -942,7 +949,9 @@ WHERE proy.id_proyectos = ?
 GROUP BY 
 proy.id_proyectos,
 espr.nombre,
-tema.nombre_tematica;";
+tema.nombre_tematica
+ORDER BY proy.id_proyectos
+DESC;";
 
         $params = [$id_proyecto];
         $types  = "i";
