@@ -791,10 +791,13 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
 
                     // INSERT tareas
                     $sqlTarea = "INSERT INTO tareas 
-                    (id_avances, id_tipotarea, id_estadoT)
+                    (id_avances, id_tareatipo, id_estadoT)
                     VALUES (?, ?, ?)";
-                    $estado = 4;
+                    $estado = 4; // Estado : Sin activar
                     $stmtTarea = $this->con->prepare($sqlTarea);
+                    if (!$stmtTarea) {
+                        die("Error en prepare(): " . $this->con->error);
+                    }
                     $stmtTarea->bind_param("iii", $id_avances, $id_tipo, $estado);
                     $stmtTarea->execute();
                 }

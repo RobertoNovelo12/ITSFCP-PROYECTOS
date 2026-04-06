@@ -88,7 +88,8 @@ class TareaControlador
             "Referencias bibliograficas" => "Bibliografia",
             "Bibliografía" => "Bibliografia",
 
-            "Anexos" => "Anexos"
+            "Anexos" => "Anexos",
+            "Reporte Final" => "ReporteFinal"
         ];
 
         // Normalizar descripción
@@ -171,6 +172,7 @@ class TareaControlador
             "Cronograma" => "9. Cronograma",
             "Bibliografia" => "10. Bibliografía",
             "Anexos" => "11. Anexos",
+            "ReporteFinal" => "12. Reporte Final"
         ];
         return $titulos[$desc] ?? $desc;
     }
@@ -279,8 +281,23 @@ class TareaControlador
                 break;
             case 'Ver lista':
                 $boton = '<a href="lista_tareas.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '" type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver lista de tareas"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-  <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+        data-bs-custom-class="custom-tooltip" data-bs-title="Ver lista de tareas"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
+  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
+                break;
+            case 'Aprobar':
+                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Aprobado"
+                            class="btn btn-success">Aprobar tarea</a>';
+                break;
+            case 'Activar':
+                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos='. $id2 .'&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
+                break;
+            case 'Editar Tarea':
+                $boton = '<a href="editar.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Editar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
 </svg></a>';
                 break;
             case 'Detalles':
@@ -288,8 +305,17 @@ class TareaControlador
         data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
+            case 'EnviarTarea':
+                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Revisar"
+                            class="btn btn-success" type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Enviar tarea al investigador">Enviar tarea</a>';
+                break;
+            case 'Solicitar Corregir':
+                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Corregir"
+                            class="btn btn-info">Solicitar corregir</a>';
+                break;
             case 'Guardar':
-                $boton = '<button type="submit" class="btn btn-guardar">Guardar cambios</button>';
+                $boton = '<button type="submit" class="btn btn-primary">Guardar cambios</button>';
                 break;
             default:
                 break;
@@ -297,7 +323,7 @@ class TareaControlador
         return $boton;
     }
 
-    public function obtenerbotonesTarea($tipo)
+    public function obtenerbotonesTarea($tipo, $id1 = null, $id2 = null)
     {
         $boton = "";
         switch ($tipo) {
@@ -312,6 +338,11 @@ class TareaControlador
                 break;
             case 'Guardar':
                 $boton = '<button type="submit" name="tipo" value="Guardar" class="btn btn-guardar">Guardar cambios</button>';
+                break;
+            case 'Activar':
+                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos='. $id2 .'&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
                 break;
             default:
                 break;
@@ -376,7 +407,7 @@ class TareaControlador
         return $boton;
     }
     //Botones para panel de tareas
-    public function botonesAccionTarea($id1, $rol, $estado = null)
+    public function botonesAccionTarea($id1, $rol, $estado = null, $id2= null)
     {
         $boton = "";
 
@@ -397,7 +428,7 @@ class TareaControlador
                 } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente"])) {
                     //$boton  = $this->obtenerbotonesTarea("Guardar");
                 } elseif (in_array($estado, ["Sin activar"])) {
-                    $boton  = $this->obtenerbotonesTarea("Activar");
+                    $boton  = $this->obtenerbotonesTarea("Activar", $id1, $id2);
                     $boton  .= $this->obtenerbotonesTarea("Guardar");
                 }
                 break;
