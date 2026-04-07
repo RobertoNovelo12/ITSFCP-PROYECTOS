@@ -95,6 +95,15 @@ ob_start();
 
                     <ul class="timeline">
 
+                    <?php if (empty($historialAgrupado)): ?>
+
+        <div class="alert alert-info text-center shadow-sm">
+            <i class="bi bi-info-circle"></i><br><br>
+            Este estudiante no tiene historial registrado en esta tarea.
+        </div>
+
+    <?php else: ?>
+
                         <?php foreach ($historialAgrupado as $fecha => $items): ?>
 
                             <?php foreach ($items as $item): ?>
@@ -128,6 +137,8 @@ ob_start();
                             <?php endforeach; ?>
 
                         <?php endforeach; ?>
+
+                          <?php endif; ?>
 
                     </ul>
                 </details>

@@ -24,8 +24,10 @@ class ProyectoControlador
 
             $proyecto = new Proyectos($conn);
 
-            //Actualizar vencidos
+            //Actualizar estado del proyecto a vencido 
             $proyecto->actualizarProyectosVencidos();
+            //Actualizar estado del alumno a baja
+            $proyecto->actualizarEstadoEstudiantesVencidos();
 
             switch ($tipo) {
                 case 'filtro':
@@ -134,9 +136,27 @@ class ProyectoControlador
             'Acciones'
         ];
 
-        return in_array($rol, ['estudiante', 'investigador', 'profesor', 'supervisor'])
-            ? $encabezadosBase
-            : [];
+        $encabezadosBaseEstudiante = [
+            'ID',
+            'Título',
+            'Inicio',
+            'Fin',
+            'Estado Proyecto',
+            'Estado Estudiante',
+            'Período',
+            'Pendientes',
+            'Acciones'
+        ];
+
+        if ($rol === 'estudiante') {
+            return in_array($rol, ['estudiante'])
+                ? $encabezadosBaseEstudiante
+                : [];
+        } else {
+            return in_array($rol, ['investigador', 'profesor', 'supervisor'])
+                ? $encabezadosBase
+                : [];
+        }
     }
 
     //Opciones
@@ -298,14 +318,19 @@ class ProyectoControlador
     }
 
     //Botones de acción en la tabla 
-    public function botonesAccion($id, $rol, $estado = null, $extra = null, $estado_completados_estudiantes = 0)
+    public function botonesAccion($id, $rol, $estado = null, $extra = null, $estado_completados_estudiantes = 0, $estado_estudiante = 'activo')
     {
         $solicitar = '';
         if ($estado_completados_estudiantes == 1) {
             $solicitar = 'Solicitar cerrar';
-        } elseif ($estado_completados_estudiantes == 0) {
-            $solicitar = '';
         }
+
+        // BLOQUEO PARA ESTUDIANTE EN BAJA
+        if ($rol === 'estudiante' && strtolower($estado_estudiante) === 'baja') {
+            // Solo permitir ver detalles (o nada si prefieres)
+            return $this->obtenerbotones('Detalles', $id);
+        }
+
         //Mapa de acciones por rol y estado
         $acciones = [
 
@@ -354,7 +379,9 @@ class ProyectoControlador
         $botones = "";
 
         foreach ($acciones[$rol][$estado] as $accion) {
-            //Caso especial para pasar $extra
+            if (empty($accion)) continue;
+
+            //Caso especial
             if ($accion === 'Ver Tareas Alumnos') {
                 $botones .= $this->obtenerbotones($accion, null, $extra);
             } else {
@@ -396,19 +423,26 @@ class ProyectoControlador
                 break;
         }
 
-        header("Location: editar.php?id_proyectos". $id_proyecto."&mensaje=1");
+        header("Location: editar.php?id_proyectos" . $id_proyecto . "&mensaje=1");
     }
-
-    public function botonesAccionEditarEstudiante($id_estudiante, $rol, $estado, $id_proyecto)
+    //Parte de editar proyecto por el investigador
+    public function botonesAccionEditarEstudiante($id_estudiante, $rol, $estado, $id_proyecto, $estado_proyecto)
     {
         $boton = "";
 
         if ($rol == 'investigador' || $rol == 'profesor') {
 
+            // SI EL PROYECTO ESTÁ VENCIDO → BLOQUEAR TODO
+            if (strtolower($estado_proyecto) == 'Vencido') {
+                return '<span class="text-muted">Sin acciones</span>';
+            }
+
+            // DAR DE BAJA
             if ($estado == "activo") {
                 $boton .= $this->obtenerbotones("Dar de baja", $id_proyecto, $id_estudiante);
             }
 
+            // REACTIVAR (solo si está en baja)
             if ($estado == "baja") {
                 $boton .= $this->obtenerbotones("Reactivar", $id_proyecto, $id_estudiante);
             }
@@ -423,7 +457,6 @@ class ProyectoControlador
         global $conn;
         try {
             $proyecto = new Proyectos($conn);
-            $proyecto->actualizarProyectosVencidos();
 
             return $proyecto->tematica() ?? [];
         } catch (Exception $e) {
@@ -438,7 +471,6 @@ class ProyectoControlador
         global $conn;
         try {
             $proyecto = new Proyectos($conn);
-            $proyecto->actualizarProyectosVencidos();
 
             return $proyecto->obtenersubtematica((int)$id);
         } catch (Exception $e) {
@@ -453,7 +485,6 @@ class ProyectoControlador
         global $conn;
         try {
             $proyecto = new Proyectos($conn);
-            $proyecto->actualizarProyectosVencidos();
 
             return $proyecto->obtenerperiodo() ?? [];
         } catch (Exception $e) {
@@ -468,7 +499,6 @@ class ProyectoControlador
         global $conn;
         try {
             $proyecto = new Proyectos($conn);
-            $proyecto->actualizarProyectosVencidos();
 
             return $proyecto->obtenerinstituto() ?? [];
         } catch (Exception $e) {
@@ -595,7 +625,6 @@ class ProyectoControlador
         global $conn;
         try {
             $proyecto = new Proyectos($conn);
-            $proyecto->actualizarProyectosVencidos();
             return $proyecto->obtenersubtematicasProyecto($id_proyecto);
         } catch (Exception $e) {
             return $e->getMessage();

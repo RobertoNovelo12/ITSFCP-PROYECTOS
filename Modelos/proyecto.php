@@ -165,17 +165,19 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
         $types = "";
 
         // --- SELECT ---
-        $sql = "
-    SELECT 
-        proy.id_proyectos,
-        proy.titulo,
-        proy.fecha_inicio,
-        proy.fecha_fin,
-        espr.nombre AS estado,
-        peri.periodo,
-        COALESCE(SUM(CASE WHEN taus.id_estadoT = 2 THEN 1 ELSE 0 END),0) AS total
-    ";
-
+        $sql = "SELECT 
+    proy.id_proyectos,
+    proy.titulo,
+    proy.fecha_inicio,
+    proy.fecha_fin,
+    espr.nombre AS estado_proyecto,
+    peri.periodo,
+    COALESCE(SUM(CASE WHEN taus.id_estadoT = 2 THEN 1 ELSE 0 END),0) AS total  ";
+        if ($rol === 'estudiante') {
+            $sql .= ", MAX(pu.estado) AS estado_estudiante ";
+        } else {
+            $sql .= ", NULL AS estado_estudiante ";
+        }
         // --- SOLO INVESTIGADOR ---
         if ($rol === 'investigador' || $rol === 'profesor') {
             $sql .= ",
@@ -198,15 +200,11 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
 
         // --- JOIN POR ROL ---
         if ($rol === 'estudiante') {
-            $sql .= "
-        JOIN proyectos_usuarios pu ON pu.id_proyectos = proy.id_proyectos
-        ";
+            $sql .= " JOIN proyectos_usuarios pu ON pu.id_proyectos = proy.id_proyectos ";
         }
 
-        if ($rol === 'investigador' || $rol === 'profesor') {
-            $sql .= "
-        JOIN investigadores inv ON inv.id_usuarios = proy.id_investigador
-        ";
+        if ($rol == 'investigador' || $rol == 'profesor') {
+            $sql .= " JOIN investigadores inv ON inv.id_usuarios = proy.id_investigador  ";
         }
 
         // --- JOINS GENERALES ---
@@ -306,6 +304,96 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
         ]);
     }
 
+    //ACTUALIZAR ESTADO DE ESTUDIANTES A BAJA SI PROYECTO VENCIDO
+public function actualizarEstadoEstudiantesVencidos()
+{
+    // 1. BAJA POR PROYECTO VENCIDO
+
+    $sql_historial_baja = "
+    INSERT INTO historial_proyectos_usuarios 
+    (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
+    SELECT 
+        pu.id_proyectos,
+        pu.id_usuarios,
+        'baja',
+        'Proyecto vencido',
+        0,
+        NOW()
+    FROM proyectos_usuarios pu
+    JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+    WHERE 
+        p.fecha_fin < CURDATE()
+        AND p.id_estadoP != 1
+        AND pu.estado = 'activo'
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM historial_proyectos_usuarios h
+            WHERE 
+                h.id_proyectos = pu.id_proyectos
+                AND h.id_estudiante = pu.id_usuarios
+                AND h.accion = 'baja'
+                AND h.motivo = 'Proyecto vencido'
+        )
+    ";
+
+    $this->ejecutar($sql_historial_baja);
+
+    $sql_update_baja = "
+    UPDATE proyectos_usuarios pu
+    JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+    SET 
+        pu.estado = 'baja',
+        pu.fecha_baja = NOW(),
+        pu.motivo_baja = 'Proyecto vencido'
+    WHERE 
+        p.fecha_fin < CURDATE()
+        AND p.id_estadoP != 1
+        AND pu.estado = 'activo'
+    ";
+
+    $this->ejecutar($sql_update_baja);
+
+    // 2. CONCLUIR ESTUDIANTES SI PROYECTO ESTÁ EN CIERRE
+
+    $sql_historial_concluido = "
+    INSERT INTO historial_proyectos_usuarios 
+    (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
+    SELECT 
+        pu.id_proyectos,
+        pu.id_usuarios,
+        'concluido',
+        'Proyecto finalizado',
+        0,
+        NOW()
+    FROM proyectos_usuarios pu
+    JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+    WHERE 
+        p.id_estadoP = 1
+        AND pu.estado = 'activo'
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM historial_proyectos_usuarios h
+            WHERE 
+                h.id_proyectos = pu.id_proyectos
+                AND h.id_estudiante = pu.id_usuarios
+                AND h.accion = 'concluido'
+        )
+    ";
+
+    $this->ejecutar($sql_historial_concluido);
+
+    $sql_update_concluido = "
+    UPDATE proyectos_usuarios pu
+    JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+    SET 
+        pu.estado = 'concluido'
+    WHERE 
+        p.id_estadoP = 1
+        AND pu.estado = 'activo'
+    ";
+
+    return $this->ejecutar($sql_update_concluido);
+}
     //OBTENER LA CANTIDAD DE PROYECTOS
     public function obtenerCantidadProyectos($id, $filtro, $rol, $buscar = null)
     {
@@ -908,15 +996,27 @@ Where proy.id_proyectos = ? ORDER BY fecha DESC;";
 
         try {
 
-            // Cambiar estado actual
+            // Validar que esté activo
+            $check = "SELECT estado FROM proyectos_usuarios 
+                  WHERE id_proyectos = ? AND id_usuarios = ?";
+            $stmt = $this->con->prepare($check);
+            $stmt->bind_param("ii", $id_proyecto, $id_estudiante);
+            $stmt->execute();
+            $estado = $stmt->get_result()->fetch_assoc()['estado'] ?? null;
+
+            if ($estado !== 'activo') {
+                throw new Exception("El estudiante no está activo");
+            }
+
+            // Update
             $sql = "UPDATE proyectos_usuarios 
-                SET estado = 'baja', fecha_baja = NOW(), motivo_baja = ?
+                SET estado = 'baja', fecha_baja = NOW(), motivo_baja = ?, reincorporacion = 0
                 WHERE id_proyectos = ? AND id_usuarios = ?";
             $stmt = $this->con->prepare($sql);
             $stmt->bind_param("sii", $motivo, $id_proyecto, $id_estudiante);
             $stmt->execute();
 
-            // Insertar historial
+            // Historial
             $sql = "INSERT INTO historial_proyectos_usuarios 
                 (id_proyectos, id_estudiante, accion, motivo, realizado_por)
                 VALUES (?, ?, 'baja', ?, ?)";
@@ -938,16 +1038,44 @@ Where proy.id_proyectos = ? ORDER BY fecha DESC;";
 
         try {
 
+            // Validar estado actual
+            $check = "SELECT pu.estado, p.fecha_fin 
+                  FROM proyectos_usuarios pu
+                  JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+                  WHERE pu.id_proyectos = ? AND pu.id_usuarios = ?";
+
+            $stmt = $this->con->prepare($check);
+            $stmt->bind_param("ii", $id_proyecto, $id_estudiante);
+            $stmt->execute();
+            $data = $stmt->get_result()->fetch_assoc();
+
+            if (!$data) {
+                throw new Exception("Registro no encontrado");
+            }
+
+            // Validaciones importantes
+            if ($data['estado'] !== 'baja') {
+                throw new Exception("Solo se puede reactivar si está en baja");
+            }
+
+            if ($data['fecha_fin'] < date('Y-m-d')) {
+                throw new Exception("El proyecto está vencido, requiere prórroga");
+            }
+
+            // Update
             $sql = "UPDATE proyectos_usuarios 
-                SET estado = 'activo', fecha_baja = NULL, motivo_baja = NULL
+                SET estado = 'activo', fecha_baja = NULL, motivo_baja = NULL, reincorporacion = 1
                 WHERE id_proyectos = ? AND id_usuarios = ?";
+
             $stmt = $this->con->prepare($sql);
             $stmt->bind_param("ii", $id_proyecto, $id_estudiante);
             $stmt->execute();
 
+            // Historial
             $sql = "INSERT INTO historial_proyectos_usuarios 
                 (id_proyectos, id_estudiante, accion, realizado_por)
                 VALUES (?, ?, 'reactivado', ?)";
+
             $stmt = $this->con->prepare($sql);
             $stmt->bind_param("iii", $id_proyecto, $id_estudiante, $usuario);
             $stmt->execute();
@@ -1023,26 +1151,26 @@ Where proy.id_proyectos = ? ORDER BY fecha DESC;";
 
     //Historial de proyectos con estudiantes
     public function lineaTiempoProyectoUsuarios($id_proyecto, $id_usuario, $pagina = 1, $por_pagina = 5)
-{
-    $pagina = max(1, (int)$pagina);
-    $desde = ($pagina - 1) * $por_pagina;
+    {
+        $pagina = max(1, (int)$pagina);
+        $desde = ($pagina - 1) * $por_pagina;
 
-    // TOTAL
-    $sqlTotal = "SELECT COUNT(*) as total
+        // TOTAL
+        $sqlTotal = "SELECT COUNT(*) as total
                  FROM historial_proyectos_usuarios
                  WHERE id_proyectos = ? AND id_estudiante = ?";
 
-    $stmt = $this->con->prepare($sqlTotal);
+        $stmt = $this->con->prepare($sqlTotal);
 
-    $stmt->bind_param("ii", $id_proyecto, $id_usuario);
-    $stmt->execute();
-    $total = $stmt->get_result()->fetch_assoc()['total'];
-    $stmt->close();
+        $stmt->bind_param("ii", $id_proyecto, $id_usuario);
+        $stmt->execute();
+        $total = $stmt->get_result()->fetch_assoc()['total'];
+        $stmt->close();
 
-    $total_paginas = ceil($total / $por_pagina);
+        $total_paginas = ceil($total / $por_pagina);
 
-    // DATOS
-    $sql = "SELECT 
+        // DATOS
+        $sql = "SELECT 
                 h.accion AS tipo_evento,
                 h.motivo AS descripcion,
                 h.fecha,
@@ -1055,28 +1183,28 @@ Where proy.id_proyectos = ? ORDER BY fecha DESC;";
             ORDER BY h.fecha DESC
             LIMIT ?, ?";
 
-    $stmt = $this->con->prepare($sql);
-    $stmt->bind_param("iiii", $id_proyecto, $id_usuario, $desde, $por_pagina);
-    $stmt->execute();
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("iiii", $id_proyecto, $id_usuario, $desde, $por_pagina);
+        $stmt->execute();
 
-    $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+        $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
 
-    // AGRUPADO (tipo timeline simple)
-    $agrupado = [];
-    foreach ($historial as $item) {
-        $fecha = date("d/m/Y", strtotime($item['fecha']));
-        $agrupado[$fecha][] = $item;
+        // AGRUPADO (tipo timeline simple)
+        $agrupado = [];
+        foreach ($historial as $item) {
+            $fecha = date("d/m/Y", strtotime($item['fecha']));
+            $agrupado[$fecha][] = $item;
+        }
+
+        return [
+            "datos" => $agrupado,
+            "paginacion" => [
+                "total" => $total,
+                "por_pagina" => $por_pagina,
+                "pagina" => $pagina,
+                "total_paginas" => $total_paginas
+            ]
+        ];
     }
-
-    return [
-        "datos" => $agrupado,
-        "paginacion" => [
-            "total" => $total,
-            "por_pagina" => $por_pagina,
-            "pagina" => $pagina,
-            "total_paginas" => $total_paginas
-        ]
-    ];
-}
 }

@@ -24,16 +24,8 @@ if (!method_exists($proyectoControlador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
-    if (isset($_GET['id_proyectos'], $_GET['tipo'])) {
-        $proyectoControlador->actualizarestado($_GET['id_proyectos'], $rol, $_GET['tipo']);
-    }
-}
-
-// Obtener proyectos
 $resultado = $proyectoControlador->$action($id_usuario, $rol, $buscar);
 
-// Si viene como JSON, decodificar
 if (is_string($resultado)) {
     $resultado = json_decode($resultado, true);
 }
@@ -43,7 +35,7 @@ if (!is_array($resultado)) {
 }
 
 $proyectos = $resultado['proyectos'] ?? [];
-//Solo sucede si todos los estudiantes terminaron sus actividades.
+
 $paginacion = $resultado['paginacion'] ?? [
     'total_proyectos' => count($proyectos),
     'por_pagina' => 6,
@@ -54,13 +46,14 @@ $paginacion = $resultado['paginacion'] ?? [
 $filtros = $proyectoControlador->filtros($id_usuario, $rol);
 $encabezados = $proyectoControlador->encabezados($rol);
 $opciones = $proyectoControlador->datosopciones($rol, $filtros);
-// GENERAR CONTENIDO
+
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4">
 
+    <!-- HEADER -->
     <div class="row mb-3 align-items-center">
         <div class="col-md-6">
             <h2 class="mb-0 fw-bold">Proyectos</h2>
@@ -74,152 +67,164 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
-    <!-- FILTROS Y BÚSQUEDA -->
+    <!-- FILTROS -->
     <div class="row mb-3">
         <div class="col-12 text-end">
             <div class="row justify-content-end">
+
                 <div class="col-md-6 mb-3">
                     <select class="form-select"
                         onchange="location.href='tabla.php?action=' + this.value;">
-
                         <?php foreach ($opciones as $key => $label): ?>
-                            <option value="<?= htmlspecialchars($key, ENT_QUOTES, 'UTF-8') ?>"
+                            <option value="<?= htmlspecialchars($key) ?>"
                                 <?= ($action === $key) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
+                                <?= htmlspecialchars($label) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
+
                 <div class="col-md-6">
-                    <form class="d-flex gap-2" method="GET" action="tabla.php">
-                        <input type="hidden" name="action" value="<?= htmlspecialchars($action, ENT_QUOTES, 'UTF-8') ?>">
-                        <input type="text"
-                            name="buscar"
-                            class="form-control"
+                    <form class="d-flex gap-2" method="GET">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="text" name="buscar" class="form-control"
                             placeholder="Buscar por titulo..."
-                            value="<?= htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') ?>">
+                            value="<?= htmlspecialchars($buscar) ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
 
-
-    <!-- TABLA DE PROYECTOS -->
+    <!-- TABLA -->
     <div class="row">
         <div class="col-12">
+
             <?php if (!empty($proyectos)): ?>
+
                 <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover text-center align-middle">
                         <thead>
                             <tr>
                                 <?php foreach ($encabezados as $encabezado): ?>
-                                    <th><?= htmlspecialchars($encabezado ?? '', ENT_QUOTES, 'UTF-8') ?></th>
+                                    <th><?= htmlspecialchars($encabezado) ?></th>
                                 <?php endforeach; ?>
                             </tr>
                         </thead>
+
                         <tbody>
                             <?php foreach ($proyectos as $proyecto): ?>
                                 <tr>
-                                    <th scope="row"><?= $proyecto['id_proyectos'] ?? '-' ?></th>
-                                    <td><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= $proyecto['fecha_inicio'] ?? '-' ?></td>
-                                    <td><?= $proyecto['fecha_fin'] ?? '-' ?></td>
-                                    <td><span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado']); ?>"><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
-                                    <td><?= $proyecto['periodo'] ?? '-' ?></td>
-                                    <!-- Avances -->
-                                    <td><?= $proyecto['total'] ?? '0' ?></td>
 
-                                    <!-- Acciones -->
+                                    <th><?= $proyecto['id_proyectos'] ?></th>
+
+                                    <td title="<?= htmlspecialchars($proyecto['titulo']) ?>">
+                                        <?= strlen($proyecto['titulo']) > 60
+                                            ? substr($proyecto['titulo'], 0, 60) . '...'
+                                            : $proyecto['titulo']; ?>
+                                    </td>
+
+                                    <td><?= $proyecto['fecha_inicio'] ?></td>
+                                    <td><?= $proyecto['fecha_fin'] ?></td>
+
+                                    <!-- ESTADO PROYECTO -->
+                                    <td>
+                                        <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
+                                            <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
+                                        </span>
+                                    </td>
+
+                                    <!-- ESTADO ESTUDIANTE SOLO SI ES ESTUDIANTE -->
+                                    <?php if ($rol === 'estudiante'): ?>
+                                        <td>
+                                            <?php
+                                            $estadoEst = $proyecto['estado_estudiante'] ?? 'activo';
+                                            $clase = ($estadoEst == 'baja') ? 'danger'
+                                                : (($estadoEst == 'concluido') ? 'success' : 'primary');
+                                            ?>
+                                            <span class="badge text-bg-<?= $clase ?>">
+                                                <?= strtoupper($estadoEst) ?>
+                                            </span>
+                                        </td>
+                                    <?php endif; ?>
+
+                                    <td><?= $proyecto['periodo'] ?></td>
+                                    <td><?= $proyecto['total'] ?></td>
+
                                     <td>
                                         <?= $proyectoControlador->botonesAccion(
-                                            $proyecto['id_proyectos'] ?? 0,
+                                            $proyecto['id_proyectos'],
                                             $rol,
-                                            $proyecto['estado'] ?? '-',
+                                            $proyecto['estado_proyecto'],
                                             $id_usuario,
-                                            $proyecto['puede_cerrar'] ?? 0
+                                            $proyecto['puede_cerrar'] ?? 0,
+                                            $proyecto['estado_estudiante'] ?? null
                                         ); ?>
                                     </td>
+
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-
-                    <!-- PAGINACIÓN -->
-                    <?php if ($paginacion['total_paginas'] > 1): ?>
-                        <nav>
-                            <ul class="pagination justify-content-center">
-                                <?php
-                                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                                $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
-                                ?>
-                                <li class="page-item disabled">
-                                    <span class="page-link">
-                                        Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
-                                    </span>
-                                </li>
-                                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                                        <a class="page-link" href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>"><?= $i ?></a>
-                                    </li>
-                                <?php endfor; ?>
-                            </ul>
-                        </nav>
-                    <?php endif; ?>
                 </div>
 
-                <!-- TARJETAS MÓVILES -->
+                <!-- MÓVIL -->
                 <div class="d-block d-md-none mt-4">
                     <?php foreach ($proyectos as $proyecto): ?>
                         <div class="card mb-3 shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title"><strong>ID: </strong><?= $proyecto['id_proyectos'] ?? '-' ?></h5>
-                                <p class="card-text"><strong>Título: </strong><?= htmlspecialchars($proyecto['titulo'] ?? '-', ENT_QUOTES, 'UTF-8') ?></p>
-                                <p><strong>Estado:</strong> <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado']); ?>"><?= htmlspecialchars($proyecto['estado'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></p>
-                                <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?? '-' ?></p>
-                                <p><strong>Pendientes:</strong> <?= $proyecto['total'] ?? '-' ?></p>
-                                <p><strong>Inicio:</strong> <?= $proyecto['fecha_inicio'] ?? '-' ?> | <strong>Fin:</strong> <?= $proyecto['fecha_fin'] ?? '-' ?></p>
 
-                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                <h5>ID: <?= $proyecto['id_proyectos'] ?></h5>
+                                <p><strong>Título:</strong> <?= htmlspecialchars($proyecto['titulo']) ?></p>
 
+                                <p>
+                                    <strong>Estado proyecto:</strong>
+                                    <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
+                                        <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
+                                    </span>
+                                </p>
+
+                                <?php if ($rol === 'estudiante'): ?>
+                                    <p>
+                                        <strong>Estado estudiante:</strong>
+                                        <?php
+                                        $estadoEst = $proyecto['estado_estudiante'] ?? 'activo';
+                                        $clase = ($estadoEst == 'baja') ? 'danger'
+                                            : (($estadoEst == 'concluido') ? 'success' : 'primary');
+                                        ?>
+                                        <span class="badge text-bg-<?= $clase ?>">
+                                            <?= strtoupper($estadoEst) ?>
+                                        </span>
+                                    </p>
+                                <?php endif; ?>
+
+                                <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?></p>
+                                <p><strong>Pendientes:</strong> <?= $proyecto['total'] ?></p>
+
+                                <div class="d-flex gap-2">
                                     <?= $proyectoControlador->botonesAccion(
-                                        $proyecto['id_proyectos'] ?? 0,
+                                        $proyecto['id_proyectos'],
                                         $rol,
-                                        $proyecto['estado'] ?? '-',
+                                        $proyecto['estado_proyecto'],
                                         null,
-                                        $proyecto['puede_cerrar'] ?? 0
+                                        $proyecto['puede_cerrar'] ?? 0,
+                                        $proyecto['estado_estudiante'] ?? null
                                     ); ?>
                                 </div>
+
                             </div>
                         </div>
                     <?php endforeach; ?>
-                    <?php if ($paginacion['total_paginas'] > 1): ?>
-                        <nav>
-                            <ul class="pagination justify-content-center">
-                                <?php
-                                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                                $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
-                                ?>
-                                <li class="page-item disabled">
-                                    <span class="page-link">
-                                        Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
-                                    </span>
-                                </li>
-                                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                                        <a class="page-link" href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>"><?= $i ?></a>
-                                    </li>
-                                <?php endfor; ?>
-                            </ul>
-                        </nav>
-                    <?php endif; ?>
                 </div>
+
             <?php else: ?>
                 <div class="alert alert-info text-center">
-                    No hay proyectos para mostrar<?= !empty($buscar) ? ' con el criterio "' . htmlspecialchars($buscar, ENT_QUOTES, 'UTF-8') . '"' : '' ?>.
+                    No hay proyectos para mostrar
                 </div>
             <?php endif; ?>
+
         </div>
     </div>
 </div>
@@ -228,6 +233,5 @@ include __DIR__ . '/../../mensaje.php';
 $contenido = ob_get_clean();
 $titulo = "Proyectos";
 $bodyClass = "proyectos-page";
-
 include __DIR__ . '/../../layout.php';
 ?>

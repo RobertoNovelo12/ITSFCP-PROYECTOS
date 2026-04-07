@@ -42,7 +42,7 @@ include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4">
-    
+
     <div class="row mb-3 align-items-center">
         <div class="col-md-6">
             <h3 class="mb-0 fw-bold">Seguimiento de Tareas</h3>

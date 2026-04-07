@@ -64,7 +64,7 @@ include __DIR__ . '/../../error.php';
         <input type="hidden" name="action" value="editarProyecto">
         <input type="hidden" name="id_proyectos" value="<?= $p['id_proyectos']; ?>">
 
-        <h5>Información del proyecto</h5>
+        <h5>Información del proyecto <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']); ?>"><?= htmlspecialchars($proyecto['estado_proyecto'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></h5>
 
         <div class="mb-3">
             <label>Nombre del proyecto</label>
@@ -220,7 +220,8 @@ include __DIR__ . '/../../error.php';
                                     $alumno['id_usuarios'],
                                     $rol,
                                     $alumno['estado'],
-                                    $id_proyecto
+                                    $id_proyecto,
+                                    $proyecto['estado_proyecto']
                                 ) ?>
                                 <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
                                     class="btn btn-info btn-sm">
