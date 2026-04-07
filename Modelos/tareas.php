@@ -203,6 +203,8 @@ ORDER BY t.id_tarea ASC;
                 WHEN 2 THEN 'En revisión'
                 WHEN 3 THEN 'Corregir'
                 WHEN 5 THEN 'Aprobado'
+                WHEN 6 THEN 'Vencido'
+                WHEN 7 THEN 'Entregado'
                 ELSE 'Desconocido'
             END AS estado_texto,
             tita.descripcion_tipo as tipo
@@ -521,6 +523,7 @@ esta.nombre AS estado,
                     tare.archivo_guia,
                     tare.archivo_nombre,
                     tare.archivo_tipo,
+                    tita.descripcion_tipo AS titulo_tarea,
                     esta.nombre as estado
                  FROM tareas AS tare
                  JOIN tipo_tarea AS tita ON tare.id_tareatipo = tita.id_tareatipo
@@ -528,6 +531,10 @@ esta.nombre AS estado,
                  WHERE tare.id_tarea = ?";
 
         $stmt = $this->con->prepare($sqlTarea);
+        if (!$stmt) {
+            die("Error en SQL: " . $this->con->error . "<br><br>QUERY:<br>$sqlTarea");
+        }
+
         $stmt->bind_param("i", $id_tarea);
         $stmt->execute();
         $tarea = $stmt->get_result()->fetch_assoc();

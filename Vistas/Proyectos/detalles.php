@@ -25,8 +25,9 @@ $subtematicas = $proyectoControlador->subtematicasProyecto($id_proyecto);
 $dat_inv = $investigador['investigador'] ?? [];
 $dat_area_inv = $investigador['area'] ?? [];
 $datos_linea_inv = $investigador['lineas'] ?? [];
+
 if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
-    $estudiantes = $proyectoControlador->datosestudiantes($id_proyecto);
+    $estudiantes = $proyectoControlador->estudiantes($id_proyecto);
 }
 
 ob_start();
@@ -48,102 +49,102 @@ ob_start();
 
 
 
-        <!-- INFORMACIÓN DEL PROYECTO -->
+    <!-- INFORMACIÓN DEL PROYECTO -->
 
-        <div class="card mb-4 shadow-sm">
+    <div class="card mb-4 shadow-sm">
 
-            <div class="card-header">
-                <b>Información del proyecto</b>
+        <div class="card-header">
+            <b>Información del proyecto</b>
+        </div>
+
+        <div class="card-body">
+
+            <h5><?= htmlspecialchars($proyecto['titulo']) ?></h5>
+
+            <p class="text-muted">
+                <?= nl2br(htmlspecialchars($proyecto['descripcion'])) ?>
+            </p>
+
+            <hr>
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <dl>
+
+                        <dt>Objetivos</dt>
+                        <dd><?= nl2br(htmlspecialchars($proyecto['objetivo'])) ?></dd>
+
+                        <dt>Pre-requisitos</dt>
+                        <dd><?= nl2br(htmlspecialchars($proyecto['pre_requisitos'])) ?></dd>
+
+                        <dt>Requisitos</dt>
+                        <dd><?= nl2br(htmlspecialchars($proyecto['requisitos'])) ?></dd>
+
+                    </dl>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <dl>
+
+                        <dt>Cantidad alumnos</dt>
+                        <dd><?= $proyecto['cantidad_estudiante'] ?></dd>
+
+                        <dt>Temática</dt>
+                        <dd><?= $proyecto['tematica'] ?></dd>
+
+                        <dt>Modalidad</dt>
+                        <dd><?= $proyecto['modalidad'] ?></dd>
+
+                        <dt>Presupuesto</dt>
+                        <dd>$<?= number_format($proyecto['presupuesto'], 2) ?></dd>
+
+                        <dt>Periodo</dt>
+                        <dd><?= $proyecto['periodo'] ?> - <?= $proyecto['estado_periodo'] ?></dd>
+
+                        <dt>Fecha inicio</dt>
+                        <dd><?= $proyecto['fecha_inicio'] ?></dd>
+
+                        <dt>Fecha final</dt>
+                        <dd><?= $proyecto['fecha_fin'] ?></dd>
+
+                        <dt>Estado</dt>
+                        <dd>
+                            <span class="badge bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
+                                <?= $proyecto['estado_proyecto'] ?>
+                            </span>
+                        </dd>
+
+                        <dt>Fecha creación</dt>
+                        <dd><?= $proyecto['creado_en'] ?></dd>
+
+                    </dl>
+
+                </div>
+
             </div>
 
-            <div class="card-body">
+            <hr>
 
-                <h5><?= htmlspecialchars($proyecto['titulo']) ?></h5>
+            <b>Subtemáticas</b>
 
-                <p class="text-muted">
-                    <?= nl2br(htmlspecialchars($proyecto['descripcion'])) ?>
-                </p>
+            <div class="mt-2">
 
-                <hr>
-
-                <div class="row">
-
-                    <div class="col-md-6">
-
-                        <dl>
-
-                            <dt>Objetivos</dt>
-                            <dd><?= nl2br(htmlspecialchars($proyecto['objetivo'])) ?></dd>
-
-                            <dt>Pre-requisitos</dt>
-                            <dd><?= nl2br(htmlspecialchars($proyecto['pre_requisitos'])) ?></dd>
-
-                            <dt>Requisitos</dt>
-                            <dd><?= nl2br(htmlspecialchars($proyecto['requisitos'])) ?></dd>
-
-                        </dl>
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <dl>
-
-                            <dt>Cantidad alumnos</dt>
-                            <dd><?= $proyecto['cantidad_estudiante'] ?></dd>
-
-                            <dt>Temática</dt>
-                            <dd><?= $proyecto['tematica'] ?></dd>
-
-                            <dt>Modalidad</dt>
-                            <dd><?= $proyecto['modalidad'] ?></dd>
-
-                            <dt>Presupuesto</dt>
-                            <dd>$<?= number_format($proyecto['presupuesto'], 2) ?></dd>
-
-                            <dt>Periodo</dt>
-                            <dd><?= $proyecto['periodo'] ?> - <?= $proyecto['estado_periodo'] ?></dd>
-
-                            <dt>Fecha inicio</dt>
-                            <dd><?= $proyecto['fecha_inicio'] ?></dd>
-
-                            <dt>Fecha final</dt>
-                            <dd><?= $proyecto['fecha_fin'] ?></dd>
-
-                            <dt>Estado</dt>
-                            <dd>
-                                <span class="badge bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
-                                    <?= $proyecto['estado_proyecto'] ?>
-                                </span>
-                            </dd>
-
-                            <dt>Fecha creación</dt>
-                            <dd><?= $proyecto['creado_en'] ?></dd>
-
-                        </dl>
-
-                    </div>
-
-                </div>
-
-                <hr>
-
-                <b>Subtemáticas</b>
-
-                <div class="mt-2">
-
-                    <?php
-                    //$subs = explode(",", $proyecto['subtematicas']);
-                    foreach ($subtematicas as $sub) {
-                        echo "<span class='badge bg-primary me-2 mb-2'>" . trim($sub['nombre']) . "</span>";
-                    }
-                    ?>
-
-                </div>
+                <?php
+                //$subs = explode(",", $proyecto['subtematicas']);
+                foreach ($subtematicas as $sub) {
+                    echo "<span class='badge bg-primary me-2 mb-2'>" . trim($sub['nombre']) . "</span>";
+                }
+                ?>
 
             </div>
 
         </div>
+
+    </div>
 
 
 
@@ -211,15 +212,14 @@ ob_start();
                         <th>ID</th>
                         <th>Nombre</th>
                         <th>Carrera</th>
-                        <th>Área</th>
-                        <th>Subárea</th>
+                        <th>Historial</th>
                     </tr>
 
                 </thead>
 
                 <tbody>
 
-                    <?php foreach ($estudiantes['estudiante']  as $alumno): ?>
+                    <?php foreach ($estudiantes as $alumno): ?>
 
                         <tr>
 
@@ -231,10 +231,10 @@ ob_start();
 
                             <td><?= $alumno['carrera'] ?></td>
 
-                            <td><?= $estudiantes['area']['area'] ?? "No tiene área" ?></td>
-
-                            <td><?= $estudiantes['area']['subarea'] ?? "No tiene subárea" ?></td>
-
+                            <td> <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
+                                    class="btn btn-info btn-sm">
+                                    Historial
+                                </a></td>
                         </tr>
 
                     <?php endforeach; ?>
@@ -277,6 +277,7 @@ ob_start();
                             <li class="list-group-item">
                                 <b>Subárea:</b> <?= $estudiantes['area']['subarea'] ?? "No tiene subárea" ?>
                             </li>
+
 
                         </ul>
 

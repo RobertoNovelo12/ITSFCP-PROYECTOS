@@ -46,7 +46,7 @@ class ProyectoControlador
     //General
     public function index($id, $rol, $buscar = null)
     {
-        return $this->obtenerDatos((int)$id, $rol, $buscar);
+        return $this->obtenerDatos((int)$id, $rol, $buscar, 0, 'tabla');
     }
 
     //Filtros generales
@@ -284,6 +284,13 @@ class ProyectoControlador
   <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
 </svg></a>';
                 break;
+            case 'Dar de baja':
+                $boton = '<button class="btn btn-danger btn-sm" data-accion="baja"data-id="' . $id_usuario . '">Dar de baja</button>';
+                break;
+
+            case 'Reactivar':
+                $boton = '<button class="btn btn-success btn-sm" data-accion="reactivar" data-id="' . $id_usuario . '">Reactivar</button>';
+                break;
             default:
                 break;
         }
@@ -291,12 +298,12 @@ class ProyectoControlador
     }
 
     //Botones de acción en la tabla 
-    public function botonesAccion($id, $rol, $estado = null, $extra = null, $estado_completados_estudiantes = null)
+    public function botonesAccion($id, $rol, $estado = null, $extra = null, $estado_completados_estudiantes = 0)
     {
         $solicitar = '';
-        if ($estado_completados_estudiantes == true){
+        if ($estado_completados_estudiantes == 1) {
             $solicitar = 'Solicitar cerrar';
-        }else{
+        } elseif ($estado_completados_estudiantes == 0) {
             $solicitar = '';
         }
         //Mapa de acciones por rol y estado
@@ -356,6 +363,58 @@ class ProyectoControlador
         }
 
         return $botones;
+    }
+
+
+    public function accionEstudiante($datos)
+    {
+        global $conn;
+        $action = $datos['action'] ?? '';
+        $id_proyecto = $datos['id_proyecto'];
+        $id_estudiante = $datos['id_estudiante'];
+        $motivo = $datos['motivo'] ?? null;
+
+        $modelo = new Proyectos($conn);
+
+        switch ($action) {
+
+            case 'baja':
+                $res = $modelo->bajaEstudiante(
+                    $id_proyecto,
+                    $id_estudiante,
+                    $motivo,
+                    $_SESSION['id_usuario']
+                );
+                break;
+
+            case 'reactivar':
+                $res = $modelo->reactivarEstudiante(
+                    $id_proyecto,
+                    $id_estudiante,
+                    $_SESSION['id_usuario']
+                );
+                break;
+        }
+
+        header("Location: editar.php?id_proyectos". $id_proyecto."&mensaje=1");
+    }
+
+    public function botonesAccionEditarEstudiante($id_estudiante, $rol, $estado, $id_proyecto)
+    {
+        $boton = "";
+
+        if ($rol == 'investigador' || $rol == 'profesor') {
+
+            if ($estado == "activo") {
+                $boton .= $this->obtenerbotones("Dar de baja", $id_proyecto, $id_estudiante);
+            }
+
+            if ($estado == "baja") {
+                $boton .= $this->obtenerbotones("Reactivar", $id_proyecto, $id_estudiante);
+            }
+        }
+
+        return $boton;
     }
 
     //TEMATICA
@@ -641,5 +700,40 @@ class ProyectoControlador
         global $conn;
         $proyecto = new Proyectos($conn);
         return $proyecto->obtenerProyectoComentarios($id_proyecto);
+    }
+
+    public function estudiantes($id_proyecto)
+    {
+        global $conn;
+        $proyecto = new Proyectos($conn);
+        $estudiante = $proyecto->estudiantes($id_proyecto);
+
+        return $estudiante;
+    }
+
+    public function obtenerEstudianteProyecto($id_proyecto, $id_estudiante)
+    {
+        global $conn;
+        $proyecto = new Proyectos($conn);
+        $datos = $proyecto->obtenerEstudianteProyecto($id_proyecto, $id_estudiante);
+
+        return $datos;
+    }
+
+    public function historial_estudiante_proyecto($id_proyecto, $id_usuario)
+    {
+        global $conn;
+
+        try {
+            $pagina = $_GET['pagina'] ?? 1;
+
+            $proyecto = new Proyectos($conn);
+
+            return $proyecto->lineaTiempoProyectoUsuarios($id_proyecto, $id_usuario, $pagina);
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            header("Location: editar.php?error=1");
+            exit;
+        }
     }
 }

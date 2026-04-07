@@ -1,6 +1,5 @@
 <?php
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
@@ -9,176 +8,238 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
+
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 
 $id_proyecto = $_GET["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? null;
-/* CONTROLADOR */
+
 require_once '../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
-//Datos necesarios
+// DATOS
 $tematica = $proyectoControlador->tematica();
-
 $subtematicasProyecto = $proyectoControlador->subtematicasProyecto($id_proyecto);
-
 $periodo = $proyectoControlador->obtenerperiodo();
+$estudiantes = $proyectoControlador->estudiantes($id_proyecto);
+$p = $proyectoControlador->datosproyecto($id_proyecto);
 
-$p = $proyectoControlador->datosproyecto($id_proyecto); // Para rellenar 
-
+// ACCIONES
 if ($action == 'editarProyecto') {
     $proyectoControlador->editarProyecto($_POST, $id, $rol);
 }
-// GENERAR CONTENIDO
+
+if ($action == 'baja') {
+    $proyectoControlador->accionEstudiante($_POST);
+}
+
+if ($action == 'reactivar') {
+    $proyectoControlador->accionEstudiante($_POST);
+}
+
+// CONTENIDO
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
+
 <div class="container-fluid py-4">
+
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-
         <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Editar periodo</h3>
+            <h3 class="fw-bold mb-0">Editar proyecto</h3>
         </div>
-
         <div class="col-md-6 text-md-end">
             <a href="tabla.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>
-
     </div>
-    <div class="row mb-3 align-items-center">
-        <div class="row mb-1">
-            <form method="POST" id="formProyecto" action="">
-                <input type="hidden" id="input_hidden" name="action" value="editarProyecto">
 
-                <div class="row mb-1">
-                    <h5>Información del proyecto</h5>
+    <!-- FORMULARIO PROYECTO -->
+    <form method="POST">
+        <input type="hidden" name="action" value="editarProyecto">
+        <input type="hidden" name="id_proyectos" value="<?= $p['id_proyectos']; ?>">
 
-                    <div class="mb-3">
-                        <label class="form-label">Nombre del proyecto</label>
-                        <input type="text" class="form-control" name="NombreProyecto"
-                            value="<?php echo $p['titulo']; ?>" required>
-                    </div>
+        <h5>Información del proyecto</h5>
 
-                    <div class="mb-3">
-                        <label class="form-label">Descripción breve</label>
-                        <textarea class="form-control" name="Descripcion" rows="6" required><?php echo $p['descripcion']; ?></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Objetivos</label>
-                        <textarea class="form-control" name="Objetivos" rows="6" required><?php echo $p['objetivo']; ?></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Pre-requisitos</label>
-                        <textarea class="form-control" name="Pre_requisitos" rows="3" required><?php echo $p['pre_requisitos']; ?></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Requisitos</label>
-                        <textarea class="form-control" name="Requisitos" rows="3" required><?php echo $p['requisitos']; ?></textarea>
-                    </div>
-
-                </div>
-
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label class="form-label">Cantidad alumnos permitidos</label>
-                            <input type="number" class="form-control" name="AlumnosCantidad"
-                                min="0" max="3" value="<?php echo $p['cantidad_estudiante']; ?>" required>
-                        </div>
-                    </div>
-
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label class="form-label" for="select1">Temática</label>
-                            <select class="form-select" name="Tematica" id="select1">
-                                <option value="">Seleccione una temática</option>
-                                <?php foreach ($tematica as $tema): ?>
-                                    <option value="<?php echo $tema['id_tematica']; ?>"
-                                        <?php echo ($tema['nombre_tematica'] == $p['tematica']) ? 'selected' : ''; ?>>
-                                        <?php echo $tema['nombre_tematica']; ?>
-                                    </option>
-                                <?php endforeach ?>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label class="form-label">Modalidad</label>
-                            <select class="form-select" name="Modalidad">
-                                <option value="mixto" <?php echo ($p['modalidad'] == "mixto") ? "selected" : ""; ?>>Mixta</option>
-                                <option value="virtual" <?php echo ($p['modalidad'] == "virtual") ? "selected" : ""; ?>>Virtual</option>
-                                <option value="fisico" <?php echo ($p['modalidad'] == "fisico") ? "selected" : ""; ?>>Físico</option>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- Subtemáticas (selección múltiple) -->
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label class="form-label" for="select2">Subtemáticas</label>
-                            <select name="subtematicas[]" id="select2" class="form-select" multiple required>
-
-                            </select>
-                            <small class="text-muted">
-                                Mantén presionada la tecla Ctrl (o Cmd) para seleccionar varias
-                            </small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label class="form-label">Presupuesto</label>
-                            <input type="number" class="form-control" name="Presupuesto"
-                                value="<?php echo $p['presupuesto']; ?>" required>
-                        </div>
-                    </div>
-
-                    <div class="col-md">
-                        <div class="mb-3">
-                            <label class="form-label">Periodo</label>
-                                <input type="text" class="form-control" disabled
-                                    value="<?php echo $periodo['periodo'] . ' - ' . $periodo['estado']; ?>">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-1">
-                    <div class="col-md">
-                        <label class="form-label">Fecha inicio</label>
-                        <input type="date" name="FechaInicio" class="form-control"
-                            value="<?php echo $p['fecha_inicio']; ?>" required>
-                    </div>
-                    <div class="col-md">
-                        <label class="form-label">Fecha final</label>
-                        <input type="date" name="FechaFinal" class="form-control"
-                            value="<?php echo $p['fecha_fin']; ?>" required>
-                    </div>
-                </div>
-
-                <div class="row mb-1">
-                    <div class="col-12 text-center">
-                        <input type="hidden" name="id_proyectos" value="<?php echo $p['id_proyectos']; ?>">
-                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    </div>
-                </div>
-
-            </form>
+        <div class="mb-3">
+            <label>Nombre del proyecto</label>
+            <input type="text" class="form-control" name="NombreProyecto"
+                value="<?= $p['titulo']; ?>" required>
         </div>
-    </div>
+
+        <div class="mb-3">
+            <label>Descripción</label>
+            <textarea class="form-control" name="Descripcion" rows="4"><?= $p['descripcion']; ?></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label>Objetivos</label>
+            <textarea class="form-control" name="Objetivos" rows="4"><?= $p['objetivo']; ?></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label>Pre-requisitos</label>
+            <textarea class="form-control" name="Pre_requisitos"><?= $p['pre_requisitos']; ?></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label>Requisitos</label>
+            <textarea class="form-control" name="Requisitos"><?= $p['requisitos']; ?></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md">
+                <label>Cantidad alumnos</label>
+                <input type="number" class="form-control" name="AlumnosCantidad"
+                    value="<?= $p['cantidad_estudiante']; ?>">
+            </div>
+
+            <div class="col-md">
+                <label>Temática</label>
+                <select class="form-select" name="Tematica" id="select1">
+                    <?php foreach ($tematica as $tema): ?>
+                        <option value="<?= $tema['id_tematica']; ?>"
+                            <?= ($tema['nombre_tematica'] == $p['tematica']) ? 'selected' : ''; ?>>
+                            <?= $tema['nombre_tematica']; ?>
+                        </option>
+                    <?php endforeach ?>
+                </select>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-md">
+                <label>Modalidad</label>
+                <select class="form-select" name="Modalidad">
+                    <option value="mixto" <?= ($p['modalidad'] == "mixto") ? "selected" : "" ?>>Mixto</option>
+                    <option value="virtual" <?= ($p['modalidad'] == "virtual") ? "selected" : "" ?>>Virtual</option>
+                    <option value="fisico" <?= ($p['modalidad'] == "fisico") ? "selected" : "" ?>>Físico</option>
+                </select>
+            </div>
+
+            <div class="col-md">
+                <label>Subtemáticas</label>
+                <select name="subtematicas[]" id="select2" class="form-select" multiple></select>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-md">
+                <label>Presupuesto</label>
+                <input type="number" class="form-control" name="Presupuesto"
+                    value="<?= $p['presupuesto']; ?>">
+            </div>
+
+            <div class="col-md">
+                <label>Periodo</label>
+                <input type="text" class="form-control" disabled
+                    value="<?= $periodo['periodo'] . ' - ' . $periodo['estado']; ?>">
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-md">
+                <label>Fecha inicio</label>
+                <input type="date" name="FechaInicio" class="form-control"
+                    value="<?= $p['fecha_inicio']; ?>">
+            </div>
+
+            <div class="col-md">
+                <label>Fecha fin</label>
+                <input type="date" name="FechaFinal" class="form-control"
+                    value="<?= $p['fecha_fin']; ?>">
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <button class="btn btn-primary">Guardar cambios</button>
+        </div>
+    </form>
+
+    <!-- FORMULARIO OCULTO PARA ACCIONES -->
+    <form id="formAccion" method="POST">
+        <input type="hidden" name="action" id="action">
+        <input type="hidden" name="id_estudiante" id="id_estudiante">
+        <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
+    </form>
+
+    <!-- ESTUDIANTES -->
+    <?php if (in_array($rol, ["supervisor", "profesor", "investigador"])): ?>
+
+        <h5 class="mt-5">Estudiantes involucrados</h5>
+
+        <div class="table-responsive">
+            <table class="table table-striped text-center">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Carrera</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?php foreach ($estudiantes as $alumno): ?>
+                        <tr>
+
+                            <td><?= $alumno['id_usuarios'] ?></td>
+
+                            <td>
+                                <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] ?>
+                            </td>
+
+                            <td><?= $alumno['carrera'] ?></td>
+
+                            <td>
+                                <?php if ($alumno['estado'] == "activo"): ?>
+
+                                    <span class="badge bg-success">Activo</span>
+
+                                <?php else: ?>
+
+                                    <span class="badge bg-danger">
+                                        Baja <i class="bi bi-info-circle"
+                                            data-bs-toggle="tooltip"
+                                            title="<?= htmlspecialchars($alumno['motivo']) ?>">
+                                        </i>
+                                    </span>
+
+                                <?php endif; ?>
+                            </td>
+
+                            <td>
+                                <?= $proyectoControlador->botonesAccionEditarEstudiante(
+                                    $alumno['id_usuarios'],
+                                    $rol,
+                                    $alumno['estado'],
+                                    $id_proyecto
+                                ) ?>
+                                <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
+                                    class="btn btn-info btn-sm">
+                                    Historial
+                                </a>
+                            </td>
+
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+
+            </table>
+        </div>
+
+    <?php endif; ?>
+
 </div>
+
+<!-- JS -->
 <script>
     const subtematicasProyecto = <?= json_encode($subtematicasProyecto ?? []); ?>;
 
@@ -187,29 +248,19 @@ include __DIR__ . '/../../error.php';
         const selectTematica = document.getElementById("select1");
         const selectSub = document.getElementById("select2");
 
-        //  IDs ORIGINALES del proyecto (NO se modifican)
-        const subProyectoIds = Array.isArray(subtematicasProyecto) ?
-            subtematicasProyecto.map(s => Number(s.id_subtematica)) : [];
+        const subIds = subtematicasProyecto.map(s => Number(s.id_subtematica));
 
-        function cargarSubtematicas() {
-
-            const idTematica = selectTematica.value;
-            selectSub.innerHTML = "";
-
-            if (!idTematica) return;
-
-            fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + idTematica)
+        function cargarSub() {
+            fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + selectTematica.value)
                 .then(r => r.json())
                 .then(data => {
-
+                    selectSub.innerHTML = "";
                     data.forEach(item => {
-
-                        const opt = document.createElement("option");
+                        let opt = document.createElement("option");
                         opt.value = item.id_subtematica;
                         opt.textContent = item.nombre_subtematica;
 
-                        // SOLO marcar si pertenece al proyecto
-                        if (subProyectoIds.includes(Number(item.id_subtematica))) {
+                        if (subIds.includes(Number(item.id_subtematica))) {
                             opt.selected = true;
                         }
 
@@ -218,19 +269,29 @@ include __DIR__ . '/../../error.php';
                 });
         }
 
-        // Cambio de temática
-        selectTematica.addEventListener("change", cargarSubtematicas);
+        if (selectTematica.value) cargarSub();
+        selectTematica.addEventListener("change", cargarSub);
 
-        // Carga inicial
-        if (selectTematica.value) {
-            cargarSubtematicas();
+    });
+
+    // BOTONES
+    document.addEventListener("click", function(e) {
+        if (e.target.dataset.accion) {
+            document.getElementById("action").value = e.target.dataset.accion;
+            document.getElementById("id_estudiante").value = e.target.dataset.id;
+            document.getElementById("formAccion").submit();
         }
     });
+    document.addEventListener("DOMContentLoaded", function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
 </script>
+
 <?php
 $contenido = ob_get_clean();
 $titulo = "Editar proyecto";
-$bodyClass = "proyectos-page";
-
 include __DIR__ . '/../../layout.php';
 ?>

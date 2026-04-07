@@ -289,7 +289,7 @@ class TareaControlador
                             class="btn btn-success">Aprobar tarea</a>';
                 break;
             case 'Activar':
-                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos='. $id2 .'&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
                 break;
@@ -322,6 +322,7 @@ class TareaControlador
         }
         return $boton;
     }
+    
 
     public function obtenerbotonesTarea($tipo, $id1 = null, $id2 = null)
     {
@@ -340,7 +341,7 @@ class TareaControlador
                 $boton = '<button type="submit" name="tipo" value="Guardar" class="btn btn-guardar">Guardar cambios</button>';
                 break;
             case 'Activar':
-                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos='. $id2 .'&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
                 break;
@@ -394,7 +395,7 @@ class TareaControlador
             case 'profesor':
                 if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido", "Pendiente"])) {
                     $boton  = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
-                } 
+                }
                 break;
 
             case 'supervisor':
@@ -407,7 +408,7 @@ class TareaControlador
         return $boton;
     }
     //Botones para panel de tareas
-    public function botonesAccionTarea($id1, $rol, $estado = null, $id2= null)
+    public function botonesAccionTarea($id1, $rol, $estado = null, $id2 = null)
     {
         $boton = "";
 
@@ -594,7 +595,7 @@ class TareaControlador
     }
 
     //Actualizar estado de proyectos sin comentarios
-    public function actualizarestado($id_tarea, $rol, $tipo, $id_proyectos, $id_asignacion= null, $id_usuarios = null, $comentarios= null)
+    public function actualizarestado($id_tarea, $rol, $tipo, $id_proyectos, $id_asignacion = null, $id_usuarios = null, $comentarios = null)
     {
 
         global $conn;
@@ -724,6 +725,8 @@ class TareaControlador
             2 => "warning",   // Revisar
             3 => "danger",    // Corregir
             5 => "success",   // Aprobado
+            6 => "dark",      // Vencido
+            7 => "info",      // Entregado
             default => "secondary",
         };
     }

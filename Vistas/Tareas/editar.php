@@ -47,6 +47,7 @@ include __DIR__ . '/../../mensaje.php';
 
             <form action="editar.php?id_proyectos=<?php $id_proyectos ?? "" ?>" method="POST" enctype="multipart/form-data">
                 <div class="row mb-1">
+                    <h4><?= htmlspecialchars($tarea['titulo_tarea']) ?></h4>
                     <input type="hidden" name="action" value="editarTarea">
                     <input type="hidden" name="id_tarea" value="<?= $tarea['id_tarea']; ?>">
                     <input type="hidden" name="id_proyectos" value="<?= $id_proyectos; ?>">
