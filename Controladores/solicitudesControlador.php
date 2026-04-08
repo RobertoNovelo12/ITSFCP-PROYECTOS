@@ -1,195 +1,374 @@
 <?php
 
+/**
+ * solicitudesControlador.php
+ * Solo accesible para el rol 'investigador'.
+ */
+
 require_once __DIR__ . '/../Modelos/solicitudes.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 
 class solicitudesControlador
 {
 
-    public function index($id, $rol, $buscar = null)
+    // ----------------------------------------------------------------
+    // Helpers privados
+    // ----------------------------------------------------------------
+
+    private function soloInvestigador(string $rol): void
     {
-        global $conn;
-
-        $solicitudes = new Solicitud($conn);
-
-        if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-            //General
-            $solicitud = $solicitudes->obtenerSolicitudes($id, $rol);
-            return $solicitud;
-        } else {
-            $solicitud = []; // evita undefined variable
-            return $solicitud;
+        if (!in_array($rol, ['investigador', 'profesor'], true)) {
+            http_response_code(403);
+            die('Acceso denegado.');
         }
     }
 
-    //Para obtener los encabezados de las tablas
-    public function encabezados()
+    // Encabezados de tabla  
+    public function encabezados(): array
     {
-        $encabezados = [
-            'ID',
-            'Estudiante',
-            'Carrera',
-            'Matricula',
-            'Proyecto',
-            'Fecha solicitud',
-            'Comentarios',
-            'Estado',
-            'Acciones'
+        return ['#', 'Estudiante', 'Matrícula', 'Carrera', 'Proyecto', 'Semestre', 'Promedio', 'Fecha', 'Estado', 'Acciones'];
+    }
+
+    private function json(array $data, int $status = 200): void
+    {
+        http_response_code($status);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    public function botonesAccion(int $id_solicitud, string $estado, int $id_proyecto): string
+    {
+        $estado = strtolower(trim($estado));
+        $btn = ''; // Siempre: Ver detalle 
+        $btn .= $this->boton('detalle', $id_solicitud, $id_proyecto);
+        if (in_array($estado, ['pendiente', 'en_revision', 'correcciones'], true)) {
+            $btn .= ' ' . $this->boton('aceptar', $id_solicitud);
+            $btn .= ' ' . $this->boton('correcciones', $id_solicitud);
+            $btn .= ' ' . $this->boton('rechazar', $id_solicitud);
+        }
+        return $btn;
+    }
+    private function boton(string $tipo, int $id_solicitud, int $id_proyecto = 0): string
+    {
+        return match ($tipo) {
+            'detalle' => "<a href='detalles_solicitud.php?id={$id_solicitud}' class='btn btn-info btn-sm' title='Ver solicitud' > <i class='bi bi-file-text-fill'></i> </a>",
+            'aceptar' => " <button type='button' class='btn btn-success btn-sm' data-bs-toggle='tooltip' title='Aceptar solicitud' onclick='confirmarAceptar({$id_solicitud})'> <i class='bi bi-check-circle-fill'></i> </button>",
+            'correcciones' => " <button type='button' class='btn btn-warning btn-sm' data-bs-toggle='tooltip' title='Pedir correcciones' onclick='abrirModalAccion({$id_solicitud},\"correcciones\")'> <i class='bi bi-pencil-fill'></i> </button>",
+            'rechazar' => " <button type='button' class='btn btn-danger btn-sm' data-bs-toggle='tooltip' title='Rechazar solicitud' onclick='abrirModalAccion({$id_solicitud},\"rechazar\")'> <i class='bi bi-ban'></i> </button>",
+            default => '',
+        };
+    }
+
+    public function badgeEstado(string $estado): string
+    {
+        return match (strtolower($estado)) {
+            'pendiente' => "<span class='badge bg-secondary'>Pendiente</span>",
+            'en_revision' => "<span class='badge bg-info text-dark'>En revisión</span>",
+            'correcciones' => "<span class='badge bg-warning text-dark'>Correcciones</span>",
+            'aceptado' => "<span class='badge bg-success'>Aceptado</span>",
+            'rechazado' => "<span class='badge bg-danger'>Rechazado</span>",
+            default => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
+        };
+    }
+
+    private function idUsuario(): int
+    {
+        return intval($_SESSION['id_usuario'] ?? 0);
+    }
+
+    private function rol(): string
+    {
+        return strtolower($_SESSION['rol'] ?? '');
+    }
+
+    // ----------------------------------------------------------------
+    // index — vista principal con tabla + resumen
+    // ----------------------------------------------------------------
+
+    public function index(int $id_usuario, string $rol): array
+    {
+
+        $this->soloInvestigador($rol);
+
+        global $conn;
+
+        $Solicitudes = new Solicitud($conn);
+
+        $por_pagina = 8;
+        $pagina     = max(1, intval($_GET['pagina'] ?? 1));
+        $desde      = ($pagina - 1) * $por_pagina;
+
+        $filtros = [
+            'estado'      => $_GET['estado']      ?? '',
+            'buscar'      => $_GET['buscar']      ?? '',
+            'proyecto'    => $_GET['proyecto']    ?? '',
+            'semestre'    => $_GET['semestre']    ?? '',
+            'fecha_desde' => $_GET['fecha_desde'] ?? '',
+            'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
         ];
-        return $encabezados;
+
+        $total        = $Solicitudes->contarSolicitudes($id_usuario, $filtros);
+        $solicitudes  = $Solicitudes->obtenerSolicitudes($id_usuario, $filtros, $desde, $por_pagina);
+        $resumen      = $Solicitudes->resumen($id_usuario);
+        $proyectos    = $Solicitudes->proyectosDelInvestigador($id_usuario);
+
+        return [
+            'solicitudes' => $solicitudes,
+            'resumen'     => $resumen,
+            'proyectos'   => $proyectos,
+            'filtros'     => $filtros,
+            'paginacion'  => [
+                'total'         => $total,
+                'por_pagina'    => $por_pagina,
+                'pagina'        => $pagina,
+                'total_paginas' => max(1, (int) ceil($total / $por_pagina)),
+            ],
+        ];
     }
 
+    // ----------------------------------------------------------------
+    // detalle — JSON para el modal (AJAX GET)
+    // ----------------------------------------------------------------
 
-    public function obtenerbotones($tipo, $id_solicitud_proyectos, $id_proyectos = null)
+    public function detalle(): void
     {
-        $boton = "";
-        switch ($tipo) {
-            case 'Detalles':
-                $boton = '<a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id=' . $id_proyectos . '">
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles del proyecto">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-                            <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
-                            <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
-                        </svg>
-                    </button>
-                </a>';
-                break;
-            case 'VerDatos':
-                $boton = '<button type="button" class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver datos de la solicitud" onclick="verDatosSolicitud(' . $id_solicitud_proyectos . ')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-file-text-fill" viewBox="0 0 16 16">
-                            <path d="M12 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2M5 4h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1m-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5M5 8h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1m0 2h3a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1"/>
-                        </svg>
-                    </button>';
-                break;
-            case 'Aprobar':
-                $boton = '<button type="button" class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-custom-class="custom-tooltip" data-bs-title="Aprobar solicitud" onclick="confirmarAprobacion(' . $id_solicitud_proyectos . ')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                        </svg>
-                    </button>';
-                break;
-            case 'Rechazar':
-                $boton = '<button type="button" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-custom-class="custom-tooltip" data-bs-title="Rechazar solicitud" onclick="abrirRechazoSolicitud(' . $id_solicitud_proyectos . ')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-ban" style="padding:0;margin:auto;" viewBox="0 0 16 16">
-                            <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/>
-                        </svg>
-                    </button>';
-                break;
-            default:
-                break;
-        }
-        return $boton;
-    }
 
-    //Botones de acción en la tabla 
-    public function botonesAccion($id_solicitud, $rol, $id_proyectos, $estado = null)
-    {
-        $boton = "";
+        $this->soloInvestigador($this->rol());
 
-        // Normalizar el estado a minúsculas para comparación
-        $estado_lower = strtolower(trim($estado ?? ''));
-
-        switch ($rol) {
-            case 'estudiante':
-                $boton = $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
-                break;
-
-            case 'investigador':
-            case 'profesor':
-                if ($estado_lower == "pendiente") {
-                    $boton = $this->obtenerbotones("VerDatos", $id_solicitud);
-                    $boton .= ' ';
-                    $boton .= $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
-                    $boton .= ' ';
-                    $boton .= $this->obtenerbotones("Aprobar", $id_solicitud);
-                    $boton .= ' ';
-                    $boton .= $this->obtenerbotones("Rechazar", $id_solicitud);
-                } else if ($estado_lower == "aceptado") {
-                    $boton = $this->obtenerbotones("VerDatos", $id_solicitud);
-                    $boton .= ' ';
-                    $boton .= $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
-                } else if ($estado_lower == "rechazado") {
-                    $boton = $this->obtenerbotones("VerDatos", $id_solicitud);
-                    $boton .= ' ';
-                    $boton .= $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
-                } else {
-                    // Por defecto, si el estado no coincide, mostrar al menos ver datos y detalles
-                    $boton = $this->obtenerbotones("VerDatos", $id_solicitud);
-                    $boton .= ' ';
-                    $boton .= $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
-                }
-                break;
-
-            case 'supervisor':
-                $boton = $this->obtenerbotones("VerDatos", $id_solicitud);
-                $boton .= ' ';
-                $boton .= $this->obtenerbotones("Detalles", $id_solicitud, $id_proyectos);
-                break;
-
-            default:
-                $boton = '';
-                break;
-        }
-        return $boton;
-    }
-
-    /* ACCIÓN DE RECHAZAR CIERRE */
-    public function actualizarestadoRechazo($data, $id_usuario, $rol)
-    {
-        $action = $data['action'] ?? '';
-        if (!empty($comentario = $data['comentario']) && !empty($id_solicitud_proyecto = $data['id_solicitud_proyecto'])) {
-            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                if ($rol == "supervisor" || $rol == "investigador" || $rol == "profesor") {
-                    if ($action == 'actualizarestadoRechazo') {
-                        $id_solicitud_proyecto = $data['id_solicitud_proyecto'];
-                        $tipo = $data['tipo'];
-                        $comentario = $data['comentario'];
-
-                        global $conn;
-                        $Solicitud = new Solicitud($conn);
-                        $Solicitud->actualizarEstadoSolicitudRechazo($id_usuario, $id_solicitud_proyecto, $tipo, $comentario);
-                    } else {
-                        die("No es la acción correspondiente");
-                    }
-                } else {
-                    die("El usuario no tiene permiso para rechazar la solicitud");
-                }
-            } else {
-                die("Los datos no fueron enviados correctamente");
-            }
-        }
-    }
-
-    //Actualizar estado de proyectos sin comentarios
-    public function actualizarestado($id_solicitud_proyecto, $estado)
-    {
-        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            global $conn;
-            $Solicitud = new Solicitud($conn);
-            $Solicitud->actualizarestado($id_solicitud_proyecto, $estado);
-        } else {
-            die("Los datos no fueron enviados");
-        }
-    }
-
-
-
-    public function comentarios($id_solicitud_proyecto)
-    {
         global $conn;
-        $Solicitud = new Solicitud($conn);
-        return $Solicitud->obtenerSolicitudComentarios($id_solicitud_proyecto);
+
+        $Solicitudes = new Solicitud($conn);
+
+        $id = intval($_GET['id'] ?? 0);
+        if (!$id) $this->json(['error' => 'ID inválido.'], 422);
+
+        if (!$Solicitudes->verificarPermiso($id, $this->idUsuario())) {
+            $this->json(['error' => 'Sin permiso.'], 403);
+        }
+
+        $Solicitudes->marcarEnRevision($id);
+
+        $data        = $Solicitudes->obtenerDetalle($id);
+        $comentarios = $Solicitudes->obtenerComentarios($id);
+
+        if (!$data) $this->json(['error' => 'Solicitud no encontrada.'], 404);
+
+        $this->json([
+            'solicitud'  => $data,
+            'comentarios' => $comentarios
+        ]);
     }
 
-    // NUEVO: Obtener datos completos de la solicitud
-    public function obtenerDatosSolicitud($id_solicitud)
+    // ----------------------------------------------------------------
+    // aceptar — POST AJAX
+    // ----------------------------------------------------------------
+
+    public function aceptar(): void
     {
+
+        $this->soloInvestigador($this->rol());
+
         global $conn;
-        $Solicitud = new Solicitud($conn);
-        return $Solicitud->obtenerDatosCompletosolicitud($id_solicitud);
+
+        $Solicitudes = new Solicitud($conn);
+
+        $id = intval($_POST['id_solicitud'] ?? 0);
+        if (!$id) $this->json(['ok' => false, 'msg' => 'ID inválido.'], 422);
+
+        if (!$Solicitudes->verificarPermiso($id, $this->idUsuario())) {
+            $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
+        }
+
+        $ok = $Solicitudes->aceptar($id, $this->idUsuario());
+
+        $this->json([
+            'ok'  => $ok,
+            'msg' => $ok ? 'Solicitud aceptada.' : 'Error al aceptar.'
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // pedir correcciones
+    // ----------------------------------------------------------------
+
+    public function pedirCorrecciones(): void
+    {
+        $this->soloInvestigador($this->rol());
+        global $conn;
+
+        $Solicitudes = new Solicitud($conn);
+        $id         = intval($_POST['id_solicitud'] ?? 0);
+        $comentario = trim($_POST['comentario'] ?? '');
+
+        if (!$id || $comentario === '') {
+            $this->json(['ok' => false, 'msg' => 'Datos incompletos.'], 422);
+        }
+
+        if (!$Solicitudes->verificarPermiso($id, $this->idUsuario())) {
+            $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
+        }
+
+        [$ruta, $nombre] = $this->procesarArchivo($id);
+
+        $ok = $Solicitudes->pedirCorrecciones(
+            $id,
+            $this->idUsuario(),
+            $comentario,
+            $ruta,
+            $nombre
+        );
+
+        $this->json([
+            'ok'  => $ok,
+            'msg' => $ok ? 'Correcciones solicitadas.' : 'Error.'
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // rechazar
+    // ----------------------------------------------------------------
+
+    public function rechazar(): void
+    {
+        $this->soloInvestigador($this->rol());
+        global $conn;
+
+        $Solicitudes = new Solicitud($conn);
+        $id         = intval($_POST['id_solicitud'] ?? 0);
+        $comentario = trim($_POST['comentario'] ?? '');
+
+        if (!$id || $comentario === '') {
+            $this->json(['ok' => false, 'msg' => 'Motivo obligatorio.'], 422);
+        }
+
+        if (!$Solicitudes->verificarPermiso($id, $this->idUsuario())) {
+            $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
+        }
+
+        [$ruta, $nombre] = $this->procesarArchivo($id);
+
+        $ok = $Solicitudes->rechazar(
+            $id,
+            $this->idUsuario(),
+            $comentario,
+            $ruta,
+            $nombre
+        );
+
+        $this->json([
+            'ok'  => $ok,
+            'msg' => $ok ? 'Rechazada.' : 'Error.'
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // enviar correcciones (estudiante)
+    // ----------------------------------------------------------------
+
+    public function enviarCorrecciones(): void
+    {
+        if ($this->rol() !== 'estudiante') {
+            $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
+        }
+
+        global $conn;
+
+        $Solicitudes = new Solicitud($conn);
+
+        $id         = intval($_POST['id_solicitud'] ?? 0);
+        $comentario = trim($_POST['comentario'] ?? '');
+
+        if (!$id) $this->json(['ok' => false, 'msg' => 'ID inválido.'], 422);
+
+        [$ruta, $nombre] = $this->procesarArchivo($id);
+
+        $ok = $Solicitudes->enviarCorrecciones(
+            $id,
+            $this->idUsuario(),
+            $comentario,
+            null,
+            $ruta,
+            $nombre
+        );
+
+        $this->json([
+            'ok'  => $ok,
+            'msg' => $ok ? 'Enviado.' : 'Error.'
+        ]);
+    }
+
+    // ----------------------------------------------------------------
+    // archivo
+    // ----------------------------------------------------------------
+
+    private function procesarArchivo(int $id): array
+    {
+        if (empty($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
+            return [null, null];
+        }
+
+        $file = $_FILES['archivo'];
+        $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($ext, ['pdf', 'docx', 'png', 'jpg'])) return [null, null];
+        if ($file['size'] > 8 * 1024 * 1024) return [null, null];
+
+        $dir = __DIR__ . '/../publico/docs/solicitudes/';
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+
+        $nombre = 'sol_' . $id . '_' . date('YmdHis') . '.' . $ext;
+        $ruta   = 'docs/solicitudes/' . $nombre;
+
+        move_uploaded_file($file['tmp_name'], $dir . $nombre);
+
+        return [$ruta, $file['name']];
+    }
+
+    // ----------------------------------------------------------------
+    // detallePagina — vista completa 
+    // ----------------------------------------------------------------
+    public function detallePagina(int $id_solicitud, int $id_usuario, string $rol): array
+    {
+        $this->soloInvestigador($rol);
+
+        global $conn;
+
+        $Solicitudes = new Solicitud($conn);
+
+        if (!$id_solicitud) {
+            die('ID inválido.');
+        }
+
+        if (!$Solicitudes->verificarPermiso($id_solicitud, $id_usuario)) {
+            die('Sin permiso.');
+        }
+
+        $Solicitudes->marcarEnRevision($id_solicitud);
+
+        $solicitud   = $Solicitudes->obtenerDetalle($id_solicitud);
+        $comentarios = $Solicitudes->obtenerComentarios($id_solicitud);
+
+        if (!$solicitud) {
+            die('Solicitud no encontrada.');
+        }
+
+        // AQUÍ ESTÁ EL SEGUIMIENTO
+        $etapas = [];
+
+        require_once __DIR__ . '/../Modelos/solicitudes.php';
+
+        $segModelo = new Solicitud($conn);
+
+        $etapas = $segModelo->getEtapasPorProyecto(
+            (int)$solicitud['id_proyectos'],
+            (int)$solicitud['id_estudiante']
+        );
+
+        return [
+            'solicitud'   => $solicitud,
+            'comentarios' => $comentarios,
+            'etapas'      => $etapas
+        ];
     }
 }

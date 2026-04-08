@@ -13,7 +13,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $action = $_GET['action'] ?? 'index';
 
-// 🔹 VALIDAR ID
+// VALIDAR ID
 $id_proyecto = isset($_GET["id_proyectos"]) ? intval($_GET["id_proyectos"]) : 0;
 
 require_once "../../Controladores/seguimientoControlador.php";

@@ -4802,7 +4802,7 @@ summary {
 }
 
 .timeline-card:hover {
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
@@ -4866,7 +4866,92 @@ summary {
 
 /* ANIMACIÓN */
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(37,89,167,0.4); }
-  70% { box-shadow: 0 0 0 8px rgba(37,89,167,0); }
-  100% { box-shadow: 0 0 0 0 rgba(37,89,167,0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 89, 167, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(37, 89, 167, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 89, 167, 0);
+  }
+}
+
+/*ESTILOS DE LA INTERFAZ DE SEGUIMIENTO DE SOLICITUDES INTEGRACIÓN A PROYECTO DEL INVESTIGADOR*/
+.resumen-card {
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+}
+
+.resumen-num {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.resumen-lbl {
+  font-size: .78rem;
+  color: #6c757d;
+  margin-top: .25rem;
+}
+
+.badge-pendiente {
+  background: #6c757d;
+  color: #fff;
+}
+
+.badge-en_revision {
+  background: #0dcaf0;
+  color: #000;
+}
+
+.badge-correcciones {
+  background: #ffc107;
+  color: #000;
+}
+
+.badge-aceptado {
+  background: #198754;
+  color: #fff;
+}
+
+.badge-rechazado {
+  background: #dc3545;
+  color: #fff;
+}
+
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+.filtros-row .form-control,
+.filtros-row .form-select {
+  font-size: .85rem;
+}
+
+/* Modal comentario/rechazo */
+#panelComentarios .msg-inv {
+  background: #e7f3ff;
+  border-left: 3px solid #0d6efd;
+}
+
+#panelComentarios .msg-est {
+  background: #f0fff4;
+  border-left: 3px solid #198754;
+}
+
+#panelComentarios .msg-item {
+  padding: .6rem .9rem;
+  border-radius: 6px;
+  margin-bottom: .5rem;
+  font-size: .85rem;
+}
+
+#panelComentarios .msg-meta {
+  font-size: .75rem;
+  color: #6c757d;
+  margin-top: .2rem;
 }

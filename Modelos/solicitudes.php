@@ -3,337 +3,286 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 
 class Solicitud
 {
+    private mysqli $con;
 
-    private $con;
-
-    public function __construct($conn)
+    public function __construct(mysqli $conn)
     {
         $this->con = $conn;
     }
 
-    /******************************************************************
-     *  OBTENER SOLICITUDES (PAGINACIÓN + ROLES)
-     ******************************************************************/
-    public function obtenerSolicitudes($id, $rol)
+    // ===========================
+    // RESUMEN
+    // ===========================
+    public function resumen(int $id): array
     {
-        $rol = strtolower($rol);
-
-        // TOTAL DE REGISTROS
-        $total_solicitudes = $this->obtenerCantidadSolicitudes($id, $rol);
-
-        $por_pagina = 6;
-        $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
-        $desde = ($pagina - 1) * $por_pagina;
-        $total_paginas = max(1, ceil($total_solicitudes / $por_pagina));
-
-        $params = [];
-        $types = "";
-
-        switch ($rol) {
-
-            case 'estudiante':
-                $sql = "SELECT 
-            sp.id_solicitud_proyecto AS id_solicitud_proyectos,
-            sp.estado AS Estado,
-            sp.fecha_envio AS Fecha_solicitud,
-            sp.carta_presentacion,
-            sp.carta_aceptacion,
-            u.nombre AS Estudiante,
-            e.matricula AS Matricula,
-            c.nombre_carrera AS Carrera,
-            p.id_proyectos,
-            p.titulo AS Proyecto
-        FROM solicitud_proyecto sp
-        INNER JOIN usuarios u ON sp.id_estudiante = u.id_usuarios
-        LEFT JOIN estudiantes e ON sp.id_estudiante = e.id_usuario
-        LEFT JOIN carreras c ON e.id_carrera = c.id_carrera
-        INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
-        WHERE sp.id_estudiante = ?
-        ORDER BY sp.id_solicitud_proyecto DESC
-        LIMIT ?, ?";
-                $params = [$id, $desde, $por_pagina];
-                $types = "iii";
-                break;
-
-            case 'investigador':
-            case 'profesor':
-            case 'supervisor':
-                $sql = "SELECT 
-            sp.id_solicitud_proyecto AS id_solicitud_proyectos,
-            sp.estado AS Estado,
-            sp.fecha_envio AS Fecha_solicitud,
-            sp.carta_presentacion,
-            sp.carta_aceptacion,
-            u.nombre AS Estudiante,
-            e.matricula AS Matricula,
-            c.nombre_carrera AS Carrera,
-            p.id_proyectos,
-            p.titulo AS Proyecto
-        FROM solicitud_proyecto sp
-        INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
-        INNER JOIN usuarios u ON sp.id_estudiante = u.id_usuarios
-        LEFT JOIN estudiantes e ON sp.id_estudiante = e.id_usuario
-        LEFT JOIN carreras c ON e.id_carrera = c.id_carrera
-        WHERE p.id_investigador = ?
-        ORDER BY sp.id_solicitud_proyecto DESC
-        LIMIT ?, ?";
-                $params = [$id, $desde, $por_pagina];
-                $types = "iii";
-                break;
-
-            default:
-                return [
-                    "solicitudes" => [],
-                    "paginacion" => [
-                        "total_solicitudes" => 0,
-                        "por_pagina" => $por_pagina,
-                        "pagina" => $pagina,
-                        "total_paginas" => 1
-                    ]
-                ];
-        }
-
-        // preparar
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) {
-            die("ERROR SQL PREPARE: " . $this->con->error . "\nSQL: " . $sql);
-        }
-
-        if (!empty($types)) {
-            // bind dinámico (splat)
-            $stmt->bind_param($types, ...$params);
-        }
-
-        if (!$stmt->execute()) {
-            die("ERROR SQL EXECUTE: " . $stmt->error . "\nSQL: " . $sql);
-        }
-
-        // ---- aquí usamos get_result si está disponible, sino fallback con bind_result ----
-        $data = [];
-        if (method_exists($stmt, 'get_result')) {
-            $res = $stmt->get_result();
-            $data = $res->fetch_all(MYSQLI_ASSOC);
-        } else {
-            // Fallback: obtener metadatos y bind_result dinámico
-            $meta = $stmt->result_metadata();
-            if ($meta) {
-                $fields = [];
-                $row = [];
-
-                while ($field = $meta->fetch_field()) {
-                    $fields[] = $field->name;
-                    $row[$field->name] = null;
-                }
-                // preparar parametros por referencia
-                $bindParams = [];
-                foreach ($fields as $f) {
-                    $bindParams[] = &$row[$f];
-                }
-                // ligar resultados
-                call_user_func_array([$stmt, 'bind_result'], $bindParams);
-                // fetch todos
-                while ($stmt->fetch()) {
-                    $r = [];
-                    foreach ($fields as $f) {
-                        $r[$f] = $row[$f];
-                    }
-                    $data[] = $r;
-                }
-                $meta->free();
-            } else {
-                // sin metadata -> no hay filas
-                $data = [];
-            }
-        }
-
-        return [
-            "solicitudes" => $data,
-            "paginacion" => [
-                "total_solicitudes" => $total_solicitudes,
-                "por_pagina" => $por_pagina,
-                "pagina" => $pagina,
-                "total_paginas" => $total_paginas
-            ]
-        ];
-    }
-
-
-    /******************************************************************
-     * OBTENER CANTIDAD DE SOLICITUDES
-     ******************************************************************/
-    public function obtenerCantidadSolicitudes($id, $rol)
-    {
-        switch ($rol) {
-
-            case 'estudiante':
-                $sql = "SELECT COUNT(*) AS total
-                    FROM solicitud_proyecto
-                    WHERE id_estudiante = ?";
-                break;
-
-            case 'investigador':
-            case 'profesor':
-            case 'supervisor':
-                $sql = "SELECT COUNT(*) AS total
-                    FROM solicitud_proyecto sp
-                    INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
-                    WHERE p.id_investigador = ?";
-                break;
-
-            default:
-                return 0;
-        }
+        $sql = "
+            SELECT
+                COUNT(*) total,
+                SUM(sp.estado='pendiente') pendientes,
+                SUM(sp.estado='en_revision') en_revision,
+                SUM(sp.estado='correcciones') correcciones,
+                SUM(sp.estado='aceptado') aceptadas,
+                SUM(sp.estado='rechazado') rechazadas
+            FROM solicitud_proyecto sp
+            JOIN proyectos p ON p.id_proyectos = sp.id_proyectos
+            WHERE p.id_investigador = ?
+        ";
 
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param("i", $id);
         $stmt->execute();
-        return $stmt->get_result()->fetch_assoc()['total'];
+
+        return $stmt->get_result()->fetch_assoc() ?? [];
     }
 
-    /******************************************************************
-     * RECHAZAR SOLICITUD
-     ******************************************************************/
-    public function actualizarEstadoSolicitudRechazo($id_usuario, $id_solicitud_proyecto, $tipo, $comentario)
+    // ===========================
+    // CONTAR
+    // ===========================
+    public function contarSolicitudes(int $id, array $f): int
     {
-        // UPDATE CORRECTO (SIN COMA ANTES DE WHERE)
-        $sql = "UPDATE solicitud_proyecto 
-                SET estado = ? 
-                WHERE id_solicitud_proyecto = ?";
+        [$where, $params, $types] = $this->construirWhere($id, $f);
+
+        $sql = "
+            SELECT COUNT(*)
+            FROM solicitud_proyecto sp
+            JOIN proyectos p ON p.id_proyectos = sp.id_proyectos
+            JOIN usuarios u ON u.id_usuarios = sp.id_estudiante
+            JOIN estudiantes e ON e.id_usuarios = sp.id_estudiante
+            JOIN carreras c ON c.id_carrera = e.id_carrera
+            $where
+        ";
 
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("si", $tipo, $id_solicitud_proyecto);
+        $stmt->bind_param($types, ...$params);
         $stmt->execute();
 
-        // INSERTAR COMENTARIO
-        $sql = "INSERT INTO comentarios_solicitud 
-                (id_solicitud_proyecto, id_usuario, comentario)
-                VALUES (?, ?, ?)";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("iis", $id_solicitud_proyecto, $id_usuario, $comentario);
-        $stmt->execute();
-
-        header("Location: tabla.php?msg=rechazada");
-        exit;
+        return $stmt->get_result()->fetch_row()[0] ?? 0;
     }
 
-    /******************************************************************
-     * ACEPTAR / CAMBIAR ESTADO
-     ******************************************************************/
-    public function actualizarestado($id_solicitud_proyecto, $estado)
+    // ===========================
+    // LISTADO
+    // ===========================
+    public function obtenerSolicitudes(int $id, array $f, int $desde, int $limite): array
     {
-        // 1) Actualizar estado de la solicitud
-        $sql = "UPDATE solicitud_proyecto 
-            SET estado = ? 
-            WHERE id_solicitud_proyecto = ?";
+        [$where, $params, $types] = $this->construirWhere($id, $f);
+
+        $sql = "
+            SELECT
+                sp.*,
+                CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) estudiante_nombre,
+                u.correo_institucional,
+                e.matricula,
+                c.nombre_carrera carrera,
+                p.titulo proyecto_titulo
+            FROM solicitud_proyecto sp
+            JOIN proyectos p ON p.id_proyectos = sp.id_proyectos
+            JOIN usuarios u ON u.id_usuarios = sp.id_estudiante
+            JOIN estudiantes e ON e.id_usuarios = sp.id_estudiante
+            JOIN carreras c ON c.id_carrera = e.id_carrera
+            $where
+            ORDER BY sp.fecha_envio ASC
+            LIMIT ?, ?
+        ";
+
+        $params[] = $desde;
+        $params[] = $limite;
+        $types   .= "ii";
 
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("si", $estado, $id_solicitud_proyecto);
+        $stmt->bind_param($types, ...$params);
         $stmt->execute();
 
-
-        // SOLO insertar en proyectos_usuarios si se aceptó
-        if ($estado === "aceptado") {
-
-            // 2) Obtener id_proyectos y id_estudiante desde la solicitud
-            $sql = "SELECT id_proyectos, id_estudiante 
-                FROM solicitud_proyecto 
-                WHERE id_solicitud_proyecto = ?";
-
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param("i", $id_solicitud_proyecto);
-            $stmt->execute();
-
-            $res = $stmt->get_result()->fetch_assoc();
-
-            $id_proyecto = $res['id_proyectos'];
-            $id_estudiante = $res['id_estudiante'];
-            $fecha_asignacion = date("Y-m-d");
-
-
-            // 3) Insertar en proyectos_usuarios
-            $sql = "INSERT INTO proyectos_usuarios 
-                (id_proyectos, id_usuarios, fecha_asignacion, estado)
-                VALUES (?, ?, ?, 'activo')";
-
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param("iis", $id_proyecto, $id_estudiante, $fecha_asignacion);
-            $stmt->execute();
-        }
-
-        // Redirección
-        header("Location: tabla.php?msg=actualizada");
-        exit;
-    }
-
-
-    /******************************************************************
-     * OBTENER COMENTARIOS (CORREGIDO)
-     ******************************************************************/
-    public function obtenerSolicitudComentarios($id_solicitud)
-    {
-        $sql = "SELECT *
-                FROM comentarios_solicitud
-                WHERE id_solicitud_proyecto = ?
-                ORDER BY id_comentario DESC";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_solicitud);
-        $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-    /******************************************************************
-     * OBTENER DATOS COMPLETOS DE SOLICITUD (NUEVO)
-     ******************************************************************/
-    public function obtenerDatosCompletosolicitud($id_solicitud)
+
+    private function construirWhere(int $id, array $f): array
     {
-        $sql = "SELECT 
-                sp.id_solicitud_proyecto,
-                sp.estado,
-                sp.fecha_envio,
-                sp.carta_presentacion,
-                sp.carta_aceptacion,
-                sp.motivacion,
-                sp.experiencia,
-                sp.promedio,
-                sp.semestre,
-                u.nombre,
-                u.apellido_paterno,
-                u.apellido_materno,
+        $cond = ["p.id_investigador = ?"];
+        $params = [$id];
+        $types = "i";
+
+        if (!empty($f['estado'])) {
+            $cond[] = "sp.estado = ?";
+            $params[] = $f['estado'];
+            $types .= "s";
+        }
+
+        if (!empty($f['buscar'])) {
+            $cond[] = "(u.nombre LIKE ? OR e.matricula LIKE ? OR p.titulo LIKE ?)";
+            $b = "%" . $f['buscar'] . "%";
+            array_push($params, $b, $b, $b);
+            $types .= "sss";
+        }
+
+        $where = "WHERE " . implode(" AND ", $cond);
+
+        return [$where, $params, $types];
+    }
+
+    // ===========================
+    // DETALLE
+    // ===========================
+    public function obtenerDetalle(int $id)
+    {
+        $sql = "
+            SELECT
+                sp.*,
+                CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) estudiante_nombre,
                 u.correo_institucional,
-                u.telefono,
-                u.fecha_nacimiento,
                 e.matricula,
-                c.nombre_carrera,
-                a.nombre_area,
-                p.titulo AS proyecto_titulo,
-                p.descripcion AS proyecto_descripcion
+                c.nombre_carrera carrera,
+                p.titulo proyecto_titulo,
+                p.modalidad
             FROM solicitud_proyecto sp
-            INNER JOIN usuarios u ON sp.id_estudiante = u.id_usuarios
-            LEFT JOIN estudiantes e ON sp.id_estudiante = e.id_usuario
-            LEFT JOIN carreras c ON e.id_carrera = c.id_carrera
-            LEFT JOIN areas a ON e.id_area = a.id_area
-            INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
+            JOIN proyectos p ON p.id_proyectos = sp.id_proyectos
+            JOIN usuarios u ON u.id_usuarios = sp.id_estudiante
+            JOIN estudiantes e ON e.id_usuarios = sp.id_estudiante
+            JOIN carreras c ON c.id_carrera = e.id_carrera
             WHERE sp.id_solicitud_proyecto = ?
-            LIMIT 1";
+        ";
 
         $stmt = $this->con->prepare($sql);
-        if (!$stmt) {
-            error_log("Error en prepare: " . $this->con->error);
-            return null;
-        }
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
 
-        $stmt->bind_param("i", $id_solicitud);
+        return $stmt->get_result()->fetch_assoc();
+    }
 
-        if (!$stmt->execute()) {
-            error_log("Error en execute: " . $stmt->error);
-            return null;
-        }
+    // ===========================
+    // PERMISO
+    // ===========================
+    public function verificarPermiso(int $id, int $inv): bool
+    {
+        $sql = "
+            SELECT COUNT(*)
+            FROM solicitud_proyecto sp
+            JOIN proyectos p ON p.id_proyectos = sp.id_proyectos
+            WHERE sp.id_solicitud_proyecto = ?
+            AND p.id_investigador = ?
+        ";
 
-        $result = $stmt->get_result();
-        $data = $result->fetch_assoc();
-        $stmt->close();
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("ii", $id, $inv);
+        $stmt->execute();
 
-        return $data;
+        return $stmt->get_result()->fetch_row()[0] > 0;
+    }
+
+    // ===========================
+    // CAMBIOS
+    // ===========================
+    public function marcarEnRevision(int $id): bool
+    {
+        $stmt = $this->con->prepare("
+            UPDATE solicitud_proyecto
+            SET estado='en_revision'
+            WHERE id_solicitud_proyecto=? AND estado='pendiente'
+        ");
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
+    }
+
+    public function aceptar(int $id): bool
+    {
+        $stmt = $this->con->prepare("
+            UPDATE solicitud_proyecto
+            SET estado='aceptado', fecha_respuesta=CURDATE()
+            WHERE id_solicitud_proyecto=?
+        ");
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
+    }
+
+    public function pedirCorrecciones(int $id, int $user, string $com, $ruta=null, $nombre=null): bool
+    {
+        $stmt = $this->con->prepare("
+            UPDATE solicitud_proyecto
+            SET estado='correcciones'
+            WHERE id_solicitud_proyecto=?
+        ");
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
+    }
+
+    public function rechazar(int $id, int $user, string $com, $ruta=null, $nombre=null): bool
+    {
+        $stmt = $this->con->prepare("
+            UPDATE solicitud_proyecto
+            SET estado='rechazado', motivo_rechazo=?
+            WHERE id_solicitud_proyecto=?
+        ");
+        $stmt->bind_param("si", $com, $id);
+        return $stmt->execute();
+    }
+
+    public function obtenerComentarios(int $id): array
+    {
+        $stmt = $this->con->prepare("
+            SELECT * FROM solicitud_comentarios
+            WHERE id_solicitud=?
+            ORDER BY fecha ASC
+        ");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+        // -------------------------------------------------------------
+    // Enviar correcciones (estudiante)
+    // -------------------------------------------------------------
+    public function enviarCorrecciones($id, $usuario, $comentario, $x, $ruta, $nombre)
+    {
+        $sql = "INSERT INTO solicitud_comentarios
+                (id_solicitud, id_usuario, comentario, archivo_ruta, nombre_archivo, fecha)
+                VALUES (?, ?, ?, ?, ?, NOW())";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("iisss", $id, $usuario, $comentario, $ruta, $nombre);
+
+        return $stmt->execute();
+    }
+
+        public function proyectosDelInvestigador(int $id): array
+    {
+        $stmt = $this->con->prepare("SELECT id_proyectos, titulo FROM proyectos WHERE id_investigador=?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+     public function getEtapasPorProyecto(int $id_proyecto, int $id_usuario): array
+    {
+        $sql = "SELECT 
+    e.*,
+    COALESCE(s.estado, 'pendiente') AS estado,
+    s.id_seguimiento,
+    s.observaciones,
+    s.comentario_supervisor,
+    td.id_tipo_documento,
+    pd.id_plantilla
+FROM etapas_documento e
+
+LEFT JOIN tipo_documento td 
+    ON td.orden = e.orden 
+    AND td.estado = 1
+
+LEFT JOIN seguimiento_documento s 
+    ON s.id_tipo_documento = td.id_tipo_documento 
+    AND s.id_proyectos = ? 
+    AND s.id_usuarios = ?
+
+LEFT JOIN plantillas_documentos pd 
+    ON pd.id_tipo_documento = td.id_tipo_documento 
+    AND pd.activo = 1
+
+WHERE e.estado = 1
+ORDER BY e.orden;";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("ii", $id_proyecto, $id_usuario);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 }

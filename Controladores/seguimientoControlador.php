@@ -202,12 +202,12 @@ class SeguimientoControlador
             $this->json(['ok' => false, 'msg' => 'Máx 10MB.'], 422);
         }
 
-        $dir = __DIR__ . '/../publico/uploads/seguimiento/' . $id_proyecto . '/';
+        $dir = __DIR__ . '/../publico/docs/seguimiento/' . $id_proyecto . '/';
         if (!is_dir($dir)) mkdir($dir, 0755, true);
 
         $nombre = "{$id_proyecto}_{$id_usuario}_{$id_tipo_documento}_" . date('YmdHis') . ".$extension";
         $rutaFisica = $dir . $nombre;
-        $rutaDB = "uploads/seguimiento/$id_proyecto/$nombre";
+        $rutaDB = "docs/seguimiento/$id_proyecto/$nombre";
 
         if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
             $this->json(['ok' => false, 'msg' => 'Error al guardar.'], 500);

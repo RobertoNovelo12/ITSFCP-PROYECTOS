@@ -279,7 +279,7 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
         }
 
         // --- FINAL ---
-        $sql .= " GROUP BY proy.id_proyectos, pu.id_integrante 
+        $sql .= " GROUP BY proy.id_proyectos
               ORDER BY proy.id_proyectos DESC 
               LIMIT ?, ?";
 
@@ -678,7 +678,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         }
         // 2. Si estado = 2, crear tareas
         $estado = "";
-        if ($numeroEstado == 2) {
+        if ($numeroEstado == 2) { // Estado Activo
 
             // Obtener tipos reales de tareas
             $sqlTipos = "SELECT id_tareatipo FROM tipo_tarea ORDER BY id_tareatipo ASC";
@@ -714,7 +714,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
                 }
             }
             //Por cerrar, insertar datos a tbl_cierres
-        } else if ($numeroEstado == 5) {
+        } else if ($numeroEstado == 5) { // Por cerrar
             $sql_investigador = "SELECT id_investigador FROM proyectos WHERE id_proyectos = ?";
             $stmtInvestigador = $this->con->prepare($sql_investigador);
             $stmtInvestigador->bind_param("i", $id_proyectos);
