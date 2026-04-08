@@ -177,7 +177,7 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
         COALESCE(tareas_resumen.total, 0) AS total";
 
         if ($rol == 'estudiante') {
-            $sql .= ", pu.estado AS estado_estudiante";
+            $sql .= ", ANY_VALUE(pu.estado) AS estado_estudiante ";
         } else {
             $sql .= ", NULL AS estado_estudiante";
         }

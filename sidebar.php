@@ -40,7 +40,7 @@ $mainMenu = $middleMenu = $submenuProyectos = $submenuMisAlumnos = $submenuVerMa
 if ($rol === "estudiante" ||  $rol === "alumno") {
     $mainMenu = ["Principal", "Dashboard"];
     $submenuProyectos = ["Seguimiento"];
-    $submenuVerMas = ["Solicitudes", "Constancias"];
+    $submenuVerMas = ["Constancias"];
     $middleMenu = ["Calendario"];
     $footerMenus = ["Soporte", "Ajustes"];
 } elseif ($rol === "profesor" || $rol === "investigador") {
