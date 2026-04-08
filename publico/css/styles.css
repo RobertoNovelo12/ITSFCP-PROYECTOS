@@ -4431,10 +4431,7 @@ summary {
 
 /* CONTENIDO */
 .timeline-content {
-  background: #f9f9f9;
-  padding: 12px 15px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  padding-bottom: 24px;
 }
 
 /* HEADER */
@@ -4489,19 +4486,30 @@ summary {
 }
 
 .portal {
-  max-width: 820px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1.5rem;
 }
 
 .portal-header {
-  background: var(--azul);
+  background: linear-gradient(135deg, var(--azul), var(--azul-light));
   color: #fff;
   border-radius: 10px 10px 0 0;
-  padding: 14px 20px;
+  padding: 18px 24px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+}
+
+.portal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.portal-header p {
+  font-size: 13px;
+  opacity: 0.85;
 }
 
 .portal-header .initials {
@@ -4516,18 +4524,6 @@ summary {
   font-size: 13px;
   color: #fff;
   flex-shrink: 0;
-}
-
-.portal-header h2 {
-  font-size: 15px;
-  font-weight: 500;
-  margin: 0;
-}
-
-.portal-header p {
-  font-size: 12px;
-  opacity: 0.75;
-  margin: 2px 0 0;
 }
 
 .progress-bar-wrap {
@@ -4691,28 +4687,25 @@ summary {
 }
 
 .docs-adjuntos {
-  margin-top: 8px;
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .doc-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 4px;
-  border: 0.5px solid var(--color-border-secondary);
-  color: var(--color-text-secondary);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-secondary);
   background: var(--color-background-secondary);
-  margin-right: 6px;
-  margin-top: 4px;
-  cursor: pointer;
-  transition: background .15s;
+  transition: all .2s ease;
 }
 
 .doc-pill:hover {
-  background: var(--color-background-primary);
-  color: var(--color-text-primary);
+  background: #fff;
+  color: var(--azul);
+  border-color: var(--azul-light);
 }
 
 .doc-pill svg {
@@ -4720,28 +4713,26 @@ summary {
 }
 
 .doc-subir {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 4px;
-  border: 0.5px solid var(--color-border-info);
-  color: var(--color-text-info);
-  background: var(--color-background-info);
-  margin-right: 6px;
-  margin-top: 4px;
-  cursor: pointer;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--azul-light);
+  background: #eef4ff;
+  color: var(--azul);
+  font-weight: 500;
+}
+
+.doc-subir:hover {
+  background: #dce8ff;
 }
 
 .observacion {
-  background: var(--color-background-warning);
-  border-left: 3px solid var(--color-text-warning);
-  border-radius: 0 4px 4px 0;
-  padding: 7px 10px;
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--color-text-warning);
+  background: #fff7e6;
+  border-left: 4px solid var(--amarillo);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  font-size: 13px;
 }
 
 .tab-nav {
@@ -4776,39 +4767,24 @@ summary {
 }
 
 .timeline-item {
-  display: flex;
-  gap: 14px;
-  position: relative;
+  gap: 18px;
+  margin-bottom: 6px;
 }
 
 /* COLUMNA IZQUIERDA */
 .timeline-left {
-  width: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  width: 50px;
 }
 
 .timeline-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid;
-  background: #fff;
-  z-index: 2;
-  transition: all .3s;
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
 }
 
 /* Línea */
 .timeline-line {
-  width: 2px;
-  flex: 1;
-  background: var(--color-border-tertiary);
-  margin-top: 2px;
+  width: 3px;
 }
 
 /* CARD */
@@ -4820,13 +4796,14 @@ summary {
 .timeline-card {
   background: #fff;
   border: 1px solid var(--color-border-tertiary);
-  border-radius: 8px;
-  padding: 14px;
-  transition: all .2s;
+  border-radius: 10px;
+  padding: 16px 18px;
+  transition: all .25s ease;
 }
 
 .timeline-card:hover {
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
 }
 
 /* HEADER */
@@ -4837,14 +4814,16 @@ summary {
 }
 
 .timeline-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .timeline-desc {
-  font-size: 12px;
-  margin-top: 4px;
+  font-size: 13px;
+  margin-top: 6px;
   color: var(--color-text-secondary);
+  line-height: 1.4;
 }
 
 /* BADGE */

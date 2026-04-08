@@ -48,6 +48,7 @@ class Proyectos
         return $this->ejecutar($sql, "", []);
     }
 
+
     private function construirBaseQuery($rol, &$params, &$types, $id = null)
     {
         $sql = "
@@ -155,10 +156,11 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
         $rol = strtolower($rol);
 
         // --- PAGINACIÓN ---
-        $total_proyectos = $this->obtenerCantidadProyectos($id, $filtro, $rol, $buscar);
         $por_pagina = 6;
-        $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
+        $pagina = isset($_GET['pagina']) && $_GET['pagina'] > 0 ? intval($_GET['pagina']) : 1;
         $desde = ($pagina - 1) * $por_pagina;
+
+        $total_proyectos = $this->obtenerCantidadProyectos($id, $filtro, $rol, $buscar);
         $total_paginas = ($total_proyectos > 0) ? ceil($total_proyectos / $por_pagina) : 1;
 
         $params = [];
@@ -166,19 +168,20 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
 
         // --- SELECT ---
         $sql = "SELECT 
-    proy.id_proyectos,
-    proy.titulo,
-    proy.fecha_inicio,
-    proy.fecha_fin,
-    espr.nombre AS estado_proyecto,
-    peri.periodo,
-    COALESCE(SUM(CASE WHEN taus.id_estadoT = 2 THEN 1 ELSE 0 END),0) AS total  ";
-        if ($rol === 'estudiante') {
-            $sql .= ", MAX(pu.estado) AS estado_estudiante ";
+        proy.id_proyectos,
+        proy.titulo,
+        proy.fecha_inicio,
+        proy.fecha_fin,
+        espr.nombre AS estado_proyecto,
+        peri.periodo,
+        COALESCE(tareas_resumen.total, 0) AS total";
+
+        if ($rol == 'estudiante') {
+            $sql .= ", pu.estado AS estado_estudiante";
         } else {
-            $sql .= ", NULL AS estado_estudiante ";
+            $sql .= ", NULL AS estado_estudiante";
         }
-        // --- SOLO INVESTIGADOR ---
+
         if ($rol === 'investigador' || $rol === 'profesor') {
             $sql .= ",
         CASE 
@@ -187,36 +190,44 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
             AND COALESCE(tc.tareas_completadas,0) = 
                 (COALESCE(tt.total_tareas,0) * COALESCE(pa.total_alumnos,0))
             THEN 1 ELSE 0 
-        END AS puede_cerrar
-        ";
+        END AS puede_cerrar";
         }
 
-        // --- FROM BASE ---
+        // --- FROM ---
         $sql .= "
     FROM proyectos proy
     JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-    JOIN periodos peri ON proy.id_periodos = peri.id_periodos
-    ";
+    JOIN periodos peri ON proy.id_periodos = peri.id_periodos";
 
         // --- JOIN POR ROL ---
         if ($rol === 'estudiante') {
-            $sql .= " JOIN proyectos_usuarios pu ON pu.id_proyectos = proy.id_proyectos ";
+            $sql .= " 
+        LEFT JOIN proyectos_usuarios pu 
+            ON pu.id_proyectos = proy.id_proyectos 
+            AND pu.id_usuarios = ?";
+            $params[] = $id;
+            $types .= "i";
         }
 
-        if ($rol == 'investigador' || $rol == 'profesor') {
-            $sql .= " JOIN investigadores inv ON inv.id_usuarios = proy.id_investigador  ";
-        }
-
-        // --- JOINS GENERALES ---
-        $sql .= "
-    LEFT JOIN tbl_seguimiento tbse ON tbse.id_proyectos = proy.id_proyectos
-    LEFT JOIN tareas tare ON tare.id_avances = tbse.id_avances
-    LEFT JOIN tareas_usuarios taus ON taus.id_tarea = tare.id_tarea
-    ";
-
-        // --- JOINS OPTIMIZADOS ---
         if ($rol === 'investigador' || $rol === 'profesor') {
+            $sql .= " 
+        JOIN investigadores inv 
+            ON inv.id_usuarios = proy.id_investigador";
+        }
 
+        // --- SUBQUERY ---
+        $sql .= "
+    LEFT JOIN (
+        SELECT ts.id_proyectos,
+               COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
+        FROM tbl_seguimiento ts
+        JOIN tareas t ON t.id_avances = ts.id_avances
+        LEFT JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+        GROUP BY ts.id_proyectos
+    ) tareas_resumen ON tareas_resumen.id_proyectos = proy.id_proyectos";
+
+        // --- EXTRA JOINS ---
+        if ($rol === 'investigador' || $rol === 'profesor') {
             $sql .= "
         LEFT JOIN (
             SELECT ts.id_proyectos, COUNT(DISTINCT t.id_tarea) total_tareas
@@ -243,51 +254,43 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
               AND tu.id_estadoT = 5
               AND pu.estado = 'activo'
             GROUP BY ts.id_proyectos
-        ) tc ON tc.id_proyectos = proy.id_proyectos
-        ";
+        ) tc ON tc.id_proyectos = proy.id_proyectos";
         }
 
-        // --- WHERE BASE ---
-        $sql .= " WHERE 1 ";
-
-        if ($rol === 'estudiante') {
-            $sql .= " AND pu.id_usuarios = ? ";
-            $params[] = $id;
-            $types .= "i";
-        }
+        // --- WHERE ---
+        $sql .= " WHERE 1";
 
         if ($rol === 'investigador' || $rol === 'profesor') {
-            $sql .= " AND proy.id_investigador = ? ";
+            $sql .= " AND proy.id_investigador = ?";
             $params[] = $id;
             $types .= "i";
         }
 
-        // --- FILTROS ---
         if ($filtro != 0) {
-            $sql .= " AND proy.id_estadoP = ? ";
+            $sql .= " AND proy.id_estadoP = ?";
             $params[] = $filtro;
             $types .= "i";
         }
 
         if (!empty($buscar)) {
-            $sql .= " AND proy.titulo LIKE ? ";
+            $sql .= " AND proy.titulo LIKE ?";
             $params[] = "%$buscar%";
             $types .= "s";
         }
 
         // --- FINAL ---
-        $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos DESC LIMIT ?, ?";
+        $sql .= " GROUP BY proy.id_proyectos, pu.id_integrante 
+              ORDER BY proy.id_proyectos DESC 
+              LIMIT ?, ?";
+
         $params[] = $desde;
         $params[] = $por_pagina;
         $types .= "ii";
 
-        // --- DEBUG SEGURO ---
         $stmt = $this->con->prepare($sql);
-
         if (!$stmt) {
-            die("Error en SQL: " . $this->con->error . "<br><br>QUERY:<br>$sql");
+            die("Error en SQL: " . $this->con->error);
         }
-
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
 
@@ -304,12 +307,77 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
         ]);
     }
 
-    //ACTUALIZAR ESTADO DE ESTUDIANTES A BAJA SI PROYECTO VENCIDO
-public function actualizarEstadoEstudiantesVencidos()
-{
-    // 1. BAJA POR PROYECTO VENCIDO
+    //OBTENER LA CANTIDAD DE PROYECTOS
+    public function obtenerCantidadProyectos($id, $filtro, $rol, $buscar)
+    {
+        $rol = strtolower($rol);
 
-    $sql_historial_baja = "
+        $params = [];
+        $types = "";
+
+        $sql = "SELECT COUNT(DISTINCT proy.id_proyectos) AS total
+            FROM proyectos proy
+            JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
+            JOIN periodos peri ON proy.id_periodos = peri.id_periodos ";
+
+        // --- JOIN POR ROL ---
+        if ($rol === 'estudiante') {
+            $sql .= " JOIN proyectos_usuarios pu ON pu.id_proyectos = proy.id_proyectos ";
+        }
+
+        if ($rol === 'investigador' || $rol === 'profesor') {
+            $sql .= " JOIN investigadores inv ON inv.id_usuarios = proy.id_investigador ";
+        }
+
+        // --- WHERE ---
+        $sql .= " WHERE 1 ";
+
+        if ($rol === 'estudiante') {
+            $sql .= " AND pu.id_usuarios = ? ";
+            $params[] = $id;
+            $types .= "i";
+        }
+
+        if ($rol === 'investigador' || $rol === 'profesor') {
+            $sql .= " AND proy.id_investigador = ? ";
+            $params[] = $id;
+            $types .= "i";
+        }
+
+        if ($filtro != 0) {
+            $sql .= " AND proy.id_estadoP = ? ";
+            $params[] = $filtro;
+            $types .= "i";
+        }
+
+        if (!empty($buscar)) {
+            $sql .= " AND proy.titulo LIKE ? ";
+            $params[] = "%$buscar%";
+            $types .= "s";
+        }
+
+        $stmt = $this->con->prepare($sql);
+
+        if (!$stmt) {
+            die("Error en SQL (COUNT): " . $this->con->error);
+        }
+
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+
+        return $res['total'] ?? 0;
+    }
+
+    //ACTUALIZAR ESTADO DE ESTUDIANTES A BAJA SI PROYECTO VENCIDO
+    public function actualizarEstadoEstudiantesVencidos()
+    {
+        // 1. BAJA POR PROYECTO VENCIDO
+
+        $sql_historial_baja = "
     INSERT INTO historial_proyectos_usuarios 
     (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
     SELECT 
@@ -336,9 +404,9 @@ public function actualizarEstadoEstudiantesVencidos()
         )
     ";
 
-    $this->ejecutar($sql_historial_baja);
+        $this->ejecutar($sql_historial_baja);
 
-    $sql_update_baja = "
+        $sql_update_baja = "
     UPDATE proyectos_usuarios pu
     JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
     SET 
@@ -351,11 +419,11 @@ public function actualizarEstadoEstudiantesVencidos()
         AND pu.estado = 'activo'
     ";
 
-    $this->ejecutar($sql_update_baja);
+        $this->ejecutar($sql_update_baja);
 
-    // 2. CONCLUIR ESTUDIANTES SI PROYECTO ESTÁ EN CIERRE
+        // 2. CONCLUIR ESTUDIANTES SI PROYECTO ESTÁ EN CIERRE
 
-    $sql_historial_concluido = "
+        $sql_historial_concluido = "
     INSERT INTO historial_proyectos_usuarios 
     (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
     SELECT 
@@ -380,9 +448,9 @@ public function actualizarEstadoEstudiantesVencidos()
         )
     ";
 
-    $this->ejecutar($sql_historial_concluido);
+        $this->ejecutar($sql_historial_concluido);
 
-    $sql_update_concluido = "
+        $sql_update_concluido = "
     UPDATE proyectos_usuarios pu
     JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
     SET 
@@ -392,42 +460,7 @@ public function actualizarEstadoEstudiantesVencidos()
         AND pu.estado = 'activo'
     ";
 
-    return $this->ejecutar($sql_update_concluido);
-}
-    //OBTENER LA CANTIDAD DE PROYECTOS
-    public function obtenerCantidadProyectos($id, $filtro, $rol, $buscar = null)
-    {
-        $rol = strtolower($rol);
-
-        $params = [];
-        $types = "";
-
-        $sql = "SELECT COUNT(DISTINCT proy.id_proyectos) as total ";
-
-        $sql .= $this->construirBaseQuery($rol, $params, $types, $id);
-
-        if ($filtro != 0) {
-            $sql .= " AND proy.id_estadoP = ? ";
-            $params[] = $filtro;
-            $types .= "i";
-        }
-
-        if (!empty($buscar)) {
-            $sql .= " AND proy.titulo LIKE ? ";
-            $params[] = "%$buscar%";
-            $types .= "s";
-        }
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-
-        $stmt->execute();
-        $res = $stmt->get_result()->fetch_assoc();
-
-        return $res['total'] ?? 0;
+        return $this->ejecutar($sql_update_concluido);
     }
 
     public function tematica()

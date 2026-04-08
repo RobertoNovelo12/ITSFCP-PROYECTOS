@@ -37,7 +37,7 @@ class ProyectoControlador
                     return $proyecto->obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar);
 
                 default:
-                    return $proyecto->obtenerProyectos($id, $rol, $buscar);
+                    return $proyecto->obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar);
             }
         } catch (Exception $e) {
             error_log($e->getMessage());
@@ -143,6 +143,7 @@ class ProyectoControlador
             'Fin',
             'Estado Proyecto',
             'Estado Estudiante',
+            'Documentación',
             'Período',
             'Pendientes',
             'Acciones'
@@ -423,7 +424,7 @@ class ProyectoControlador
                 break;
         }
 
-        header("Location: editar.php?id_proyectos" . $id_proyecto . "&mensaje=1");
+        header("Location: editar.php?id_proyectos=" . $id_proyecto . "&mensaje=1");
     }
     //Parte de editar proyecto por el investigador
     public function botonesAccionEditarEstudiante($id_estudiante, $rol, $estado, $id_proyecto, $estado_proyecto)

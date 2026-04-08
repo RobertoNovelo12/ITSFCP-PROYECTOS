@@ -15,19 +15,22 @@ class SeguimientoModelo
         $this->con = $conn;
     }
 
-    public function getProyectoActivo(int $id_usuario)
+    public function getProyectoPorId(int $id_usuario, int $id_proyecto)
     {
         $sql = "SELECT p.*, ep.nombre AS estado_nombre
-                FROM proyectos p
-                JOIN proyectos_usuarios pu ON pu.id_proyectos = p.id_proyectos
-                JOIN estados_proyectos ep ON ep.id_estadoP = p.id_estadoP
-                WHERE pu.id_usuarios = ?
-                AND pu.estado = 'activo'
-                ORDER BY pu.fecha_asignacion DESC LIMIT 1";
+            FROM proyectos p
+            JOIN proyectos_usuarios pu 
+                ON pu.id_proyectos = p.id_proyectos
+            JOIN estados_proyectos ep 
+                ON ep.id_estadoP = p.id_estadoP
+            WHERE pu.id_usuarios = ?
+            AND p.id_proyectos = ?
+            LIMIT 1";
 
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_usuario);
+        $stmt->bind_param("ii", $id_usuario, $id_proyecto);
         $stmt->execute();
+
         return $stmt->get_result()->fetch_assoc();
     }
 

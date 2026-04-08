@@ -140,13 +140,20 @@ include __DIR__ . '/../../mensaje.php';
                                     <?php if ($rol === 'estudiante'): ?>
                                         <td>
                                             <?php
-                                            $estadoEst = $proyecto['estado_estudiante'] ?? 'activo';
+                                            $estadoEst = $proyecto['estado_estudiante'] ?? 'sin_asignar';
                                             $clase = ($estadoEst == 'baja') ? 'danger'
                                                 : (($estadoEst == 'concluido') ? 'success' : 'primary');
                                             ?>
                                             <span class="badge text-bg-<?= $clase ?>">
                                                 <?= strtoupper($estadoEst) ?>
                                             </span>
+                                        </td>
+                                        <td>
+                                            <a href="seguimiento.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>" class="btn btn-sm btn-primary">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16">
+                                                    <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z" />
+                                                </svg>
+                                            </a>
                                         </td>
                                     <?php endif; ?>
 
@@ -218,7 +225,53 @@ include __DIR__ . '/../../mensaje.php';
                         </div>
                     <?php endforeach; ?>
                 </div>
+                <!-- PAGINACION -->
 
+                <?php if ($paginacion['total_paginas'] > 1): ?>
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+
+                            <?php
+                            $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
+                            $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
+                            ?>
+
+                            <!-- TEXTO -->
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
+                                </span>
+                            </li>
+
+                            <!-- ANTERIOR -->
+                            <li class="page-item <?= ($paginacion['pagina'] <= 1) ? 'disabled' : '' ?>">
+                                <a class="page-link"
+                                    href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $paginacion['pagina'] - 1 ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>">
+                                    &laquo;
+                                </a>
+                            </li>
+
+                            <!-- NÚMEROS -->
+                            <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
+                                <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
+                                    <a class="page-link"
+                                        href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>">
+                                        <?= $i ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+
+                            <!-- SIGUIENTE -->
+                            <li class="page-item <?= ($paginacion['pagina'] >= $paginacion['total_paginas']) ? 'disabled' : '' ?>">
+                                <a class="page-link"
+                                    href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $paginacion['pagina'] + 1 ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>">
+                                    &raquo;
+                                </a>
+                            </li>
+
+                        </ul>
+                    </nav>
+                <?php endif; ?>
             <?php else: ?>
                 <div class="alert alert-info text-center">
                     No hay proyectos para mostrar

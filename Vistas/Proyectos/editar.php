@@ -221,7 +221,7 @@ include __DIR__ . '/../../error.php';
                                     $rol,
                                     $alumno['estado'],
                                     $id_proyecto,
-                                    $proyecto['estado_proyecto']
+                                    $p['estado_proyecto']
                                 ) ?>
                                 <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
                                     class="btn btn-info btn-sm">

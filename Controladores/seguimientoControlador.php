@@ -55,23 +55,33 @@ class SeguimientoControlador
         return intval($_SESSION['id_usuario'] ?? 0);
     }
 
-    public function index(int $id_usuario, string $rol): array
+    public function index(int $id_usuario, string $rol, int $id_proyecto): array
     {
         if ($this->esEstudiante($rol)) {
 
-            $proyecto = $this->modelo->getProyectoActivo($id_usuario);
+            if (!$id_proyecto) {
+                return [
+                    'etapas' => [],
+                    'proyecto' => null,
+                    'progreso' => ['completadas' => 0, 'total' => 0, 'pct' => 0],
+                    'mensaje' => 'Proyecto no especificado.'
+                ];
+            }
+
+            // Obtener proyecto SOLO si pertenece al estudiante
+            $proyecto = $this->modelo->getProyectoPorId($id_usuario, $id_proyecto);
 
             if (!$proyecto) {
                 return [
-                    'etapas'   => [],
+                    'etapas' => [],
                     'proyecto' => null,
                     'progreso' => ['completadas' => 0, 'total' => 0, 'pct' => 0],
-                    'mensaje'  => 'No tienes ningún proyecto activo en este momento.',
+                    'mensaje' => 'No tienes acceso a este proyecto.'
                 ];
             }
 
             $etapas = $this->modelo->getEtapasPorProyecto(
-                $proyecto['id_proyectos'],
+                $id_proyecto,
                 $id_usuario
             );
 
@@ -79,34 +89,14 @@ class SeguimientoControlador
             $total = count($etapas);
 
             return [
-                'etapas'   => $etapas,
+                'etapas' => $etapas,
                 'proyecto' => $proyecto,
                 'progreso' => [
                     'completadas' => count($completadas),
-                    'total'       => $total,
-                    'pct'         => $total > 0
-                        ? round((count($completadas) / $total) * 100)
-                        : 0,
+                    'total' => $total,
+                    'pct' => $total > 0 ? round((count($completadas) / $total) * 100) : 0,
                 ],
-                'mensaje'  => null,
-            ];
-        }
-
-        if ($this->esInvestigador($rol)) {
-            return [
-                'etapas'      => [],
-                'solicitudes' => $this->modelo->getSolicitudesParaRevisar($id_usuario),
-                'avance'      => $this->modelo->getAvanceEstudiantesPorInvestigador($id_usuario),
-            ];
-        }
-
-        if ($this->esSupervisor($rol)) {
-            $id_periodo = intval($_GET['periodo'] ?? 0);
-            return [
-                'etapas'       => [],
-                'estadisticas' => $id_periodo
-                    ? $this->modelo->getEstadisticasPeriodo($id_periodo)
-                    : [],
+                'mensaje' => null
             ];
         }
 

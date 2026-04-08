@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../publico/config/conexion.php';
 
-class Proyectos
+class Solicitud
 {
 
     private $con;
@@ -11,1064 +11,329 @@ class Proyectos
         $this->con = $conn;
     }
 
-    //ACTUALIZAR A VENCIDO LOS PROYECTOS
-    public function actualizarProyectosVencidos()
+    /******************************************************************
+     *  OBTENER SOLICITUDES (PAGINACIÓN + ROLES)
+     ******************************************************************/
+    public function obtenerSolicitudes($id, $rol)
     {
-        $hoy = date("Y-m-d");
-
-        $sql = "UPDATE proyectos 
-            SET id_estadoP = 6
-            WHERE id_estadoP IN (2, 3, 5, 7)
-              AND fecha_fin < ?";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("s", $hoy);
-        $stmt->execute();
-    }
-
-    //DATOS GENERALES SIN FILTRO
-    public function obtenerProyectos($id, $rol, $buscar = null)
-    {
-        // Normalizar rol para evitar problemas de mayúsculas/minúsculas
         $rol = strtolower($rol);
 
-        // Cantidad totales
-        $total_proyectos = $this->obtenerCantidadProyectos($id, 0, $rol, $buscar);
+        // TOTAL DE REGISTROS
+        $total_solicitudes = $this->obtenerCantidadSolicitudes($id, $rol);
 
-        // Parámetros de paginación
         $por_pagina = 6;
         $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
         $desde = ($pagina - 1) * $por_pagina;
+        $total_paginas = max(1, ceil($total_solicitudes / $por_pagina));
 
-        $total_paginas = ($total_proyectos > 0) ? ceil($total_proyectos / $por_pagina) : 1;
-
-        // Inicializar variables
-        $sql = "";
         $params = [];
         $types = "";
-        $whereAdded = false;
 
-        // Consultas base según rol
         switch ($rol) {
+
             case 'estudiante':
-            case 'alumno': // Para alumnos
                 $sql = "SELECT 
-    proy.id_proyectos,
-    proy.titulo,
-    proy.fecha_inicio,
-    proy.fecha_fin,
-    espr.nombre AS estado,
-    peri.periodo,
-
-    -- Contar tareas en estado 1
-    COUNT(CASE WHEN taus.id_estadoT = 1 THEN 1 END) AS total
-
-FROM gestion_proyectos.proyectos AS proy
-
-JOIN proyectos_usuarios AS prus 
-        ON proy.id_proyectos = prus.id_proyectos
-
-JOIN estudiantes AS estu 
-        ON estu.id_usuario = prus.id_usuarios
-
-JOIN estados_proyectos AS espr 
-        ON proy.id_estadoP = espr.id_estadoP
-
-JOIN periodos AS peri 
-        ON proy.id_periodos = peri.id_periodos
-
-LEFT JOIN tbl_seguimiento AS tbse 
-        ON tbse.id_proyectos = proy.id_proyectos 
-
-LEFT JOIN tareas AS tare 
-        ON tare.id_avances = tbse.id_avances
-
-LEFT JOIN tareas_usuarios AS taus 
-        ON taus.id_tarea = tare.id_tarea
-
-WHERE estu.id_usuario = ?
-";
-                $params[] = $id;
-                $types .= "i";
-                $whereAdded = true;
+            sp.id_solicitud_proyecto AS id_solicitud_proyectos,
+            sp.estado AS Estado,
+            sp.fecha_envio AS Fecha_solicitud,
+            sp.carta_presentacion,
+            sp.carta_aceptacion,
+            u.nombre AS Estudiante,
+            e.matricula AS Matricula,
+            c.nombre_carrera AS Carrera,
+            p.id_proyectos,
+            p.titulo AS Proyecto
+        FROM solicitud_proyecto sp
+        INNER JOIN usuarios u ON sp.id_estudiante = u.id_usuarios
+        LEFT JOIN estudiantes e ON sp.id_estudiante = e.id_usuario
+        LEFT JOIN carreras c ON e.id_carrera = c.id_carrera
+        INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
+        WHERE sp.id_estudiante = ?
+        ORDER BY sp.id_solicitud_proyecto DESC
+        LIMIT ?, ?";
+                $params = [$id, $desde, $por_pagina];
+                $types = "iii";
                 break;
 
             case 'investigador':
             case 'profesor':
-                $sql = "SELECT 
-    proy.id_proyectos,
-    proy.titulo,
-    proy.fecha_inicio,
-    proy.fecha_fin,
-    espr.nombre AS estado,
-    peri.periodo,
-
-    -- Total de tareas en ESTADO 2
-    COUNT(CASE WHEN taus.id_estadoT = 2 THEN 1 END) AS total
-
-FROM gestion_proyectos.proyectos AS proy
-
-JOIN investigadores AS inv 
-        ON inv.id_usuario = proy.id_investigador
-
-JOIN estados_proyectos AS espr 
-        ON proy.id_estadoP = espr.id_estadoP
-
-JOIN periodos AS peri 
-        ON proy.id_periodos = peri.id_periodos
-
-LEFT JOIN tbl_seguimiento AS tbse 
-        ON tbse.id_proyectos = proy.id_proyectos 
-
-LEFT JOIN tareas AS tare 
-        ON tare.id_avances = tbse.id_avances
-
-LEFT JOIN tareas_usuarios AS taus 
-        ON taus.id_tarea = tare.id_tarea
-
-WHERE proy.id_investigador = ?
-";
-                $params[] = $id;
-                $types .= "i";
-                $whereAdded = true;
-                break;
-
             case 'supervisor':
                 $sql = "SELECT 
-    proy.id_proyectos,
-    proy.titulo,
-    proy.fecha_inicio,
-    proy.fecha_fin,
-    espr.nombre AS estado,
-    peri.periodo,
-
-    -- Total de tareas en ESTADO 2
-    COUNT(CASE WHEN taus.id_estadoT = 2 THEN 1 END) AS total
-
-FROM gestion_proyectos.proyectos AS proy
-
-JOIN investigadores AS inv 
-        ON inv.id_usuario = proy.id_investigador
-
-JOIN estados_proyectos AS espr 
-        ON proy.id_estadoP = espr.id_estadoP
-
-JOIN periodos AS peri 
-        ON proy.id_periodos = peri.id_periodos
-
-LEFT JOIN tbl_seguimiento AS tbse 
-        ON tbse.id_proyectos = proy.id_proyectos 
-
-LEFT JOIN tareas AS tare 
-        ON tare.id_avances = tbse.id_avances
-
-LEFT JOIN tareas_usuarios AS taus 
-        ON taus.id_tarea = tare.id_tarea
-";
-                // supervisor no añade WHERE por defecto
-                $whereAdded = false;
+            sp.id_solicitud_proyecto AS id_solicitud_proyectos,
+            sp.estado AS Estado,
+            sp.fecha_envio AS Fecha_solicitud,
+            sp.carta_presentacion,
+            sp.carta_aceptacion,
+            u.nombre AS Estudiante,
+            e.matricula AS Matricula,
+            c.nombre_carrera AS Carrera,
+            p.id_proyectos,
+            p.titulo AS Proyecto
+        FROM solicitud_proyecto sp
+        INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
+        INNER JOIN usuarios u ON sp.id_estudiante = u.id_usuarios
+        LEFT JOIN estudiantes e ON sp.id_estudiante = e.id_usuario
+        LEFT JOIN carreras c ON e.id_carrera = c.id_carrera
+        WHERE p.id_investigador = ?
+        ORDER BY sp.id_solicitud_proyecto DESC
+        LIMIT ?, ?";
+                $params = [$id, $desde, $por_pagina];
+                $types = "iii";
                 break;
 
             default:
-                // Si el rol es inesperado devolvemos vacío (evita errores posteriores)
-                return json_encode([
-                    "proyectos" => [],
+                return [
+                    "solicitudes" => [],
                     "paginacion" => [
-                        "total_proyectos" => 0,
-                        "por_pagina"      => $por_pagina,
-                        "pagina"          => $pagina,
-                        "total_paginas"   => 1
+                        "total_solicitudes" => 0,
+                        "por_pagina" => $por_pagina,
+                        "pagina" => $pagina,
+                        "total_paginas" => 1
                     ]
-                ]);
+                ];
         }
 
-        // Filtro de búsqueda (si aplica)
-        if (!empty($buscar)) {
-            if ($whereAdded) {
-                $sql .= " AND proy.titulo LIKE ? ";
-            } else {
-                $sql .= " WHERE proy.titulo LIKE ? ";
-                $whereAdded = true;
-            }
-            $params[] = "%$buscar%";
-            $types .= "s";
-        }
-
-        // GROUP BY y LIMIT al final (LIMIT siempre al final de la query)
-        $sql .= " GROUP BY proy.id_proyectos ORDER BY proy.id_proyectos ASC LIMIT ?, ?";
-
-        // Añadir params para paginación (siempre enteros)
-        $params[] = $desde;
-        $params[] = $por_pagina;
-        $types .= "ii";
-
-        // Preparar y ejecutar
+        // preparar
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error . "<br>SQL: $sql");
+            die("ERROR SQL PREPARE: " . $this->con->error . "\nSQL: " . $sql);
         }
 
-        // bind_param requiere tipos y valores; si types está vacío no bindear
-        if ($types !== "") {
-            // Usar operador splat para pasar los parámetros
+        if (!empty($types)) {
+            // bind dinámico (splat)
             $stmt->bind_param($types, ...$params);
         }
 
         if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error . "<br>SQL: $sql");
+            die("ERROR SQL EXECUTE: " . $stmt->error . "\nSQL: " . $sql);
         }
 
-        $resultado = [
-            "proyectos" => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
+        // ---- aquí usamos get_result si está disponible, sino fallback con bind_result ----
+        $data = [];
+        if (method_exists($stmt, 'get_result')) {
+            $res = $stmt->get_result();
+            $data = $res->fetch_all(MYSQLI_ASSOC);
+        } else {
+            // Fallback: obtener metadatos y bind_result dinámico
+            $meta = $stmt->result_metadata();
+            if ($meta) {
+                $fields = [];
+                $row = [];
+
+                while ($field = $meta->fetch_field()) {
+                    $fields[] = $field->name;
+                    $row[$field->name] = null;
+                }
+                // preparar parametros por referencia
+                $bindParams = [];
+                foreach ($fields as $f) {
+                    $bindParams[] = &$row[$f];
+                }
+                // ligar resultados
+                call_user_func_array([$stmt, 'bind_result'], $bindParams);
+                // fetch todos
+                while ($stmt->fetch()) {
+                    $r = [];
+                    foreach ($fields as $f) {
+                        $r[$f] = $row[$f];
+                    }
+                    $data[] = $r;
+                }
+                $meta->free();
+            } else {
+                // sin metadata -> no hay filas
+                $data = [];
+            }
+        }
+
+        return [
+            "solicitudes" => $data,
             "paginacion" => [
-                "total_proyectos" => $total_proyectos,
-                "por_pagina"      => $por_pagina,
-                "pagina"          => $pagina,
-                "total_paginas"   => $total_paginas
+                "total_solicitudes" => $total_solicitudes,
+                "por_pagina" => $por_pagina,
+                "pagina" => $pagina,
+                "total_paginas" => $total_paginas
             ]
         ];
-
-        return json_encode($resultado);
     }
 
 
-    //DATOS DEL FILTRO
-    public function obtenerProyectosDatosFiltro($id, $rol)
+    /******************************************************************
+     * OBTENER CANTIDAD DE SOLICITUDES
+     ******************************************************************/
+    public function obtenerCantidadSolicitudes($id, $rol)
     {
-        switch ($rol) {
-            case 'estudiante':
-                $sql = "SELECT 
-  COUNT(*) AS Total,
-  SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END) AS Activos,
-  SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END) AS PorAprobar,
-  SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END) AS Cierre,
-  SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END) AS PorCerrar,
-  SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido
-FROM gestion_proyectos.proyectos AS proy
-JOIN proyectos_usuarios AS prus ON proy.id_proyectos = prus.id_proyectos
-JOIN estudiantes AS estu ON prus.id_usuarios = estu.id_usuario
-JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
-WHERE estu.id_usuario = ?;";
-
-                $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("i", $id);
-                break;
-            case 'investigador':
-            case 'profesor':
-                $sql = "SELECT 
-  COUNT(*) AS Total,
-  SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END) AS Activos,
-  SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END) AS PorAprobar,
-  SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END) AS Cierre,
-  SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END) AS PorCerrar,
-  SUM(CASE WHEN espr.nombre='Rechazado' THEN 1 ELSE 0 END) AS Rechazados,
-  SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido,
-  SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END) AS Cierrerechazado
-FROM gestion_proyectos.proyectos AS proy
-JOIN investigadores AS inv ON inv.id_usuario = proy.id_investigador
-JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
-WHERE proy.id_investigador = ?;";
-
-                $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("i", $id);
-                break;
-            case 'supervisor':
-                $sql = "SELECT 
-  COUNT(*) AS Total,
-  SUM(CASE WHEN espr.nombre='Activo' THEN 1 ELSE 0 END) AS Activos,
-  SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END) AS PorAprobar,
-  SUM(CASE WHEN espr.nombre='Cierre' THEN 1 ELSE 0 END) AS Cierre,
-  SUM(CASE WHEN espr.nombre='Por cerrar' THEN 1 ELSE 0 END) AS PorCerrar,
-  SUM(CASE WHEN espr.nombre='Rechazado' THEN 1 ELSE 0 END) AS Rechazados, 
-  SUM(CASE WHEN espr.nombre='Vencido' THEN 1 ELSE 0 END) AS Vencido,
-  SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END) AS Cierrerechazado
-FROM gestion_proyectos.proyectos AS proy
-JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
-
-                $stmt = $this->con->prepare($sql);
-                break;
-            default:
-                return []; // Retorna un array vacío si el rol no es válido
-        }
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    //DATOS FILTRADOS SEGUN SELECCION
-    public function obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar = null)
-    {
-        // --- Paginación ---
-        $total_proyectos = $this->obtenerCantidadProyectos($id, $filtro, $rol, $buscar);
-        $por_pagina = 6;
-        $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
-        $desde = ($pagina - 1) * $por_pagina;
-        $total_paginas = ($total_proyectos > 0) ? ceil($total_proyectos / $por_pagina) : 1;
-
-        // --- SQL BASE POR ROL ---
-        $base = "";
-        $params = [];
-        $types = "";
-        $where = [];
-
         switch ($rol) {
 
             case 'estudiante':
-                $base = "
-                SELECT 
-                    proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
-                    espr.nombre AS estado, peri.periodo,
-                    SUM(CASE WHEN taus.id_estadoT = 1 THEN 1 ELSE 0 END) AS total
-                FROM proyectos proy
-                JOIN proyectos_usuarios prus ON proy.id_proyectos = prus.id_proyectos
-                JOIN estudiantes estu ON estu.id_usuario = prus.id_usuarios
-                JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-                JOIN periodos peri ON proy.id_periodos = peri.id_periodos
-                LEFT JOIN tbl_seguimiento tbse ON tbse.id_proyectos = proy.id_proyectos
-                LEFT JOIN tareas tare ON tare.id_avances = tbse.id_avances
-                LEFT JOIN tareas_usuarios taus ON taus.id_tarea = tare.id_tarea
-                ";
-                $where[] = "estu.id_usuario = ?";
-                $params[] = $id;
-                $types .= "i";
+                $sql = "SELECT COUNT(*) AS total
+                    FROM solicitud_proyecto
+                    WHERE id_estudiante = ?";
                 break;
 
             case 'investigador':
             case 'profesor':
-                $base = "
-                SELECT 
-                    proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
-                    espr.nombre AS estado, peri.periodo,
-                    SUM(CASE WHEN taus.id_estadoT = 2 THEN 1 ELSE 0 END) AS total
-                FROM proyectos proy
-                JOIN investigadores inv ON inv.id_usuario = proy.id_investigador
-                JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-                JOIN periodos peri ON proy.id_periodos = peri.id_periodos
-                LEFT JOIN tbl_seguimiento tbse ON tbse.id_proyectos = proy.id_proyectos
-                LEFT JOIN tareas tare ON tare.id_avances = tbse.id_avances
-                LEFT JOIN tareas_usuarios taus ON taus.id_tarea = tare.id_tarea
-                ";
-                $where[] = "proy.id_investigador = ?";
-                $params[] = $id;
-                $types .= "i";
-                break;
-
             case 'supervisor':
-                $base = "
-                SELECT 
-                    proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
-                    espr.nombre AS estado, peri.periodo
-                FROM proyectos proy
-                JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-                JOIN periodos peri ON proy.id_periodos = peri.id_periodos
-                ";
+                $sql = "SELECT COUNT(*) AS total
+                    FROM solicitud_proyecto sp
+                    INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
+                    WHERE p.id_investigador = ?";
                 break;
 
             default:
-                return json_encode([
-                    "proyectos" => [],
-                    "paginacion" => []
-                ]);
+                return 0;
         }
 
-        // --- Filtro por estado ---
-        if ($filtro != 0) {
-            $where[] = "proy.id_estadoP = ?";
-            $params[] = $filtro;
-            $types   .= "i";
-        }
-
-        // --- Filtro de búsqueda ---
-        if (!empty($buscar)) {
-            $where[] = "proy.titulo LIKE ?";
-            $params[] = "%$buscar%";
-            $types   .= "s";
-        }
-
-        // --- WHERE dinámico ---
-        $sql = $base;
-        if (count($where) > 0) {
-            $sql .= " WHERE " . implode(" AND ", $where);
-        }
-
-        // --- Agrupación, orden y límite ---
-        $sql .= "
-        GROUP BY proy.id_proyectos
-        ORDER BY proy.id_proyectos ASC
-        LIMIT ?, ?
-    ";
-
-        $params[] = $desde;
-        $params[] = $por_pagina;
-        $types   .= "ii";
-
-        // --- Ejecutar consulta ---
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
+        $stmt->bind_param("i", $id);
         $stmt->execute();
-        $filas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        // --- Respuesta final ---
-        return json_encode([
-            "proyectos" => $filas,
-            "paginacion" => [
-                "total_proyectos" => $total_proyectos,
-                "por_pagina"      => $por_pagina,
-                "pagina"          => $pagina,
-                "total_paginas"   => $total_paginas
-            ]
-        ]);
+        return $stmt->get_result()->fetch_assoc()['total'];
     }
 
-    //OBTENER LA CANTIDAD DE PROYECTOS
-    public function obtenerCantidadProyectos($id, $numerofiltro, $rol, $buscar = null)
+    /******************************************************************
+     * RECHAZAR SOLICITUD
+     ******************************************************************/
+    public function actualizarEstadoSolicitudRechazo($id_usuario, $id_solicitud_proyecto, $tipo, $comentario)
     {
+        // UPDATE CORRECTO (SIN COMA ANTES DE WHERE)
+        $sql = "UPDATE solicitud_proyecto 
+                SET estado = ? 
+                WHERE id_solicitud_proyecto = ?";
 
-        if ($numerofiltro == 0) {
-            // Si el filtro es 0 (Total), no aplicamos ninguna condición adicional
-            switch ($rol) {
-                case 'estudiante':
-                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
-JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
-JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
-WHERE estu.id_usuario = ?";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("si", $tipo, $id_solicitud_proyecto);
+        $stmt->execute();
 
-                    $params = [$id];
-                    $types  = "i";
+        // INSERTAR COMENTARIO
+        $sql = "INSERT INTO comentarios_solicitud 
+                (id_solicitud_proyecto, id_usuario, comentario)
+                VALUES (?, ?, ?)";
 
-                    if (!empty($buscar)) {
-                        $sql .= " AND proy.titulo LIKE ?";
-                        $params[] = "%$buscar%";
-                        $types   .= "s";
-                    }
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("iis", $id_solicitud_proyecto, $id_usuario, $comentario);
+        $stmt->execute();
 
-                    $stmt = $this->con->prepare($sql);
-                    break;
-                case 'investigador':
-                case 'profesor':
-                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
-JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
-WHERE proy.id_investigador = ?";
+        header("Location: tabla.php?msg=rechazada");
+        exit;
+    }
 
-                    $params = [$id];
-                    $types  = "i";
+    /******************************************************************
+     * ACEPTAR / CAMBIAR ESTADO
+     ******************************************************************/
+    public function actualizarestado($id_solicitud_proyecto, $estado)
+    {
+        // 1) Actualizar estado de la solicitud
+        $sql = "UPDATE solicitud_proyecto 
+            SET estado = ? 
+            WHERE id_solicitud_proyecto = ?";
 
-                    if (!empty($buscar)) {
-                        $sql .= " AND proy.titulo LIKE ?";
-                        $params[] = "%$buscar%";
-                        $types   .= "s";
-                    }
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("si", $estado, $id_solicitud_proyecto);
+        $stmt->execute();
 
-                    $stmt = $this->con->prepare($sql);
-                    break;
-                case 'supervisor':
-                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy WHERE 1";
-                    $params = [];
-                    $types  = "";
 
-                    if (!empty($buscar)) {
-                        $sql .= " AND proy.titulo LIKE ?";
-                        $params[] = "%$buscar%";
-                        $types   .= "s";
-                    }
+        // SOLO insertar en proyectos_usuarios si se aceptó
+        if ($estado === "aceptado") {
 
-                    $stmt = $this->con->prepare($sql);
+            // 2) Obtener id_proyectos y id_estudiante desde la solicitud
+            $sql = "SELECT id_proyectos, id_estudiante 
+                FROM solicitud_proyecto 
+                WHERE id_solicitud_proyecto = ?";
 
-                    break;
-                default:
-                    break; // Retorna 0 si el rol no es válido
-            }
-
-            if (!empty($params)) {
-                $stmt->bind_param($types, ...$params);
-            } else {
-                // No hay parámetros para enlazar
-            }
+            $stmt = $this->con->prepare($sql);
+            $stmt->bind_param("i", $id_solicitud_proyecto);
             $stmt->execute();
-            $resultado = $stmt->get_result()->fetch_assoc();
-            return $resultado['total_proyectos'];   // OBTENER EL NUMERO TOTAL DE PROYECTOS
-        } else {
-            switch ($rol) {
-                case 'estudiante':
-                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
-JOIN proyectos_usuarios as prus ON proy.id_proyectos = prus.id_proyectos
-JOIN estudiantes as estu ON prus.id_usuarios = estu.id_usuario
-WHERE estu.id_usuario = ? AND proy.id_estadoP = ?";
 
-                    $params = [$id, $numerofiltro];
-                    $types  = "ii";
+            $res = $stmt->get_result()->fetch_assoc();
 
-                    if (!empty($buscar)) {
-                        $sql .= " AND proy.titulo LIKE ?";
-                        $params[] = "%$buscar%";
-                        $types   .= "s";
-                    }
+            $id_proyecto = $res['id_proyectos'];
+            $id_estudiante = $res['id_estudiante'];
+            $fecha_asignacion = date("Y-m-d");
 
-                    $stmt = $this->con->prepare($sql);
-                    $stmt->bind_param($types, ...$params);
-                    break;
-                case 'investigador':
-                case 'profesor':
-                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
-JOIN investigadores as inv ON inv.id_usuario = proy.id_investigador
-WHERE proy.id_investigador = ? AND proy.id_estadoP = ?";
 
-                    $params = [$id, $numerofiltro];
-                    $types  = "ii";
+            // 3) Insertar en proyectos_usuarios
+            $sql = "INSERT INTO proyectos_usuarios 
+                (id_proyectos, id_usuarios, fecha_asignacion, estado)
+                VALUES (?, ?, ?, 'activo')";
 
-                    if (!empty($buscar)) {
-                        $sql .= " AND proy.titulo LIKE ?";
-                        $params[] = "%$buscar%";
-                        $types   .= "s";
-                    }
-
-                    $stmt = $this->con->prepare($sql);
-                    $stmt->bind_param($types, ...$params);
-                    break;
-                case 'supervisor':
-                    $sql = "SELECT COUNT(*) AS total_proyectos FROM gestion_proyectos.proyectos as proy 
-WHERE proy.id_estadoP = ?";
-
-                    $params = [$numerofiltro];
-                    $types  = "i";
-
-                    if (!empty($buscar)) {
-                        $sql .= " AND proy.titulo LIKE ?";
-                        $params[] = "%$buscar%";
-                        $types   .= "s";
-                    }
-
-                    $stmt = $this->con->prepare($sql);
-                    $stmt->bind_param($types, ...$params);
-                    break;
-                default:
-                    break; // Retorna 0 si el rol no es válido
-            }
+            $stmt = $this->con->prepare($sql);
+            $stmt->bind_param("iis", $id_proyecto, $id_estudiante, $fecha_asignacion);
             $stmt->execute();
-            $resultado = $stmt->get_result()->fetch_assoc();
-            return $resultado['total_proyectos'];   // OBTENER EL NUMERO TOTAL DE PROYECTOS
         }
+
+        // Redirección
+        header("Location: tabla.php?msg=actualizada");
+        exit;
     }
 
-    public function tematica()
+
+    /******************************************************************
+     * OBTENER COMENTARIOS (CORREGIDO)
+     ******************************************************************/
+    public function obtenerSolicitudComentarios($id_solicitud)
     {
-        $sql = "SELECT id_tematica, nombre_tematica FROM gestion_proyectos.tematica;";
+        $sql = "SELECT *
+                FROM comentarios_solicitud
+                WHERE id_solicitud_proyecto = ?
+                ORDER BY id_comentario DESC";
 
         $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_solicitud);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-
-    public function obtenersubtematica($id_tematica)
-    {
-        $sql = "SELECT DISTINCT sub.id_subtematica, sub.nombre_subtematica FROM gestion_proyectos.subtematica as sub
-JOIN tematica as te ON sub.id_tematica = te.id_tematica
-JOIN proyectos_subtematica as ps ON sub.id_subtematica = ps.id_subtematica
-WHERE te.id_tematica = ?";
-
-        $params = [$id_tematica];
-        $types  = "i";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    public function obtenersubtematicasProyecto($id_proyecto)
-    {
-        $sql = "SELECT sub.id_subtematica FROM proyectos_subtematica as sub
-JOIN subtematica as sub2 ON sub.id_subtematica = sub2.id_subtematica
-WHERE sub.id_proyectos = ?";
-
-        $params = [$id_proyecto];
-        $types  = "i";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-        public function obtenersubtematicas($id_tematica)
-    {
-        $sql = "SELECT sub.id_subtematica, sub.nombre_subtematica FROM tematica as tema
-JOIN subtematica as sub ON tema.id_tematica = sub.id_tematica
-WHERE sub.id_tematica = ?";
-
-        $params = [$id_tematica];
-        $types  = "i";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    public function obtenerperiodo()
+    /******************************************************************
+     * OBTENER DATOS COMPLETOS DE SOLICITUD (NUEVO)
+     ******************************************************************/
+    public function obtenerDatosCompletosolicitud($id_solicitud)
     {
         $sql = "SELECT 
-        id_periodos,
-        periodo,
-        fecha_inicio AS FechaInicio,
-        fecha_final AS FechaFinal,
-    CASE 
-        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
-        ELSE 'Terminado'
-    END AS estado
-FROM periodos ORDER BY periodo DESC
-LIMIT 1;";
+                sp.id_solicitud_proyecto,
+                sp.estado,
+                sp.fecha_envio,
+                sp.carta_presentacion,
+                sp.carta_aceptacion,
+                sp.motivacion,
+                sp.experiencia,
+                sp.promedio,
+                sp.semestre,
+                u.nombre,
+                u.apellido_paterno,
+                u.apellido_materno,
+                u.correo_institucional,
+                u.telefono,
+                u.fecha_nacimiento,
+                e.matricula,
+                c.nombre_carrera,
+                a.nombre_area,
+                p.titulo AS proyecto_titulo,
+                p.descripcion AS proyecto_descripcion
+            FROM solicitud_proyecto sp
+            INNER JOIN usuarios u ON sp.id_estudiante = u.id_usuarios
+            LEFT JOIN estudiantes e ON sp.id_estudiante = e.id_usuario
+            LEFT JOIN carreras c ON e.id_carrera = c.id_carrera
+            LEFT JOIN areas a ON e.id_area = a.id_area
+            INNER JOIN proyectos p ON sp.id_proyectos = p.id_proyectos
+            WHERE sp.id_solicitud_proyecto = ?
+            LIMIT 1";
 
-        $stmt = $this->con->prepare($sql);
-
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    public function obtenerinstituto()
-    {
-        $sql = "SELECT id_instituto FROM gestion_proyectos.instituto ORDER BY id_instituto DESC LIMIT 1;";
-
-        $stmt = $this->con->prepare($sql);
-
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    //INSERCION DE PROYECTOS
-    public function registrarProyecto($id_investigador, $id_estadoP, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
-    {
-
-        $sql = "INSERT INTO proyectos 
-(id_investigador, id_estadoP, id_instituto, id_periodos, titulo, descripcion, objetivo, fecha_inicio, fecha_fin, presupuesto, actualizado_en, requisitos, pre_requisitos, modalidad, cantidad_estudiante)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         $stmt = $this->con->prepare($sql);
         if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
+            error_log("Error en prepare: " . $this->con->error);
+            return null;
         }
-        $stmt->bind_param(
-            "iiiisssssssssi",
-            $id_investigador,
-            $id_estadoP,
-            $id_instituto,
-            $id_periodos,
-            $titulo,
-            $descripcion,
-            $objetivo,
-            $fecha_inicio,
-            $fecha_final,
-            $presupuesto,
-            $requisitos,
-            $Pre_requisitos,
-            $modalidad,
-            $AlumnosCantidad,
 
-        );
-
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
+        $stmt->bind_param("i", $id_solicitud);
 
         if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
-        return $stmt->insert_id;
-    }
-
-    public function vincularSubtematica($id_proyecto, $id_subtematica)
-    {
-        $sql = "INSERT INTO proyectos_subtematica (id_proyectos, id_subtematica) VALUES (?, ?)";
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-        $stmt->bind_param("ii", $id_proyecto, $id_subtematica);
-
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
+            error_log("Error en execute: " . $stmt->error);
+            return null;
         }
 
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
-    }
-
-    //ACTUALIZAR PROYECTO
-    public function editarProyecto($id_proyecto, $id_investigador, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
-    {
-        $sql = "UPDATE proyectos SET 
-                titulo = ?,
-                descripcion = ?,
-                objetivo = ?,
-                pre_requisitos = ?,
-                requisitos = ?,
-                cantidad_estudiante = ?,
-                modalidad = ?,
-                actualizado_en = NOW(),
-                presupuesto = ?,
-                fecha_inicio = ?,
-                fecha_fin = ?
-            WHERE id_proyectos = ? AND id_investigador = ?";
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-        $stmt->bind_param(
-            "sssssisissii",
-            $titulo,
-            $descripcion,
-            $objetivo,
-            $Pre_requisitos,
-            $requisitos,
-            $AlumnosCantidad,
-            $modalidad,
-            $presupuesto,
-            $fecha_inicio,
-            $fecha_final,
-            $id_proyecto,
-            $id_investigador
-        );
-
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
-    }
-
-    public function ActualizarvincularSubtematica($id_proyecto, $id_subtematica)
-    {
-        $sql = "UPDATE proyectos_subtematica SET id_subtematica=? WHERE id_proyectos=?";
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-        $stmt->bind_param("ii", $id_subtematica, $id_proyecto);
-
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
-    }
-
-
-    //ACCIÓN DE RECHAZO DE CIERRE
-    public function actualizarEstadoProyectoRechazo($id_usuario, $id_proyectos, $tipo, $comentario)
-    {
-        //Actualizar estado
-        if ($tipo == "cierre_rechazado") {
-            $num_motivo = 7;
-        } else if ($tipo == "creacion_rechazada") {
-            $num_motivo = 4;
-        }
-
-        $sql = "UPDATE proyectos SET id_estadoP = ?, actualizado_en = NOW() WHERE id_proyectos = ?";
-        $stmt = $this->con->prepare($sql);
-
-        $stmt->bind_param("ii", $num_motivo, $id_proyectos);
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
-        // Insertar comentario
-        $sql = "INSERT INTO proyectos_comentarios 
-            (id_proyectos, id_usuario, tipo, comentario, fecha)
-            VALUES (?, ?, ?, ?, CURDATE())";
-
-        $stmt = $this->con->prepare($sql);
-
-        $stmt->bind_param("iiss", $id_proyectos, $id_usuario, $tipo, $comentario);
-
-
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
-
-        //Actualizar estado de cirrer (si esta es rechazo cierre)
-        if ($tipo == "cierre_rechazado") {
-            // Actualizar tbl_cierres
-            $sql = "UPDATE tbl_cierres
-            SET fecha_resultado = CURDATE(), estado = ? 
-            WHERE id_proyectos = ?";
-            $estado = "rechazado";
-            $stmtSeg = $this->con->prepare($sql);
-            $stmtSeg->bind_param("si", $estado, $id_proyectos);
-            $stmtSeg->execute();
-        }
-    }
-
-    public function actualizarestado($id_proyectos, $numeroEstado, $porcentaje = null)
-    {
-
-        // 1. Actualizar estado
-        $sql = "UPDATE proyectos 
-            SET id_estadoP = ?, actualizado_en = NOW() 
-            WHERE id_proyectos = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-
-        $stmt->bind_param("ii", $numeroEstado, $id_proyectos);
-
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
-        // 2. Si estado = 2, crear tareas
-        $estado = "";
-        if ($numeroEstado == 2) {
-
-            // Obtener tipos reales de tareas
-            $sqlTipos = "SELECT id_tareatipo FROM tipo_tarea ORDER BY id_tareatipo ASC";
-            $result = $this->con->query($sqlTipos);
-
-            // INSERT tbl_seguimiento
-            $sqlSeg = "INSERT INTO tbl_seguimiento 
-                    (id_proyectos, fecha_activacion) 
-                    VALUES (?,  CURDATE())";
-
-            $stmtSeg = $this->con->prepare($sqlSeg);
-            $stmtSeg->bind_param("i", $id_proyectos);
-            $stmtSeg->execute();
-
-            $id_avances = $stmtSeg->insert_id;
-
-            if ($result->num_rows > 0) {
-
-                while ($row = $result->fetch_assoc()) {
-                    $id_tipo = $row['id_tareatipo'];
-
-                    // INSERT tareas
-                    $sqlTarea = "INSERT INTO tareas 
-                    (id_avances, id_tipotarea, id_estadoT)
-                    VALUES (?, ?, ?)";
-                    $estado = 4;
-                    $stmtTarea = $this->con->prepare($sqlTarea);
-                    $stmtTarea->bind_param("iii", $id_avances, $id_tipo, $estado);
-                    $stmtTarea->execute();
-                }
-            }
-            //Por cerrar, insertar datos a tbl_cierres
-        } else if ($numeroEstado == 5) {
-            $sql_investigador = "SELECT id_investigador FROM proyectos WHERE id_proyectos = ?";
-            $stmtInvestigador = $this->con->prepare($sql_investigador);
-            $stmtInvestigador->bind_param("i", $id_proyectos);
-            $stmtInvestigador->execute();
-            $result = $stmtInvestigador->get_result();
-            $estado = "espera";
-
-            if ($row = $result->fetch_assoc()) {
-
-                // INSERT tbl_seguimiento
-                $sqlSeg = "INSERT INTO tbl_cierres 
-                    (id_proyectos, id_supervisor, fecha_solicitud, porcentaje, estado) 
-                    VALUES (?, ?, CURDATE(), ?, ?)";
-
-                $stmtSeg = $this->con->prepare($sqlSeg);
-                $stmtSeg->bind_param("iiis", $id_proyectos, $row['id_investigador'], $porcentaje,  $estado);
-                $stmtSeg->execute();
-            }
-        } else if ($numeroEstado == 1) { //Cierre
-            $sql_investigador = "SELECT id_investigador FROM proyectos WHERE id_proyectos = ?";
-            $stmtInvestigador = $this->con->prepare($sql_investigador);
-            $stmtInvestigador->bind_param("i", $id_proyectos);
-            $result = $this->con->query($stmtInvestigador);
-
-            if ($row = $result->fetch_assoc()) {
-
-                // Actualizar tbl_cierres
-                $sql = "UPDATE tbl_cierres
-            SET fecha_resultado = CURDATE(), estado = ? 
-            WHERE id_proyectos = ?";
-                $estado = "aprobado";
-                $stmtSeg = $this->con->prepare($sql);
-                $stmtSeg->bind_param("si", $estado, $id_proyectos);
-                $stmtSeg->execute();
-
-                // Actualizar proyectos_usuarios
-                $sql = "UPDATE proyectos_usuarios
-            SET fecha_terminacion = CURDATE(), estado = ? 
-            WHERE id_proyectos = ?";
-                $estado = "concluido";
-                $stmtSeg = $this->con->prepare($sql);
-                $stmtSeg->bind_param("si", $estado, $id_proyectos);
-                $stmtSeg->execute();
-            }
-        }
-    }
-
-    //Para la operación de porcentaje de avance
-    function valorPorEstado($estado)
-    {
-        switch ($estado) {
-            case 5:
-                return 100;
-            case 2:
-                return 50;
-            case 3:
-                return 50;
-            case 1:
-            case 4:
-            case 6:
-                return 0;
-            default:
-                return 0;
-        }
-    }
-
-    //Obtener información de las tareas para calcular el porcentaje
-    public function obtenerTareasAvance($id_proyecto)
-    {
-        $sql = "SELECT taus.id_estadoT FROM tareas_usuarios as taus
-        JOIN tareas as tare ON tare.id_tarea = taus.id_tarea
-        JOIN tbl_seguimiento as tbse ON tare.id_avances = tbse.id_avances
-        WHERE tbse.id_proyectos = ? AND taus.id_estadoT=5"; //5 es aprobado
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_proyecto);
-        $stmt->execute();
         $result = $stmt->get_result();
-        $totalTareas = 11; // número total de tareas
-        $suma = 0;
+        $data = $result->fetch_assoc();
+        $stmt->close();
 
-        while ($row = $result->fetch_assoc()) {
-            $suma += $this->valorPorEstado($row['id_estadoT']);
-        }
-
-        $porcentaje = min(100, ($suma / $totalTareas) * 100);
-        $porcentaje = round($porcentaje, 2);
-        return $porcentaje;
-    }
-
-
-    //DETALLES DEL PROYECTO
-    function obtenerProyecto($id_proyecto)
-    {
-        $sql = "SELECT 
-    proy.id_proyectos,
-    espr.nombre AS estado_proyecto,
-    tema.nombre_tematica AS tematica,
-    peri.periodo,
-
-    CASE 
-        WHEN CURDATE() BETWEEN peri.fecha_inicio AND peri.fecha_final THEN 'Activo'
-        WHEN CURDATE() < peri.fecha_inicio THEN 'Pendiente'
-        ELSE 'Terminado'
-    END AS estado_periodo,
-
-    proy.titulo,
-    proy.descripcion,
-    proy.objetivo,
-    proy.fecha_inicio,
-    proy.fecha_fin,
-    proy.presupuesto,
-    proy.creado_en,
-    proy.requisitos,
-    proy.pre_requisitos,
-    proy.modalidad,
-    proy.cantidad_estudiante 
-
-FROM proyectos AS proy
-
-JOIN estados_proyectos AS espr 
-    ON proy.id_estadoP = espr.id_estadoP
-
-LEFT JOIN proyectos_subtematica AS prsu 
-    ON proy.id_proyectos = prsu.id_proyectos
-
-LEFT JOIN subtematica AS subt 
-    ON prsu.id_subtematica = subt.id_subtematica
-
-LEFT JOIN tematica AS tema 
-    ON subt.id_tematica = tema.id_tematica
-
-JOIN periodos AS peri 
-    ON peri.id_periodos = proy.id_periodos
-
-WHERE proy.id_proyectos = ?
-LIMIT 1;
-";
-
-        $params = [$id_proyecto];
-        $types  = "i";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    function obtenerProyectoInvestigador($id_proyecto)
-    {
-        $sql = "SELECT usua.nombre, usua.apellido_paterno, usua.apellido_materno, arco.nombre_area as area_conocimiento, subco.nombre_subarea as subarea, nisn.nombre as nivel_sni, grac.nombre as grado_academico, liin.nombre as linea_investigacion  FROM gestion_proyectos.investigadores as inve
-JOIN usuarios as usua ON usua.id_usuarios = inve.id_usuario
-JOIN areas_conocimiento as arco ON arco.id_area = inve.id_area
-JOIN subareas_conocimiento as subco ON arco.id_area = subco.id_area
-JOIN niveles_sni as nisn ON nisn.id_nivel = inve.id_nivel_sni
-JOIN grados_academicos as grac ON grac.id_grado = inve.id_grado
-JOIN lineas_investigacion as liin ON liin.id_linea = inve.id_linea
-JOIN proyectos as proy ON proy.id_investigador = inve.id_usuario
-WHERE proy.id_proyectos = ?;";
-
-        $params = [$id_proyecto];
-        $types  = "i";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    function obtenerProyectoEstudiante($id_proyecto)
-    {
-        $sql = "SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno, carr.nombre_carrera as carrera, arco.nombre_area as area, subco.nombre_subarea as subarea FROM gestion_proyectos.estudiantes as estu 
-JOIN usuarios AS usua ON usua.id_usuarios = estu.id_usuario
-JOIN areas_conocimiento as arco ON arco.id_area = estu.id_area
-JOIN subareas_conocimiento as subco ON arco.id_area = subco.id_area
-JOIN carreras as carr ON carr.id_carrera = estu.id_carrera
-JOIN proyectos_usuarios as prus ON prus.id_usuarios = estu.id_usuario
-JOIN proyectos as proy ON proy.id_proyectos = prus.id_proyectos
-WHERE proy.id_proyectos = ?;";
-
-        $params = [$id_proyecto];
-        $types  = "i";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
-    public function obtenerProyectoComentarios($id_proyecto)
-    {
-        $sql = "SELECT CASE 
-        WHEN prco.tipo = 'creacion_rechazada' THEN 'Creación rechazada'
-        WHEN prco.tipo = 'cierre_rechazado' THEN 'Cierre rechazada'
-        ELSE 'Rechazo'
-    END AS tipo, CONCAT(usua.nombre, ' ', usua.apellido_paterno, ' ', usua.apellido_materno) as nombre_completo, prco.comentario, prco.fecha FROM gestion_proyectos.proyectos_comentarios as prco
-JOIN proyectos as proy ON proy.id_proyectos = prco.id_proyectos
-JOIN usuarios as usua ON usua.id_usuarios = prco.id_usuario
-Where proy.id_proyectos = ? ORDER BY fecha DESC;";
-
-        $params = [$id_proyecto];
-        $types  = "i";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $data;
     }
 }
