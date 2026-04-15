@@ -10,9 +10,7 @@ class Solicitud
         $this->con = $conn;
     }
 
-    // ===========================
     // RESUMEN
-    // ===========================
     public function resumen(int $id): array
     {
         $sql = "
@@ -35,9 +33,7 @@ class Solicitud
         return $stmt->get_result()->fetch_assoc() ?? [];
     }
 
-    // ===========================
     // CONTAR
-    // ===========================
     public function contarSolicitudes(int $id, array $f): int
     {
         [$where, $params, $types] = $this->construirWhere($id, $f);
@@ -59,9 +55,7 @@ class Solicitud
         return $stmt->get_result()->fetch_row()[0] ?? 0;
     }
 
-    // ===========================
     // LISTADO
-    // ===========================
     public function obtenerSolicitudes(int $id, array $f, int $desde, int $limite): array
     {
         [$where, $params, $types] = $this->construirWhere($id, $f);
@@ -119,9 +113,7 @@ class Solicitud
         return [$where, $params, $types];
     }
 
-    // ===========================
     // DETALLE
-    // ===========================
     public function obtenerDetalle(int $id)
     {
         $sql = "
@@ -148,9 +140,7 @@ class Solicitud
         return $stmt->get_result()->fetch_assoc();
     }
 
-    // ===========================
     // PERMISO
-    // ===========================
     public function verificarPermiso(int $id, int $inv): bool
     {
         $sql = "
@@ -168,9 +158,7 @@ class Solicitud
         return $stmt->get_result()->fetch_row()[0] > 0;
     }
 
-    // ===========================
     // CAMBIOS
-    // ===========================
     public function marcarEnRevision(int $id): bool
     {
         $stmt = $this->con->prepare("
@@ -193,7 +181,55 @@ class Solicitud
         return $stmt->execute();
     }
 
-    public function pedirCorrecciones(int $id, int $user, string $com, $ruta=null, $nombre=null): bool
+    //En conjunto para activar las actividades cuando se acepta el estudiante en el proyecto
+    public function obtenerDatosSolicitud($id_solicitud)
+    {
+        $sql = "SELECT id_usuarios, id_proyectos 
+            FROM solicitudes 
+            WHERE id_solicitud = ?";
+
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_solicitud);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    //Vincular al estudiante con las actividades
+        public function vincularTareasAlNuevoEstudiante($id_proyecto, $id_usuario)
+    {
+        // Insertar todas las tareas del proyecto para ese usuario
+        $sql = "INSERT INTO tareas_usuarios (id_tarea, id_usuarios, id_estadoT)
+        SELECT t.id_tarea, ?, 1
+        FROM tareas t
+        WHERE t.id_proyectos = ?
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM tareas_usuarios tu
+            WHERE tu.id_tarea = t.id_tarea
+            AND tu.id_usuarios = ?
+        )
+    ";
+
+        $stmt = $this->con->prepare($sql);
+
+        if ($stmt === false) {
+            error_log("MySQL prepare failed: " . $this->con->error);
+            throw new Exception("Error al preparar consulta.");
+        }
+
+        $stmt->bind_param("iii", $id_usuario, $id_proyecto, $id_usuario);
+        $stmt->execute();
+
+        if ($stmt->error) {
+            error_log("MySQL execute error: " . $stmt->error);
+            throw new Exception("Error al vincular tareas.");
+        }
+
+        $stmt->close();
+    }
+
+    public function pedirCorrecciones(int $id, int $user, string $com, $ruta = null, $nombre = null): bool
     {
         $stmt = $this->con->prepare("
             UPDATE solicitud_proyecto
@@ -204,7 +240,7 @@ class Solicitud
         return $stmt->execute();
     }
 
-    public function rechazar(int $id, int $user, string $com, $ruta=null, $nombre=null): bool
+    public function rechazar(int $id, int $user, string $com, $ruta = null, $nombre = null): bool
     {
         $stmt = $this->con->prepare("
             UPDATE solicitud_proyecto
@@ -228,7 +264,7 @@ class Solicitud
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-        // -------------------------------------------------------------
+    // -------------------------------------------------------------
     // Enviar correcciones (estudiante)
     // -------------------------------------------------------------
     public function enviarCorrecciones($id, $usuario, $comentario, $x, $ruta, $nombre)
@@ -243,7 +279,7 @@ class Solicitud
         return $stmt->execute();
     }
 
-        public function proyectosDelInvestigador(int $id): array
+    public function proyectosDelInvestigador(int $id): array
     {
         $stmt = $this->con->prepare("SELECT id_proyectos, titulo FROM proyectos WHERE id_investigador=?");
         $stmt->bind_param("i", $id);
@@ -252,7 +288,7 @@ class Solicitud
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-     public function getEtapasPorProyecto(int $id_proyecto, int $id_usuario): array
+    public function getEtapasPorProyecto(int $id_proyecto, int $id_usuario): array
     {
         $sql = "SELECT 
     e.*,

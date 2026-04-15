@@ -478,7 +478,6 @@ class TareaControlador
 
             global $conn;
             $tarea = new Tarea($conn);
-            $tarea->VincularTareasAntiguas($id_proyectos, $id_tarea);
             $tarea->actualizarTareasVencidos();
 
             // pasar NULL si no subieron archivo para NO sobreescribir
@@ -602,7 +601,6 @@ class TareaControlador
         $tarea = new Tarea($conn);
 
         $tarea->actualizarTareasVencidos();
-        $tarea->VincularTareasAntiguas($id_proyectos, $id_tarea);
         $numeroEstado = $this->numerofiltro($tipo);
 
         $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios);

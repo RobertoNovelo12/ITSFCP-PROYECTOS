@@ -160,13 +160,10 @@ class solicitudesControlador
         ]);
     }
 
-    // ----------------------------------------------------------------
     // aceptar — POST AJAX
-    // ----------------------------------------------------------------
 
     public function aceptar(): void
     {
-
         $this->soloInvestigador($this->rol());
 
         global $conn;
@@ -180,12 +177,40 @@ class solicitudesControlador
             $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
         }
 
-        $ok = $Solicitudes->aceptar($id, $this->idUsuario());
+        $conn->begin_transaction();
 
-        $this->json([
-            'ok'  => $ok,
-            'msg' => $ok ? 'Solicitud aceptada.' : 'Error al aceptar.'
-        ]);
+        try {
+            // 1. Obtener datos antes de aceptar
+            $datos = $Solicitudes->obtenerDatosSolicitud($id);
+
+            // 2. Aceptar solicitud
+            $ok = $Solicitudes->aceptar($id, $this->idUsuario());
+
+            if (!$ok) {
+                throw new Exception("Error al aceptar solicitud");
+            }
+
+            // 3. Vincular tareas existentes al nuevo estudiante
+            $Solicitudes->vincularTareasAlNuevoEstudiante(
+                $datos['id_proyectos'],
+                $datos['id_usuarios']
+            );
+
+            $conn->commit();
+
+            $this->json([
+                'ok'  => true,
+                'msg' => 'Solicitud aceptada y tareas vinculadas.'
+            ]);
+        } catch (Exception $e) {
+            $conn->rollback();
+            error_log($e->getMessage());
+
+            $this->json([
+                'ok'  => false,
+                'msg' => 'Error en el proceso.'
+            ]);
+        }
     }
 
     // ----------------------------------------------------------------
