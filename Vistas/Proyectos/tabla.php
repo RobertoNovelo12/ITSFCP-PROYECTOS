@@ -37,7 +37,7 @@ if (!is_array($resultado)) {
 $proyectos = $resultado['proyectos'] ?? [];
 
 $paginacion = $resultado['paginacion'] ?? [
-    'total_proyectos' => count($proyectos),
+    'total' => count($proyectos),
     'por_pagina' => 6,
     'pagina' => $pagina,
     'total_paginas' => max(1, ceil(count($proyectos) / 6))
@@ -233,13 +233,13 @@ include __DIR__ . '/../../mensaje.php';
 
                             <?php
                             $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                            $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total_proyectos']);
+                            $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
                             ?>
 
                             <!-- TEXTO -->
                             <li class="page-item disabled">
                                 <span class="page-link">
-                                    Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total_proyectos'] ?> entradas
+                                    Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total'] ?> entradas
                                 </span>
                             </li>
 

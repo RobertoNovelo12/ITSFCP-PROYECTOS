@@ -45,8 +45,7 @@ finfo_close($finfo);
 // Headers
 header("Content-Description: File Transfer");
 header("Content-Type: " . $mime);
-header("Content-Disposition: attachment; filename=\"" . basename($ruta) . "\"");
-header("Content-Length: " . filesize($ruta));
+header("Content-Disposition: attachment; filename=\"" . $file['nombre_archivo'] . "\"");header("Content-Length: " . filesize($ruta));
 header("Pragma: public");
 
 // Enviar archivo

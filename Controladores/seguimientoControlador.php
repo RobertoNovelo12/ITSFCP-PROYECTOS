@@ -192,11 +192,22 @@ class SeguimientoControlador
         }
 
         $archivo = $_FILES['documento'];
-        $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
 
-        if (!in_array($extension, ['pdf', 'docx'], true)) {
-            $this->json(['ok' => false, 'msg' => 'Solo PDF o DOCX.'], 422);
+        //VALIDAR ARCHIVO CON MIME Y EVITAR ARCHIVOS CON VIRUS
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $archivo['tmp_name']);
+        finfo_close($finfo);
+
+        $extensionesValidas = [
+            'application/pdf' => 'pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx'
+        ];
+
+        if (!isset($extensionesValidas[$mime])) {
+            $this->json(['ok' => false, 'msg' => 'Tipo de archivo no válido.'], 422);
         }
+
+        $extension = $extensionesValidas[$mime];
 
         if ($archivo['size'] > 10 * 1024 * 1024) {
             $this->json(['ok' => false, 'msg' => 'Máx 10MB.'], 422);
@@ -214,6 +225,10 @@ class SeguimientoControlador
         }
 
         $id_seguimiento = $id_seguimiento_previo;
+
+        if (!$this->modelo->verificarProyectoUsuario($id_proyecto, $id_usuario)) {
+            $this->json(['ok' => false, 'msg' => 'No autorizado para este proyecto'], 403);
+        }
 
         if (!$id_seguimiento) {
             $id_seguimiento = $this->modelo->crearSeguimiento(

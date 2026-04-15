@@ -137,12 +137,23 @@ ob_start();
 
                                     <div class="docs-adjuntos">
 
+                                        <?php if (($etapa['plantilla'] == 1) && (!empty($etapa['id_plantilla']))) { ?>
+                                            <a href="descargar_plantilla.php?id_plantilla=<?= $etapa['id_plantilla'] ?>" class="doc-descargar">
+                                                ⬇ Descargar
+                                            </a>
+                                        <?php } elseif ($etapa['plantilla'] == 0) { ?>
+                                        <?php } else { ?>
+                                            <span class="text-muted small">
+                                                Sin plantilla disponible
+                                            </span>
+                                        <?php } ?>
+
                                         <?php if ($etapa['requiere_subida'] && !$bloqueada): ?>
                                             <form method="POST" action="?action=subirDocumento" enctype="multipart/form-data">
                                                 <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
                                                 <input type="hidden" name="id_tipo_documento" value="<?= $etapa['id_tipo_documento'] ?>">
 
-                                                <label class="doc-subir">
+                                                <label class="btn btn-sm btn-success">
                                                     ⬆ Subir
                                                     <input type="file" name="documento" hidden onchange="this.form.submit()">
                                                 </label>

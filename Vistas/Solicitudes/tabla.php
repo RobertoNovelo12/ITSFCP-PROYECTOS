@@ -244,62 +244,6 @@ include __DIR__ . '/../../mensaje.php';
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     MODAL — DETALLE DE SOLICITUD
-══════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalDetalle" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-file-text-fill me-2"></i>Detalle de solicitud</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-
-                <!-- Skeleton mientras carga -->
-                <div id="detalleCargando" class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <div class="mt-2 text-muted">Cargando…</div>
-                </div>
-
-                <!-- Contenido real -->
-                <div id="detalleContenido" style="display:none">
-
-                    <!-- Datos estudiante + proyecto -->
-                    <div class="row g-3 mb-3" id="detalleInfo"></div>
-
-                    <!-- Sección de etapas del seguimiento -->
-                    <hr>
-                    <h6 class="fw-semibold mb-2">
-                        <i class="bi bi-list-check me-1"></i>Estado en el seguimiento de documentación
-                    </h6>
-                    <div id="detalleEtapas" class="mb-3"></div>
-
-                    <!-- Hilo de comentarios -->
-                    <hr>
-                    <h6 class="fw-semibold mb-2">
-                        <i class="bi bi-chat-left-dots-fill me-1"></i>Historial de comentarios
-                    </h6>
-                    <div id="panelComentarios" style="max-height:220px;overflow-y:auto"></div>
-
-                </div>
-            </div>
-            <div class="modal-footer" id="detalleFooter" style="display:none">
-                <button class="btn btn-success btn-sm" id="btnAceptarDetalle">
-                    <i class="bi bi-check-circle-fill me-1"></i>Aceptar
-                </button>
-                <button class="btn btn-warning btn-sm" id="btnCorreccionesDetalle">
-                    <i class="bi bi-pencil-fill me-1"></i>Pedir correcciones
-                </button>
-                <button class="btn btn-danger btn-sm" id="btnRechazarDetalle">
-                    <i class="bi bi-ban me-1"></i>Rechazar
-                </button>
-                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════
      MODAL — ACCIÓN (correcciones / rechazo)
 ══════════════════════════════════════════════════════ -->
 <div class="modal fade" id="modalAccion" tabindex="-1" aria-hidden="true">

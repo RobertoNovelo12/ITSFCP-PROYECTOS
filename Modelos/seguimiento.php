@@ -43,7 +43,8 @@ class SeguimientoModelo
     s.observaciones,
     s.comentario_supervisor,
     td.id_tipo_documento,
-    pd.id_plantilla
+    pd.id_plantilla,
+    e.plantilla_descargable AS plantilla
 FROM etapas_documento e
 
 LEFT JOIN tipo_documento td 
@@ -67,6 +68,20 @@ ORDER BY e.orden;";
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
+    //Validar que usuario sea del proyecto
+    public function verificarProyectoUsuario($id_proyecto, $id_usuario): bool
+{
+    $sql = "SELECT COUNT(*) total
+            FROM proyectos_usuarios
+            WHERE id_proyectos = ? AND id_usuarios = ?";
+
+    $stmt = $this->con->prepare($sql);
+    $stmt->bind_param("ii", $id_proyecto, $id_usuario);
+    $stmt->execute();
+
+    $res = $stmt->get_result()->fetch_assoc();
+    return $res['total'] > 0;
+}
 
     public function crearSeguimiento(int $id_proyecto, int $id_tipo_documento, int $id_usuario): int
     {
