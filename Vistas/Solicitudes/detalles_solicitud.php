@@ -1,15 +1,6 @@
 <?php
-/**
- * Vistas/investigador/detalles_solicitud.php
- *
- * Vista de detalle de solicitud para el investigador.
- * Muestra datos del estudiante, proyecto, motivación, carta compromiso,
- * historial de comentarios Y el panel de seguimiento de las 3 etapas.
- */
-
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
@@ -26,12 +17,10 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
 }
 
 require_once '../../Controladores/solicitudesControlador.php';
-require_once '../../Controladores/seguimientoControlador.php';
 
-$ctrl  = new solicitudesControlador();
-$segCtrl = new SeguimientoControlador();
-
+$ctrl         = new solicitudesControlador();
 $id_solicitud = intval($_GET['id'] ?? 0);
+
 if (!$id_solicitud) {
     header("Location: tabla.php");
     exit;
@@ -40,33 +29,30 @@ if (!$id_solicitud) {
 $data        = $ctrl->detallePagina($id_solicitud, $id_usuario, $rol);
 $sol         = $data['solicitud'];
 $comentarios = $data['comentarios'];
-$etapas_seg  = $data['etapas'];   // etapas de seguimiento_documento (3 fases)
 
-// Datos de seguimiento ampliado (con estado desarrollo y cierre)
-$id_proyecto  = intval($sol['id_proyectos']);
-$id_estudiante= intval($sol['id_estudiante']);
+$id_proyecto   = intval($sol['id_proyectos']);
+$id_estudiante = intval($sol['id_estudiante']);
 
-$seg = $segCtrl->getDatosSeguimientoEstudiante($id_proyecto, $id_estudiante, $id_usuario);
-
-$e1_estado = $seg['e1_estado']; // solicitud integración
-$e2_estado = $seg['e2_estado']; // desarrollo (automático)
-$e3_estado = $seg['e3_estado']; // cierre
-$fase2_ok  = $seg['fase2_ok'];
+// Datos de seguimiento (etapas + documentos)
+$seg           = $ctrl->getDatosSeguimientoEstudiante($id_proyecto, $id_estudiante, $id_usuario);
+$e1_estado     = $seg['e1_estado'];
+$e2_estado     = $seg['e2_estado'];
+$e3_estado     = $seg['e3_estado'];
+$fase2_ok      = $seg['fase2_ok'];
 $id_seg_cierre = $seg['id_seguimiento_cierre'];
 $documentos    = $seg['documentos'];
 
-// ── helper badge ─────────────────────────────────────────────────────────────
 function badgeSeg(string $estado): string {
     $map = [
-        'pendiente'    => ['badge-secondary', 'Pendiente'],
-        'proceso'      => ['badge-primary',   'En revisión'],
-        'completado'   => ['badge-success',   'Aprobado'],
-        'rechazado'    => ['badge-danger',    'Rechazado'],
-        'correcciones' => ['badge-warning text-dark', 'Correcciones'],
-        'aceptado'     => ['badge-success',   'Aceptado'],
-        'en_revision'  => ['badge-info text-dark', 'En revisión'],
+        'pendiente'    => ['bg-secondary',           'Pendiente'],
+        'proceso'      => ['bg-primary',              'En revisión'],
+        'completado'   => ['bg-success',              'Aprobado'],
+        'rechazado'    => ['bg-danger',               'Rechazado'],
+        'correcciones' => ['bg-warning text-dark',    'Correcciones'],
+        'aceptado'     => ['bg-success',              'Aceptado'],
+        'en_revision'  => ['bg-info text-dark',       'En revisión'],
     ];
-    [$cls, $txt] = $map[$estado] ?? ['badge-secondary', $estado];
+    [$cls, $txt] = $map[$estado] ?? ['bg-secondary', $estado];
     return "<span class='badge {$cls}'>{$txt}</span>";
 }
 
@@ -75,10 +61,10 @@ ob_start();
 
 <div class="container-fluid py-4">
 
-    <!-- ── ENCABEZADO ── -->
+    <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
         <div class="col">
-            <h3 class="fw-bold mb-0">Detalle de solicitud</h3>
+            <h3 class="fw-bold mb-0">Detalle de solicitud #<?= $id_solicitud ?></h3>
         </div>
         <div class="col-auto">
             <a href="tabla.php" class="btn btn-secondary btn-sm">
@@ -87,7 +73,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- ── PANEL DE 3 ETAPAS ── -->
+    <!-- ══ PANEL DE 3 ETAPAS ══════════════════════════════════════ -->
     <div class="card shadow-sm mb-4 border-primary">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Seguimiento del estudiante</h5>
@@ -101,7 +87,7 @@ ob_start();
                         <strong class="small">1. Solicitud de integración</strong>
                         <?= badgeSeg($e1_estado) ?>
                     </div>
-                    <p class="text-muted small mb-2">Carta Compromiso firmada y aceptación por el investigador.</p>
+                    <p class="text-muted small mb-2">Carta Compromiso firmada y aceptación del investigador.</p>
 
                     <?php if (in_array($e1_estado, ['pendiente','en_revision','correcciones','proceso'])): ?>
                         <div class="d-flex gap-1 flex-wrap mt-2">
@@ -118,6 +104,14 @@ ob_start();
                                 <i class="bi bi-x-lg"></i> Rechazar
                             </button>
                         </div>
+                    <?php elseif ($e1_estado === 'aceptado'): ?>
+                        <div class="alert alert-success py-1 px-2 mt-2 small mb-0">
+                            <i class="bi bi-check-circle-fill"></i> Integración aceptada.
+                        </div>
+                    <?php elseif ($e1_estado === 'rechazado'): ?>
+                        <div class="alert alert-danger py-1 px-2 mt-2 small mb-0">
+                            <i class="bi bi-ban"></i> Solicitud rechazada.
+                        </div>
                     <?php endif; ?>
                 </div>
 
@@ -127,11 +121,23 @@ ob_start();
                         <strong class="small">2. Desarrollo del documento</strong>
                         <?= badgeSeg($e2_estado) ?>
                     </div>
-                    <p class="text-muted small mb-0">Completado automáticamente cuando el estudiante termina todas las secciones en el sistema.</p>
-
+                    <p class="text-muted small mb-1">
+                        Secciones completadas y aprobadas automáticamente por el sistema.
+                    </p>
+                    <div class="text-muted small mb-2">
+                        <?= $seg['actividades_aprobadas'] ?> / <?= $seg['actividades_total'] ?> actividades aprobadas
+                    </div>
                     <?php if ($fase2_ok): ?>
-                        <div class="alert alert-success py-1 px-2 mt-2 small mb-0">
+                        <div class="alert alert-success py-1 px-2 small mb-0">
                             <i class="bi bi-check-circle-fill"></i> Todas las secciones aprobadas.
+                            La carta de terminación está disponible.
+                        </div>
+                    <?php else: ?>
+                        <div class="prog-track" style="height:6px;background:#e9ecef;border-radius:4px;overflow:hidden">
+                            <div style="height:100%;background:#198754;border-radius:4px;width:<?=
+                                $seg['actividades_total'] > 0
+                                ? round(($seg['actividades_aprobadas'] / $seg['actividades_total']) * 100)
+                                : 0 ?>%"></div>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -142,7 +148,7 @@ ob_start();
                         <strong class="small">3. Cierre del proyecto</strong>
                         <?= badgeSeg($e3_estado) ?>
                     </div>
-                    <p class="text-muted small mb-2">Reporte Final aprobado y Carta de Terminación habilitada.</p>
+                    <p class="text-muted small mb-2">Reporte Final aprobado y Carta de Terminación.</p>
 
                     <?php if ($fase2_ok && $id_seg_cierre && in_array($e3_estado, ['pendiente','proceso','correcciones'])): ?>
                         <div class="d-flex gap-1 flex-wrap mt-2">
@@ -161,22 +167,20 @@ ob_start();
                         </div>
                     <?php elseif (!$fase2_ok): ?>
                         <div class="text-muted small">
-                            <i class="bi bi-lock"></i> Disponible cuando se complete el desarrollo.
+                            <i class="bi bi-lock"></i> Disponible al completar el desarrollo.
+                        </div>
+                    <?php elseif ($e3_estado === 'completado'): ?>
+                        <div class="alert alert-success py-1 px-2 mt-2 small mb-0">
+                            <i class="bi bi-check-circle-fill"></i> Cierre aprobado. Proyecto finalizado.
                         </div>
                     <?php endif; ?>
-
-                    <?php if ($e3_estado === 'completado'): ?>
-                        <a href="descargar_carta_terminacion.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $id_estudiante ?>"
-                           class="btn btn-sm btn-outline-success mt-2">
-                            <i class="bi bi-download"></i> Carta de Terminación
-                        </a>
-                    <?php endif; ?>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <!-- ── DOCUMENTOS SUBIDOS POR EL ESTUDIANTE ── -->
+    <!-- ══ DOCUMENTOS DEL ESTUDIANTE ══════════════════════════════ -->
     <?php if (!empty($documentos)): ?>
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -188,9 +192,11 @@ ob_start();
                     <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($doc['ruta']) ?>"
                        target="_blank"
                        class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-file-earmark-text"></i>
+                        <i class="bi bi-file-earmark-text me-1"></i>
                         <?= htmlspecialchars($doc['nombre']) ?>
-                        <span class="text-muted small">(<?= htmlspecialchars($doc['tipo_nombre'] ?? '') ?>)</span>
+                        <?php if (!empty($doc['tipo_nombre'])): ?>
+                            <span class="text-muted small">(<?= htmlspecialchars($doc['tipo_nombre']) ?>)</span>
+                        <?php endif; ?>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -198,58 +204,54 @@ ob_start();
     </div>
     <?php endif; ?>
 
-    <!-- ── INFORMACIÓN DEL ESTUDIANTE ── -->
+    <!-- ══ CARTA COMPROMISO (adjunta a la solicitud) ══════════════ -->
+    <?php if (!empty($sol['carta_ruta'])): ?>
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
-            <h5 class="mb-0">Información del estudiante</h5>
+            <h5 class="mb-0"><i class="bi bi-file-earmark-check me-2"></i>Carta compromiso</h5>
         </div>
         <div class="card-body">
+            <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($sol['carta_ruta']) ?>"
+               target="_blank" class="btn btn-outline-primary">
+                <i class="bi bi-download me-1"></i>
+                <?= htmlspecialchars($sol['carta_nombre'] ?? 'Descargar carta') ?>
+                <?php if (!empty($sol['carta_extension'])): ?>
+                    <span class="text-muted small">(.<?= htmlspecialchars($sol['carta_extension']) ?>)</span>
+                <?php endif; ?>
+            </a>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- ══ DATOS DEL ESTUDIANTE ════════════════════════════════════ -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light"><h5 class="mb-0">Información del estudiante</h5></div>
+        <div class="card-body">
             <div class="row">
-                <div class="col-md-6">
-                    <dl class="mb-2">
-                        <dt class="small text-muted">Nombre</dt>
-                        <dd><?= htmlspecialchars($sol['estudiante_nombre']) ?></dd>
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <dl class="mb-2">
-                        <dt class="small text-muted">Matrícula</dt>
-                        <dd><?= htmlspecialchars($sol['matricula'] ?? '—') ?></dd>
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <dl class="mb-2">
-                        <dt class="small text-muted">Correo</dt>
-                        <dd><?= htmlspecialchars($sol['correo_institucional']) ?></dd>
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <dl class="mb-2">
-                        <dt class="small text-muted">Carrera</dt>
-                        <dd><?= htmlspecialchars($sol['carrera']) ?></dd>
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <dl class="mb-2">
-                        <dt class="small text-muted">Semestre</dt>
-                        <dd><?= $sol['semestre'] ?? '—' ?>°</dd>
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <dl class="mb-2">
-                        <dt class="small text-muted">Promedio</dt>
-                        <dd><?= $sol['promedio'] ?? '—' ?></dd>
-                    </dl>
-                </div>
+                <?php
+                $campos = [
+                    'Nombre'   => $sol['estudiante_nombre'],
+                    'Matrícula'=> $sol['matricula']          ?? '—',
+                    'Correo'   => $sol['correo_institucional'],
+                    'Carrera'  => $sol['carrera'],
+                    'Semestre' => isset($sol['semestre']) ? $sol['semestre'] . '°' : '—',
+                    'Promedio' => $sol['promedio']           ?? '—',
+                ];
+                foreach ($campos as $lbl => $val): ?>
+                    <div class="col-md-6">
+                        <dl class="mb-2">
+                            <dt class="small text-muted"><?= $lbl ?></dt>
+                            <dd><?= htmlspecialchars((string)$val) ?></dd>
+                        </dl>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
 
-    <!-- ── INFORMACIÓN DEL PROYECTO ── -->
+    <!-- ══ PROYECTO ════════════════════════════════════════════════ -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Proyecto solicitado</h5>
-        </div>
+        <div class="card-header bg-light"><h5 class="mb-0">Proyecto solicitado</h5></div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
@@ -273,68 +275,47 @@ ob_start();
                 <div class="col-md-6">
                     <dl class="mb-2">
                         <dt class="small text-muted">Modalidad</dt>
-                        <dd><?= htmlspecialchars($sol['modalidad']) ?></dd>
+                        <dd><?= htmlspecialchars($sol['modalidad'] ?? '—') ?></dd>
                     </dl>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ── MOTIVACIÓN ── -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Motivación</h5>
+    <!-- ══ MOTIVACIÓN Y EXPERIENCIA ═══════════════════════════════ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light"><h5 class="mb-0">Motivación</h5></div>
+                <div class="card-body">
+                    <?= nl2br(htmlspecialchars($sol['motivacion'] ?? 'Sin información')) ?>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <?= nl2br(htmlspecialchars($sol['motivacion'] ?? 'Sin información')) ?>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light"><h5 class="mb-0">Experiencia</h5></div>
+                <div class="card-body">
+                    <?= nl2br(htmlspecialchars($sol['experiencia'] ?? 'Sin información')) ?>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- ── EXPERIENCIA ── -->
+    <!-- ══ HISTORIAL DE COMENTARIOS ═══════════════════════════════ -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Experiencia</h5>
-        </div>
-        <div class="card-body">
-            <?= nl2br(htmlspecialchars($sol['experiencia'] ?? 'Sin información')) ?>
-        </div>
-    </div>
-
-    <!-- ── CARTA COMPROMISO ── -->
-    <?php if (!empty($sol['carta_nombre'])): ?>
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Carta compromiso</h5>
-        </div>
-        <div class="card-body">
-            <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($sol['carta_ruta']) ?>"
-               target="_blank" class="btn btn-outline-primary">
-                <i class="bi bi-download"></i>
-                <?= htmlspecialchars($sol['carta_nombre']) ?>
-            </a>
-        </div>
-    </div>
-    <?php endif; ?>
-
-    <!-- ── HISTORIAL DE COMENTARIOS ── -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Historial de comentarios</h5>
-        </div>
+        <div class="card-header bg-light"><h5 class="mb-0">Historial de comentarios</h5></div>
         <div class="card-body">
             <?php if (!empty($comentarios)): ?>
                 <?php foreach ($comentarios as $c): ?>
                     <div class="border rounded p-3 mb-2 <?= $c['tipo'] === 'investigador' ? 'bg-light' : 'bg-white' ?>">
                         <p class="mb-1"><?= nl2br(htmlspecialchars($c['comentario'])) ?></p>
-
                         <?php if (!empty($c['archivo_nombre'])): ?>
                             <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($c['archivo_ruta']) ?>"
-                               target="_blank" class="small">
-                                <i class="bi bi-paperclip"></i>
-                                <?= htmlspecialchars($c['archivo_nombre']) ?>
+                               target="_blank" class="small text-primary">
+                                <i class="bi bi-paperclip"></i> <?= htmlspecialchars($c['archivo_nombre']) ?>
                             </a>
                         <?php endif; ?>
-
                         <div class="text-muted small mt-1">
                             <span class="badge <?= $c['tipo'] === 'investigador' ? 'bg-primary' : 'bg-secondary' ?>">
                                 <?= $c['tipo'] === 'investigador' ? 'Investigador' : 'Estudiante' ?>
@@ -349,21 +330,22 @@ ob_start();
         </div>
     </div>
 
-    <!-- ── ACCIONES DE LA SOLICITUD (si aún está activa) ── -->
+    <!-- ══ ACCIONES RÁPIDAS (si la solicitud sigue activa) ════════ -->
     <?php if (in_array($sol['estado'], ['pendiente','en_revision','correcciones'])): ?>
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Acciones sobre la solicitud</h5>
-        </div>
+        <div class="card-header bg-light"><h5 class="mb-0">Acciones sobre la solicitud</h5></div>
         <div class="card-body d-flex gap-2 flex-wrap">
-            <button class="btn btn-success" onclick="confirmarAceptar(<?= $id_solicitud ?>)">
-                <i class="bi bi-check-circle-fill"></i> Aceptar solicitud
+            <button class="btn btn-success"
+                    onclick="confirmarAceptar(<?= $id_solicitud ?>)">
+                <i class="bi bi-check-circle-fill"></i> Aceptar
             </button>
-            <button class="btn btn-warning" onclick="abrirModalAccion(<?= $id_solicitud ?>,'correcciones')">
+            <button class="btn btn-warning"
+                    onclick="abrirModalAccion(<?= $id_solicitud ?>,'correcciones')">
                 <i class="bi bi-pencil-fill"></i> Pedir correcciones
             </button>
-            <button class="btn btn-danger" onclick="abrirModalAccion(<?= $id_solicitud ?>,'rechazar')">
-                <i class="bi bi-ban"></i> Rechazar solicitud
+            <button class="btn btn-danger"
+                    onclick="abrirModalAccion(<?= $id_solicitud ?>,'rechazar')">
+                <i class="bi bi-ban"></i> Rechazar
             </button>
         </div>
     </div>
@@ -371,10 +353,8 @@ ob_start();
 
 </div>
 
-<!-- ════════════════════════════════════════════
-     MODAL — ACCIÓN (correcciones / rechazar) solicitud integración
-════════════════════════════════════════════ -->
-<div class="modal fade" id="modalAccion" tabindex="-1" aria-hidden="true">
+<!-- ══ MODAL ACCIÓN ═══════════════════════════════════════════════ -->
+<div class="modal fade" id="modalAccion" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" id="modalAccionHeader">
@@ -393,31 +373,25 @@ ob_start();
                 </div>
                 <div class="mb-2">
                     <label class="form-label fw-medium">
-                        Archivo adjunto <span class="text-muted small">(opcional, PDF/DOCX/imagen)</span>
+                        Archivo adjunto <span class="text-muted small">(opcional)</span>
                     </label>
-                    <input type="file" id="accionArchivo" class="form-control"
-                           accept=".pdf,.docx,.png,.jpg">
+                    <input type="file" id="accionArchivo" class="form-control" accept=".pdf,.docx,.png,.jpg">
                 </div>
                 <div id="accionMensaje" class="alert d-none mt-2"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm"
-                        data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary btn-sm"
-                        id="btnConfirmarAccion">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnConfirmarAccion">
                     <span id="btnAccionTexto">Confirmar</span>
-                    <span class="spinner-border spinner-border-sm d-none ms-1"
-                          id="spinnerAccion"></span>
+                    <span class="spinner-border spinner-border-sm d-none ms-1" id="spinnerAccion"></span>
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 
-     MODAL — CIERRE (etapa 3)
- -->
-<div class="modal fade" id="modalCierre" tabindex="-1" aria-hidden="true">
+<!-- ══ MODAL CIERRE ═══════════════════════════════════════════════ -->
+<div class="modal fade" id="modalCierre" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" id="modalCierreHeader">
@@ -430,7 +404,7 @@ ob_start();
                 <div class="mb-3">
                     <label class="form-label fw-medium">
                         Comentario
-                        <span class="text-muted small">(obligatorio al rechazar/pedir correcciones)</span>
+                        <span class="text-muted small">(obligatorio al rechazar o pedir correcciones)</span>
                     </label>
                     <textarea id="cierreComentario" class="form-control" rows="4"
                               placeholder="Escribe un comentario…"></textarea>
@@ -438,10 +412,8 @@ ob_start();
                 <div id="cierreMensaje" class="alert d-none mt-2"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm"
-                        data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary btn-sm"
-                        id="btnConfirmarCierre">Confirmar</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnConfirmarCierre">Confirmar</button>
             </div>
         </div>
     </div>
@@ -450,10 +422,23 @@ ob_start();
 <script>
 'use strict';
 
-// ── Solicitud de integración (Etapa 1) ───────────────────────
+const AJAX = '/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php';
+const SEG_AJAX = '/ITSFCP-PROYECTOS/Ajax/seguimientoAjax.php';
+
+// ── Etapa 1: solicitud ────────────────────────────────────────────
 function confirmarAceptar(id) {
-    if (!confirm('¿Confirmar la aceptación de esta solicitud? El estudiante quedará integrado al proyecto.')) return;
-    enviarAccionSolicitud('aceptar', id, '', null);
+    if (!confirm('¿Confirmar aceptación? El estudiante quedará integrado al proyecto.')) return;
+
+    const fd = new FormData();
+    fd.append('id_solicitud', id);
+
+    fetch(`${AJAX}?action=aceptar`, { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) { alert(data.msg); location.reload(); }
+            else mostrarMsg('accionMensaje', data.msg || 'Error.', 'danger');
+        })
+        .catch(e => alert('Error de conexión: ' + e.message));
 }
 
 function abrirModalAccion(id, tipo) {
@@ -469,7 +454,7 @@ function abrirModalAccion(id, tipo) {
     document.getElementById('modalAccionHeader').className =
         'modal-header ' + (esCor ? 'bg-warning' : 'bg-danger text-white');
     document.getElementById('labelComentario').textContent =
-        esCor ? 'Indica al estudiante qué debe corregir *' : 'Motivo de rechazo *';
+        esCor ? 'Indica qué debe corregir el estudiante *' : 'Motivo de rechazo *';
     document.getElementById('btnAccionTexto').textContent =
         esCor ? 'Enviar correcciones' : 'Rechazar definitivamente';
 
@@ -481,57 +466,50 @@ document.getElementById('btnConfirmarAccion').onclick = function () {
     const tipo       = document.getElementById('accionTipo').value;
     const comentario = document.getElementById('accionComentario').value.trim();
     const archivo    = document.getElementById('accionArchivo').files[0] || null;
+    const spinner    = document.getElementById('spinnerAccion');
+    const btnTexto   = document.getElementById('btnAccionTexto');
 
-    if (!comentario) {
-        mostrarMsg('accionMensaje', 'El comentario es obligatorio.', 'danger');
-        return;
-    }
-    enviarAccionSolicitud(tipo, id, comentario, archivo);
-};
+    if (!comentario) { mostrarMsg('accionMensaje', 'El comentario es obligatorio.', 'danger'); return; }
 
-function enviarAccionSolicitud(action, id, comentario, archivo) {
-    const spinner  = document.getElementById('spinnerAccion');
-    const btnTexto = document.getElementById('btnAccionTexto');
-    spinner?.classList.remove('d-none');
-    btnTexto?.classList.add('d-none');
+    this.disabled = true;
+    spinner.classList.remove('d-none');
+    btnTexto.classList.add('d-none');
 
     const fd = new FormData();
     fd.append('id_solicitud', id);
     fd.append('comentario',   comentario);
     if (archivo) fd.append('archivo', archivo);
 
-    fetch('/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php?action=' + action, {
-        method: 'POST', body: fd
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('modalAccion'))?.hide();
-            setTimeout(() => location.reload(), 300);
-        } else {
-            mostrarMsg('accionMensaje', data.msg || 'Error al procesar.', 'danger');
-        }
-    })
-    .catch(e => mostrarMsg('accionMensaje', 'Error de conexión: ' + e.message, 'danger'))
-    .finally(() => {
-        spinner?.classList.add('d-none');
-        btnTexto?.classList.remove('d-none');
-    });
-}
+    const action = tipo === 'correcciones' ? 'correcciones' : 'rechazar';
 
-// ── Cierre (Etapa 3) ─────────────────────────────────────────
+    fetch(`${AJAX}?action=${action}`, { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalAccion'))?.hide();
+                setTimeout(() => location.reload(), 300);
+            } else {
+                mostrarMsg('accionMensaje', data.msg || 'Error.', 'danger');
+                this.disabled = false;
+            }
+        })
+        .catch(e => { mostrarMsg('accionMensaje', 'Error: ' + e.message, 'danger'); this.disabled = false; })
+        .finally(() => { spinner.classList.add('d-none'); btnTexto.classList.remove('d-none'); });
+};
+
+// ── Etapa 3: cierre ───────────────────────────────────────────────
 function responderCierre(idSeg, estado) {
-    document.getElementById('cierreIdSeg').value  = idSeg;
-    document.getElementById('cierreEstado').value = estado;
+    document.getElementById('cierreIdSeg').value      = idSeg;
+    document.getElementById('cierreEstado').value     = estado;
     document.getElementById('cierreComentario').value = '';
     document.getElementById('cierreMensaje').className = 'alert d-none mt-2';
 
-    const labels = {
-        completado  : { titulo:'Aprobar cierre',        cls:'bg-success text-white' },
-        correcciones: { titulo:'Pedir correcciones',    cls:'bg-warning' },
-        rechazado   : { titulo:'Rechazar cierre',       cls:'bg-danger text-white' },
-    };
-    const cfg = labels[estado] || { titulo:'Responder cierre', cls:'' };
+    const cfg = {
+        completado  : { titulo: 'Aprobar cierre del proyecto',   cls: 'bg-success text-white' },
+        correcciones: { titulo: 'Pedir correcciones al cierre',  cls: 'bg-warning' },
+        rechazado   : { titulo: 'Rechazar cierre del proyecto',  cls: 'bg-danger text-white' },
+    }[estado] || { titulo: 'Responder cierre', cls: '' };
+
     document.getElementById('modalCierreTitulo').textContent = cfg.titulo;
     document.getElementById('modalCierreHeader').className   = 'modal-header ' + cfg.cls;
 
@@ -553,33 +531,30 @@ document.getElementById('btnConfirmarCierre').onclick = function () {
     fd.append('estado',         estado);
     fd.append('comentario',     comentario);
 
-    fetch('/ITSFCP-PROYECTOS/Ajax/seguimientoAjax.php?action=responderCierre', {
-        method: 'POST', body: fd
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('modalCierre'))?.hide();
-            setTimeout(() => location.reload(), 300);
-        } else {
-            mostrarMsg('cierreMensaje', data.msg || 'Error.', 'danger');
-        }
-    })
-    .catch(e => mostrarMsg('cierreMensaje', 'Error de conexión: ' + e.message, 'danger'));
+    fetch(`${SEG_AJAX}?action=actualizarEstado`, { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalCierre'))?.hide();
+                setTimeout(() => location.reload(), 300);
+            } else {
+                mostrarMsg('cierreMensaje', data.msg || 'Error.', 'danger');
+            }
+        })
+        .catch(e => mostrarMsg('cierreMensaje', 'Error de conexión: ' + e.message, 'danger'));
 };
 
-// ── Utilidad ─────────────────────────────────────────────────
 function mostrarMsg(elId, msg, tipo) {
     const el = document.getElementById(elId);
     if (!el) return;
     el.textContent = msg;
-    el.className   = 'alert alert-' + tipo + ' mt-2';
+    el.className   = `alert alert-${tipo} mt-2`;
 }
 </script>
 
 <?php
 $contenido = ob_get_clean();
-$titulo    = "Detalle de solicitud";
-$bodyClass = "proyectos-page";
+$titulo    = 'Detalle de solicitud';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
 ?>

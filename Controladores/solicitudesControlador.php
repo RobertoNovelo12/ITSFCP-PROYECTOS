@@ -4,8 +4,6 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 
 class solicitudesControlador
 {
-    // ── Helpers privados ─────────────────────────────────────────
-
     private function soloInvestigador(string $rol): void
     {
         if (!in_array($rol, ['investigador', 'profesor'], true)) {
@@ -32,10 +30,6 @@ class solicitudesControlador
         return strtolower($_SESSION['rol'] ?? '');
     }
 
-    /**
-     * Sube el archivo a disco, lo registra en documentos_subidos
-     * y devuelve el id_documento. Devuelve null si no hay archivo.
-     */
     private function procesarArchivo(int $id_solicitud): ?int
     {
         if (empty($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
@@ -46,32 +40,27 @@ class solicitudesControlador
         $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
         if (!in_array($ext, ['pdf', 'docx', 'png', 'jpg'], true)) return null;
-        if ($file['size'] > 8 * 1024 * 1024)                      return null;
+        if ($file['size'] > 8 * 1024 * 1024) return null;
 
-        $mimePermitidos = [
+        $mimes = [
             'application/pdf',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'image/png',
-            'image/jpeg',
+            'image/png', 'image/jpeg',
         ];
-        if (!in_array($file['type'], $mimePermitidos, true)) return null;
+        if (!in_array($file['type'], $mimes, true)) return null;
 
         $nombreFinal = 'sol_' . $id_solicitud . '_' . uniqid() . '.' . $ext;
         $base        = "/ITSFCP-PROYECTOS/storage/recursos/solicitudes/solicitud_{$id_solicitud}/";
         $rutaFisica  = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
         $rutaBD      = $base . $nombreFinal;
 
-        if (!is_dir(dirname($rutaFisica))) {
-            mkdir(dirname($rutaFisica), 0755, true);
-        }
-
+        if (!is_dir(dirname($rutaFisica))) mkdir(dirname($rutaFisica), 0755, true);
         if (!move_uploaded_file($file['tmp_name'], $rutaFisica)) {
-            throw new Exception("Error al guardar el archivo en disco.");
+            throw new Exception("Error al guardar archivo en disco.");
         }
 
         global $conn;
         $modelo = new Solicitud($conn);
-
         return $modelo->registrarDocumento(
             nombre:         basename($file['name']),
             nombre_archivo: $nombreFinal,
@@ -85,7 +74,7 @@ class solicitudesControlador
         );
     }
 
-    // ── Helpers de vista ─────────────────────────────────────────
+    // ── Vista helpers ─────────────────────────────────────────────
 
     public function encabezados(): array
     {
@@ -95,18 +84,17 @@ class solicitudesControlador
     public function botonesAccion(int $id_solicitud, string $estado, int $id_proyecto): string
     {
         $estado = strtolower(trim($estado));
-        $btn    = $this->boton('detalle', $id_solicitud, $id_proyecto);
+        $btn    = $this->boton('detalle', $id_solicitud);
 
         if (in_array($estado, ['pendiente', 'en_revision', 'correcciones'], true)) {
             $btn .= ' ' . $this->boton('aceptar',      $id_solicitud);
             $btn .= ' ' . $this->boton('correcciones', $id_solicitud);
             $btn .= ' ' . $this->boton('rechazar',     $id_solicitud);
         }
-
         return $btn;
     }
 
-    private function boton(string $tipo, int $id_solicitud, int $id_proyecto = 0): string
+    private function boton(string $tipo, int $id_solicitud): string
     {
         return match ($tipo) {
             'detalle'      => "<a href='detalles_solicitud.php?id={$id_solicitud}' class='btn btn-info btn-sm' title='Ver solicitud'><i class='bi bi-file-text-fill'></i></a>",
@@ -136,10 +124,10 @@ class solicitudesControlador
         $this->soloInvestigador($rol);
         global $conn;
 
-        $Solicitudes = new Solicitud($conn);
-        $por_pagina  = 8;
-        $pagina      = max(1, intval($_GET['pagina'] ?? 1));
-        $desde       = ($pagina - 1) * $por_pagina;
+        $S          = new Solicitud($conn);
+        $por_pagina = 8;
+        $pagina     = max(1, intval($_GET['pagina'] ?? 1));
+        $desde      = ($pagina - 1) * $por_pagina;
 
         $filtros = [
             'estado'      => $_GET['estado']      ?? '',
@@ -150,10 +138,10 @@ class solicitudesControlador
             'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
         ];
 
-        $total       = $Solicitudes->contarSolicitudes($id_usuario, $filtros);
-        $solicitudes = $Solicitudes->obtenerSolicitudes($id_usuario, $filtros, $desde, $por_pagina);
-        $resumen     = $Solicitudes->resumen($id_usuario);
-        $proyectos   = $Solicitudes->proyectosDelInvestigador($id_usuario);
+        $total       = $S->contarSolicitudes($id_usuario, $filtros);
+        $solicitudes = $S->obtenerSolicitudes($id_usuario, $filtros, $desde, $por_pagina);
+        $resumen     = $S->resumen($id_usuario);
+        $proyectos   = $S->proyectosDelInvestigador($id_usuario);
 
         return [
             'solicitudes' => $solicitudes,
@@ -169,35 +157,6 @@ class solicitudesControlador
         ];
     }
 
-    // ── detalle (AJAX GET) ────────────────────────────────────────
-
-    public function detalle(): void
-    {
-        $this->soloInvestigador($this->rol());
-        global $conn;
-
-        $Solicitudes = new Solicitud($conn);
-        $id          = intval($_GET['id'] ?? 0);
-
-        if (!$id) $this->json(['error' => 'ID inválido.'], 422);
-
-        if (!$Solicitudes->verificarPermiso($id, $this->idUsuario())) {
-            $this->json(['error' => 'Sin permiso.'], 403);
-        }
-
-        $Solicitudes->marcarEnRevision($id);
-
-        $data        = $Solicitudes->obtenerDetalle($id);
-        $comentarios = $Solicitudes->obtenerComentarios($id);
-
-        if (!$data) $this->json(['error' => 'Solicitud no encontrada.'], 404);
-
-        $this->json([
-            'solicitud'   => $data,
-            'comentarios' => $comentarios,
-        ]);
-    }
-
     // ── aceptar ──────────────────────────────────────────────────
 
     public function aceptar(): void
@@ -205,28 +164,32 @@ class solicitudesControlador
         $this->soloInvestigador($this->rol());
         global $conn;
 
-        $Solicitudes = new Solicitud($conn);
-        $id          = intval($_POST['id_solicitud'] ?? 0);
-
+        $S  = new Solicitud($conn);
+        $id = intval($_POST['id_solicitud'] ?? 0);
         if (!$id) $this->json(['ok' => false, 'msg' => 'ID inválido.'], 422);
 
-        if (!$Solicitudes->verificarPermiso($id, $this->idUsuario())) {
+        if (!$S->verificarPermiso($id, $this->idUsuario())) {
             $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
         }
 
         $conn->begin_transaction();
         try {
-            $datos = $Solicitudes->obtenerDatosSolicitud($id);
-            $ok    = $Solicitudes->aceptar($id);
-            if (!$ok) throw new Exception("Error al aceptar solicitud.");
+            $datos = $S->obtenerDatosSolicitud($id);
+            if (!$datos) throw new Exception("Solicitud no encontrada.");
 
-            $Solicitudes->vincularTareasAlNuevoEstudiante(
+            $S->aceptar($id);
+            $S->vincularEstudianteProyecto($datos['id_proyectos'], $datos['id_usuarios']);
+            $S->vincularTareasAlNuevoEstudiante($datos['id_proyectos'], $datos['id_usuarios']);
+            $S->registrarHistorialUsuario(
                 $datos['id_proyectos'],
-                $datos['id_usuarios']
+                $datos['id_usuarios'],
+                'reactivado',
+                'Solicitud de integración aceptada por el investigador',
+                $this->idUsuario()
             );
 
             $conn->commit();
-            $this->json(['ok' => true, 'msg' => 'Solicitud aceptada y tareas vinculadas.']);
+            $this->json(['ok' => true, 'msg' => 'Solicitud aceptada. Estudiante integrado al proyecto.']);
 
         } catch (Exception $e) {
             $conn->rollback();
@@ -242,33 +205,17 @@ class solicitudesControlador
         $this->soloInvestigador($this->rol());
         global $conn;
 
-        $Solicitudes = new Solicitud($conn);
-        $id          = intval($_POST['id_solicitud'] ?? 0);
-        $comentario  = trim($_POST['comentario'] ?? '');
+        $S          = new Solicitud($conn);
+        $id         = intval($_POST['id_solicitud'] ?? 0);
+        $comentario = trim($_POST['comentario'] ?? '');
 
-        if (!$id || $comentario === '') {
-            $this->json(['ok' => false, 'msg' => 'Datos incompletos.'], 422);
-        }
-
-        if (!$Solicitudes->verificarPermiso($id, $this->idUsuario())) {
-            $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
-        }
+        if (!$id || $comentario === '') $this->json(['ok' => false, 'msg' => 'Datos incompletos.'], 422);
+        if (!$S->verificarPermiso($id, $this->idUsuario())) $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
 
         try {
-            $id_documento = $this->procesarArchivo($id);
-
-            $ok = $Solicitudes->pedirCorrecciones(
-                $id,
-                $this->idUsuario(),
-                $comentario,
-                $id_documento
-            );
-
-            $this->json([
-                'ok'  => $ok,
-                'msg' => $ok ? 'Correcciones solicitadas.' : 'Error.'
-            ]);
-
+            $id_doc = $this->procesarArchivo($id);
+            $ok     = $S->pedirCorrecciones($id, $this->idUsuario(), $comentario, $id_doc);
+            $this->json(['ok' => $ok, 'msg' => $ok ? 'Correcciones solicitadas.' : 'Error.']);
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->json(['ok' => false, 'msg' => 'Error interno.'], 500);
@@ -282,33 +229,17 @@ class solicitudesControlador
         $this->soloInvestigador($this->rol());
         global $conn;
 
-        $Solicitudes = new Solicitud($conn);
-        $id          = intval($_POST['id_solicitud'] ?? 0);
-        $comentario  = trim($_POST['comentario'] ?? '');
+        $S          = new Solicitud($conn);
+        $id         = intval($_POST['id_solicitud'] ?? 0);
+        $comentario = trim($_POST['comentario'] ?? '');
 
-        if (!$id || $comentario === '') {
-            $this->json(['ok' => false, 'msg' => 'Motivo obligatorio.'], 422);
-        }
-
-        if (!$Solicitudes->verificarPermiso($id, $this->idUsuario())) {
-            $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
-        }
+        if (!$id || $comentario === '') $this->json(['ok' => false, 'msg' => 'Motivo obligatorio.'], 422);
+        if (!$S->verificarPermiso($id, $this->idUsuario())) $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
 
         try {
-            $id_documento = $this->procesarArchivo($id);
-
-            $ok = $Solicitudes->rechazar(
-                $id,
-                $this->idUsuario(),
-                $comentario,
-                $id_documento
-            );
-
-            $this->json([
-                'ok'  => $ok,
-                'msg' => $ok ? 'Rechazada.' : 'Error.'
-            ]);
-
+            $id_doc = $this->procesarArchivo($id);
+            $ok     = $S->rechazar($id, $this->idUsuario(), $comentario, $id_doc);
+            $this->json(['ok' => $ok, 'msg' => $ok ? 'Rechazada.' : 'Error.']);
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->json(['ok' => false, 'msg' => 'Error interno.'], 500);
@@ -319,69 +250,58 @@ class solicitudesControlador
 
     public function enviarCorrecciones(): void
     {
-        if ($this->rol() !== 'estudiante') {
-            $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
-        }
+        if ($this->rol() !== 'estudiante') $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
 
         global $conn;
-        $Solicitudes = new Solicitud($conn);
-        $id          = intval($_POST['id_solicitud'] ?? 0);
-        $comentario  = trim($_POST['comentario'] ?? '');
+        $S          = new Solicitud($conn);
+        $id         = intval($_POST['id_solicitud'] ?? 0);
+        $comentario = trim($_POST['comentario'] ?? '');
 
         if (!$id) $this->json(['ok' => false, 'msg' => 'ID inválido.'], 422);
 
         try {
-            $id_documento = $this->procesarArchivo($id);
-
-            $ok = $Solicitudes->enviarCorrecciones(
-                $id,
-                $this->idUsuario(),
-                $comentario,
-                $id_documento
-            );
-
-            $this->json([
-                'ok'  => $ok,
-                'msg' => $ok ? 'Enviado.' : 'Error.'
-            ]);
-
+            $id_doc = $this->procesarArchivo($id);
+            $ok     = $S->enviarCorrecciones($id, $this->idUsuario(), $comentario, $id_doc);
+            $this->json(['ok' => $ok, 'msg' => $ok ? 'Enviado.' : 'Error.']);
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->json(['ok' => false, 'msg' => 'Error interno.'], 500);
         }
     }
 
-    // ── detallePagina (vista completa) ────────────────────────────
+    // ── detallePagina (detalles_solicitud.php) ────────────────────
 
     public function detallePagina(int $id_solicitud, int $id_usuario, string $rol): array
     {
         $this->soloInvestigador($rol);
         global $conn;
 
-        $Solicitudes = new Solicitud($conn);
+        $S = new Solicitud($conn);
 
         if (!$id_solicitud) die('ID inválido.');
+        if (!$S->verificarPermiso($id_solicitud, $id_usuario)) die('Sin permiso.');
 
-        if (!$Solicitudes->verificarPermiso($id_solicitud, $id_usuario)) {
-            die('Sin permiso.');
-        }
+        $S->marcarEnRevision($id_solicitud);
 
-        $Solicitudes->marcarEnRevision($id_solicitud);
-
-        $solicitud   = $Solicitudes->obtenerDetalle($id_solicitud);
-        $comentarios = $Solicitudes->obtenerComentarios($id_solicitud);
+        $solicitud   = $S->obtenerDetalle($id_solicitud);
+        $comentarios = $S->obtenerComentarios($id_solicitud);
 
         if (!$solicitud) die('Solicitud no encontrada.');
-
-        $etapas = $Solicitudes->getEtapasPorProyecto(
-            (int) $solicitud['id_proyectos'],
-            (int) $solicitud['id_estudiante']
-        );
 
         return [
             'solicitud'   => $solicitud,
             'comentarios' => $comentarios,
-            'etapas'      => $etapas,
         ];
+    }
+
+    /**
+     * Datos de seguimiento del estudiante para detalles_solicitud.php.
+     * Delega al modelo.
+     */
+    public function getDatosSeguimientoEstudiante(int $id_proyecto, int $id_estudiante, int $id_usuario): array
+    {
+        global $conn;
+        $S = new Solicitud($conn);
+        return $S->getDatosSeguimientoEstudiante($id_proyecto, $id_estudiante, $id_usuario);
     }
 }

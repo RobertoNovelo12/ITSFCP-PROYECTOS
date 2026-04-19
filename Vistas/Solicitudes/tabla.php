@@ -2,7 +2,6 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
@@ -13,7 +12,6 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-// Solo investigadores
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
     header('Location: /ITSFCP-PROYECTOS/index.php');
     exit;
@@ -33,26 +31,36 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
+<style>
+.resumen-card  { padding: 1rem; border-radius: 8px; text-align: center; }
+.resumen-num   { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+.resumen-lbl   { font-size: .75rem; text-transform: uppercase; color: #6c757d; margin-top: .25rem; }
+.msg-item      { border-radius: 8px; padding: .6rem .9rem; margin-bottom: .5rem; font-size: .88rem; }
+.msg-inv       { background: #e7f3ff; border-left: 4px solid #0d6efd; }
+.msg-est       { background: #f0fff4; border-left: 4px solid #198754; margin-left: 2rem; }
+.msg-meta      { font-size: .72rem; color: #6c757d; margin-top: .3rem; }
+#panelComentarios { max-height: 260px; overflow-y: auto; }
+</style>
+
 <div class="container-fluid py-4">
 
-    <!-- ── TÍTULO ── -->
     <div class="row mb-3 align-items-center">
         <div class="col">
             <h2 class="mb-0 fw-semibold">Solicitudes de integración</h2>
-            <p class="text-muted small mb-0">Gestiona las solicitudes de estudiantes para tus proyectos de investigación.</p>
+            <p class="text-muted small mb-0">Gestiona las solicitudes de estudiantes para tus proyectos.</p>
         </div>
     </div>
 
-    <!-- ── RESUMEN ── -->
+    <!-- RESUMEN -->
     <div class="row g-3 mb-4">
         <?php
         $cards = [
-            ['num' => $resumen['total']       ?? 0, 'lbl' => 'Total',          'color' => 'primary'],
-            ['num' => $resumen['pendientes']   ?? 0, 'lbl' => 'Pendientes',     'color' => 'secondary'],
-            ['num' => $resumen['en_revision']  ?? 0, 'lbl' => 'En revisión',    'color' => 'info'],
-            ['num' => $resumen['correcciones'] ?? 0, 'lbl' => 'Correcciones',   'color' => 'warning'],
-            ['num' => $resumen['aceptadas']    ?? 0, 'lbl' => 'Aceptadas',      'color' => 'success'],
-            ['num' => $resumen['rechazadas']   ?? 0, 'lbl' => 'Rechazadas',     'color' => 'danger'],
+            ['num' => $resumen['total']       ?? 0, 'lbl' => 'Total',        'color' => 'primary'],
+            ['num' => $resumen['pendientes']   ?? 0, 'lbl' => 'Pendientes',   'color' => 'secondary'],
+            ['num' => $resumen['en_revision']  ?? 0, 'lbl' => 'En revisión',  'color' => 'info'],
+            ['num' => $resumen['correcciones'] ?? 0, 'lbl' => 'Correcciones', 'color' => 'warning'],
+            ['num' => $resumen['aceptadas']    ?? 0, 'lbl' => 'Aceptadas',    'color' => 'success'],
+            ['num' => $resumen['rechazadas']   ?? 0, 'lbl' => 'Rechazadas',   'color' => 'danger'],
         ];
         foreach ($cards as $c): ?>
             <div class="col-6 col-md-4 col-xl-2">
@@ -64,18 +72,15 @@ include __DIR__ . '/../../mensaje.php';
         <?php endforeach; ?>
     </div>
 
-    <!-- ── FILTROS ── -->
-    <form method="GET" action="" class="row g-2 filtros-row mb-3 align-items-end">
-        <input type="hidden" name="action" value="index">
-
+    <!-- FILTROS -->
+    <form method="GET" action="" class="row g-2 mb-3 align-items-end">
         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
             <label class="form-label small fw-medium mb-1">Buscar</label>
             <input type="text" name="buscar" class="form-control form-control-sm"
                    placeholder="Nombre, matrícula, proyecto…"
                    value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
         </div>
-
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+        <div class="col-6 col-sm-4 col-md-2">
             <label class="form-label small fw-medium mb-1">Estado</label>
             <select name="estado" class="form-select form-select-sm">
                 <option value="">Todos</option>
@@ -88,8 +93,7 @@ include __DIR__ . '/../../mensaje.php';
                 <?php endforeach; ?>
             </select>
         </div>
-
-        <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+        <div class="col-6 col-sm-4 col-md-3">
             <label class="form-label small fw-medium mb-1">Proyecto</label>
             <select name="proyecto" class="form-select form-select-sm">
                 <option value="">Todos</option>
@@ -101,53 +105,28 @@ include __DIR__ . '/../../mensaje.php';
                 <?php endforeach; ?>
             </select>
         </div>
-
-        <div class="col-6 col-sm-4 col-md-2 col-lg-1">
-            <label class="form-label small fw-medium mb-1">Semestre</label>
-            <select name="semestre" class="form-select form-select-sm">
-                <option value="">Todos</option>
-                <?php for ($s = 1; $s <= 10; $s++): ?>
-                    <option value="<?= $s ?>" <?= ($filtros['semestre'] ?? '') == $s ? 'selected' : '' ?>>
-                        <?= $s ?>°
-                    </option>
-                <?php endfor; ?>
-            </select>
-        </div>
-
-        <div class="col-6 col-sm-4 col-md-2 col-lg-2">
+        <div class="col-6 col-sm-3 col-md-2">
             <label class="form-label small fw-medium mb-1">Desde</label>
             <input type="date" name="fecha_desde" class="form-control form-control-sm"
                    value="<?= htmlspecialchars($filtros['fecha_desde'] ?? '') ?>">
         </div>
-
-        <div class="col-6 col-sm-4 col-md-2 col-lg-2">
+        <div class="col-6 col-sm-3 col-md-2">
             <label class="form-label small fw-medium mb-1">Hasta</label>
             <input type="date" name="fecha_hasta" class="form-control form-control-sm"
                    value="<?= htmlspecialchars($filtros['fecha_hasta'] ?? '') ?>">
         </div>
-
         <div class="col-auto d-flex gap-2">
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="bi bi-search"></i> Filtrar
-            </button>
-            <a href="tabla.php" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-x-circle"></i> Limpiar
-            </a>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filtrar</button>
+            <a href="tabla.php" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle"></i> Limpiar</a>
         </div>
     </form>
 
-    <!-- ── TABLA ── -->
+    <!-- TABLA -->
     <?php if (!empty($solicitudes)): ?>
-
-        <!-- DESKTOP -->
         <div class="table-responsive d-none d-md-block">
             <table class="table table-hover align-middle text-center">
                 <thead class="table-light">
-                    <tr>
-                        <?php foreach ($ctrl->encabezados() as $h): ?>
-                            <th class="small fw-semibold"><?= $h ?></th>
-                        <?php endforeach; ?>
-                    </tr>
+                    <tr><?php foreach ($ctrl->encabezados() as $h): ?><th class="small fw-semibold"><?= $h ?></th><?php endforeach; ?></tr>
                 </thead>
                 <tbody>
                     <?php foreach ($solicitudes as $sol): ?>
@@ -165,11 +144,7 @@ include __DIR__ . '/../../mensaje.php';
                             <td class="small"><?= $sol['fecha_envio'] ?></td>
                             <td><?= $ctrl->badgeEstado($sol['estado']) ?></td>
                             <td class="text-nowrap">
-                                <?= $ctrl->botonesAccion(
-                                    $sol['id_solicitud_proyecto'],
-                                    $sol['estado'],
-                                    $sol['id_proyectos']
-                                ) ?>
+                                <?= $ctrl->botonesAccion($sol['id_solicitud_proyecto'], $sol['estado'], $sol['id_proyectos']) ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -190,7 +165,6 @@ include __DIR__ . '/../../mensaje.php';
                             <?= $ctrl->badgeEstado($sol['estado']) ?>
                         </div>
                         <p class="small mb-1"><strong>Proyecto:</strong> <?= htmlspecialchars(mb_strimwidth($sol['proyecto_titulo'], 0, 50, '…')) ?></p>
-                        <p class="small mb-1"><strong>Carrera:</strong> <?= htmlspecialchars($sol['carrera'] ?? '-') ?></p>
                         <p class="small mb-2"><strong>Fecha:</strong> <?= $sol['fecha_envio'] ?></p>
                         <div class="d-flex gap-2 flex-wrap">
                             <?= $ctrl->botonesAccion($sol['id_solicitud_proyecto'], $sol['estado'], $sol['id_proyectos']) ?>
@@ -206,11 +180,9 @@ include __DIR__ . '/../../mensaje.php';
                 <ul class="pagination justify-content-center pagination-sm">
                     <?php
                     $qBase = http_build_query(array_filter([
-                        'action'      => 'index',
                         'buscar'      => $filtros['buscar'],
                         'estado'      => $filtros['estado'],
                         'proyecto'    => $filtros['proyecto'],
-                        'semestre'    => $filtros['semestre'],
                         'fecha_desde' => $filtros['fecha_desde'],
                         'fecha_hasta' => $filtros['fecha_hasta'],
                     ]));
@@ -228,25 +200,76 @@ include __DIR__ . '/../../mensaje.php';
                         <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] + 1 ?>">›</a>
                     </li>
                 </ul>
-                <p class="text-center text-muted small">
-                    Mostrando <?= (($pag['pagina']-1)*$pag['por_pagina'])+1 ?>–<?= min($pag['pagina']*$pag['por_pagina'], $pag['total']) ?> de <?= $pag['total'] ?> solicitudes
-                </p>
             </nav>
         <?php endif; ?>
 
     <?php else: ?>
         <div class="alert alert-info text-center">
-            <i class="bi bi-inbox me-2"></i>
-            No hay solicitudes que coincidan con los filtros aplicados.
+            <i class="bi bi-inbox me-2"></i>No hay solicitudes que coincidan con los filtros.
         </div>
     <?php endif; ?>
 
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     MODAL — ACCIÓN (correcciones / rechazo)
-══════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalAccion" tabindex="-1" aria-hidden="true">
+<!-- ══ MODAL DETALLE ══════════════════════════════════════════════ -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-file-person me-2"></i>Detalle de solicitud</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Spinner -->
+                <div id="detalleCargando" class="text-center py-4">
+                    <div class="spinner-border text-primary"></div>
+                    <p class="text-muted small mt-2">Cargando…</p>
+                </div>
+
+                <!-- Contenido -->
+                <div id="detalleContenido" style="display:none">
+
+                    <!-- Info estudiante + proyecto -->
+                    <div class="row g-3 mb-3" id="detalleInfo"></div>
+
+                    <!-- 3 Etapas de seguimiento -->
+                    <div class="card border-primary mb-3">
+                        <div class="card-header bg-primary text-white py-2">
+                            <strong><i class="bi bi-diagram-3 me-1"></i>Seguimiento del estudiante</strong>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="row g-0" id="detalleEtapas"></div>
+                        </div>
+                    </div>
+
+                    <!-- Comentarios -->
+                    <div class="fw-semibold small mb-2">
+                        <i class="bi bi-chat-left-text me-1"></i>Historial de comentarios
+                    </div>
+                    <div id="panelComentarios" class="mb-2"></div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer" id="detalleFooter" style="display:none">
+                <button class="btn btn-success btn-sm" id="btnAceptarDetalle">
+                    <i class="bi bi-check-circle-fill me-1"></i>Aceptar
+                </button>
+                <button class="btn btn-warning btn-sm" id="btnCorreccionesDetalle">
+                    <i class="bi bi-pencil-fill me-1"></i>Correcciones
+                </button>
+                <button class="btn btn-danger btn-sm" id="btnRechazarDetalle">
+                    <i class="bi bi-ban me-1"></i>Rechazar
+                </button>
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MODAL ACCIÓN (correcciones / rechazar) ════════════════════ -->
+<div class="modal fade" id="modalAccion" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" id="modalAccionHeader">
@@ -256,14 +279,17 @@ include __DIR__ . '/../../mensaje.php';
             <div class="modal-body">
                 <input type="hidden" id="accionIdSolicitud">
                 <input type="hidden" id="accionTipo">
-
                 <div class="mb-3">
-                    <label class="form-label fw-medium" id="labelComentario">Comentario <span class="text-danger">*</span></label>
+                    <label class="form-label fw-medium" id="labelComentario">
+                        Comentario <span class="text-danger">*</span>
+                    </label>
                     <textarea id="accionComentario" class="form-control" rows="4"
                               placeholder="Escribe tu comentario para el estudiante…"></textarea>
                 </div>
                 <div class="mb-2">
-                    <label class="form-label fw-medium">Archivo adjunto <span class="text-muted small">(opcional, PDF/DOCX/imagen)</span></label>
+                    <label class="form-label fw-medium">
+                        Archivo adjunto <span class="text-muted small">(opcional, PDF/DOCX/imagen)</span>
+                    </label>
                     <input type="file" id="accionArchivo" class="form-control" accept=".pdf,.docx,.png,.jpg">
                 </div>
                 <div id="accionMensaje" class="alert d-none mt-2"></div>
@@ -279,20 +305,17 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 </div>
 
-<!--  JAVASCRIPT -->
 <script>
 'use strict';
 
-// ── Inicializar tooltips Bootstrap ──
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        .forEach(el => new bootstrap.Tooltip(el));
-});
-
+const AJAX = '/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php';
 let _idSolicitudActual = null;
-let _estadoActual      = null;
 
-// ── Ver detalle ──
+// ── Ver detalle (abre modal) ──────────────────────────────────────
+// Nota: los botones en la tabla usan href → detalles_solicitud.php
+// Esta función la usa el footer del modal si se quisiera abrir en modal
+// Se mantiene por compatibilidad con código existente
+
 function verDetalleSolicitud(id) {
     _idSolicitudActual = id;
     document.getElementById('detalleCargando').style.display  = '';
@@ -301,15 +324,15 @@ function verDetalleSolicitud(id) {
 
     new bootstrap.Modal(document.getElementById('modalDetalle')).show();
 
-    fetch('/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php?action=detalle&id=' + id)
+    fetch(`${AJAX}?action=detalle&id=${id}`)
         .then(r => r.json())
         .then(data => {
             if (data.error) { alert(data.error); return; }
 
-            const s = data.solicitud;
-            _estadoActual = s.estado;
+            const s   = data.solicitud;
+            const seg = data.seguimiento || {};
 
-            // Info estudiante + proyecto
+            // Info
             document.getElementById('detalleInfo').innerHTML = `
                 <div class="col-md-6">
                     <div class="card h-100 border-0 bg-light p-3">
@@ -318,48 +341,36 @@ function verDetalleSolicitud(id) {
                         <p class="mb-1"><strong>Matrícula:</strong> ${esc(s.matricula)}</p>
                         <p class="mb-1"><strong>Correo:</strong> ${esc(s.correo_institucional)}</p>
                         <p class="mb-1"><strong>Carrera:</strong> ${esc(s.carrera)}</p>
-                        <p class="mb-1"><strong>Semestre:</strong> ${s.semestre ?? '-'}°</p>
-                        <p class="mb-0"><strong>Promedio:</strong> ${s.promedio ?? '-'}</p>
+                        <p class="mb-0"><strong>Semestre:</strong> ${s.semestre ?? '-'}°  |  <strong>Promedio:</strong> ${s.promedio ?? '-'}</p>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="card h-100 border-0 bg-light p-3">
-                        <h6 class="text-primary mb-2"><i class="bi bi-journal-text me-1"></i>Proyecto solicitado</h6>
+                        <h6 class="text-primary mb-2"><i class="bi bi-journal-text me-1"></i>Proyecto</h6>
                         <p class="mb-1"><strong>Título:</strong> ${esc(s.proyecto_titulo)}</p>
-                        <p class="mb-1"><strong>Modalidad:</strong> ${esc(s.modalidad)}</p>
+                        <p class="mb-1"><strong>Modalidad:</strong> ${esc(s.modalidad ?? '—')}</p>
                         <p class="mb-1"><strong>Fecha solicitud:</strong> ${s.fecha_envio}</p>
                         <p class="mb-1"><strong>Estado:</strong> ${badgeEstado(s.estado)}</p>
-                        <hr class="my-2">
-                        <h6 class="text-primary mb-1">Motivación</h6>
-                        <p class="small mb-1">${esc(s.motivacion) || 'Sin información'}</p>
-                        <h6 class="text-primary mb-1">Experiencia</h6>
-                        <p class="small mb-0">${esc(s.experiencia) || 'Sin información'}</p>
+                        ${s.carta_ruta ? `<a href="/ITSFCP-PROYECTOS/${s.carta_ruta}" target="_blank"
+                            class="btn btn-sm btn-outline-primary mt-1">
+                            <i class="bi bi-download me-1"></i>Carta compromiso (.${s.carta_extension ?? 'doc'})
+                        </a>` : '<p class="small text-muted mb-0">Sin carta adjunta.</p>'}
                     </div>
                 </div>
-                ${s.carta_nombre ? `
-                <div class="col-12">
-                    <div class="alert alert-info py-2 mb-0">
-                        <i class="bi bi-paperclip me-1"></i>
-                        <strong>Carta Compromiso adjunta:</strong>
-                        <a href="/ITSFCP-PROYECTOS/${s.carta_ruta}" target="_blank" class="ms-2 btn btn-sm btn-outline-primary">
-                            <i class="bi bi-download me-1"></i>${esc(s.carta_nombre)}
-                        </a>
-                    </div>
-                </div>` : ''}
             `;
 
-            // Etapas del seguimiento
-            renderEtapas(data.etapas || []);
+            // Etapas
+            renderEtapasSeguimiento(seg, s, id);
 
             // Comentarios
             renderComentarios(data.comentarios || []);
 
-            // Footer con acciones
-            const estados_activos = ['pendiente','en_revision','correcciones'];
-            document.getElementById('detalleFooter').style.display = '';
-            document.getElementById('btnAceptarDetalle').style.display     = estados_activos.includes(s.estado) ? '' : 'none';
-            document.getElementById('btnCorreccionesDetalle').style.display = estados_activos.includes(s.estado) ? '' : 'none';
-            document.getElementById('btnRechazarDetalle').style.display    = estados_activos.includes(s.estado) ? '' : 'none';
+            // Footer
+            const activos = ['pendiente','en_revision','correcciones'];
+            document.getElementById('detalleFooter').style.display    = '';
+            document.getElementById('btnAceptarDetalle').style.display     = activos.includes(s.estado) ? '' : 'none';
+            document.getElementById('btnCorreccionesDetalle').style.display = activos.includes(s.estado) ? '' : 'none';
+            document.getElementById('btnRechazarDetalle').style.display    = activos.includes(s.estado) ? '' : 'none';
 
             document.getElementById('detalleCargando').style.display  = 'none';
             document.getElementById('detalleContenido').style.display = '';
@@ -367,19 +378,70 @@ function verDetalleSolicitud(id) {
         .catch(e => alert('Error al cargar: ' + e.message));
 }
 
-function renderEtapas(etapas) {
+function renderEtapasSeguimiento(seg, sol, id_solicitud) {
     const el = document.getElementById('detalleEtapas');
-    if (!etapas.length) {
-        el.innerHTML = '<p class="text-muted small">Sin información de seguimiento aún.</p>';
-        return;
-    }
-    const colores = { pendiente:'secondary', proceso:'info', completado:'success', rechazado:'danger' };
-    el.innerHTML = etapas.map((e,i) => `
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge bg-${colores[e.estado]||'secondary'} rounded-pill" style="min-width:90px">${e.estado}</span>
-            <span class="small">${i+1}. ${esc(e.nombre)}</span>
+    const e1 = seg.e1_estado || sol.estado || 'pendiente';
+    const e2 = seg.e2_estado || 'pendiente';
+    const e3 = seg.e3_estado || 'pendiente';
+    const fase2ok = seg.fase2_ok || false;
+
+    const colorMap = {
+        pendiente:'secondary', proceso:'primary', completado:'success',
+        rechazado:'danger', correcciones:'warning', en_revision:'info', aceptado:'success'
+    };
+    const labelMap = {
+        pendiente:'Pendiente', proceso:'En revisión', completado:'Aprobado',
+        rechazado:'Rechazado', correcciones:'Correcciones', en_revision:'En revisión', aceptado:'Aceptado'
+    };
+
+    const badge = (e) => `<span class="badge bg-${colorMap[e]||'secondary'} ${e==='correcciones'?'text-dark':''}">${labelMap[e]||e}</span>`;
+
+    const activos1 = ['pendiente','en_revision','correcciones','proceso'];
+
+    el.innerHTML = `
+        <!-- Etapa 1 -->
+        <div class="col-md-4 border-end p-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="small">1. Solicitud de integración</strong>
+                ${badge(e1)}
+            </div>
+            <p class="text-muted small mb-2">Carta Compromiso firmada y aceptación del investigador.</p>
+            ${activos1.includes(e1) ? `
+                <div class="d-flex gap-1 flex-wrap mt-2">
+                    <button class="btn btn-success btn-sm" onclick="confirmarAceptar(${id_solicitud})">
+                        <i class="bi bi-check-lg"></i> Aceptar
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="abrirModalAccion(${id_solicitud},'correcciones')">
+                        <i class="bi bi-pencil"></i> Correcciones
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="abrirModalAccion(${id_solicitud},'rechazar')">
+                        <i class="bi bi-x-lg"></i> Rechazar
+                    </button>
+                </div>` : ''}
         </div>
-    `).join('');
+        <!-- Etapa 2 -->
+        <div class="col-md-4 border-end p-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="small">2. Desarrollo del documento</strong>
+                ${badge(e2)}
+            </div>
+            <p class="text-muted small mb-1">Completado automáticamente al terminar las actividades.</p>
+            <div class="small text-muted">${seg.actividades_aprobadas || 0} / ${seg.actividades_total || 0} actividades aprobadas</div>
+            ${fase2ok ? '<div class="alert alert-success py-1 px-2 mt-1 small mb-0"><i class="bi bi-check-circle-fill"></i> Todas aprobadas.</div>' : ''}
+        </div>
+        <!-- Etapa 3 -->
+        <div class="col-md-4 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="small">3. Cierre del proyecto</strong>
+                ${badge(e3)}
+            </div>
+            <p class="text-muted small mb-1">Reporte Final aprobado y Carta de Terminación.</p>
+            ${!fase2ok ? '<div class="text-muted small"><i class="bi bi-lock"></i> Disponible al completar el desarrollo.</div>' : ''}
+            ${e3 === 'completado' ? `<a href="detalles_solicitud.php?id=${id_solicitud}" class="btn btn-sm btn-outline-success mt-1">
+                <i class="bi bi-download"></i> Ver detalle completo
+            </a>` : ''}
+        </div>
+    `;
 }
 
 function renderComentarios(comentarios) {
@@ -391,25 +453,27 @@ function renderComentarios(comentarios) {
     panel.innerHTML = comentarios.map(c => `
         <div class="msg-item ${c.tipo === 'investigador' ? 'msg-inv' : 'msg-est'}">
             <div>${esc(c.comentario)}</div>
-            ${c.archivo_nombre ? `<a href="/ITSFCP-PROYECTOS/${c.archivo_ruta}" target="_blank" class="small"><i class="bi bi-paperclip"></i> ${esc(c.archivo_nombre)}</a>` : ''}
-            <div class="msg-meta">${c.autor_nombre} · ${c.fecha}</div>
+            ${c.archivo_nombre ? `<a href="/ITSFCP-PROYECTOS/${c.archivo_ruta}" target="_blank" class="small text-primary">
+                <i class="bi bi-paperclip"></i> ${esc(c.archivo_nombre)}
+            </a>` : ''}
+            <div class="msg-meta"><strong>${esc(c.autor_nombre)}</strong> · ${c.tipo === 'investigador' ? 'Investigador' : 'Estudiante'} · ${c.fecha}</div>
         </div>
     `).join('');
     panel.scrollTop = panel.scrollHeight;
 }
 
-// ── Botones del footer del modal detalle ──
-document.getElementById('btnAceptarDetalle').onclick = () => confirmarAceptar(_idSolicitudActual);
+// ── Botones footer modal ──────────────────────────────────────────
+document.getElementById('btnAceptarDetalle').onclick     = () => confirmarAceptar(_idSolicitudActual);
 document.getElementById('btnCorreccionesDetalle').onclick = () => abrirModalAccion(_idSolicitudActual, 'correcciones');
-document.getElementById('btnRechazarDetalle').onclick = () => abrirModalAccion(_idSolicitudActual, 'rechazar');
+document.getElementById('btnRechazarDetalle').onclick    = () => abrirModalAccion(_idSolicitudActual, 'rechazar');
 
-// ── Aceptar con confirmación ──
+// ── Confirmar aceptar ─────────────────────────────────────────────
 function confirmarAceptar(id) {
-    if (!confirm('¿Confirmar la aceptación de esta solicitud? El estudiante quedará integrado al proyecto.')) return;
+    if (!confirm('¿Confirmar aceptación? El estudiante quedará integrado al proyecto.')) return;
     enviarAccion('aceptar', id, '', null);
 }
 
-// ── Modal de acción (correcciones / rechazar) ──
+// ── Modal de correcciones / rechazo ──────────────────────────────
 function abrirModalAccion(id, tipo) {
     document.getElementById('accionIdSolicitud').value = id;
     document.getElementById('accionTipo').value        = tipo;
@@ -417,15 +481,15 @@ function abrirModalAccion(id, tipo) {
     document.getElementById('accionArchivo').value     = '';
     document.getElementById('accionMensaje').className = 'alert d-none mt-2';
 
-    const esCorrección = tipo === 'correcciones';
+    const esCor = tipo === 'correcciones';
     document.getElementById('modalAccionTitulo').textContent =
-        esCorrección ? 'Solicitar correcciones' : 'Rechazar solicitud';
+        esCor ? 'Solicitar correcciones' : 'Rechazar solicitud';
     document.getElementById('modalAccionHeader').className =
-        'modal-header ' + (esCorrección ? 'bg-warning' : 'bg-danger text-white');
+        'modal-header ' + (esCor ? 'bg-warning' : 'bg-danger text-white');
     document.getElementById('labelComentario').textContent =
-        esCorrección ? 'Indica al estudiante qué debe corregir *' : 'Motivo de rechazo *';
+        esCor ? 'Indica qué debe corregir el estudiante *' : 'Motivo de rechazo *';
     document.getElementById('btnAccionTexto').textContent =
-        esCorrección ? 'Enviar correcciones' : 'Rechazar definitivamente';
+        esCor ? 'Enviar correcciones' : 'Rechazar definitivamente';
 
     bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAccion')).show();
 }
@@ -446,33 +510,28 @@ document.getElementById('btnConfirmarAccion').onclick = function () {
 function enviarAccion(action, id, comentario, archivo) {
     const spinner  = document.getElementById('spinnerAccion');
     const btnTexto = document.getElementById('btnAccionTexto');
-    if (spinner) { spinner.classList.remove('d-none'); if (btnTexto) btnTexto.classList.add('d-none'); }
+    spinner?.classList.remove('d-none');
+    btnTexto?.classList.add('d-none');
 
     const fd = new FormData();
     fd.append('id_solicitud', id);
     fd.append('comentario',   comentario);
     if (archivo) fd.append('archivo', archivo);
 
-    fetch('/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php?action=' + action, {
-        method: 'POST', body: fd
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            // Cerrar modales y recargar
-            ['modalAccion','modalDetalle'].forEach(id => {
-                const m = bootstrap.Modal.getInstance(document.getElementById(id));
-                if (m) m.hide();
-            });
-            setTimeout(() => location.reload(), 300);
-        } else {
-            mostrarMensajeAccion(data.msg || 'Error al procesar.', 'danger');
-        }
-    })
-    .catch(e => mostrarMensajeAccion('Error de conexión: ' + e.message, 'danger'))
-    .finally(() => {
-        if (spinner) { spinner.classList.add('d-none'); if (btnTexto) btnTexto.classList.remove('d-none'); }
-    });
+    fetch(`${AJAX}?action=${action}`, { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                ['modalAccion','modalDetalle'].forEach(mid => {
+                    bootstrap.Modal.getInstance(document.getElementById(mid))?.hide();
+                });
+                setTimeout(() => location.reload(), 300);
+            } else {
+                mostrarMensajeAccion(data.msg || 'Error al procesar.', 'danger');
+            }
+        })
+        .catch(e => mostrarMensajeAccion('Error de conexión: ' + e.message, 'danger'))
+        .finally(() => { spinner?.classList.add('d-none'); btnTexto?.classList.remove('d-none'); });
 }
 
 function mostrarMensajeAccion(msg, tipo) {
@@ -481,26 +540,18 @@ function mostrarMensajeAccion(msg, tipo) {
     el.className   = `alert alert-${tipo} mt-2`;
 }
 
-// ── Utilidades ──
 function esc(str) {
     if (!str) return '';
-    return str.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return str.toString()
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function badgeEstado(estado) {
-    const map = {
-        pendiente:    'secondary',
-        en_revision:  'info',
-        correcciones: 'warning',
-        aceptado:     'success',
-        rechazado:    'danger',
-    };
-    const lbl = {
-        pendiente:'Pendiente', en_revision:'En revisión',
-        correcciones:'Correcciones', aceptado:'Aceptado', rechazado:'Rechazado'
-    };
-    const c = map[estado] || 'secondary';
-    return `<span class="badge bg-${c} ${estado==='en_revision'||estado==='correcciones'?'text-dark':''}">${lbl[estado]||estado}</span>`;
+    const map = { pendiente:'secondary', en_revision:'info', correcciones:'warning', aceptado:'success', rechazado:'danger' };
+    const lbl = { pendiente:'Pendiente', en_revision:'En revisión', correcciones:'Correcciones', aceptado:'Aceptado', rechazado:'Rechazado' };
+    const c   = map[estado] || 'secondary';
+    const td  = (estado==='en_revision'||estado==='correcciones') ? 'text-dark' : '';
+    return `<span class="badge bg-${c} ${td}">${lbl[estado]||estado}</span>`;
 }
 </script>
 
