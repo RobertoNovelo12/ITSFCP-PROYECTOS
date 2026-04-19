@@ -20,9 +20,8 @@ $plantilladocumentoControlador = new plantilladocumentoControlador();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Registrar') {
     $id_tipo_documento = $_POST['id_tipo_documento'] ?? '';
-    $nombre = $_POST['nombre'] ?? '';
-    $version = $_POST['version'] ?? 0;
-    $archivo = $_FILES['archivo'] ?? null;
+    $nombre            = $_POST['nombre'] ?? '';
+    $archivo           = $_FILES['archivo'] ?? null;
 
     if (!$archivo || $archivo['error'] !== UPLOAD_ERR_OK) {
         die("Error al subir archivo");
@@ -31,62 +30,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Regi
     // Validar extensión
     $extensionesPermitidas = ['doc', 'docx'];
     $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
-
     if (!in_array($extension, $extensionesPermitidas)) {
         die("Solo se permiten archivos Word (.doc, .docx)");
     }
 
-    // Validar MIME (seguridad extra)
+    // Validar MIME
     $mimePermitidos = [
         'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
-
     if (!in_array($archivo['type'], $mimePermitidos)) {
         die("Tipo de archivo no válido");
     }
 
-    // Crear nombre único
-    $nombreFinal = uniqid() . "_" . basename($archivo['name']);
+    // Nombre único en disco
+    $nombreFinal = uniqid() . '_' . basename($archivo['name']);
 
-    // Determinar carpeta
-    $parte_carta = substr(strtolower($nombre), 0, 5);
-    $parte_informe_reporte = substr(strtolower($nombre), 0, 7);
-
-    //NOTA: NO DEBE MODIFICARSE EL NOMBRE DE LOS REGISTROS DE "TIPO_DOCUMENTO"
-    //ESTO AL COINCIDIR CON ESTA PARTE DEL CÓDIGO
-    if ($parte_carta == "carta") {
-        $carpeta = "carta";
-    } elseif ($parte_informe_reporte == "informe") {
-        $carpeta = "informe";
-    } elseif ($parte_informe_reporte == "reporte") {
-        $carpeta = "reporte";
+    // Subcarpeta según tipo de documento
+    $prefixNombre = strtolower($nombre);
+    if (str_starts_with($prefixNombre, 'carta')) {
+        $carpeta = 'carta';
+    } elseif (str_starts_with($prefixNombre, 'informe')) {
+        $carpeta = 'informe';
+    } elseif (str_starts_with($prefixNombre, 'reporte')) {
+        $carpeta = 'reporte';
     } else {
-        $carpeta = "general";
+        $carpeta = 'general';
     }
 
-    // Rutas
-    $base = "/ITSFCP-PROYECTOS/publico/docs/plantillas/$carpeta/";
-    $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
-    $rutaBD = $base . $nombreFinal;
+    // Rutas — ahora bajo /storage/plantillas/ (visibilidad privada)
+    $base        = "/ITSFCP-PROYECTOS/storage/plantillas/supervisor_{$id_usuario}/{$carpeta}/";
+    $rutaFisica  = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
+    $rutaBD      = $base . $nombreFinal;
 
-    // Crear carpeta si no existe
-    $directorio = dirname($rutaFisica);
-    if (!is_dir($directorio)) {
-        mkdir($directorio, 0755, true);
+    if (!is_dir(dirname($rutaFisica))) {
+        mkdir(dirname($rutaFisica), 0755, true);
     }
 
-    // Mover archivo
     if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
         die("Error al guardar el archivo");
     }
 
-    // Guardar en BD
     $plantilladocumentoControlador->registrar(
         $rol,
         $nombre,
-        $nombreFinal,
-        $rutaBD,
+        $nombreFinal,   // nombre físico en disco
+        $rutaBD,        // ruta completa
+        $extension,     // extensión sin punto
+        $archivo['type'], // mime
+        $archivo['size'],
         $id_tipo_documento,
         $id_usuario
     );

@@ -322,7 +322,7 @@ class TareaControlador
         }
         return $boton;
     }
-    
+
 
     public function obtenerbotonesTarea($tipo, $id1 = null, $id2 = null)
     {
@@ -426,8 +426,8 @@ class TareaControlador
                     $boton  = $this->obtenerbotonesTarea("Aprobar");
                     $boton  .= $this->obtenerbotonesTarea("Solicitar Corregir");
                     $boton  .= $this->obtenerbotonesTarea("Guardar");
-                } elseif (in_array($estado, ["Aprobado", "Vencido", "Pendiente"])) {
-                    //$boton  = $this->obtenerbotonesTarea("Guardar");
+                } elseif (in_array($estado, ["Vencido", "Pendiente"])) {
+                    $boton  = $this->obtenerbotonesTarea("Guardar");
                 } elseif (in_array($estado, ["Sin activar"])) {
                     $boton  = $this->obtenerbotonesTarea("Activar", $id1, $id2);
                     $boton  .= $this->obtenerbotonesTarea("Guardar");
@@ -442,73 +442,91 @@ class TareaControlador
         return $boton;
     }
 
-    /* EDITAR TAREA - investigador */
+    /* EDITAR TAREA - investigador (recurso adjunto a la tarea) */
     public function editarTarea($datos, $rol)
     {
         global $conn;
-
         $conn->begin_transaction();
 
         try {
-
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 die("Los datos no fueron enviados correctamente.");
             }
 
-            if ($rol != "investigador" && $rol != "profesor") {
+            if ($rol !== 'investigador' && $rol !== 'profesor') {
                 die("El usuario no tiene permiso para editar tareas.");
             }
 
-            $id_tarea = $datos['id_tarea'];
-            $id_proyectos = $datos['id_proyectos'] ?? ($_GET['id_proyectos'] ?? null);
-            $descripcion = $datos['descripcion'];
+            $id_tarea      = intval($datos['id_tarea']);
+            $id_proyectos  = intval($datos['id_proyectos'] ?? ($_GET['id_proyectos'] ?? 0));
+            $descripcion   = $datos['descripcion'];
             $instrucciones = $datos['instrucciones'];
             $fecha_entrega = $datos['fecha_entrega'];
 
-            // Datos del archivo
-            $archivo = null;
-            $archivo_nombre = null;
-            $archivo_tipo = null;
-
-            if (!empty($_FILES['archivo']['tmp_name'])) {
-                $archivo = file_get_contents($_FILES['archivo']['tmp_name']);
-                $archivo_nombre = $_FILES['archivo']['name'];
-                $archivo_tipo = $_FILES['archivo']['type'];
-            }
-
-            global $conn;
             $tarea = new Tarea($conn);
             $tarea->actualizarTareasVencidos();
 
-            // pasar NULL si no subieron archivo para NO sobreescribir
+            $id_documento_recurso = null; // Por defecto no se toca el archivo existente
+
+            if (!empty($_FILES['archivo']['tmp_name']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
+                $archivo      = $_FILES['archivo'];
+                $extension    = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+                $nombreFinal  = uniqid() . '_' . basename($archivo['name']);
+                $tipo_mime    = $archivo['type'];
+                $tamano_bytes = $archivo['size'];
+
+                // /storage/recursos/investigador_{id}/proyecto_{id}/
+                $base       = "/ITSFCP-PROYECTOS/storage/recursos/investigador_{$datos['id_usuario']}/proyecto_{$id_proyectos}/";
+                $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
+                $rutaBD     = $base . $nombreFinal;
+
+                if (!is_dir(dirname($rutaFisica))) {
+                    mkdir(dirname($rutaFisica), 0755, true);
+                }
+
+                if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
+                    throw new Exception("Error al guardar el archivo en disco.");
+                }
+
+                // Registrar en documentos_subidos
+                $id_documento_recurso = $tarea->registrarDocumento(
+                    nombre: basename($archivo['name']),
+                    nombre_archivo: $nombreFinal,
+                    ruta: $rutaBD,
+                    tipo_mime: $tipo_mime,
+                    extension: $extension,
+                    tamano_bytes: $tamano_bytes,
+                    tipo: 'recurso',
+                    visibilidad: 'privado',
+                    id_usuario: intval($datos['id_usuario']),
+                    id_proyecto: $id_proyectos
+                );
+            }
+
             $tarea->editarTareaGeneral(
                 $id_tarea,
                 $descripcion,
                 $instrucciones,
                 $fecha_entrega,
-                $archivo,
-                $archivo_nombre,
-                $archivo_tipo
+                $id_documento_recurso   // null = no sobreescribir
             );
 
             $conn->commit();
-
-            // REDIRECCIÓN SEGURA
             header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
             exit();
         } catch (Exception $e) {
+            $conn->rollback();
             error_log($e->getMessage());
             header("Location: crear.php?error=1");
             exit;
         }
     }
 
-    //EDITAR TAREAS - GENERAL
 
+    /* EDITAR TAREAS - GENERAL (enrutador estudiante / investigador) */
     public function editar($datos, $rol, $id_proyecto, $id_asignacion, $id)
     {
         global $conn;
-
         $conn->begin_transaction();
 
         try {
@@ -516,19 +534,22 @@ class TareaControlador
                 die("Método no permitido");
             }
 
-            if ($rol != "estudiante" && $rol != "investigador") {
+            if ($rol !== 'estudiante' && $rol !== 'investigador') {
                 die("El usuario no tiene permiso para editar la tarea.");
             }
 
-            if ($rol == "estudiante") {
+            if ($rol === 'estudiante') {
                 $this->editarTareaEstudiante($datos, $id_proyecto, $id_asignacion);
-                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyectos, $id_asignacion, $id, $datos['comentarios']);
-            } elseif ($rol == "investigador" || $rol == "profesor") {
+                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyecto, $id_asignacion, $id, $datos['comentarios']);
+            } else {
+                // investigador / profesor
                 $this->editarTareaRevisar($datos, $id_proyecto);
-                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyectos, $id_asignacion, $id, $datos['comentarios']);
+                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyecto, $id_asignacion, $id, $datos['comentarios']);
             }
+
             $conn->commit();
         } catch (Exception $e) {
+            $conn->rollback();
             error_log($e->getMessage());
             header("Location: editar.php?error=1");
             exit;
@@ -536,10 +557,9 @@ class TareaControlador
     }
 
 
+    /* EDITAR TAREA - ESTUDIANTE (entrega de actividad) */
     private function editarTareaEstudiante($_datos, $id_proyecto, $id_asignacion)
     {
-
-        // IDs seguros
         $id_asignacion = intval($_datos['id_asignacion'] ?? 0);
         $id_tarea      = intval($_datos['id_tarea'] ?? 0);
 
@@ -547,37 +567,66 @@ class TareaControlador
             die("Datos incompletos para editar tarea.");
         }
 
-        // CONTENIDO
-        $contenido = $_datos["contenido"] ?? "";
-
-        // ARCHIVO OPCIONAL
-        $archivo = null;
-        if (!empty($_FILES['archivo']['tmp_name'])) {
-            $archivo = [
-                'data' => file_get_contents($_FILES['archivo']['tmp_name']),
-                'name' => $_FILES['archivo']['name'],
-                'type' => $_FILES['archivo']['type']
-            ];
-        }
+        $contenido = $_datos['contenido'] ?? '';
+        $id_usuario = intval($_datos['id_usuario'] ?? 0);
 
         global $conn;
-
         $tarea = new Tarea($conn);
-        $tarea->actualizarTareasVencidos(); // Esto se mantiene
+        $tarea->actualizarTareasVencidos();
 
-        // Guardar información
+        $id_documento_entrega = null;
+
+        if (!empty($_FILES['archivo']['tmp_name']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
+            $archivo      = $_FILES['archivo'];
+            $extension    = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+            $nombreFinal  = uniqid() . '_' . basename($archivo['name']);
+            $tipo_mime    = $archivo['type'];
+            $tamano_bytes = $archivo['size'];
+
+            // Determinar subcarpeta según etapa de la tarea
+            // etapa viene de $_datos si el formulario la envía; si no, se usa 'actividad'
+            $etapa_num = intval($_datos['etapa'] ?? 0);
+            $subcarpeta = $etapa_num > 0 ? "actividad_{$etapa_num}" : 'actividad';
+
+            // /storage/entregas/alumno_{id}/proyecto_{id}/{subcarpeta}/
+            $base       = "/ITSFCP-PROYECTOS/storage/entregas/alumno_{$id_usuario}/proyecto_{$id_proyecto}/{$subcarpeta}/";
+            $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
+            $rutaBD     = $base . $nombreFinal;
+
+            if (!is_dir(dirname($rutaFisica))) {
+                mkdir(dirname($rutaFisica), 0755, true);
+            }
+
+            if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
+                throw new Exception("Error al guardar el archivo del estudiante en disco.");
+            }
+
+            // Registrar en documentos_subidos
+            $id_documento_entrega = $tarea->registrarDocumento(
+                nombre: basename($archivo['name']),
+                nombre_archivo: $nombreFinal,
+                ruta: $rutaBD,
+                tipo_mime: $tipo_mime,
+                extension: $extension,
+                tamano_bytes: $tamano_bytes,
+                tipo: 'entrega',
+                visibilidad: 'privado',
+                id_usuario: $id_usuario,
+                id_proyecto: intval($id_proyecto),
+                etapa: $etapa_num ?: null
+            );
+        }
+
         $tarea->editarTareaEstudiante(
             $id_asignacion,
             $id_tarea,
             $contenido,
-            $archivo
+            $id_documento_entrega   // null = no sobreescribir
         );
 
-        // Redirección luego de guardar
         header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tarea}&id_proyectos={$id_proyecto}&mensaje=1");
         exit();
     }
-
     //investigador 
     private function editarTareaRevisar($datos, $id_proyecto)
     {

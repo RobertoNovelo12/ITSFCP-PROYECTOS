@@ -252,8 +252,17 @@ class plantilladocumentoControlador
     /**
      * Registra una nueva Plantilla.
      */
-    public function registrar($rol, $nombre, $nombre_archivo, $rutaDestino, $id_tipo_documento, $id_usuarios_supervisor)
-    {
+    public function registrar(
+        $rol,
+        $nombre,
+        $nombre_archivo,
+        $ruta,
+        $extension,
+        $tipo_mime,
+        $tamano_bytes,
+        $id_tipo_documento,
+        $id_usuarios_supervisor
+    ) {
         if (!$this->esSupervisor($rol)) return "";
         global $conn;
 
@@ -262,42 +271,44 @@ class plantilladocumentoControlador
             $obj = new plantilladocumento($conn);
             $obj->bloquear_tabla($id_tipo_documento);
 
-            $info = $obj->obtenerInfoTipos($id_tipo_documento);
-
+            $info    = $obj->obtenerInfoTipos($id_tipo_documento);
             $obj->desactivarPorTipo($id_tipo_documento);
-
             $version = $obj->obtenerSiguienteVersion($id_tipo_documento);
 
-            $id = $obj->registrar($id_tipo_documento, $nombre, $version, $nombre_archivo, $rutaDestino);
-            if (!$id) {
-                header("Location: tabla.php?error=1");
-                exit;
-            }
+            // 1. Registrar el archivo en documentos_subidos
+            $id_documento = $obj->registrarDocumento(
+                nombre: $nombre,
+                nombre_archivo: $nombre_archivo,
+                ruta: $ruta,
+                tipo_mime: $tipo_mime,
+                extension: $extension,
+                tamano_bytes: $tamano_bytes,
+                tipo: 'plantilla',
+                visibilidad: 'privado',
+                id_usuario: $id_usuarios_supervisor,
+                version: $version
+            );
+            if (!$id_documento) throw new Exception("No se pudo registrar el documento");
 
-            $accion = "";
-            $descripcion = "";
-            if ($info['ultima_version'] == null) {
-                $accion = "CREACION";
-                $descripcion = $this->generarDescripcion($accion, $version, $info['nombre']);
-            } else {
-                $accion = "NUEVA_VERSION";
-                $descripcion = $this->generarDescripcion($accion, $version, $info['nombre']);
-            }
+            // 2. Registrar la plantilla referenciando el documento
+            $id_plantilla = $obj->registrar($id_tipo_documento, $nombre, $version, $id_documento);
+            if (!$id_plantilla) throw new Exception("No se pudo registrar la plantilla");
 
-            $obj->registrarHistorial($id, $id_usuarios_supervisor, $accion, $descripcion);
-
-
+            // 3. Historial
+            $accion      = $info['ultima_version'] === null ? 'CREACION' : 'NUEVA_VERSION';
+            $descripcion = $this->generarDescripcion($accion, $version, $info['nombre']);
+            $obj->registrarHistorial($id_plantilla, $id_usuarios_supervisor, $accion, $descripcion);
 
             $conn->commit();
             header("Location: tabla.php?mensaje=1");
             exit;
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
-            if ($e->getCode() == 1062) {
-                header("Location: tabla.php?error=duplicado");
-            } else {
-                header("Location: tabla.php?error=2");
-            }
+            header("Location: tabla.php?error=" . ($e->getCode() == 1062 ? 'duplicado' : '2'));
+            exit;
+        } catch (Exception $e) {
+            $conn->rollback();
+            header("Location: tabla.php?error=3");
             exit;
         }
     }

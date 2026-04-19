@@ -35,157 +35,162 @@ class Tarea
 
     //DATOS PRINCIPAL
     public function obtenerTareas($id_proyecto, $id_usuario, $rol)
-    {
-        switch ($rol) {
-            case 'estudiante':
-                $sql = "SELECT 
-    t.id_tarea,
-    taus.id_asignacion,
+{
+    switch ($rol) {
 
-    tt.descripcion_tipo AS tipo,
+        case 'estudiante':
+            $sql = "
+                SELECT
+                    t.id_tarea,
+                    taus.id_asignacion,
+                    tt.descripcion_tipo          AS tipo,
 
-    -- Datos de la plantilla
-    t.archivo_guia,
-    t.archivo_nombre,
-    t.archivo_tipo,
-    t.fecha_entrega,
-    est.nombre AS estado_plantilla,
+                    -- Recurso adjunto por el investigador (antes: t.ruta / t.nombre_archivo)
+                    ds_rec.nombre               AS archivo_nombre,
+                    ds_rec.ruta                 AS archivo_ruta,
+                    ds_rec.tipo_mime            AS archivo_tipo,
+                    ds_rec.extension            AS archivo_extension,
 
-    -- Datos de la entrega del estudiante
-    taus.archivo AS archivo_entregado,
-    taus.archivo_nombre AS archivo_entregado_nombre,
-    taus.archivo_tipo AS archivo_entregado_tipo,
-    taus.fecha_entrega_estudiante,
-    taus.fecha_revision,
-    esu.nombre AS estado_entrega
+                    t.fecha_entrega,
+                    est.nombre                  AS estado_plantilla,
 
-FROM tareas t
-INNER JOIN tbl_seguimiento s 
-        ON t.id_avances = s.id_avances
+                    -- Entrega del estudiante (antes: taus.archivo / taus.nombre_archivo)
+                    ds_ent.nombre               AS archivo_entregado_nombre,
+                    ds_ent.ruta                 AS archivo_entregado_ruta,
+                    ds_ent.tipo_mime            AS archivo_entregado_tipo,
+                    ds_ent.extension            AS archivo_entregado_extension,
 
-LEFT JOIN tareas_usuarios taus
-        ON taus.id_tarea = t.id_tarea
-       AND taus.id_usuarios = ?
+                    taus.fecha_entrega_estudiante,
+                    taus.fecha_revision,
+                    esu.nombre                  AS estado_entrega
 
-INNER JOIN tipo_tarea tt 
-        ON t.id_tareatipo = tt.id_tareatipo
+                FROM tareas t
+                INNER JOIN tbl_seguimiento s   ON t.id_avances      = s.id_avances
+                LEFT  JOIN tareas_usuarios taus ON taus.id_tarea     = t.id_tarea
+                                               AND taus.id_usuarios  = ?
+                INNER JOIN tipo_tarea tt        ON t.id_tareatipo    = tt.id_tareatipo
+                LEFT  JOIN estados_tarea est    ON t.id_estadoT      = est.id_estadoT
+                LEFT  JOIN estados_tarea esu    ON taus.id_estadoT   = esu.id_estadoT
 
-LEFT JOIN estados_tarea est 
-        ON t.id_estadoT = est.id_estadoT   -- Estado de la plantilla
+                -- Archivo recurso del investigador
+                LEFT  JOIN documentos_subidos ds_rec
+                        ON ds_rec.id_documento = t.id_documento_recurso
 
-LEFT JOIN estados_tarea esu 
-        ON taus.id_estadoT = esu.id_estadoT -- Estado de la entrega
+                -- Entrega del estudiante
+                LEFT  JOIN documentos_subidos ds_ent
+                        ON ds_ent.id_documento = taus.id_documento_entrega
 
-WHERE s.id_proyectos = ?
-ORDER BY t.id_tarea ASC;
-";
-                $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("ii", $id_usuario, $id_proyecto);
-                break;
-            case 'profesor':
-            case 'investigador':
-            case 'supervisor':
-                $sql = "SELECT 
-    t.id_tarea,
-    tt.descripcion_tipo AS tipo,
+                WHERE s.id_proyectos = ?
+                ORDER BY t.id_tarea ASC
+            ";
+            $stmt = $this->con->prepare($sql);
+            $stmt->bind_param("ii", $id_usuario, $id_proyecto);
+            break;
 
-    -- Datos de la plantilla
-    t.archivo_guia,
-    t.archivo_nombre,
-    t.archivo_tipo,
-    t.fecha_entrega,
-    est.nombre AS estado_plantilla,
+        case 'profesor':
+        case 'investigador':
+        case 'supervisor':
+            $sql = "
+                SELECT
+                    t.id_tarea,
+                    tt.descripcion_tipo          AS tipo,
 
-    -- Datos de asignaciones
-    (
-        SELECT COUNT(*) 
-        FROM tareas_usuarios tu
-        WHERE tu.id_tarea = t.id_tarea
-    ) AS total_asignados,
+                    -- Recurso adjunto por el investigador
+                    ds_rec.nombre               AS archivo_nombre,
+                    ds_rec.ruta                 AS archivo_ruta,
+                    ds_rec.tipo_mime            AS archivo_tipo,
+                    ds_rec.extension            AS archivo_extension,
 
-    (
-        SELECT COUNT(*) 
-        FROM tareas_usuarios tu
-        WHERE tu.id_tarea = t.id_tarea
-          AND tu.archivo IS NOT NULL
-    ) AS total_entregados
+                    t.fecha_entrega,
+                    est.nombre                  AS estado_plantilla,
 
-FROM tareas t
-INNER JOIN tbl_seguimiento s 
-        ON t.id_avances = s.id_avances
+                    -- Conteo de asignados
+                    (
+                        SELECT COUNT(*)
+                        FROM tareas_usuarios tu
+                        WHERE tu.id_tarea = t.id_tarea
+                    ) AS total_asignados,
 
-INNER JOIN tipo_tarea tt 
-        ON t.id_tareatipo = tt.id_tareatipo
+                    -- Conteo de entregas (antes: tu.archivo IS NOT NULL)
+                    (
+                        SELECT COUNT(*)
+                        FROM tareas_usuarios tu
+                        WHERE tu.id_tarea          = t.id_tarea
+                          AND tu.id_documento_entrega IS NOT NULL
+                    ) AS total_entregados
 
-LEFT JOIN estados_tarea est 
-        ON t.id_estadoT = est.id_estadoT -- Estado plantilla
+                FROM tareas t
+                INNER JOIN tbl_seguimiento s ON t.id_avances   = s.id_avances
+                INNER JOIN tipo_tarea tt     ON t.id_tareatipo = tt.id_tareatipo
+                LEFT  JOIN estados_tarea est ON t.id_estadoT   = est.id_estadoT
+                LEFT  JOIN documentos_subidos ds_rec
+                        ON ds_rec.id_documento = t.id_documento_recurso
 
-WHERE s.id_proyectos = ?
-ORDER BY t.id_tarea ASC;
-";
-                $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("i", $id_proyecto);
-                break;
-            default:
-                break;
-        }
-        $stmt->execute();
+                WHERE s.id_proyectos = ?
+                ORDER BY t.id_tarea ASC
+            ";
+            $stmt = $this->con->prepare($sql);
+            $stmt->bind_param("i", $id_proyecto);
+            break;
 
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        default:
+            return [];
     }
+
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
 
     //DATOS LISTA PROYECTO
     public function obtenerTareasLista($id_tarea, $rol)
-    {
-        switch ($rol) {
-            case 'profesor':
-            case 'investigador':
-            case 'supervisor':
-                $sql = "SELECT 
-                tu.id_asignacion,
-                
-                -- Tipo de tarea (nombre)
-                tita.descripcion_tipo AS tipo,
+{
+    switch ($rol) {
 
-                -- Datos del alumno
-                u.id_usuarios,
-                CONCAT(u.nombre, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS estudiante,
+        case 'profesor':
+        case 'investigador':
+        case 'supervisor':
+            $sql = "
+                SELECT
+                    tu.id_asignacion,
+                    tita.descripcion_tipo        AS tipo,
 
-                -- Estado actual de la entrega
-                et.nombre AS estados_tarea,
+                    -- Datos del alumno
+                    u.id_usuarios,
+                    CONCAT(u.nombre, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS estudiante,
 
-                -- Datos del archivo entregado
-                tu.archivo,
-                tu.archivo_nombre,
-                tu.archivo_tipo,
+                    -- Estado de la entrega
+                    et.nombre                   AS estados_tarea,
 
-                -- Control: la tarea a la que pertenece
-                ta.id_tarea
+                    -- Entrega del estudiante (antes: tu.archivo / tu.nombre_archivo)
+                    ds_ent.nombre               AS archivo_nombre,
+                    ds_ent.ruta                 AS archivo_ruta,
+                    ds_ent.tipo_mime            AS archivo_tipo,
+                    ds_ent.extension            AS archivo_extension,
 
-            FROM tareas_usuarios tu
-            INNER JOIN usuarios u 
-                ON tu.id_usuarios = u.id_usuarios
-            INNER JOIN estados_tarea et 
-                ON tu.id_estadoT = et.id_estadoT
-            INNER JOIN tareas ta 
-                ON ta.id_tarea = tu.id_tarea
-            INNER JOIN tipo_tarea tita
-                ON ta.id_tareatipo = tita.id_tareatipo
+                    ta.id_tarea
 
-            WHERE tu.id_tarea = ?
-            ORDER BY estudiante ASC
-";
-                $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("i", $id_tarea);
-                break;
-            default:
-                break;
-        }
-        $stmt->execute();
+                FROM tareas_usuarios tu
+                INNER JOIN usuarios u          ON tu.id_usuarios    = u.id_usuarios
+                INNER JOIN estados_tarea et    ON tu.id_estadoT     = et.id_estadoT
+                INNER JOIN tareas ta           ON ta.id_tarea       = tu.id_tarea
+                INNER JOIN tipo_tarea tita     ON ta.id_tareatipo   = tita.id_tareatipo
+                LEFT  JOIN documentos_subidos ds_ent
+                        ON ds_ent.id_documento = tu.id_documento_entrega
 
+                WHERE tu.id_tarea = ?
+                ORDER BY estudiante ASC
+            ";
+            $stmt = $this->con->prepare($sql);
+            $stmt->bind_param("i", $id_tarea);
+            break;
 
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        default:
+            return [];
     }
+
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
 
     //Obtener tareas para alumno
     public function obtenerTareasEstudiante($id_usuario)
@@ -221,86 +226,120 @@ ORDER BY t.id_tarea ASC;
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
+    /**
+     * Inserta un archivo en documentos_subidos y devuelve el id generado.
+     * Reutilizable desde cualquier flujo (recurso, entrega, plantilla, etapa).
+     */
+    public function registrarDocumento(
+        string  $nombre,
+        string  $nombre_archivo,
+        string  $ruta,
+        string  $tipo_mime,
+        string  $extension,
+        int     $tamano_bytes,
+        string  $tipo,          // plantilla | recurso | entrega | etapa
+        string  $visibilidad,   // publico | privado
+        int     $id_usuario,
+        int     $id_proyecto    = 0,
+        ?int    $etapa          = null,
+        int     $version        = 1
+    ): int {
+        $id_proyecto = $id_proyecto ?: null; // 0 → NULL en BD
 
-
-    //ACTUALIZAR TAREA
-    public function editarTareaGeneral($id_tarea, $descripcion, $instrucciones, $fecha_entrega, $archivo_guia, $archivo_nombre, $archivo_tipo)
-    {
-        if ($archivo_guia === null) {
-            // sin archivo nuevo
-            $sql = "UPDATE tareas
-                SET descripcion = ?, instrucciones = ?, fecha_entrega = ?
-                WHERE id_tarea = ?";
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param("sssi", $descripcion, $instrucciones, $fecha_entrega, $id_tarea);
-        } else {
-            // con archivo nuevo
-            $sql = "UPDATE tareas
-                SET descripcion = ?, instrucciones = ?, fecha_entrega = ?,
-                    archivo_guia = ?, archivo_nombre = ?, archivo_tipo = ?
-                WHERE id_tarea = ?";
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param(
-                "ssssssi",
-                $descripcion,
-                $instrucciones,
-                $fecha_entrega,
-                $archivo_guia,
-                $archivo_nombre,
-                $archivo_tipo,
-                $id_tarea
-            );
-        }
-
-        $stmt->execute();
-    }
-
-
-    //Estudiante
-    public function editarTareaEstudiante($id_asignacion, $id_tarea, $contenido, $archivo = null)
-    {
-        $sql = "UPDATE tareas_usuarios 
-            SET contenido = ?,                
-                archivo = COALESCE(?, archivo),
-                archivo_nombre = COALESCE(?, archivo_nombre),
-                archivo_tipo = COALESCE(?, archivo_tipo)
-            WHERE id_asignacion = ?
-              AND id_tarea = ?";
+        $sql = "
+        INSERT INTO documentos_subidos
+            (nombre, nombre_archivo, ruta, tipo_mime, extension, tamano_bytes,
+             tipo, visibilidad, id_usuario, id_proyecto, etapa, version, activo, fecha_subida)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
+    ";
 
         $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            die("Error al preparar consulta: " . $this->con->error);
-        }
-
-        $archivo_blob   = $archivo['data'] ?? null;
-        $archivo_nombre = $archivo['name'] ?? null;
-        $archivo_tipo   = $archivo['type'] ?? null;
-
-        // OBLIGATORIO: convertir null a variables válidas
-        if ($archivo_blob === null) {
-            $archivo_blob = null;
-        }
-        if ($archivo_nombre === null) {
-            $archivo_nombre = null;
-        }
-        if ($archivo_tipo === null) {
-            $archivo_tipo = null;
-        }
+        if (!$stmt) throw new Exception("Error prepare (registrarDocumento): " . $this->con->error);
 
         $stmt->bind_param(
-            "ssssii",
-            $contenido,
-            $archivo_blob,
-            $archivo_nombre,
-            $archivo_tipo,
-            $id_asignacion,
-            $id_tarea
+            "sssssisisiii",
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $tipo,
+            $visibilidad,
+            $id_usuario,
+            $id_proyecto,
+            $etapa,
+            $version
         );
 
-        return $stmt->execute();
+        if (!$stmt->execute()) throw new Exception("Error execute (registrarDocumento): " . $stmt->error);
+
+        $id = $stmt->insert_id;
+        $stmt->close();
+        return $id;
     }
 
+
+    /**
+     * Actualiza la tarea (recurso del investigador).
+     * Si $id_documento_recurso es null, NO sobreescribe el archivo existente.
+     */
+    public function editarTareaGeneral(
+        int     $id_tarea,
+        string  $descripcion,
+        string  $instrucciones,
+        string  $fecha_entrega,
+        ?int    $id_documento_recurso
+    ): void {
+        if ($id_documento_recurso === null) {
+            $sql  = "UPDATE tareas
+                 SET descripcion = ?, instrucciones = ?, fecha_entrega = ?
+                 WHERE id_tarea = ?";
+            $stmt = $this->con->prepare($sql);
+            if (!$stmt) throw new Exception("Error prepare (editarTareaGeneral): " . $this->con->error);
+            $stmt->bind_param("sssi", $descripcion, $instrucciones, $fecha_entrega, $id_tarea);
+        } else {
+            $sql  = "UPDATE tareas
+                 SET descripcion = ?, instrucciones = ?, fecha_entrega = ?,
+                     id_documento_recurso = ?
+                 WHERE id_tarea = ?";
+            $stmt = $this->con->prepare($sql);
+            if (!$stmt) throw new Exception("Error prepare (editarTareaGeneral): " . $this->con->error);
+            $stmt->bind_param("sssii", $descripcion, $instrucciones, $fecha_entrega, $id_documento_recurso, $id_tarea);
+        }
+
+        if (!$stmt->execute()) throw new Exception("Error execute (editarTareaGeneral): " . $stmt->error);
+        $stmt->close();
+    }
+
+
+    /**
+     * Actualiza la entrega del estudiante en tareas_usuarios.
+     * Si $id_documento_entrega es null, NO sobreescribe la entrega anterior.
+     */
+    public function editarTareaEstudiante(
+        int     $id_asignacion,
+        int     $id_tarea,
+        string  $contenido,
+        ?int    $id_documento_entrega
+    ): bool {
+        $sql = "
+        UPDATE tareas_usuarios
+        SET contenido            = ?,
+            id_documento_entrega = COALESCE(?, id_documento_entrega)
+        WHERE id_asignacion = ?
+          AND id_tarea      = ?
+    ";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error prepare (editarTareaEstudiante): " . $this->con->error);
+
+        $stmt->bind_param("siii", $contenido, $id_documento_entrega, $id_asignacion, $id_tarea);
+
+        if (!$stmt->execute()) throw new Exception("Error execute (editarTareaEstudiante): " . $stmt->error);
+        $stmt->close();
+        return true;
+    }
 
 
     //Investigador
@@ -420,75 +459,83 @@ ORDER BY t.id_tarea ASC;
     }
 
     //Obtener los datos para el formulario de alumno
-    function obtenerTareaAlumno($id_asignacion)
-    {
-        $sql = "SELECT
-a.id_asignacion,
-a.id_tarea,
-tbse.id_proyectos,
-a.archivo,
-a.archivo_nombre,
-a.archivo_tipo,
+    public function obtenerTareaAlumno($id_asignacion)
+{
+    $sql = "
+        SELECT
+            a.id_asignacion,
+            a.id_tarea,
+            tbse.id_proyectos,
 
-esta.nombre AS estado,
+            -- Entrega del estudiante
+            ds_ent.nombre               AS archivo_nombre,
+            ds_ent.ruta                 AS archivo_ruta,
+            ds_ent.tipo_mime            AS archivo_tipo,
+            ds_ent.extension            AS archivo_extension,
 
+            esta.nombre                 AS estado,
             t.descripcion,
             t.instrucciones,
-            tt.descripcion_tipo AS tipo_tarea,
-
+            tt.descripcion_tipo         AS tipo_tarea,
             a.contenido
+
         FROM tareas_usuarios a
-        INNER JOIN tareas t ON t.id_tarea = a.id_tarea
-        INNER JOIN tbl_seguimiento as tbse ON t.id_avances = tbse.id_avances 
-        INNER JOIN tipo_tarea tt ON tt.id_tareatipo = t.id_tareatipo
-        INNER JOIN estados_tarea as esta ON esta.id_estadoT = a.id_estadoT
+        INNER JOIN tareas t             ON t.id_tarea       = a.id_tarea
+        INNER JOIN tbl_seguimiento tbse ON t.id_avances     = tbse.id_avances
+        INNER JOIN tipo_tarea tt        ON tt.id_tareatipo  = t.id_tareatipo
+        INNER JOIN estados_tarea esta   ON esta.id_estadoT  = a.id_estadoT
+        LEFT  JOIN documentos_subidos ds_ent
+                ON ds_ent.id_documento  = a.id_documento_entrega
+
         WHERE a.id_asignacion = ?
-        LIMIT 1";
+        LIMIT 1
+    ";
 
-        $stmt = $this->con->prepare($sql);
+    $stmt = $this->con->prepare($sql);
+    if (!$stmt) die("Error al preparar consulta: " . $this->con->error);
 
-        if (!$stmt) {
-            die("Error al preparar consulta: " . $this->con->error);
-        }
+    $stmt->bind_param("i", $id_asignacion);
+    $stmt->execute();
 
-        $stmt->bind_param("i", $id_asignacion);
-        $stmt->execute();
-        $tarea = $stmt->get_result()->fetch_assoc();
-
-        return $tarea;
-    }
+    return $stmt->get_result()->fetch_assoc();
+}
 
     //Obtener información de tarea con seguimiento para modificar los datos
-    function obtenerTareaGeneral($id_tarea)
-    {
-        // OBTENER TAREA
-        $sqlTarea = "SELECT 
-                    tare.id_tarea,
-                    tita.descripcion_tipo AS tipo,
-                    tare.descripcion,
-                    tare.instrucciones,
-                    tare.fecha_entrega,
-                    tare.archivo_guia,
-                    tare.archivo_nombre,
-                    tare.archivo_tipo,
-                    tita.descripcion_tipo AS titulo_tarea,
-                    esta.nombre as estado
-                 FROM tareas AS tare
-                 JOIN tipo_tarea AS tita ON tare.id_tareatipo = tita.id_tareatipo
-                 JOIN estados_tarea as esta ON esta.id_estadoT = tare.id_estadoT
-                 WHERE tare.id_tarea = ?";
+   public function obtenerTareaGeneral($id_tarea)
+{
+    $sql = "
+        SELECT
+            tare.id_tarea,
+            tita.descripcion_tipo       AS tipo,
+            tare.descripcion,
+            tare.instrucciones,
+            tare.fecha_entrega,
+            tita.descripcion_tipo       AS titulo_tarea,
+            esta.nombre                 AS estado,
 
-        $stmt = $this->con->prepare($sqlTarea);
-        if (!$stmt) {
-            die("Error en SQL: " . $this->con->error . "<br><br>QUERY:<br>$sqlTarea");
-        }
+            -- Recurso adjunto por el investigador
+            ds_rec.nombre               AS archivo_nombre,
+            ds_rec.ruta                 AS archivo_ruta,
+            ds_rec.tipo_mime            AS archivo_tipo,
+            ds_rec.extension            AS archivo_extension
 
-        $stmt->bind_param("i", $id_tarea);
-        $stmt->execute();
-        $tarea = $stmt->get_result()->fetch_assoc();
+        FROM tareas tare
+        INNER JOIN tipo_tarea tita      ON tare.id_tareatipo = tita.id_tareatipo
+        INNER JOIN estados_tarea esta   ON esta.id_estadoT   = tare.id_estadoT
+        LEFT  JOIN documentos_subidos ds_rec
+                ON ds_rec.id_documento  = tare.id_documento_recurso
 
-        return $tarea;
-    }
+        WHERE tare.id_tarea = ?
+    ";
+
+    $stmt = $this->con->prepare($sql);
+    if (!$stmt) die("Error en SQL: " . $this->con->error);
+
+    $stmt->bind_param("i", $id_tarea);
+    $stmt->execute();
+
+    return $stmt->get_result()->fetch_assoc();
+}
     //OBTENR INFORMACIÓN DEL HISTORIAL DE TAREA PARA EL TIMELINE
     public function linea_tiempo_tarea($id_asignacion)
     {

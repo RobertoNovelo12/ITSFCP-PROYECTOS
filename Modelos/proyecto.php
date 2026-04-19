@@ -296,8 +296,8 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
 
     //OBTENER DATOS POR SUPERVISOR
     private function obtenerProyectosTablaSupervisor($filtro, $buscar)
-{
-    $sql = "SELECT 
+    {
+        $sql = "SELECT 
         proy.id_proyectos,
         proy.titulo,
         espr.nombre AS estado_proyecto
@@ -305,25 +305,25 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
     JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
     WHERE 1";
 
-    $params = [];
-    $types = "";
+        $params = [];
+        $types = "";
 
-    if ($filtro != 0) {
-        $sql .= " AND proy.id_estadoP = ?";
-        $params[] = $filtro;
-        $types .= "i";
+        if ($filtro != 0) {
+            $sql .= " AND proy.id_estadoP = ?";
+            $params[] = $filtro;
+            $types .= "i";
+        }
+
+        if (!empty($buscar)) {
+            $sql .= " AND proy.titulo LIKE ?";
+            $params[] = "%$buscar%";
+            $types .= "s";
+        }
+
+        return json_encode([
+            "proyectos" => $this->ejecutar($sql, $types, $params)
+        ]);
     }
-
-    if (!empty($buscar)) {
-        $sql .= " AND proy.titulo LIKE ?";
-        $params[] = "%$buscar%";
-        $types .= "s";
-    }
-
-    return json_encode([
-        "proyectos" => $this->ejecutar($sql, $types, $params)
-    ]);
-}
 
     //OBTENER LA CANTIDAD DE PROYECTOS
     //ESTUDIANTE
@@ -662,110 +662,147 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         }
     }
 
-    public function actualizarestado($id_proyectos, $numeroEstado, $porcentaje = null)
-    {
+    public function actualizarestado(int $id_proyectos, int $numeroEstado, $porcentaje = null): void
+{
+    // 1. Actualizar estado del proyecto
+    $sql  = "UPDATE proyectos SET id_estadoP = ?, actualizado_en = NOW() WHERE id_proyectos = ?";
+    $stmt = $this->con->prepare($sql);
+    if (!$stmt) throw new Exception("Error prepare (actualizarestado): " . $this->con->error);
 
-        // 1. Actualizar estado
-        $sql = "UPDATE proyectos 
-            SET id_estadoP = ?, actualizado_en = NOW() 
-            WHERE id_proyectos = ?";
+    $stmt->bind_param("ii", $numeroEstado, $id_proyectos);
+    if (!$stmt->execute()) throw new Exception("Error execute (actualizarestado): " . $stmt->error);
+    $stmt->close();
 
-        $stmt = $this->con->prepare($sql);
+    // ── Estado 2: Activo → crear tareas ──────────────────────────
+    if ($numeroEstado === 2) {
 
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
+        // Obtener plantilla activa del reporte final (id_tipo_documento del reporte)
+        // Se asume que el tipo_documento cuyo nombre empieza con 'reporte' es el del reporte final
+        $sqlPlantilla = "
+            SELECT pd.id_plantilla, pd.id_documento
+            FROM plantillas_documentos pd
+            INNER JOIN tipo_documento td ON td.id_tipo_documento = pd.id_tipo_documento
+            WHERE pd.activo = 1
+              AND LOWER(td.nombre) LIKE 'reporte%'
+            LIMIT 1
+        ";
+        $resPlantilla      = $this->con->query($sqlPlantilla);
+        $plantillaReporte  = $resPlantilla ? $resPlantilla->fetch_assoc() : null;
+        $id_doc_reporte    = $plantillaReporte['id_documento'] ?? null; // null si no hay plantilla
+
+        // Crear seguimiento
+        $stmtSeg = $this->con->prepare("
+            INSERT INTO tbl_seguimiento (id_proyectos, fecha_activacion)
+            VALUES (?, CURDATE())
+        ");
+        if (!$stmtSeg) throw new Exception("Error prepare (tbl_seguimiento): " . $this->con->error);
+        $stmtSeg->bind_param("i", $id_proyectos);
+        $stmtSeg->execute();
+        $id_avances = $stmtSeg->insert_id;
+        $stmtSeg->close();
+
+        // Obtener tipos de tarea ordenados
+        $result = $this->con->query("SELECT id_tareatipo FROM tipo_tarea ORDER BY id_tareatipo ASC");
+        if (!$result) throw new Exception("Error al obtener tipos de tarea.");
+
+        $estadoSinActivar = 4;
+
+        // Preparar insert genérico (sin documento)
+        $stmtTarea = $this->con->prepare("
+            INSERT INTO tareas (id_avances, id_tareatipo, id_estadoT)
+            VALUES (?, ?, ?)
+        ");
+        if (!$stmtTarea) throw new Exception("Error prepare (tareas): " . $this->con->error);
+
+        // Preparar insert con documento (reporte final)
+        $stmtTareaDoc = $this->con->prepare("
+            INSERT INTO tareas (id_avances, id_tareatipo, id_estadoT, id_documento_recurso)
+            VALUES (?, ?, ?, ?)
+        ");
+        if (!$stmtTareaDoc) throw new Exception("Error prepare (tareas+doc): " . $this->con->error);
+
+        while ($row = $result->fetch_assoc()) {
+            $id_tipo = (int) $row['id_tareatipo'];
+
+            if ($id_tipo === 12 && $id_doc_reporte !== null) {
+                // Reporte final CON plantilla disponible
+                $stmtTareaDoc->bind_param(
+                    "iiii",
+                    $id_avances, $id_tipo, $estadoSinActivar, $id_doc_reporte
+                );
+                $stmtTareaDoc->execute();
+            } else {
+                // Resto de tareas (o reporte final sin plantilla)
+                $stmtTarea->bind_param("iii", $id_avances, $id_tipo, $estadoSinActivar);
+                $stmtTarea->execute();
+            }
         }
 
-        $stmt->bind_param("ii", $numeroEstado, $id_proyectos);
+        $stmtTarea->close();
+        $stmtTareaDoc->close();
 
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
+    // ── Estado 5: Por cerrar → insertar en tbl_cierres ───────────
+    } elseif ($numeroEstado === 5) {
+
+        $stmtInv = $this->con->prepare("
+            SELECT id_investigador FROM proyectos WHERE id_proyectos = ?
+        ");
+        if (!$stmtInv) throw new Exception("Error prepare (id_investigador): " . $this->con->error);
+        $stmtInv->bind_param("i", $id_proyectos);
+        $stmtInv->execute();
+        $row = $stmtInv->get_result()->fetch_assoc();
+        $stmtInv->close();
+
+        if ($row) {
+            $estado   = 'espera';
+            $stmtCierre = $this->con->prepare("
+                INSERT INTO tbl_cierres
+                    (id_proyectos, id_supervisor, fecha_solicitud, porcentaje, estado)
+                VALUES (?, ?, CURDATE(), ?, ?)
+            ");
+            if (!$stmtCierre) throw new Exception("Error prepare (tbl_cierres): " . $this->con->error);
+            $stmtCierre->bind_param("iiis", $id_proyectos, $row['id_investigador'], $porcentaje, $estado);
+            $stmtCierre->execute();
+            $stmtCierre->close();
         }
-        // 2. Si estado = 2, crear tareas
-        $estado = "";
-        if ($numeroEstado == 2) { // Estado Activo
 
-            // Obtener tipos reales de tareas
-            $sqlTipos = "SELECT id_tareatipo FROM tipo_tarea ORDER BY id_tareatipo ASC";
-            $result = $this->con->query($sqlTipos);
+    // ── Estado 1: Cerrado → aprobar cierre ───────────────────────
+    } elseif ($numeroEstado === 1) {
 
-            // INSERT tbl_seguimiento
-            $sqlSeg = "INSERT INTO tbl_seguimiento 
-                    (id_proyectos, fecha_activacion) 
-                    VALUES (?,  CURDATE())";
+        $stmtInv = $this->con->prepare("
+            SELECT id_investigador FROM proyectos WHERE id_proyectos = ?
+        ");
+        if (!$stmtInv) throw new Exception("Error prepare (cierre-investigador): " . $this->con->error);
+        $stmtInv->bind_param("i", $id_proyectos);
+        $stmtInv->execute();
+        $row = $stmtInv->get_result()->fetch_assoc();
+        $stmtInv->close();
 
-            $stmtSeg = $this->con->prepare($sqlSeg);
-            $stmtSeg->bind_param("i", $id_proyectos);
-            $stmtSeg->execute();
+        if ($row) {
+            $estadoCierre = 'aprobado';
+            $stmtC = $this->con->prepare("
+                UPDATE tbl_cierres
+                SET fecha_resultado = CURDATE(), estado = ?
+                WHERE id_proyectos = ?
+            ");
+            if (!$stmtC) throw new Exception("Error prepare (update tbl_cierres): " . $this->con->error);
+            $stmtC->bind_param("si", $estadoCierre, $id_proyectos);
+            $stmtC->execute();
+            $stmtC->close();
 
-            $id_avances = $stmtSeg->insert_id;
-
-            if ($result->num_rows > 0) {
-
-                while ($row = $result->fetch_assoc()) {
-                    $id_tipo = $row['id_tareatipo'];
-
-                    // INSERT tareas
-                    $sqlTarea = "INSERT INTO tareas 
-                    (id_avances, id_tareatipo, id_estadoT)
-                    VALUES (?, ?, ?)";
-                    $estado = 4; // Estado : Sin activar
-                    $stmtTarea = $this->con->prepare($sqlTarea);
-                    if (!$stmtTarea) {
-                        die("Error en prepare(): " . $this->con->error);
-                    }
-                    $stmtTarea->bind_param("iii", $id_avances, $id_tipo, $estado);
-                    $stmtTarea->execute();
-                }
-            }
-            //Por cerrar, insertar datos a tbl_cierres
-        } else if ($numeroEstado == 5) { // Por cerrar
-            $sql_investigador = "SELECT id_investigador FROM proyectos WHERE id_proyectos = ?";
-            $stmtInvestigador = $this->con->prepare($sql_investigador);
-            $stmtInvestigador->bind_param("i", $id_proyectos);
-            $stmtInvestigador->execute();
-            $result = $stmtInvestigador->get_result();
-            $estado = "espera";
-
-            if ($row = $result->fetch_assoc()) {
-
-                // INSERT tbl_seguimiento
-                $sqlSeg = "INSERT INTO tbl_cierres 
-                    (id_proyectos, id_supervisor, fecha_solicitud, porcentaje, estado) 
-                    VALUES (?, ?, CURDATE(), ?, ?)";
-
-                $stmtSeg = $this->con->prepare($sqlSeg);
-                $stmtSeg->bind_param("iiis", $id_proyectos, $row['id_investigador'], $porcentaje,  $estado);
-                $stmtSeg->execute();
-            }
-        } else if ($numeroEstado == 1) { //Cierre
-            $sql_investigador = "SELECT id_investigador FROM proyectos WHERE id_proyectos = ?";
-            $stmtInvestigador = $this->con->prepare($sql_investigador);
-            $stmtInvestigador->bind_param("i", $id_proyectos);
-            $result = $this->con->query($stmtInvestigador);
-
-            if ($row = $result->fetch_assoc()) {
-
-                // Actualizar tbl_cierres
-                $sql = "UPDATE tbl_cierres
-            SET fecha_resultado = CURDATE(), estado = ? 
-            WHERE id_proyectos = ?";
-                $estado = "aprobado";
-                $stmtSeg = $this->con->prepare($sql);
-                $stmtSeg->bind_param("si", $estado, $id_proyectos);
-                $stmtSeg->execute();
-
-                // Actualizar proyectos_usuarios
-                $sql = "UPDATE proyectos_usuarios
-            SET fecha_terminacion = CURDATE(), estado = ? 
-            WHERE id_proyectos = ?";
-                $estado = "concluido";
-                $stmtSeg = $this->con->prepare($sql);
-                $stmtSeg->bind_param("si", $estado, $id_proyectos);
-                $stmtSeg->execute();
-            }
+            $estadoUsuario = 'concluido';
+            $stmtU = $this->con->prepare("
+                UPDATE proyectos_usuarios
+                SET fecha_terminacion = CURDATE(), estado = ?
+                WHERE id_proyectos = ?
+            ");
+            if (!$stmtU) throw new Exception("Error prepare (proyectos_usuarios): " . $this->con->error);
+            $stmtU->bind_param("si", $estadoUsuario, $id_proyectos);
+            $stmtU->execute();
+            $stmtU->close();
         }
     }
+}
 
     //Para la operación de porcentaje de avance
     function valorPorEstado($estado)

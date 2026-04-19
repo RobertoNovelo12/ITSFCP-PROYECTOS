@@ -208,59 +208,102 @@ GROUP BY t.id_tipo_documento;";
 
         return $registro;
     }
-
     /**
-     * Registra una nueva Plantilla de documento.
-     * IMPORTANTE: Ejecutar dentro de una transacción.
-     *
-     * @param string $nombre
-     * @param int $version
-     * @throws Exception
+     * Inserta el archivo físico en documentos_subidos.
+     * Devuelve el id_documento generado.
      */
-    public function registrar(int $id_tipo_documento, string $nombre, int $version, string $nombre_archivo, string $ruta_archivo)
-    {
-
+    public function registrarDocumento(
+        string $nombre,
+        string $nombre_archivo,
+        string $ruta,
+        string $tipo_mime,
+        string $extension,
+        int    $tamano_bytes,
+        string $tipo,          // 'plantilla'
+        string $visibilidad,   // 'privado' | 'publico'
+        int    $id_usuario,
+        int    $version
+    ): int {
         $sql = "
-        INSERT INTO plantillas_documentos 
-            (id_tipo_documento, nombre, version, ruta, activo, nombre_archivo, fecha_creacion) 
-            VALUES (?, ?, ?, ?, 1, ?, NOW())";
+        INSERT INTO documentos_subidos
+            (nombre, nombre_archivo, ruta, tipo_mime, extension, tamano_bytes,
+             tipo, visibilidad, id_usuario, version, activo, fecha_subida)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
+    ";
 
         $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (registrar): " . $this->con->error);
+        if (!$stmt) throw new Exception("Error prepare (registrarDocumento): " . $this->con->error);
 
-        $stmt->bind_param("isiss", $id_tipo_documento, $nombre, $version, $ruta_archivo, $nombre_archivo);
-        if (!$stmt->execute()) throw new Exception("Error en execute (registrar): " . $stmt->error);
+        $stmt->bind_param(
+            "sssssisisii",
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $tipo,
+            $visibilidad,
+            $id_usuario,
+            $version
+        );
+
+        if (!$stmt->execute()) throw new Exception("Error execute (registrarDocumento): " . $stmt->error);
 
         $id = $stmt->insert_id;
         $stmt->close();
-
         return $id;
     }
 
     /**
-     * Registra una nueva Plantilla de documento.
-     * IMPORTANTE: Ejecutar dentro de una transacción.
-     *
-     * @param string $nombre
-     * @param int $version
-     * @throws Exception
+     * Registra la plantilla con referencia al documento centralizado.
+     * nombre_archivo y ruta ya NO van aquí.
      */
-    public function registrarHistorial(int $id_plantilla, int $id_usuarios, string $accion, string $descripcion)
-    {
-
+    public function registrar(
+        int    $id_tipo_documento,
+        string $nombre,
+        int    $version,
+        int    $id_documento
+    ): int {
         $sql = "
-        INSERT INTO historial_plantillas 
-            (id_plantilla, id_usuarios, accion, descripcion, fecha) 
-            VALUES (?, ?, ?, ?, NOW())";
+        INSERT INTO plantillas_documentos
+            (id_tipo_documento, nombre, version, id_documento, activo, fecha_creacion)
+        VALUES (?, ?, ?, ?, 1, NOW())
+    ";
 
         $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (registrar): " . $this->con->error);
+        if (!$stmt) throw new Exception("Error prepare (registrar): " . $this->con->error);
+
+        $stmt->bind_param("isii", $id_tipo_documento, $nombre, $version, $id_documento);
+        if (!$stmt->execute()) throw new Exception("Error execute (registrar): " . $stmt->error);
+
+        $id = $stmt->insert_id;
+        $stmt->close();
+        return $id;
+    }
+
+    /**
+     * Sin cambios de firma — solo se mantiene igual.
+     */
+    public function registrarHistorial(
+        int    $id_plantilla,
+        int    $id_usuarios,
+        string $accion,
+        string $descripcion
+    ): bool {
+        $sql = "
+        INSERT INTO historial_plantillas
+            (id_plantilla, id_usuarios, accion, descripcion, fecha)
+        VALUES (?, ?, ?, ?, NOW())
+    ";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error prepare (registrarHistorial): " . $this->con->error);
 
         $stmt->bind_param("iiss", $id_plantilla, $id_usuarios, $accion, $descripcion);
-        if (!$stmt->execute()) throw new Exception("Error en execute (registrar): " . $stmt->error);
+        if (!$stmt->execute()) throw new Exception("Error execute (registrarHistorial): " . $stmt->error);
 
         $stmt->close();
-
         return true;
     }
 

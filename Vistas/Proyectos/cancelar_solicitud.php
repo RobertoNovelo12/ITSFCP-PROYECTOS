@@ -9,6 +9,12 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
+
+// Esta vista solo la usa el supervisor
+if ($rol !== 'supervisor') {
+    header('Location: /ITSFCP-PROYECTOS/index.php');
+    exit;
+}
 $rol = $_SESSION['rol'];
 $id = $_SESSION['id_usuario'];
 $action = $_POST['action'] ?? null;
