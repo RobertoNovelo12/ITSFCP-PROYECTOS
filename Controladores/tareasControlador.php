@@ -665,15 +665,26 @@ class TareaControlador
     public function info_linea_tiempo($id_asignacion)
     {
         global $conn;
+
         try {
+            $pagina = $_GET['pagina'] ?? 1;
+
             $tarea = new Tarea($conn);
 
             $tarea->actualizarTareasVencidos();
+
             if ($id_asignacion) {
-                return $tarea->linea_tiempo_tarea($id_asignacion);
+                return $tarea->linea_tiempo_tarea($id_asignacion, $pagina);
             } else {
-                $datos = []; // evita undefined variable
-                return $datos;
+                return [
+                    "datos" => [],
+                    "paginacion" => [
+                        "total" => 0,
+                        "por_pagina" => 5,
+                        "pagina" => 1,
+                        "total_paginas" => 1
+                    ]
+                ];
             }
         } catch (Exception $e) {
             error_log($e->getMessage());

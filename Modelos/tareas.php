@@ -35,11 +35,11 @@ class Tarea
 
     //DATOS PRINCIPAL
     public function obtenerTareas($id_proyecto, $id_usuario, $rol)
-{
-    switch ($rol) {
+    {
+        switch ($rol) {
 
-        case 'estudiante':
-            $sql = "
+            case 'estudiante':
+                $sql = "
                 SELECT
                     t.id_tarea,
                     taus.id_asignacion,
@@ -83,14 +83,14 @@ class Tarea
                 WHERE s.id_proyectos = ?
                 ORDER BY t.id_tarea ASC
             ";
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param("ii", $id_usuario, $id_proyecto);
-            break;
+                $stmt = $this->con->prepare($sql);
+                $stmt->bind_param("ii", $id_usuario, $id_proyecto);
+                break;
 
-        case 'profesor':
-        case 'investigador':
-        case 'supervisor':
-            $sql = "
+            case 'profesor':
+            case 'investigador':
+            case 'supervisor':
+                $sql = "
                 SELECT
                     t.id_tarea,
                     tt.descripcion_tipo          AS tipo,
@@ -129,27 +129,27 @@ class Tarea
                 WHERE s.id_proyectos = ?
                 ORDER BY t.id_tarea ASC
             ";
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param("i", $id_proyecto);
-            break;
+                $stmt = $this->con->prepare($sql);
+                $stmt->bind_param("i", $id_proyecto);
+                break;
 
-        default:
-            return [];
+            default:
+                return [];
+        }
+
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-
-    $stmt->execute();
-    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-}
 
     //DATOS LISTA PROYECTO
     public function obtenerTareasLista($id_tarea, $rol)
-{
-    switch ($rol) {
+    {
+        switch ($rol) {
 
-        case 'profesor':
-        case 'investigador':
-        case 'supervisor':
-            $sql = "
+            case 'profesor':
+            case 'investigador':
+            case 'supervisor':
+                $sql = "
                 SELECT
                     tu.id_asignacion,
                     tita.descripcion_tipo        AS tipo,
@@ -180,17 +180,17 @@ class Tarea
                 WHERE tu.id_tarea = ?
                 ORDER BY estudiante ASC
             ";
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param("i", $id_tarea);
-            break;
+                $stmt = $this->con->prepare($sql);
+                $stmt->bind_param("i", $id_tarea);
+                break;
 
-        default:
-            return [];
+            default:
+                return [];
+        }
+
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-
-    $stmt->execute();
-    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-}
 
     //Obtener tareas para alumno
     public function obtenerTareasEstudiante($id_usuario)
@@ -460,8 +460,8 @@ class Tarea
 
     //Obtener los datos para el formulario de alumno
     public function obtenerTareaAlumno($id_asignacion)
-{
-    $sql = "
+    {
+        $sql = "
         SELECT
             a.id_asignacion,
             a.id_tarea,
@@ -491,19 +491,19 @@ class Tarea
         LIMIT 1
     ";
 
-    $stmt = $this->con->prepare($sql);
-    if (!$stmt) die("Error al preparar consulta: " . $this->con->error);
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) die("Error al preparar consulta: " . $this->con->error);
 
-    $stmt->bind_param("i", $id_asignacion);
-    $stmt->execute();
+        $stmt->bind_param("i", $id_asignacion);
+        $stmt->execute();
 
-    return $stmt->get_result()->fetch_assoc();
-}
+        return $stmt->get_result()->fetch_assoc();
+    }
 
     //Obtener información de tarea con seguimiento para modificar los datos
-   public function obtenerTareaGeneral($id_tarea)
-{
-    $sql = "
+    public function obtenerTareaGeneral($id_tarea)
+    {
+        $sql = "
         SELECT
             tare.id_tarea,
             tita.descripcion_tipo       AS tipo,
@@ -528,40 +528,84 @@ class Tarea
         WHERE tare.id_tarea = ?
     ";
 
-    $stmt = $this->con->prepare($sql);
-    if (!$stmt) die("Error en SQL: " . $this->con->error);
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) die("Error en SQL: " . $this->con->error);
 
-    $stmt->bind_param("i", $id_tarea);
-    $stmt->execute();
+        $stmt->bind_param("i", $id_tarea);
+        $stmt->execute();
 
-    return $stmt->get_result()->fetch_assoc();
-}
-    //OBTENR INFORMACIÓN DEL HISTORIAL DE TAREA PARA EL TIMELINE
-    public function linea_tiempo_tarea($id_asignacion)
+        return $stmt->get_result()->fetch_assoc();
+    }
+    // OBTENER INFORMACIÓN DEL HISTORIAL DE TAREA PARA EL TIMELINE
+    public function linea_tiempo_tarea($id_asignacion, $pagina = 1, $por_pagina = 5)
     {
+        $pagina = max(1, (int)$pagina);
+        $desde = ($pagina - 1) * $por_pagina;
 
-        $sqlHistorial = "SELECT 
-                    CASE id_estadoT
-                WHEN 2 THEN 'Enviado'
-                WHEN 3 THEN 'Corregir'
-                WHEN 5 THEN 'Aprobado'
-            END AS estado,(
-        SELECT 1 
-        FROM  estudiantes
-        WHERE id_usuarios = tahi.id_usuarios
-    ) AS esEstudiante, comentario, fecha FROM tareas_historial AS tahi
+        // TOTAL
+        $sqlTotal = "SELECT COUNT(*) as total
+                 FROM tareas_historial
                  WHERE id_asignacion = ?";
 
-        $stmt = $this->con->prepare($sqlHistorial);
+        $stmt = $this->con->prepare($sqlTotal);
         $stmt->bind_param("i", $id_asignacion);
         $stmt->execute();
+        $total = $stmt->get_result()->fetch_assoc()['total'];
+        $stmt->close();
+
+        $total_paginas = ceil($total / $por_pagina);
+
+        // DATOS
+        $sql = "SELECT 
+                tahi.id_tareas_historial,
+                CASE tahi.id_estadoT
+                    WHEN 2 THEN 'Enviado'
+                    WHEN 3 THEN 'Corregir'
+                    WHEN 5 THEN 'Aprobado'
+                END AS estado,
+
+                CASE 
+                    WHEN e.id_usuarios IS NOT NULL THEN 1 
+                    ELSE 0 
+                END AS esEstudiante,
+
+                tahi.comentario,
+                tahi.fecha,
+                u.nombre AS usuario
+
+            FROM tareas_historial tahi
+            LEFT JOIN estudiantes e 
+                ON e.id_usuarios = tahi.id_usuarios
+            LEFT JOIN usuarios u 
+                ON u.id_usuarios = tahi.id_usuarios
+
+            WHERE tahi.id_asignacion = ?
+            ORDER BY tahi.fecha DESC
+            LIMIT ?, ?";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) die("Error al preparar consulta: " . $this->con->error);
+        $stmt->bind_param("iii", $id_asignacion, $desde, $por_pagina);
+        $stmt->execute();
+
         $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $historialAgrupado = [];
-        //Para agrupar el historial por fechas
+        $stmt->close();
+
+        // AGRUPAR POR FECHA
+        $agrupado = [];
         foreach ($historial as $item) {
             $fecha = date("d/m/Y", strtotime($item['fecha']));
-            $historialAgrupado[$fecha][] = $item;
+            $agrupado[$fecha][] = $item;
         }
-        return $historialAgrupado;
+
+        return [
+            "datos" => $agrupado,
+            "paginacion" => [
+                "total" => $total,
+                "por_pagina" => $por_pagina,
+                "pagina" => $pagina,
+                "total_paginas" => $total_paginas
+            ]
+        ];
     }
 }

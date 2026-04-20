@@ -61,7 +61,7 @@ include __DIR__ . '/../../error.php';
     </div>
     <!-- DATOS DIRECTOR -->
     <form method="POST" action="">
-        <input type="hidden" name="action" value="registrar">
+        <input type="hidden" name="action" value="Registrar">
 
         <div class="mb-3">
             <label class="form-label">Grado Académico</label>

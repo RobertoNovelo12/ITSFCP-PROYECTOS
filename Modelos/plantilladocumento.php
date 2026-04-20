@@ -235,7 +235,7 @@ GROUP BY t.id_tipo_documento;";
         if (!$stmt) throw new Exception("Error prepare (registrarDocumento): " . $this->con->error);
 
         $stmt->bind_param(
-            "sssssisisii",
+            "sssssissii",
             $nombre,
             $nombre_archivo,
             $ruta,

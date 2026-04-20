@@ -107,7 +107,11 @@ class directorControlador
         $conn->begin_transaction();
         try {
             $obj = new Director($conn);
-            $obj->obtenerPorId((int)$id_director);
+            $registro = $obj->obtenerPorId((int)$id_director);
+
+            if (!$registro) {
+                throw new Exception("Director no encontrado");
+            }
             $filas = $obj->eliminar_director((int)$id_director);
             if ($filas < 0) throw new Exception("Error al eliminar");
             $conn->commit();
@@ -337,7 +341,7 @@ class directorControlador
                 throw new Exception("Registro duplicado");
             }
 
-            $id_director = $obj->registrarDirector((int)$id_grado, $nombre, $apellido, $correo ?: null, $telefono ?: null, $fecha_inicio, $fecha_final ?:null);
+            $id_director = $obj->registrarDirector((int)$id_grado, $nombre, $apellido, $correo ?: null, $telefono ?: null, $fecha_inicio, $fecha_final ?: null);
 
             if (!$id_director) {
                 header("Location: tabla.php?error=1");
@@ -450,5 +454,46 @@ class directorControlador
             error_log("Error en obtenerPorIdDiferente(): " . $e->getMessage());
             return ["activo" => 0, "desactivado" => 0];
         }
+    }
+
+    // CONTROLADOR: directorControlador.php
+
+    public function info_linea_tiempo($id_director)
+    {
+        global $conn;
+
+        try {
+            $pagina = $_GET['pagina'] ?? 1;
+
+            $director = new Director($conn);
+
+            if ($id_director) {
+                return $director->linea_tiempo_director($id_director, $pagina);
+            } else {
+                return [
+                    "datos" => [],
+                    "paginacion" => [
+                        "total" => 0,
+                        "por_pagina" => 5,
+                        "pagina" => 1,
+                        "total_paginas" => 1
+                    ]
+                ];
+            }
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            header("Location: tabla.php?error=1");
+            exit;
+        }
+    }
+
+    public function EstiloTimeLine($tipo)
+    {
+        return match (strtoupper($tipo)) {
+            'CREACION' => 'success',
+            'ACTUALIZACION' => 'primary',
+            'BAJA' => 'danger',
+            default => 'secondary'
+        };
     }
 }

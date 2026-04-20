@@ -295,35 +295,118 @@ JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP;";
     }
 
     //OBTENER DATOS POR SUPERVISOR
-    private function obtenerProyectosTablaSupervisor($filtro, $buscar)
-    {
-        $sql = "SELECT 
+    // OBTENER DATOS POR SUPERVISOR
+private function obtenerProyectosTablaSupervisor($filtro, $buscar)
+{
+    $por_pagina = 6;
+    $pagina = isset($_GET['pagina']) && $_GET['pagina'] > 0 ? intval($_GET['pagina']) : 1;
+    $desde = ($pagina - 1) * $por_pagina;
+
+    // Total de registros
+    $sql_total = "SELECT COUNT(*) as total FROM proyectos proy WHERE 1";
+    $params_total = [];
+    $types_total = "";
+
+    if ($filtro != 0) {
+        $sql_total .= " AND proy.id_estadoP = ?";
+        $params_total[] = $filtro;
+        $types_total .= "i";
+    }
+
+    if (!empty($buscar)) {
+        $sql_total .= " AND proy.titulo LIKE ?";
+        $params_total[] = "%$buscar%";
+        $types_total .= "s";
+    }
+
+    $total_result = $this->ejecutar($sql_total, $types_total, $params_total);
+    $total = $total_result[0]['total'] ?? 0;
+    $total_paginas = ceil($total / $por_pagina);
+
+    $sql = "SELECT 
         proy.id_proyectos,
         proy.titulo,
-        espr.nombre AS estado_proyecto
+        proy.fecha_inicio,
+        proy.fecha_fin,
+        espr.nombre AS estado_proyecto,
+        peri.periodo,
+
+        COALESCE(tr.total, 0) AS total,
+
+        CASE 
+            WHEN COALESCE(pa.total_alumnos,0) > 0
+            AND COALESCE(tt.total_tareas,0) >= 11
+            AND COALESCE(tc.tareas_completadas,0) = 
+                (COALESCE(tt.total_tareas,0) * COALESCE(pa.total_alumnos,0))
+            THEN 1 ELSE 0 
+        END AS puede_cerrar
+
     FROM proyectos proy
     JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
+    JOIN periodos peri ON proy.id_periodos = peri.id_periodos
+
+    LEFT JOIN (
+        SELECT ts.id_proyectos,
+               COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
+        FROM tbl_seguimiento ts
+        JOIN tareas t ON t.id_avances = ts.id_avances
+        LEFT JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+        GROUP BY ts.id_proyectos
+    ) tr ON tr.id_proyectos = proy.id_proyectos
+
+    LEFT JOIN (
+        SELECT id_proyectos, COUNT(*) total_alumnos
+        FROM proyectos_usuarios
+        WHERE estado = 'activo'
+        GROUP BY id_proyectos
+    ) pa ON pa.id_proyectos = proy.id_proyectos
+
+    LEFT JOIN (
+        SELECT ts.id_proyectos, COUNT(DISTINCT t.id_tarea) total_tareas
+        FROM tbl_seguimiento ts
+        JOIN tareas t ON t.id_avances = ts.id_avances
+        GROUP BY ts.id_proyectos
+    ) tt ON tt.id_proyectos = proy.id_proyectos
+
+    LEFT JOIN (
+        SELECT ts.id_proyectos, COUNT(*) tareas_completadas
+        FROM tbl_seguimiento ts
+        JOIN tareas t ON t.id_avances = ts.id_avances
+        JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+        JOIN proyectos_usuarios pu ON pu.id_usuarios = tu.id_usuarios
+        WHERE tu.id_estadoT = 5 AND pu.estado = 'activo'
+        GROUP BY ts.id_proyectos
+    ) tc ON tc.id_proyectos = proy.id_proyectos
+
     WHERE 1";
 
-        $params = [];
-        $types = "";
+    $params = [];
+    $types = "";
 
-        if ($filtro != 0) {
-            $sql .= " AND proy.id_estadoP = ?";
-            $params[] = $filtro;
-            $types .= "i";
-        }
-
-        if (!empty($buscar)) {
-            $sql .= " AND proy.titulo LIKE ?";
-            $params[] = "%$buscar%";
-            $types .= "s";
-        }
-
-        return json_encode([
-            "proyectos" => $this->ejecutar($sql, $types, $params)
-        ]);
+    if ($filtro != 0) {
+        $sql .= " AND proy.id_estadoP = ?";
+        $params[] = $filtro;
+        $types .= "i";
     }
+
+    if (!empty($buscar)) {
+        $sql .= " AND proy.titulo LIKE ?";
+        $params[] = "%$buscar%";
+        $types .= "s";
+    }
+
+    $sql .= " ORDER BY proy.id_proyectos DESC LIMIT ?, ?";
+    $params[] = $desde;
+    $params[] = $por_pagina;
+    $types .= "ii";
+
+    $data = $this->ejecutar($sql, $types, $params);
+
+    return json_encode([
+        "proyectos" => $data,
+        "paginacion" => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas]
+    ]);
+}
 
     //OBTENER LA CANTIDAD DE PROYECTOS
     //ESTUDIANTE

@@ -42,9 +42,6 @@ ob_start();
                 <a href="tabla.php?id_tipo_documento=<?= $id_tipo_documento; ?>" class="btn btn-danger">Regresar</a>
             </div>
         </div>
-
-
-
         <div class="row mb-1">
             <div class="card mb-3 p-3">
                 <strong>Resumen</strong><br>
