@@ -81,6 +81,9 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- Formulario de edición -->
     <div class="card border-0 shadow-sm mb-6">
+        <div class="card-header">
+            <b>Información de la tarea</b>
+        </div>
         <div class="card-body">
             <form action="editar.php?id_proyectos=<?= htmlspecialchars($id_proyectos ?? '') ?>" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="editarTarea">

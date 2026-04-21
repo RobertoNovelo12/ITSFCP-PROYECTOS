@@ -74,7 +74,7 @@ ob_start();
                 <a href="lista_tareas.php?id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary btn-sm px-3">← Regresar</a>
             <?php } elseif ($rol == "estudiante" || $rol == "alumno") { ?>
                 <a href="tareas_estudiante.php?id_asignacion=<?= $id_asignacion ?>&id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary btn-sm px-3">
-                    <i class="bi bi-arrow-left"></i>  Regresar
+                    <i class="bi bi-arrow-left"></i> Regresar
                 </a> <?php } ?>
 
         </div>
@@ -92,10 +92,13 @@ ob_start();
 
     <!-- Instrucciones -->
     <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header">
+            <b>Información de la tarea</b>
+        </div>
         <div class="card-body">
             <p class="tarea-seccion-label mb-1">Descripción</p>
             <p class="mb-3"><?= nl2br(htmlspecialchars($datos['descripcion'] ?? '')) ?></p>
-
+            <hr>
             <p class="tarea-seccion-label mb-1">Instrucciones</p>
             <p class="mb-0"><?= nl2br(htmlspecialchars($datos['instrucciones'] ?? '')) ?></p>
         </div>
@@ -104,6 +107,9 @@ ob_start();
     <!-- Archivo guía -->
     <?php if (!empty($datos['guia_nombre'])): ?>
         <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header">
+                <b>Archivo guía</b>
+            </div>
             <div class="card-body py-2 d-flex align-items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#dc3545" class="bi bi-file-earmark-pdf-fill flex-shrink-0" viewBox="0 0 16 16">
                     <path d="M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3 0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21 21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0 1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44 0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278 6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5 0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z" />
@@ -122,6 +128,9 @@ ob_start();
     <!-- Formulario (estudiante / investigador) -->
     <?php if ($rol !== 'supervisor'): ?>
         <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header">
+                <b>Formulario</b>
+            </div>
             <div class="card-body">
                 <p class="tarea-seccion-label mb-3">
                     <?= $rol === 'estudiante' ? 'Tu entrega' : 'Revisión del investigador' ?>
