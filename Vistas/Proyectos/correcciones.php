@@ -51,25 +51,13 @@ $puede_responder = in_array($detalle['estado'], $estados_activos, true);
 ob_start();
 ?>
 
-<style>
-    .hilo-wrap      { max-width: 760px; margin: 0 auto; }
-    .msg-burbuja    { border-radius: 10px; padding: .75rem 1rem; margin-bottom: .75rem; position: relative; font-size: .9rem; }
-    .msg-inv        { background: #e7f3ff; border-left: 4px solid #0d6efd; margin-right: 3rem; }
-    .msg-est        { background: #f0fff4; border-left: 4px solid #198754; margin-left: 3rem; }
-    .msg-meta       { font-size: .75rem; color: #6c757d; margin-top: .3rem; }
-    .estado-pill    { display: inline-block; padding: .25rem .75rem; border-radius: 20px; font-size: .8rem; font-weight: 600; }
-    .est-correcciones { background:#fff3cd; color:#856404; }
-    .est-en_revision  { background:#cff4fc; color:#055160; }
-    .est-aceptado     { background:#d1e7dd; color:#0a3622; }
-    .est-rechazado    { background:#f8d7da; color:#58151c; }
-</style>
 
 <div class="container py-4">
 <div class="hilo-wrap">
 
     <!-- Regresar -->
     <div class="d-flex align-items-center mb-4 gap-3">
-        <a href="tabla.php" class="btn btn-sm btn-outline-secondary">
+        <a href="tabla.php" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Regresar
         </a>
         <h4 class="mb-0">Solicitud #<?= $id_solicitud ?></h4>

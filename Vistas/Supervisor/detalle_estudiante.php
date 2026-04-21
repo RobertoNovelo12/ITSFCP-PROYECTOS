@@ -40,28 +40,6 @@ $color_global     = $pct_global >= 80 ? 'success' : ($pct_global >= 40 ? 'warnin
 ob_start();
 ?>
 
-<style>
-.info-dl dt   { font-size: .8rem; color: #6c757d; margin-bottom: 1px; }
-.info-dl dd   { font-size: .93rem; font-weight: 500; margin-bottom: .7rem; }
-.timeline     { position: relative; padding-left: 1.5rem; }
-.timeline::before { content: ''; position: absolute; left: .45rem; top: 0; bottom: 0; width: 2px; background: #dee2e6; }
-.tl-item      { position: relative; padding-bottom: 1.2rem; }
-.tl-dot       { position: absolute; left: -1.55rem; top: .2rem; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; }
-.tl-dot.azul   { background: #0d6efd; box-shadow: 0 0 0 2px #0d6efd; }
-.tl-dot.verde  { background: #198754; box-shadow: 0 0 0 2px #198754; }
-.tl-dot.naranja{ background: #fd7e14; box-shadow: 0 0 0 2px #fd7e14; }
-.tl-dot.rojo   { background: #dc3545; box-shadow: 0 0 0 2px #dc3545; }
-.tl-dot.gris   { background: #6c757d; box-shadow: 0 0 0 2px #6c757d; }
-.tl-content   { background: #f8f9fa; border-radius: 8px; padding: .65rem .9rem; }
-.progress-lg  { height: 12px; border-radius: 6px; }
-.proy-card    { border: 1px solid #dee2e6; border-radius: 8px; padding: 1rem; margin-bottom: .8rem; }
-.proy-card.activo    { border-left: 4px solid #198754; }
-.proy-card.concluido { border-left: 4px solid #0d6efd; }
-.proy-card.baja      { border-left: 4px solid #dc3545; opacity: .8; }
-.tarea-row    { font-size: .84rem; }
-.tarea-row:hover { background: #f8f9fa; }
-</style>
-
 <div class="container-fluid py-4">
 
     <!-- ENCABEZADO -->
@@ -84,7 +62,7 @@ ob_start();
         </div>
         <div class="col-auto">
             <?= $ctrl->badgeEstadoUsuario($usuario['estado_usuario']) ?>
-            <a href="panel_supervisor.php?tab=usuarios" class="btn btn-outline-secondary btn-sm ms-2">
+            <a href="panel_supervisor.php?tab=usuarios" class="btn btn-secondary btn-sm ms-2">
                 <i class="bi bi-arrow-left me-1"></i>Regresar
             </a>
         </div>

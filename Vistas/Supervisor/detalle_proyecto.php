@@ -36,23 +36,6 @@ $color_pct      = $pct_proy >= 80 ? 'success' : ($pct_proy >= 40 ? 'warning' : '
 ob_start();
 ?>
 
-<style>
-.info-dl dt   { font-size: .8rem; color: #6c757d; margin-bottom: 1px; }
-.info-dl dd   { font-size: .93rem; font-weight: 500; margin-bottom: .7rem; }
-.timeline     { position: relative; padding-left: 1.5rem; }
-.timeline::before { content: ''; position: absolute; left: .45rem; top: 0; bottom: 0; width: 2px; background: #dee2e6; }
-.tl-item      { position: relative; padding-bottom: 1.2rem; }
-.tl-dot       { position: absolute; left: -1.55rem; top: .2rem; width: 12px; height: 12px; border-radius: 50%; background: #0d6efd; border: 2px solid #fff; box-shadow: 0 0 0 2px #0d6efd; }
-.tl-dot.verde  { background: #198754; box-shadow: 0 0 0 2px #198754; }
-.tl-dot.rojo   { background: #dc3545; box-shadow: 0 0 0 2px #dc3545; }
-.tl-dot.naranja{ background: #fd7e14; box-shadow: 0 0 0 2px #fd7e14; }
-.tl-content   { background: #f8f9fa; border-radius: 8px; padding: .65rem .9rem; }
-.progress-lg  { height: 14px; border-radius: 6px; }
-.alumno-card  { border: 1px solid #dee2e6; border-radius: 8px; padding: .9rem; margin-bottom: .7rem; }
-.alumno-card.baja { opacity: .65; border-color: #f5c6cb; background: #fff8f8; }
-.seccion-row:hover { background: #f0f7ff; }
-</style>
-
 <div class="container-fluid py-4">
 
     <!-- ENCABEZADO -->
@@ -69,7 +52,7 @@ ob_start();
         </div>
         <div class="col-auto">
             <?= $ctrl->badgeEstadoProyecto($proyecto['estado']) ?>
-            <a href="panel_supervisor.php?tab=proyectos" class="btn btn-outline-secondary btn-sm ms-2">
+            <a href="panel_supervisor.php?tab=proyectos" class="btn btn-secondary btn-sm ms-2">
                 <i class="bi bi-arrow-left me-1"></i>Regresar
             </a>
         </div>

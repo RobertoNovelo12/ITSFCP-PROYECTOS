@@ -57,47 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 ob_start();
 ?>
 
-<style>
-    .timeline-wrap {
-        position: relative;
-        padding-left: 1.5rem;
-    }
-
-    .timeline-wrap::before {
-        content: '';
-        position: absolute;
-        left: .5rem;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #e9ecef;
-    }
-
-    .timeline-item {
-        position: relative;
-        margin-bottom: 1.25rem;
-    }
-
-    .timeline-dot {
-        position: absolute;
-        left: -1.5rem;
-        width: 1rem;
-        height: 1rem;
-        border-radius: 50%;
-        border: 2px solid #fff;
-        box-shadow: 0 0 0 2px #dee2e6;
-        top: .2rem;
-    }
-
-    .tarea-seccion-label {
-        font-size: .72rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        color: #6c757d;
-    }
-</style>
-
 <div class="container-fluid py-4" style="max-width:860px;">
 
     <!-- Cabecera -->
@@ -114,8 +73,8 @@ ob_start();
             <?php if ($rol == "investigador" || $rol == "supervisor") { ?>
                 <a href="lista_tareas.php?id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>" class="btn btn-outline-danger btn-sm px-3">← Regresar</a>
             <?php } elseif ($rol == "estudiante" || $rol == "alumno") { ?>
-                <a href="tareas_estudiante.php?id_asignacion=<?= $id_asignacion ?>&id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>" class="btn btn-outline-danger btn-sm px-3">
-                    ← Regresar
+                <a href="tareas_estudiante.php?id_asignacion=<?= $id_asignacion ?>&id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary btn-sm px-3">
+                    <i class="bi bi-arrow-left"></i>  Regresar
                 </a> <?php } ?>
 
         </div>

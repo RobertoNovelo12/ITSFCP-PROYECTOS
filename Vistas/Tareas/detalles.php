@@ -39,10 +39,6 @@ $campoNombres = [
 ob_start();
 ?>
 
-<style>
-.tarea-seccion-label { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:#6c757d; }
-.historial-edicion-item { border-left: 3px solid #ffc107; padding-left:.75rem; margin-bottom:.75rem; }
-</style>
 
 <div class="container-fluid py-4" style="max-width:800px;">
 
@@ -56,7 +52,7 @@ ob_start();
             <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tarea['estado'] ?? '') ?>">
                 <?= htmlspecialchars($tarea['estado'] ?? '') ?>
             </span>
-            <a href="tabla.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-outline-danger btn-sm px-3">← Regresar</a>
+            <a href="tabla.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-secondary btn-sm px-3"><i class="bi bi-arrow-left"></i>  Regresar</a>
         </div>
     </div>
 

@@ -46,7 +46,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- Cabecera -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <h3 class="mb-0 fw-semibold">Seguimiento de Actividades</h3>
-        <a href="../Proyectos/tabla.php" class="btn btn-outline-danger btn-sm px-4">← Regresar</a>
+        <a href="../Proyectos/tabla.php" class="btn btn-secondary btn-sm px-4"><i class="bi bi-arrow-left"></i>  Regresar</a>
     </div>
 
     <!-- Tabla (desktop) -->

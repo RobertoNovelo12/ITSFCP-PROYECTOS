@@ -41,8 +41,10 @@ ob_start();
             <h3>Detalles del Proyecto</h3>
         </div>
 
-        <div class="col-6 text-end">
-            <a href="tabla.php" class="btn btn-danger">Regresar</a>
+        <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
+            <a href="tabla.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar
+            </a>
         </div>
 
     </div>

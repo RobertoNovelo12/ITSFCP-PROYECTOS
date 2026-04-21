@@ -36,24 +36,6 @@ function barraProgreso(int $aprobadas, int $total): string
 ob_start();
 ?>
 
-<style>
-.stat-card        { border-left: 4px solid; }
-.stat-card.azul   { border-color: #0d6efd; }
-.stat-card.verde  { border-color: #198754; }
-.stat-card.naranja{ border-color: #fd7e14; }
-.stat-card.rojo   { border-color: #dc3545; }
-.stat-card .num   { font-size: 2rem; font-weight: 700; line-height: 1; }
-.stat-card .lbl   { font-size: .78rem; color: #6c757d; margin-top: 2px; }
-.mini-stat        { font-size: .82rem; }
-.etapa-barra      { height: 10px; border-radius: 4px; }
-.btn-tab          { border-radius: 20px; padding: .3rem .9rem; font-size: .87rem; }
-.btn-tab.active   { background: #0d6efd; color: #fff; border-color: #0d6efd; }
-.table th         { font-size: .83rem; white-space: nowrap; }
-.table td         { font-size: .84rem; vertical-align: middle; }
-.filter-bar       { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1.2rem; }
-.section-title    { font-size: 1rem; font-weight: 600; color: #333; border-bottom: 2px solid #dee2e6; padding-bottom: .4rem; margin-bottom: 1rem; }
-.inv-card         { border: 1px solid #dee2e6; border-radius: 8px; padding: .8rem; margin-bottom: .6rem; }
-</style>
 
 <div class="container-fluid py-4">
 

@@ -51,7 +51,7 @@ $revision  = count(array_filter($tarea, fn($t) => $t['estados_tarea'] === 'Revis
     <!-- Cabecera -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <h3 class="mb-0 fw-semibold">Entregas de Estudiantes</h3>
-        <a href="tabla.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-outline-danger btn-sm px-4">← Regresar</a>
+        <a href="tabla.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-secondary btn-sm px-4"><i class="bi bi-arrow-left"></i>  Regresar</a>
     </div>
 
     <!-- Resumen rápido -->
