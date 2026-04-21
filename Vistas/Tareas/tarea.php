@@ -71,7 +71,7 @@ ob_start();
             ?>
             <span class="badge text-bg-<?= $est['clase'] ?> rounded-pill px-3 py-2"><?= $est['texto'] ?></span>
             <?php if ($rol == "investigador" || $rol == "supervisor") { ?>
-                <a href="lista_tareas.php?id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>" class="btn btn-outline-danger btn-sm px-3">← Regresar</a>
+                <a href="lista_tareas.php?id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary btn-sm px-3">← Regresar</a>
             <?php } elseif ($rol == "estudiante" || $rol == "alumno") { ?>
                 <a href="tareas_estudiante.php?id_asignacion=<?= $id_asignacion ?>&id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary btn-sm px-3">
                     <i class="bi bi-arrow-left"></i>  Regresar
