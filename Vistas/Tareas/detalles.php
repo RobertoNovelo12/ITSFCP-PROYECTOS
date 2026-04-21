@@ -15,7 +15,7 @@ $rol = $_SESSION['rol'];
 $id  = $_SESSION['id_usuario'];
 
 // Solo investigador y supervisor pueden ver detalles de la plantilla
-if (!in_array($rol, ['investigador', 'supervisor'])) {
+if (!in_array($rol, ['investigador', 'supervisor','estudiante'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
@@ -40,7 +40,7 @@ ob_start();
 ?>
 
 
-<div class="container-fluid py-4" style="max-width:800px;">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- Cabecera -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">

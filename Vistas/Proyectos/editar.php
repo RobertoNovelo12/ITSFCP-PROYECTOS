@@ -15,6 +15,11 @@ $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? null;
 
+if (!in_array($rol, ['investigador', 'profesor'], true)) {
+    header('Location: /ITSFCP-PROYECTOS/index.php');
+    exit;
+}
+
 require_once '../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
@@ -45,7 +50,7 @@ include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">

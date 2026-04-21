@@ -37,7 +37,7 @@ ob_start();
 ?>
 
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- ENCABEZADO -->
     <div class="row align-items-center mb-3">

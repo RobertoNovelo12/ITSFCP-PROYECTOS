@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4" style="max-width:860px;">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- Cabecera -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">

@@ -45,7 +45,7 @@ if (!empty($historialAgrupado)) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- HEADER -->
     <div class="row mb-3">
@@ -53,7 +53,7 @@ ob_start();
             <h3 class="fw-bold">Historial del estudiante</h3>
         </div>
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
-            <a href="editar.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary">
+            <a href="detalles.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>

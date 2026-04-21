@@ -103,7 +103,7 @@ function mostrarValor($valor, $tipo = 'texto') {
 // Contenido HTML
 // -------------------------
 $contenido = '
-<div class="container-fluid py-4">
+class="container-fluid py-4" style="max-width:95%;">
     <div class="row mb-4">
         <div class="col-12">
             <h2 class="fw-bold mb-0">' . htmlspecialchars($proyecto['titulo']) . '</h2>

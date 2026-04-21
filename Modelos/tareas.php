@@ -577,6 +577,7 @@ class Tarea
         SELECT
             tare.id_tarea,
             tita.descripcion_tipo       AS tipo,
+            tita.id_tareatipo,
             tare.descripcion,
             tare.instrucciones,
             tare.fecha_entrega,

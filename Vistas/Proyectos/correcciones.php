@@ -52,7 +52,7 @@ ob_start();
 ?>
 
 
-<div class="container py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
 <div class="hilo-wrap">
 
     <!-- Regresar -->

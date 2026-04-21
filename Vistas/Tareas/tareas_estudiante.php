@@ -27,7 +27,7 @@ $tareasInactivas = array_filter($tareas, fn($t) => $t['id_estadoT'] == 4);
 ob_start();
 ?>
 
-<div class="container-fluid py-4" style="max-width:720px;">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- Cabecera -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">

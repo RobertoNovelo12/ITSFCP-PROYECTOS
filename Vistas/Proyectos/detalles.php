@@ -25,7 +25,7 @@ $subtematicas = $proyectoControlador->subtematicasProyecto($id_proyecto);
 $dat_inv = $investigador['investigador'] ?? [];
 $dat_area_inv = $investigador['area'] ?? [];
 $datos_linea_inv = $investigador['lineas'] ?? [];
-
+$estudiantes = null;
 if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
     $estudiantes = $proyectoControlador->estudiantes($id_proyecto);
 }
@@ -33,7 +33,7 @@ if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <div class="row mb-3">
 
@@ -252,7 +252,7 @@ ob_start();
 
         <div class="d-md-none">
 
-            <?php foreach ($estudiantes['estudiante'] as $alumno): ?>
+            <?php foreach ($estudiantes as $alumno): ?>
 
                 <div class="card mb-3">
 
@@ -279,7 +279,12 @@ ob_start();
                             <li class="list-group-item">
                                 <b>Subárea:</b> <?= $estudiantes['area']['subarea'] ?? "No tiene subárea" ?>
                             </li>
-
+                            <li class="list-group-item">
+                                <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
+                                    class="btn btn-info btn-sm">
+                                    Historial
+                                </a>
+                            </li>
 
                         </ul>
 

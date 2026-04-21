@@ -40,7 +40,7 @@ $color_global     = $pct_global >= 80 ? 'success' : ($pct_global >= 40 ? 'warnin
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div cclass="container-fluid py-4" style="max-width:95%;">
 
     <!-- ENCABEZADO -->
     <div class="row align-items-center mb-4">

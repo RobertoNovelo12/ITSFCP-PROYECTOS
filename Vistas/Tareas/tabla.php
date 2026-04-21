@@ -41,7 +41,7 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- Cabecera -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">

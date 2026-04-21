@@ -47,7 +47,7 @@ $estados = [
 ob_start();
 ?>
 
-<div class="container-fluid py-4 px-lg-5">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">

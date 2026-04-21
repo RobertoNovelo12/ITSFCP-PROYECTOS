@@ -14,7 +14,7 @@ $id_proyectos = $_GET['id_proyectos'] ?? null;
 
 ob_start();
 ?>
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
     <div class="row mb-3 align-items-center">
         <div class="col-6">
             <h3>Comentarios del Proyecto</h3>
