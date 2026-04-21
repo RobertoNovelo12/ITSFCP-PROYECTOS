@@ -1,161 +1,121 @@
 <?php
-
+// Controlador de tareas
 require_once __DIR__ . '/../Modelos/tareas.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 
-
-
 class TareaControlador
 {
-
+    // ─────────────────────────────────────────────
+    //  ACCIONES PRINCIPALES
+    // ─────────────────────────────────────────────
     public function index_Principal($id_proyecto, $id_usuario, $rol)
     {
-
-
         global $conn;
         try {
-
             $tareas = new Tarea($conn);
-
-            if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-                //Revisión de estados de tarea
+            if (in_array($rol, ['investigador', 'estudiante', 'supervisor'])) {
                 $tareas->actualizarTareasVencidos();
-                $tarea = $tareas->obtenerTareas($id_proyecto, $id_usuario, $rol);
-                return $tarea;
-            } else {
-                $tarea = []; // evita undefined variable
-                return $tarea;
+                return $tareas->obtenerTareas($id_proyecto, $id_usuario, $rol);
             }
+            return [];
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
     }
+
     public function index_Lista($id_tarea, $rol)
     {
         global $conn;
         try {
-
             $tarea = new Tarea($conn);
-
-            if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-                //Revisión de estados de tarea
+            if (in_array($rol, ['investigador', 'estudiante', 'supervisor'])) {
                 $tarea->actualizarTareasVencidos();
-                $tarea = $tarea->obtenerTareasLista($id_tarea, $rol);
-                return $tarea;
-            } else {
-                $tarea = []; // evita undefined variable
-                return $tarea;
+                return $tarea->obtenerTareasLista($id_tarea, $rol);
             }
+            return [];
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
     }
+
+    // ─────────────────────────────────────────────
+    //  CONTENIDO DE LA TAREA (textarea, archivo, comentario)
+    // ─────────────────────────────────────────────
     public function tareas($descripcion, $rol, $datos)
     {
-        // Solo lectura si NO es estudiante
-        $soloLectura = $rol !== "estudiante";
-        //$editarComentarios = ($rol === "investigador"); cuando los comentarios solo lo puede dar el docente
+        $soloLectura = ($rol !== 'estudiante');
 
-        // Normalización del nombre del campo
         $map = [
             "Resumen" => "Resumen",
-            "Introducción" => "Introduccion",
-            "Introduccion" => "Introduccion",
-
+            "Introducción" => "Introduccion", "Introduccion" => "Introduccion",
             "Planteamiento del Problema" => "PlanteamientoProblema",
             "Planteamiento del problema" => "PlanteamientoProblema",
-
-            "Justificación" => "Justificacion",
-            "Justificacion" => "Justificacion",
-
+            "Justificación" => "Justificacion", "Justificacion" => "Justificacion",
             "Objetivos" => "Objetivos",
-
             "Marco Teórico" => "MarcoTeorico",
             "Marco teórico y/o de referencia" => "MarcoTeorico",
             "MarcoTeorico" => "MarcoTeorico",
-
-            "Metodología" => "Metodologia",
-            "Metodologia" => "Metodologia",
-
+            "Metodología" => "Metodologia", "Metodologia" => "Metodologia",
             "Metas, productos esperados e impacto" => "MetasProductosImpacto",
             "Metas, productos esperados e impactos" => "MetasProductosImpacto",
-
-            "Cronograma y recursos" => "Cronograma",
-            "Cronograma" => "Cronograma",
-
+            "Cronograma y recursos" => "Cronograma", "Cronograma" => "Cronograma",
             "Referencias bibliograficas" => "Bibliografia",
             "Bibliografía" => "Bibliografia",
-
             "Anexos" => "Anexos",
             "Reporte Final" => "ReporteFinal"
         ];
 
-        // Normalizar descripción
         $descripcionNorm = $map[$descripcion] ?? $descripcion;
-
-        // Título
-        $campo = "<h4>{$this->titulo($descripcionNorm)}</h4>";
-
-        // Obtener contenido directamente
-        $valor = $datos['contenido'] ?? '';
-
-        // Crear un único textarea
-        $campo .= $this->textarea(
-            $descripcion,
-            $descripcionNorm,
-            $valor,
-            $soloLectura
-        );
-
-        // Archivo
+        $campo  = "<h5 class='fw-semibold mb-2'>{$this->titulo($descripcionNorm)}</h5>";
+        $valor  = $datos['contenido'] ?? '';
+        $campo .= $this->textarea($descripcion, $descripcionNorm, $valor, $soloLectura);
         $campo .= $this->archivo($datos, $soloLectura);
-
-        // Comentarios
-        //$campo .= $this->comentario($datos, $editarComentarios); Cuando se bloquea el comentario para el estudiante
         $campo .= $this->comentario($datos);
-
         return $campo;
     }
 
-    //Partes que complementan la tarea
     private function textarea($label, $name, $value, $disabled = false, $rows = 7)
     {
         $dis = $disabled ? "disabled" : "";
         return "
-    <div class='mb-3'>
-        <label>$label:</label>
-        <textarea class='form-control' name='contenido' rows='$rows' $dis>$value</textarea>
-    </div>";
+        <div class='mb-3'>
+            <label class='form-label text-muted small'>$label:</label>
+            <textarea class='form-control' name='contenido' rows='$rows' $dis>" . htmlspecialchars($value) . "</textarea>
+        </div>";
     }
-
 
     private function archivo($datos, $disabled = false)
     {
-        $dis = $disabled ? "disabled" : "";
+        $dis  = $disabled ? "disabled" : "";
         $file = !empty($datos['archivo_nombre'])
-            ? "<a href='descargar.php?id={$datos['id_tarea']}'>Descargar archivo ({$datos['archivo_nombre']})</a>"
-            : "<p>No hay archivo cargado.</p>";
+            ? "<a href='descargar.php?id={$datos['id_tarea']}' class='d-block mb-2 small'>
+                <svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='currentColor' class='bi bi-paperclip me-1' viewBox='0 0 16 16'>
+                  <path d='M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z'/>
+                </svg>" . htmlspecialchars($datos['archivo_nombre']) . "</a>"
+            : "<p class='text-muted small mb-2'>Sin archivo adjunto.</p>";
+
+        $inputFile = !$disabled
+            ? "<div class='mt-1'><label class='form-label text-muted small'>Adjuntar archivo:</label>
+               <input type='file' class='form-control form-control-sm' name='archivo'></div>"
+            : "";
 
         return "
-    <div class='mb-3'>
-        <label>Archivo actual:</label>
-        $file
-        <label class='mt-2'>Subir archivo nuevo:</label>
-        <input type='file' class='form-control' name='archivo' $dis>
-    </div>";
+        <div class='mb-3'>
+            <label class='form-label text-muted small'>Archivo de guía:</label>
+            $file
+            $inputFile
+        </div>";
     }
 
     private function comentario($datos)
     {
-        //$dis = $editable ? "" : "disabled";
-        $dis = "";
         return "
-    <div class='mb-3'>
-        <label>Comentarios:</label>
-        <textarea class='form-control' name='comentarios' rows='3' $dis>{$datos['comentarios']}</textarea>
-    </div>";
+        <div class='mb-3'>
+            <label class='form-label text-muted small'>Comentarios:</label>
+            <textarea class='form-control' name='comentarios' rows='3'>" . htmlspecialchars($datos['comentarios'] ?? '') . "</textarea>
+        </div>";
     }
 
     private function titulo($desc)
@@ -177,296 +137,189 @@ class TareaControlador
         return $titulos[$desc] ?? $desc;
     }
 
-
-    //Para obtener el número del filtro de la tabla
     private function numerofiltro($action)
     {
-
-        $numerofiltro = 0;
-        switch ($action) {
-            case 'Total':
-                $numerofiltro = 0;
-                break;
-            case 'Pendiente':
-                $numerofiltro = 1;
-                break;
-            case 'Revisar':
-                $numerofiltro = 2;
-                break;
-            case 'Corregir':
-                $numerofiltro = 3;
-                break;
-            case 'SinActivar':
-                $numerofiltro = 4;
-                break;
-            case 'Aprobado':
-                $numerofiltro = 5;
-                break;
-            case 'Vencido':
-                $numerofiltro = 6;
-                break;
-            case 'Entregado':
-                $numerofiltro = 7;
-                break;
-            case 'Guardar':
-                $numerofiltro = 10;
-                break;
-            default:
-                break;
-        }
-        return $numerofiltro;
+        return match ($action) {
+            'Total'      => 0,
+            'Pendiente'  => 1,
+            'Revisar'    => 2,
+            'Corregir'   => 3,
+            'SinActivar' => 4,
+            'Aprobado'   => 5,
+            'Vencido'    => 6,
+            'Entregado'  => 7,
+            'Guardar'    => 10,
+            default      => 0,
+        };
     }
-    // Encabezados según rol
-    //Para obtener los encabezados de las tablas
+
+    // ─────────────────────────────────────────────
+    //  ENCABEZADOS
+    // ─────────────────────────────────────────────
     public function encabezadosPrincipal($rol)
     {
-        switch ($rol) {
-            case 'estudiante':
-                $encabezados = [
-                    'Tarea',
-                    'Estado',
-                    'Guía',
-                    'Fecha Entrega',
-                    'Acciones'
-                ];
-                break;
-            case 'investigador':
-            case 'profesor':
-            case 'supervisor':
-                $encabezados = [
-                    'Tarea',
-                    'Entregado',
-                    'Estado',
-                    'Guía',
-                    'Fecha Entrega',
-                    'Acciones'
-                ];
-                break;
-            default:
-                $encabezados = [];
-                break;
-        }
-        return $encabezados;
+        return match ($rol) {
+            'estudiante' => ['Actividad', 'Estado', 'Guía', 'Fecha Entrega', 'Acciones'],
+            'investigador', 'profesor', 'supervisor' => ['Actividad', 'Entregas', 'Estado', 'Guía', 'Fecha Entrega', 'Acciones'],
+            default => [],
+        };
     }
 
-    //Para obtener los encabezados de las tablas
     public function encabezadosLista($rol)
     {
-        switch ($rol) {
-            case 'investigador':
-            case 'profesor':
-            case 'supervisor':
-                $encabezados = [
-                    'ID',
-                    'Estudiante',
-                    'Estado',
-                    'Acciones'
-                ];
-                break;
-            default:
-                $encabezados = [];
-                break;
-        }
-        return $encabezados;
+        return match ($rol) {
+            'investigador', 'profesor', 'supervisor' => ['ID', 'Estudiante', 'Estado', 'Entrega', 'Acciones'],
+            default => [],
+        };
     }
 
+    // ─────────────────────────────────────────────
+    //  BOTONES
+    // ─────────────────────────────────────────────
     public function obtenerbotones($tipo, $id1 = null, $id2 = null, $id3 = null, $id4 = null, $estado = null)
     {
         $boton = "";
         switch ($tipo) {
             case 'Ver Tarea':
-                $boton = '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos=' . $id3 . '&id_tarea=' . $id4 . '&estado=' . $estado . '"  type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
+                $boton = '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos=' . $id3 . '&id_tarea=' . $id4 . '&estado=' . $estado . '"
+                    class="btn btn-sm btn-outline-primary" title="Ver tarea">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                      <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                      <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                    </svg> Ver</a>';
                 break;
             case 'Ver lista':
-                $boton = '<a href="lista_tareas.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '" type="button" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver lista de tareas"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
-                break;
-            case 'Aprobar':
-                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Aprobado"
-                            class="btn btn-success">Aprobar tarea</a>';
-                break;
-            case 'Activar':
-                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
+                $boton = '<a href="lista_tareas.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
+                    class="btn btn-sm btn-outline-secondary" title="Ver lista de estudiantes">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
+                      <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
+                    </svg> Lista</a>';
                 break;
             case 'Editar Tarea':
-                $boton = '<a href="editar.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Editar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-</svg></a>';
+                $boton = '<a href="editar.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
+                    class="btn btn-sm btn-outline-primary" title="Editar tarea">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                    </svg> Editar</a>';
                 break;
             case 'Detalles':
-                $boton = '<a href="detalles.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '" type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la tarea"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
-                break;
-            case 'EnviarTarea':
-                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Revisar"
-                            class="btn btn-success" type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Enviar tarea al investigador">Enviar tarea</a>';
-                break;
-            case 'Solicitar Corregir':
-                $boton = '<a href="tarea.php?id_tarea=' . $id1 . '&id_asignacion=' . $id2 . '&id_proyectos=' . $id3 . '&action=actualizarestado&tipo=Corregir"
-                            class="btn btn-info">Solicitar corregir</a>';
-                break;
-            case 'Guardar':
-                $boton = '<button type="submit" class="btn btn-primary">Guardar cambios</button>';
-                break;
-            default:
+                $boton = '<a href="detalles.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
+                    class="btn btn-sm btn-outline-secondary" title="Ver detalles">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                      <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                    </svg> Detalles</a>';
                 break;
         }
         return $boton;
     }
-
 
     public function obtenerbotonesTarea($tipo, $id1 = null, $id2 = null)
     {
-        $boton = "";
-        switch ($tipo) {
-            case 'Aprobar': //EDITAR_TAREA
-                $boton = '<button type="submit" name="tipo" value="Aprobado" class="btn btn-success">Aprobar</button>';
-                break;
-            case 'EnviarTarea': //EDITAR_TAREA
-                $boton = '<button type="submit" name="tipo" value="Revisar" class="btn btn-success">Enviar tarea</button>';
-                break;
-            case 'Solicitar Corregir': //EDITAR_TAREA
-                $boton = '<button type="submit" name="tipo" value="Corregir" class="btn btn-info">Solicitar corregir</button>';
-                break;
-            case 'Guardar':
-                $boton = '<button type="submit" name="tipo" value="Guardar" class="btn btn-guardar">Guardar cambios</button>';
-                break;
-            case 'Activar':
-                $boton = '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Activar tarea"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg> Activar tarea</a>';
-                break;
-            default:
-                break;
-        }
-        return $boton;
+        return match ($tipo) {
+            'Aprobar'          => '<button type="submit" name="tipo" value="Aprobado" class="btn btn-success btn-sm">✓ Aprobar</button>',
+            'EnviarTarea'      => '<button type="submit" name="tipo" value="Revisar" class="btn btn-primary btn-sm">Enviar tarea</button>',
+            'Solicitar Corregir' => '<button type="submit" name="tipo" value="Corregir" class="btn btn-warning btn-sm">Solicitar corrección</button>',
+            'Guardar'          => '<button type="submit" name="tipo" value="Guardar" class="btn btn-outline-secondary btn-sm">Guardar borrador</button>',
+            'Activar'          => '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente" class="btn btn-success btn-sm">Activar tarea</a>',
+            default            => '',
+        };
     }
 
-    //Botones de acción en la tabla 
     public function botonesAccionPrincipal($id, $rol, $estado = null, $id_proyectos = null)
     {
         $boton = "";
-
         switch ($rol) {
-
             case 'estudiante':
                 if ($estado != "") {
                     $boton = $this->obtenerbotones("Ver Tarea", $id);
                 }
                 break;
-
             case 'investigador':
             case 'profesor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido", "Sin activar"])) {
-                    $boton = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
-                    $boton .= $this->obtenerbotones("Editar Tarea", $id, $id_proyectos);
+                    $boton  = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
+                    $boton .= " " . $this->obtenerbotones("Editar Tarea", $id, $id_proyectos);
                 }
                 break;
-
             case 'supervisor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido", "Sin activar"])) {
-                    $boton = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
-                    $boton .= $this->obtenerbotones("Detalles", $id, $id_proyectos);
-                } elseif ($estado == "Sin activar") {
-                    $boton = $this->obtenerbotones("Detalles", $id, $id_proyectos);
+                    $boton  = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
+                    $boton .= " " . $this->obtenerbotones("Detalles", $id, $id_proyectos);
                 }
                 break;
         }
-
         return $boton;
     }
 
     public function botonesAccionLista($id1, $rol, $estado = null, $id2 = null, $id3 = null, $id4 = null)
     {
         $boton = "";
-
         switch ($rol) {
-
             case 'investigador':
             case 'profesor':
                 if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido", "Pendiente"])) {
-                    $boton  = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
+                    $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 }
                 break;
-
             case 'supervisor':
                 if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido", "Pendiente"])) {
                     $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 }
                 break;
         }
-
         return $boton;
     }
-    //Botones para panel de tareas
-    public function botonesAccionTarea($id1, $rol, $estado = null, $id2 = null)
+
+    public function botonesAccionTarea($id_tarea, $rol, $estado, $id2 = null)
     {
         $boton = "";
-
         switch ($rol) {
             case 'estudiante':
                 if (in_array($estado, ["Revisar", "Corregir", "Pendiente"])) {
                     $boton  = $this->obtenerbotonesTarea("EnviarTarea");
-                    $boton  .= $this->obtenerbotonesTarea("Guardar");
-                } elseif (in_array($estado, ["Aprobado", "Vencido", "Sin activar"])) {
+                    $boton .= " " . $this->obtenerbotonesTarea("Guardar");
                 }
                 break;
             case 'investigador':
             case 'profesor':
                 if (in_array($estado, ["Revisar", "Corregir"])) {
                     $boton  = $this->obtenerbotonesTarea("Aprobar");
-                    $boton  .= $this->obtenerbotonesTarea("Solicitar Corregir");
-                    $boton  .= $this->obtenerbotonesTarea("Guardar");
+                    $boton .= " " . $this->obtenerbotonesTarea("Solicitar Corregir");
+                    $boton .= " " . $this->obtenerbotonesTarea("Guardar");
                 } elseif (in_array($estado, ["Vencido", "Pendiente"])) {
-                    $boton  = $this->obtenerbotonesTarea("Guardar");
-                } elseif (in_array($estado, ["Sin activar"])) {
-                    $boton  = $this->obtenerbotonesTarea("Activar", $id1, $id2);
-                    $boton  .= $this->obtenerbotonesTarea("Guardar");
+                    $boton = $this->obtenerbotonesTarea("Guardar");
+                } elseif ($estado == "Sin activar") {
+                    $boton  = $this->obtenerbotonesTarea("Activar", $id_tarea, $id2);
+                    $boton .= " " . $this->obtenerbotonesTarea("Guardar");
                 }
                 break;
-            case 'supervisor':
-                break;
-            default:
-                break;
         }
-
         return $boton;
     }
 
-    /* EDITAR TAREA - investigador (recurso adjunto a la tarea) */
-    public function editarTarea($datos, $rol)
+    // ─────────────────────────────────────────────
+    //  EDITAR TAREA GENERAL (investigador - plantilla)
+    // ─────────────────────────────────────────────
+    public function editarTarea($datos, $rol, $id_proyectos = null)
     {
         global $conn;
         $conn->begin_transaction();
-
         try {
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                die("Los datos no fueron enviados correctamente.");
-            }
-
-            if ($rol !== 'investigador' && $rol !== 'profesor') {
-                die("El usuario no tiene permiso para editar tareas.");
-            }
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') die("Método no permitido.");
+            if (!in_array($rol, ['investigador', 'profesor'])) die("Sin permiso.");
 
             $id_tarea      = intval($datos['id_tarea']);
             $id_proyectos  = intval($datos['id_proyectos'] ?? ($_GET['id_proyectos'] ?? 0));
-            $descripcion   = $datos['descripcion'];
-            $instrucciones = $datos['instrucciones'];
-            $fecha_entrega = $datos['fecha_entrega'];
+            $descripcion   = $datos['descripcion'] ?? '';
+            $instrucciones = $datos['instrucciones'] ?? '';
+            $fecha_entrega = $datos['fecha_entrega'] ?? '';
+            $id_usuario    = intval($datos['id_usuario'] ?? $_SESSION['id_usuario'] ?? 0);
 
             $tarea = new Tarea($conn);
             $tarea->actualizarTareasVencidos();
 
-            $id_documento_recurso = null; // Por defecto no se toca el archivo existente
+            $id_documento_recurso = null;
 
             if (!empty($_FILES['archivo']['tmp_name']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
                 $archivo      = $_FILES['archivo'];
@@ -475,20 +328,13 @@ class TareaControlador
                 $tipo_mime    = $archivo['type'];
                 $tamano_bytes = $archivo['size'];
 
-                // /storage/recursos/investigador_{id}/proyecto_{id}/
-                $base       = "/ITSFCP-PROYECTOS/storage/recursos/investigador_{$datos['id_usuario']}/proyecto_{$id_proyectos}/";
+                $base       = "/ITSFCP-PROYECTOS/storage/recursos/investigador_{$id_usuario}/proyecto_{$id_proyectos}/";
                 $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
                 $rutaBD     = $base . $nombreFinal;
 
-                if (!is_dir(dirname($rutaFisica))) {
-                    mkdir(dirname($rutaFisica), 0755, true);
-                }
+                if (!is_dir(dirname($rutaFisica))) mkdir(dirname($rutaFisica), 0755, true);
+                if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) throw new Exception("Error al guardar archivo.");
 
-                if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
-                    throw new Exception("Error al guardar el archivo en disco.");
-                }
-
-                // Registrar en documentos_subidos
                 $id_documento_recurso = $tarea->registrarDocumento(
                     nombre: basename($archivo['name']),
                     nombre_archivo: $nombreFinal,
@@ -498,56 +344,15 @@ class TareaControlador
                     tamano_bytes: $tamano_bytes,
                     tipo: 'recurso',
                     visibilidad: 'privado',
-                    id_usuario: intval($datos['id_usuario']),
+                    id_usuario: $id_usuario,
                     id_proyecto: $id_proyectos
                 );
             }
 
-            $tarea->editarTareaGeneral(
-                $id_tarea,
-                $descripcion,
-                $instrucciones,
-                $fecha_entrega,
-                $id_documento_recurso   // null = no sobreescribir
-            );
-
+            $tarea->editarTareaGeneral($id_tarea, $descripcion, $instrucciones, $fecha_entrega, $id_documento_recurso, $id_usuario);
             $conn->commit();
             header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
             exit();
-        } catch (Exception $e) {
-            $conn->rollback();
-            error_log($e->getMessage());
-            header("Location: crear.php?error=1");
-            exit;
-        }
-    }
-
-
-    /* EDITAR TAREAS - GENERAL (enrutador estudiante / investigador) */
-    public function editar($datos, $rol, $id_proyecto, $id_asignacion, $id)
-    {
-        global $conn;
-        $conn->begin_transaction();
-
-        try {
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                die("Método no permitido");
-            }
-
-            if ($rol !== 'estudiante' && $rol !== 'investigador') {
-                die("El usuario no tiene permiso para editar la tarea.");
-            }
-
-            if ($rol === 'estudiante') {
-                $this->editarTareaEstudiante($datos, $id_proyecto, $id_asignacion);
-                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyecto, $id_asignacion, $id, $datos['comentarios']);
-            } else {
-                // investigador / profesor
-                $this->editarTareaRevisar($datos, $id_proyecto);
-                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyecto, $id_asignacion, $id, $datos['comentarios']);
-            }
-
-            $conn->commit();
         } catch (Exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
@@ -556,19 +361,44 @@ class TareaControlador
         }
     }
 
+    // ─────────────────────────────────────────────
+    //  EDITAR (enrutador estudiante / investigador)
+    // ─────────────────────────────────────────────
+    public function editar($datos, $rol, $id_proyecto, $id_asignacion, $id)
+    {
+        global $conn;
+        $conn->begin_transaction();
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') die("Método no permitido");
+            if (!in_array($rol, ['estudiante', 'investigador'])) die("Sin permiso.");
 
-    /* EDITAR TAREA - ESTUDIANTE (entrega de actividad) */
+            if ($rol === 'estudiante') {
+                $this->editarTareaEstudiante($datos, $id_proyecto, $id_asignacion);
+                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyecto, $id_asignacion, $id, $datos['comentarios']);
+            } else {
+                // El investigador solo deja comentario (el campo comentarios va al historial en actualizarestado)
+                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyecto, $id_asignacion, $id, $datos['comentarios']);
+            }
+            $conn->commit();
+        } catch (Exception $e) {
+            $conn->rollback();
+            error_log($e->getMessage());
+            header("Location: tarea.php?error=1");
+            exit;
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  EDITAR TAREA ESTUDIANTE (privado)
+    // ─────────────────────────────────────────────
     private function editarTareaEstudiante($_datos, $id_proyecto, $id_asignacion)
     {
         $id_asignacion = intval($_datos['id_asignacion'] ?? 0);
         $id_tarea      = intval($_datos['id_tarea'] ?? 0);
+        if ($id_asignacion <= 0 || $id_tarea <= 0) die("Datos incompletos.");
 
-        if ($id_asignacion <= 0 || $id_tarea <= 0) {
-            die("Datos incompletos para editar tarea.");
-        }
-
-        $contenido = $_datos['contenido'] ?? '';
-        $id_usuario = intval($_datos['id_usuario'] ?? 0);
+        $contenido  = $_datos['contenido'] ?? '';
+        $id_usuario = intval($_SESSION['id_usuario'] ?? 0);
 
         global $conn;
         $tarea = new Tarea($conn);
@@ -582,26 +412,16 @@ class TareaControlador
             $nombreFinal  = uniqid() . '_' . basename($archivo['name']);
             $tipo_mime    = $archivo['type'];
             $tamano_bytes = $archivo['size'];
+            $etapa_num    = intval($_datos['etapa'] ?? 0);
+            $subcarpeta   = $etapa_num > 0 ? "actividad_{$etapa_num}" : 'actividad';
 
-            // Determinar subcarpeta según etapa de la tarea
-            // etapa viene de $_datos si el formulario la envía; si no, se usa 'actividad'
-            $etapa_num = intval($_datos['etapa'] ?? 0);
-            $subcarpeta = $etapa_num > 0 ? "actividad_{$etapa_num}" : 'actividad';
-
-            // /storage/entregas/alumno_{id}/proyecto_{id}/{subcarpeta}/
             $base       = "/ITSFCP-PROYECTOS/storage/entregas/alumno_{$id_usuario}/proyecto_{$id_proyecto}/{$subcarpeta}/";
             $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
             $rutaBD     = $base . $nombreFinal;
 
-            if (!is_dir(dirname($rutaFisica))) {
-                mkdir(dirname($rutaFisica), 0755, true);
-            }
+            if (!is_dir(dirname($rutaFisica))) mkdir(dirname($rutaFisica), 0755, true);
+            if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) throw new Exception("Error al guardar archivo.");
 
-            if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
-                throw new Exception("Error al guardar el archivo del estudiante en disco.");
-            }
-
-            // Registrar en documentos_subidos
             $id_documento_entrega = $tarea->registrarDocumento(
                 nombre: basename($archivo['name']),
                 nombre_archivo: $nombreFinal,
@@ -617,200 +437,164 @@ class TareaControlador
             );
         }
 
-        $tarea->editarTareaEstudiante(
-            $id_asignacion,
-            $id_tarea,
-            $contenido,
-            $id_documento_entrega   // null = no sobreescribir
-        );
+        $tarea->editarTareaEstudiante($id_asignacion, $id_tarea, $contenido, $id_documento_entrega);
 
         header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tarea}&id_proyectos={$id_proyecto}&mensaje=1");
         exit();
     }
-    //investigador 
-    private function editarTareaRevisar($datos, $id_proyecto)
-    {
-        $id_asignacion = $datos['id_asignacion'];
-        $id_tareas = $datos['id_tarea'];
 
-        $comentarios = ($datos['comentarios'] ?? '');
+    // ─────────────────────────────────────────────
+    //  ACTUALIZAR ESTADO (público, llamado desde vistas)
+    // ─────────────────────────────────────────────
+    public function actualizarestado($id_tarea, $rol, $tipo, $id_proyectos, $id_asignacion = null, $id_usuarios = null, $comentarios = null)
+    {
         global $conn;
         $tarea = new Tarea($conn);
         $tarea->actualizarTareasVencidos();
-        $tarea->editarTareaRevisar($id_tareas, $comentarios);
-        header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tareas}&id_proyectos={$id_proyecto}&mensaje=1");
+
+        // Usar id_usuario de sesión si no se pasa
+        if (!$id_usuarios) $id_usuarios = intval($_SESSION['id_usuario'] ?? 0);
+
+        $numeroEstado = $this->numerofiltro($tipo);
+
+        // Guardar (10) = solo guarda contenido, sin cambio de estado real
+        if ($numeroEstado == 10) {
+            header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
+            exit();
+        }
+
+        $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios);
+
+        if (in_array($tipo, ["Aprobado", "Corregir", "Revisar"])) {
+            header("Location: tarea.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&mensaje=1");
+        } else {
+            header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
+        }
         exit();
     }
 
-    //Actualizar estado de proyectos sin comentarios
-    public function actualizarestado($id_tarea, $rol, $tipo, $id_proyectos, $id_asignacion = null, $id_usuarios = null, $comentarios = null)
-    {
-
-        global $conn;
-        $tarea = new Tarea($conn);
-
-        $tarea->actualizarTareasVencidos();
-        $numeroEstado = $this->numerofiltro($tipo);
-
-        $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios);
-        if ($tipo == "Aprobado" || $tipo == "Corregir" || $tipo == "Revisar") {
-            header("Location: tarea.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&mensaje=1");
-            exit();
-        } else {
-            header("Location: editar.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&mensaje=1");
-            exit();
-        }
-    }
-
+    // ─────────────────────────────────────────────
+    //  LÍNEA DE TIEMPO
+    // ─────────────────────────────────────────────
     public function info_linea_tiempo($id_asignacion)
     {
         global $conn;
-
         try {
             $pagina = $_GET['pagina'] ?? 1;
-
-            $tarea = new Tarea($conn);
-
+            $tarea  = new Tarea($conn);
             $tarea->actualizarTareasVencidos();
-
             if ($id_asignacion) {
                 return $tarea->linea_tiempo_tarea($id_asignacion, $pagina);
-            } else {
-                return [
-                    "datos" => [],
-                    "paginacion" => [
-                        "total" => 0,
-                        "por_pagina" => 5,
-                        "pagina" => 1,
-                        "total_paginas" => 1
-                    ]
-                ];
             }
+            return ["datos" => [], "paginacion" => ["total" => 0, "por_pagina" => 10, "pagina" => 1, "total_paginas" => 1]];
         } catch (Exception $e) {
             error_log($e->getMessage());
-            header("Location: editar.php?error=1");
-            exit;
+            return ["datos" => [], "paginacion" => ["total" => 0, "por_pagina" => 10, "pagina" => 1, "total_paginas" => 1]];
         }
     }
 
-
+    // ─────────────────────────────────────────────
+    //  MOSTRAR TAREA GENERAL (editar/detalles)
+    // ─────────────────────────────────────────────
     public function mostrarEditarTarea($id_tarea, $rol)
     {
-
         global $conn;
-
         try {
-
             $tareas = new Tarea($conn);
-
-            if ($rol == "investigador" || $rol == "supervisor") {
-                //Revisión de estados de tarea
+            if (in_array($rol, ['investigador', 'supervisor'])) {
                 $tareas->actualizarTareasVencidos();
-                $datos = $tareas->obtenerTareaGeneral($id_tarea);
-                return $datos;
-            } else {
-                $datos = []; // evita undefined variable
-                return $datos;
+                return $tareas->obtenerTareaGeneral($id_tarea);
             }
+            return [];
         } catch (Exception $e) {
             error_log($e->getMessage());
-            header("Location: editar.php?error=1");
-            exit;
+            return [];
         }
     }
 
     public function mostrarTarea($id_asignacion, $rol)
     {
         global $conn;
-
         try {
-
             $tareas = new Tarea($conn);
-
-            if ($rol == "investigador" || $rol == "estudiante" || $rol == "supervisor") {
-
-                // Actualiza estados vencidos
+            if (in_array($rol, ['investigador', 'estudiante', 'supervisor'])) {
                 $tareas->actualizarTareasVencidos();
-
-                // Obtiene registro directo desde la BD (ya no es JSON)
                 $datos = $tareas->obtenerTareaAlumno($id_asignacion);
-
-                // Si no viene nada de la BD → asegurar estructura
-                if (!is_array($datos) || empty($datos)) {
-                    $datos = [];
-                }
-
-                // Asegurar que existan todas las claves, sin arrays internos
+                if (!is_array($datos) || empty($datos)) $datos = [];
                 return array_merge([
-                    "id_tarea"       => null,
-                    "id_asignacion"  => $id_asignacion,
-                    "id_proyectos"  => "",
-                    "descripcion"    => "",
-                    "instrucciones"  => "",
-                    "estado"         => "",
-                    "tipo_tarea"     => "",
-                    "contenido"      => "",
-                    "comentarios"    => ""
+                    "id_tarea"          => null,
+                    "id_asignacion"     => $id_asignacion,
+                    "id_proyectos"      => "",
+                    "descripcion"       => "",
+                    "instrucciones"     => "",
+                    "estado"            => "",
+                    "id_estadoT"        => 0,
+                    "tipo_tarea"        => "",
+                    "contenido"         => "",
+                    "comentarios"       => "",
+                    "fecha_modificacion"=> null,
+                    "guia_nombre"       => null,
+                    "guia_ruta"         => null,
                 ], $datos);
             }
-
             return [];
         } catch (Exception $e) {
             error_log($e->getMessage());
-            header("Location: editar.php?error=1");
-            exit;
+            return [];
         }
     }
 
-    //Para las tareas estilo classroom 
+    // ─────────────────────────────────────────────
+    //  LISTAR TAREAS ESTUDIANTE (classroom)
+    // ─────────────────────────────────────────────
     public function listarTareasEstudiante($id_usuario)
     {
         global $conn;
-
         try {
             $tareas = new Tarea($conn);
             return $tareas->obtenerTareasEstudiante($id_usuario);
         } catch (Exception $e) {
             error_log($e->getMessage());
-            exit;
+            return [];
         }
     }
 
+    // ─────────────────────────────────────────────
+    //  ESTILOS DE ESTADO
+    // ─────────────────────────────────────────────
     public function estiloEstado($estado)
     {
-        return match ($estado) {
-            1 => "primary",   // Pendiente
-            2 => "warning",   // Revisar
-            3 => "danger",    // Corregir
-            5 => "success",   // Aprobado
-            6 => "dark",      // Vencido
-            7 => "info",      // Entregado
-            default => "secondary",
+        return match ((int)$estado) {
+            1 => "primary",
+            2 => "warning",
+            3 => "danger",
+            5 => "success",
+            6 => "secondary",
+            7 => "info",
+            default => "light",
         };
     }
 
     public function EstiloEstadoLista($estado)
     {
-        switch ($estado) {
+        return match ($estado) {
+            'Pendiente'   => "primary",
+            'Revisar'     => "warning",
+            'Corregir'    => "danger",
+            'Vencido'     => "secondary",
+            'Aprobado'    => "success",
+            'Sin activar' => "dark",
+            default       => "light",
+        };
+    }
 
-            case 'Pendiente':
-            case 'Revisar':
-            case 'Corregir':
-                $estilo = "warning";
-                break;
-            case 'Vencido':
-                $estilo = "secondary";
-                break;
-            case 'Aprobado':
-                $estilo = "success";
-                break;
-            case 'Sin activar':
-                $estilo = "dark";
-                break;
-            default:
-                $estilo = "info";
-                break;
-        }
-        return $estilo;
+    // ─────────────────────────────────────────────
+    //  OBTENER EDICIONES RECIENTES
+    // ─────────────────────────────────────────────
+    public function obtenerEdicionesRecientes($id_tarea, $limite = 5)
+    {
+        global $conn;
+        $tarea = new Tarea($conn);
+        return $tarea->obtenerEdicionesRecientes($id_tarea, $limite);
     }
 }
