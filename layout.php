@@ -1,26 +1,28 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $titulo ?? 'Panel' ?></title>
-    
+
     <?php if (isset($necesitaQuill) && $necesitaQuill): ?>
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <?php endif; ?>
-    
-    <!-- ⬇ AGREGAR ESTO ANTES DEL CSS -->
+
+    <!-- AGREGAR ESTO ANTES DEL CSS -->
     <script>
         // Aplicar estado del sidebar INMEDIATAMENTE antes de que se renderice
         (() => {
             try {
                 const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
-                
+
                 if (sidebarCollapsed === "true") {
                     // Agregar clase al HTML antes de que se renderice
                     document.documentElement.classList.add("sidebar-collapsed-initial");
                 }
-                
+
                 const isDark = localStorage.getItem("darkModeEnabled") === "true";
                 if (isDark) {
                     document.documentElement.classList.add("dark-mode");
@@ -53,7 +55,31 @@
 
     <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
     <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
-
+    <!--INTEGRACIÓN DE TinyMCE-->
+<script src="https://cdn.tiny.cloud/1/0ro7u4jwmnmqkovrjmi7cc1w5kk7tzragurlph7foryy7xbv/tinymce/6/tinymce.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            tinymce.init({
+                selector: '.editor',
+                height: 350,
+                menubar: true,
+                plugins: 'lists link table code wordcount charmap insertdatetime',
+                toolbar: `
+            undo redo | 
+            bold italic underline | 
+            alignleft aligncenter alignright |
+            bullist numlist |
+            link table |
+            charmap |
+            insertdatetime |
+            code
+        `,
+                toolbar_mode: 'sliding',
+                branding: false,
+                statusbar: true
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -97,10 +97,10 @@ ob_start();
         </div>
         <div class="card-body">
             <p class="tarea-seccion-label mb-1">Descripción</p>
-            <p class="mb-3"><?= nl2br(htmlspecialchars($datos['descripcion'] ?? '')) ?></p>
+            <p class="mb-3"><?= $datos['descripcion'] ?></p>
             <hr>
             <p class="tarea-seccion-label mb-1">Instrucciones</p>
-            <p class="mb-0"><?= nl2br(htmlspecialchars($datos['instrucciones'] ?? '')) ?></p>
+            <p class="mb-0"><?= $datos['instrucciones'] ?></p>
         </div>
     </div>
 
@@ -159,7 +159,7 @@ ob_start();
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body">
                 <p class="tarea-seccion-label mb-1">Contenido del estudiante</p>
-                <p class="mb-0"><?= nl2br(htmlspecialchars($datos['contenido'] ?? 'Sin contenido entregado.')) ?></p>
+                <div class="mb-0"><?= $datos['contenido'] ?? 'Sin contenido entregado.' ?></div>
             </div>
         </div>
     <?php endif; ?>

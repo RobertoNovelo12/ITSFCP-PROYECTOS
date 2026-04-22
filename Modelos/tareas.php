@@ -60,9 +60,7 @@ class Tarea
         $stmtH->close();
     }
 
-    // ─────────────────────────────────────────────
     //  OBTENER TAREAS (tabla principal)
-    // ─────────────────────────────────────────────
     public function obtenerTareas($id_proyecto, $id_usuario, $rol)
     {
         switch ($rol) {
@@ -136,9 +134,7 @@ class Tarea
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // ─────────────────────────────────────────────
     //  OBTENER TAREAS LISTA (por id_tarea)
-    // ─────────────────────────────────────────────
     public function obtenerTareasLista($id_tarea, $rol)
     {
         switch ($rol) {
@@ -192,9 +188,7 @@ class Tarea
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // ─────────────────────────────────────────────
-    //  OBTENER TAREAS ESTUDIANTE (vista classroom)
-    // ─────────────────────────────────────────────
+    //  OBTENER TAREAS ESTUDIANTE
     public function obtenerTareasEstudiante($id_usuario)
     {
         $sql = "
@@ -231,9 +225,7 @@ class Tarea
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // ─────────────────────────────────────────────
     //  REGISTRAR DOCUMENTO
-    // ─────────────────────────────────────────────
     public function registrarDocumento(
         string  $nombre,
         string  $nombre_archivo,
@@ -282,10 +274,8 @@ class Tarea
         return $id;
     }
 
-    // ─────────────────────────────────────────────
     //  EDITAR TAREA GENERAL (investigador - plantilla)
     //  Registra en historial los campos modificados
-    // ─────────────────────────────────────────────
     public function editarTareaGeneral(
         int     $id_tarea,
         string  $descripcion,
@@ -381,9 +371,7 @@ class Tarea
         $stmtH->close();
     }
 
-    // ─────────────────────────────────────────────
     //  EDITAR TAREA ESTUDIANTE (entrega de actividad)
-    // ─────────────────────────────────────────────
     public function editarTareaEstudiante(
         int     $id_asignacion,
         int     $id_tarea,
@@ -405,10 +393,10 @@ class Tarea
 
         if (!$stmt->execute()) throw new Exception("Error execute (editarTareaEstudiante): " . $stmt->error);
         $stmt->close();
+        
         return true;
     }
 
-    // ─────────────────────────────────────────────
     //  EDITAR TAREA REVISAR (investigador deja comentario)
     // ─────────────────────────────────────────────
     public function editarTareaRevisar($id_tareas, $comentarios): void
@@ -418,9 +406,7 @@ class Tarea
         // La inserción en historial la hace actualizarestado() con el comentario
     }
 
-    // ─────────────────────────────────────────────
     //  ACTUALIZAR ESTADO
-    // ─────────────────────────────────────────────
     public function actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentario): void
     {
         // ── ACTIVAR TAREA (estado 1) ─────────────────────────────────────────
@@ -524,9 +510,7 @@ class Tarea
         }
     }
 
-    // ─────────────────────────────────────────────
     //  OBTENER TAREA ALUMNO (para vista tarea.php)
-    // ─────────────────────────────────────────────
     public function obtenerTareaAlumno($id_asignacion)
     {
         $sql = "
@@ -568,9 +552,7 @@ class Tarea
         return $stmt->get_result()->fetch_assoc();
     }
 
-    // ─────────────────────────────────────────────
     //  OBTENER TAREA GENERAL (para editar.php / detalles.php)
-    // ─────────────────────────────────────────────
     public function obtenerTareaGeneral($id_tarea)
     {
         $sql = "
@@ -604,11 +586,9 @@ class Tarea
         return $stmt->get_result()->fetch_assoc();
     }
 
-        // ─────────────────────────────────────────────
     //  EDICIONES RECIENTES DE UNA TAREA (para detalles/editar)
-    // ─────────────────────────────────────────────
 
-        public function obtenerEdicionesRecientes($id_tarea, $limite = 5)
+    public function obtenerEdicionesRecientes($id_tarea, $limite = 5)
     {
         $sql = "SELECT
             th.campo_modificado,
@@ -632,10 +612,8 @@ class Tarea
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-    
-    // ─────────────────────────────────────────────
+
     //  LÍNEA DE TIEMPO (solo cambios de estado)
-    // ─────────────────────────────────────────────
     public function linea_tiempo_tarea($id_asignacion, $pagina = 1, $por_pagina = 10)
     {
         $pagina    = max(1, (int)$pagina);

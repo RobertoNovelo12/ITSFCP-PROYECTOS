@@ -5,9 +5,7 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 
 class TareaControlador
 {
-    // ─────────────────────────────────────────────
     //  ACCIONES PRINCIPALES
-    // ─────────────────────────────────────────────
     public function index_Principal($id_proyecto, $id_usuario, $rol)
     {
         global $conn;
@@ -40,27 +38,29 @@ class TareaControlador
         }
     }
 
-    // ─────────────────────────────────────────────
     //  CONTENIDO DE LA TAREA (textarea, archivo, comentario)
-    // ─────────────────────────────────────────────
     public function tareas($descripcion, $rol, $datos)
     {
         $soloLectura = ($rol !== 'estudiante');
 
         $map = [
             "Resumen" => "Resumen",
-            "Introducción" => "Introduccion", "Introduccion" => "Introduccion",
+            "Introducción" => "Introduccion",
+            "Introduccion" => "Introduccion",
             "Planteamiento del Problema" => "PlanteamientoProblema",
             "Planteamiento del problema" => "PlanteamientoProblema",
-            "Justificación" => "Justificacion", "Justificacion" => "Justificacion",
+            "Justificación" => "Justificacion",
+            "Justificacion" => "Justificacion",
             "Objetivos" => "Objetivos",
             "Marco Teórico" => "MarcoTeorico",
             "Marco teórico y/o de referencia" => "MarcoTeorico",
             "MarcoTeorico" => "MarcoTeorico",
-            "Metodología" => "Metodologia", "Metodologia" => "Metodologia",
+            "Metodología" => "Metodologia",
+            "Metodologia" => "Metodologia",
             "Metas, productos esperados e impacto" => "MetasProductosImpacto",
             "Metas, productos esperados e impactos" => "MetasProductosImpacto",
-            "Cronograma y recursos" => "Cronograma", "Cronograma" => "Cronograma",
+            "Cronograma y recursos" => "Cronograma",
+            "Cronograma" => "Cronograma",
             "Referencias bibliograficas" => "Bibliografia",
             "Bibliografía" => "Bibliografia",
             "Anexos" => "Anexos",
@@ -79,13 +79,13 @@ class TareaControlador
     private function textarea($label, $name, $value, $disabled = false, $rows = 7)
     {
         $dis = $disabled ? "disabled" : "";
-        return "
-        <div class='mb-3'>
-            <label class='form-label text-muted small'>$label:</label>
-            <textarea class='form-control' name='contenido' rows='$rows' $dis>" . htmlspecialchars($value) . "</textarea>
-        </div>";
-    }
 
+        return "
+    <div class='mb-3'>
+        <label class='form-label text-muted small'>$label:</label>
+        <textarea class='form-control editor' name='contenido' rows='$rows' $dis>" . htmlspecialchars($value) . "</textarea>
+    </div>";
+    }
     private function archivo($datos, $disabled = false)
     {
         $dis  = $disabled ? "disabled" : "";
@@ -112,10 +112,10 @@ class TareaControlador
     private function comentario($datos)
     {
         return "
-        <div class='mb-3'>
-            <label class='form-label text-muted small'>Comentarios:</label>
-            <textarea class='form-control' name='comentarios' rows='3'>" . htmlspecialchars($datos['comentarios'] ?? '') . "</textarea>
-        </div>";
+    <div class='mb-3'>
+        <label class='form-label text-muted small'>Comentarios:</label>
+        <textarea class='form-control editor' name='comentarios' rows='3'>" . htmlspecialchars($datos['comentarios'] ?? '') . "</textarea>
+    </div>";
     }
 
     private function titulo($desc)
@@ -153,9 +153,7 @@ class TareaControlador
         };
     }
 
-    // ─────────────────────────────────────────────
     //  ENCABEZADOS
-    // ─────────────────────────────────────────────
     public function encabezadosPrincipal($rol)
     {
         return match ($rol) {
@@ -173,9 +171,7 @@ class TareaControlador
         };
     }
 
-    // ─────────────────────────────────────────────
     //  BOTONES
-    // ─────────────────────────────────────────────
     public function obtenerbotones($tipo, $id1 = null, $id2 = null, $id3 = null, $id4 = null, $estado = null)
     {
         $boton = "";
@@ -298,9 +294,7 @@ class TareaControlador
         return $boton;
     }
 
-    // ─────────────────────────────────────────────
     //  EDITAR TAREA GENERAL (investigador - plantilla)
-    // ─────────────────────────────────────────────
     public function editarTarea($datos, $rol, $id_proyectos = null)
     {
         global $conn;
@@ -361,9 +355,7 @@ class TareaControlador
         }
     }
 
-    // ─────────────────────────────────────────────
     //  EDITAR (enrutador estudiante / investigador)
-    // ─────────────────────────────────────────────
     public function editar($datos, $rol, $id_proyecto, $id_asignacion, $id)
     {
         global $conn;
@@ -388,16 +380,22 @@ class TareaControlador
         }
     }
 
-    // ─────────────────────────────────────────────
     //  EDITAR TAREA ESTUDIANTE (privado)
-    // ─────────────────────────────────────────────
     private function editarTareaEstudiante($_datos, $id_proyecto, $id_asignacion)
     {
         $id_asignacion = intval($_datos['id_asignacion'] ?? 0);
         $id_tarea      = intval($_datos['id_tarea'] ?? 0);
         if ($id_asignacion <= 0 || $id_tarea <= 0) die("Datos incompletos.");
 
-        $contenido  = $_datos['contenido'] ?? '';
+        require_once __DIR__ . '/../../vendor/autoload.php';
+
+        $config = HTMLPurifier_Config::createDefault();
+        $purifier = new HTMLPurifier($config);
+
+        // Sanitizar contenido
+        $contenido = $purifier->purify($_datos['contenido'] ?? '');
+        $comentarios = $purifier->purify($_datos['comentarios'] ?? '');
+
         $id_usuario = intval($_SESSION['id_usuario'] ?? 0);
 
         global $conn;
@@ -437,15 +435,13 @@ class TareaControlador
             );
         }
 
-        $tarea->editarTareaEstudiante($id_asignacion, $id_tarea, $contenido, $id_documento_entrega);
+        $tarea->editarTareaEstudiante($id_asignacion, $id_tarea, $contenido, $comentarios, $id_documento_entrega);
 
         header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tarea}&id_proyectos={$id_proyecto}&mensaje=1");
         exit();
     }
 
-    // ─────────────────────────────────────────────
     //  ACTUALIZAR ESTADO (público, llamado desde vistas)
-    // ─────────────────────────────────────────────
     public function actualizarestado($id_tarea, $rol, $tipo, $id_proyectos, $id_asignacion = null, $id_usuarios = null, $comentarios = null)
     {
         global $conn;
@@ -463,7 +459,15 @@ class TareaControlador
             exit();
         }
 
-        $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios);
+        require_once __DIR__ . '/../../vendor/autoload.php';
+
+        $config = HTMLPurifier_Config::createDefault();
+        $purifier = new HTMLPurifier($config);
+
+        // Sanitizar contenido
+        $comentarios_p = $purifier->purify($comentarios ?? '');
+
+        $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios_p);
 
         if (in_array($tipo, ["Aprobado", "Corregir", "Revisar"])) {
             header("Location: tarea.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&mensaje=1");
@@ -473,9 +477,7 @@ class TareaControlador
         exit();
     }
 
-    // ─────────────────────────────────────────────
     //  LÍNEA DE TIEMPO
-    // ─────────────────────────────────────────────
     public function info_linea_tiempo($id_asignacion)
     {
         global $conn;
@@ -493,9 +495,7 @@ class TareaControlador
         }
     }
 
-    // ─────────────────────────────────────────────
     //  MOSTRAR TAREA GENERAL (editar/detalles)
-    // ─────────────────────────────────────────────
     public function mostrarEditarTarea($id_tarea, $rol)
     {
         global $conn;
@@ -532,7 +532,7 @@ class TareaControlador
                     "tipo_tarea"        => "",
                     "contenido"         => "",
                     "comentarios"       => "",
-                    "fecha_modificacion"=> null,
+                    "fecha_modificacion" => null,
                     "guia_nombre"       => null,
                     "guia_ruta"         => null,
                 ], $datos);
@@ -544,9 +544,7 @@ class TareaControlador
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  LISTAR TAREAS ESTUDIANTE (classroom)
-    // ─────────────────────────────────────────────
+    //  LISTAR TAREAS ESTUDIANTE
     public function listarTareasEstudiante($id_usuario)
     {
         global $conn;
@@ -559,9 +557,7 @@ class TareaControlador
         }
     }
 
-    // ─────────────────────────────────────────────
     //  ESTILOS DE ESTADO
-    // ─────────────────────────────────────────────
     public function estiloEstado($estado)
     {
         return match ((int)$estado) {
@@ -588,9 +584,7 @@ class TareaControlador
         };
     }
 
-    // ─────────────────────────────────────────────
     //  OBTENER EDICIONES RECIENTES
-    // ─────────────────────────────────────────────
     public function obtenerEdicionesRecientes($id_tarea, $limite = 5)
     {
         global $conn;
