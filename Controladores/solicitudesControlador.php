@@ -97,7 +97,7 @@ class solicitudesControlador
     private function boton(string $tipo, int $id_solicitud): string
     {
         return match ($tipo) {
-            'detalle'      => "<a href='detalles_solicitud.php?id={$id_solicitud}' class='btn btn-info btn-sm' title='Ver solicitud'><i class='bi bi-file-text-fill'></i></a>",
+            'detalle'      => "<a href='detalles_solicitud.php?id={$id_solicitud}' class='btn btn-primary btn-sm' title='Ver solicitud'><i class='bi bi-file-text-fill'></i></a>",
             'aceptar'      => "<button type='button' class='btn btn-success btn-sm' title='Aceptar solicitud' onclick='confirmarAceptar({$id_solicitud})'><i class='bi bi-check-circle-fill'></i></button>",
             'correcciones' => "<button type='button' class='btn btn-warning btn-sm' title='Pedir correcciones' onclick='abrirModalAccion({$id_solicitud},\"correcciones\")'><i class='bi bi-pencil-fill'></i></button>",
             'rechazar'     => "<button type='button' class='btn btn-danger btn-sm' title='Rechazar solicitud' onclick='abrirModalAccion({$id_solicitud},\"rechazar\")'><i class='bi bi-ban'></i></button>",
