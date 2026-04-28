@@ -130,6 +130,7 @@ class solicitudesControlador
         $desde      = ($pagina - 1) * $por_pagina;
 
         $filtros = [
+            'periodo'     => $_GET['periodo']     ?? '',   // ← filtro global nuevo
             'estado'      => $_GET['estado']      ?? '',
             'buscar'      => $_GET['buscar']      ?? '',
             'proyecto'    => $_GET['proyecto']    ?? '',
@@ -138,15 +139,19 @@ class solicitudesControlador
             'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
         ];
 
+        $id_periodo  = !empty($filtros['periodo']) ? intval($filtros['periodo']) : null;
+
         $total       = $S->contarSolicitudes($id_usuario, $filtros);
         $solicitudes = $S->obtenerSolicitudes($id_usuario, $filtros, $desde, $por_pagina);
-        $resumen     = $S->resumen($id_usuario);
+        $resumen     = $S->resumen($id_usuario, $id_periodo);
         $proyectos   = $S->proyectosDelInvestigador($id_usuario);
+        $periodos    = $S->periodosDelInvestigador($id_usuario);
 
         return [
             'solicitudes' => $solicitudes,
             'resumen'     => $resumen,
             'proyectos'   => $proyectos,
+            'periodos'    => $periodos,
             'filtros'     => $filtros,
             'paginacion'  => [
                 'total'         => $total,

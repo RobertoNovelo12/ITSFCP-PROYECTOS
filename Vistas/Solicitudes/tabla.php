@@ -26,28 +26,52 @@ $resumen     = $resultado['resumen']     ?? [];
 $proyectos   = $resultado['proyectos']   ?? [];
 $filtros     = $resultado['filtros']     ?? [];
 $paginacion  = $resultado['paginacion']  ?? [];
+$periodos    = $resultado['periodos']    ?? [];
 
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
-
-<style>
-.resumen-card  { padding: 1rem; border-radius: 8px; text-align: center; }
-.resumen-num   { font-size: 1.8rem; font-weight: 700; line-height: 1; }
-.resumen-lbl   { font-size: .75rem; text-transform: uppercase; color: #6c757d; margin-top: .25rem; }
-.msg-item      { border-radius: 8px; padding: .6rem .9rem; margin-bottom: .5rem; font-size: .88rem; }
-.msg-inv       { background: #e7f3ff; border-left: 4px solid #0d6efd; }
-.msg-est       { background: #f0fff4; border-left: 4px solid #198754; margin-left: 2rem; }
-.msg-meta      { font-size: .72rem; color: #6c757d; margin-top: .3rem; }
-#panelComentarios { max-height: 260px; overflow-y: auto; }
-</style>
-
 <div class="container-fluid py-4">
 
     <div class="row mb-3 align-items-center">
         <div class="col">
             <h2 class="mb-0 fw-semibold">Solicitudes de integración</h2>
             <p class="text-muted small mb-0">Gestiona las solicitudes de estudiantes para tus proyectos.</p>
+        </div>
+    </div>
+
+    <!-- FILTRO GLOBAL POR PERIODO -->
+    <div class="row mb-4">
+        <div class="col-12 col-md-auto">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <label class="fw-semibold small mb-0 text-nowrap">Periodo:</label>
+                <form method="GET" action="" id="formPeriodo" class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Conservar otros filtros al cambiar periodo -->
+                    <?php foreach (['estado','buscar','proyecto','fecha_desde','fecha_hasta'] as $f): ?>
+                        <?php if (!empty($filtros[$f])): ?>
+                            <input type="hidden" name="<?= $f ?>" value="<?= htmlspecialchars($filtros[$f]) ?>">
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                    <select name="periodo" class="form-select form-select-sm" style="min-width:180px"
+                            onchange="document.getElementById('formPeriodo').submit()">
+                        <option value="">Todos los periodos</option>
+                        <?php foreach ($periodos as $p): ?>
+                            <option value="<?= htmlspecialchars($p['id_periodos']) ?>"
+                                <?= ($filtros['periodo'] ?? '') == $p['id_periodos'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($p['periodo']) ?>
+                                <?php if (!empty($p['estado']) && $p['estado']): ?>
+                                    <span> (Activo)</span>
+                                <?php endif; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (!empty($filtros['periodo'])): ?>
+                        <a href="tabla.php" class="btn btn-outline-secondary btn-sm text-nowrap">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </a>
+                    <?php endif; ?>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -74,6 +98,10 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- FILTROS -->
     <form method="GET" action="" class="row g-2 mb-3 align-items-end">
+        <!-- Conservar filtro de periodo en los filtros secundarios -->
+        <?php if (!empty($filtros['periodo'])): ?>
+            <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo']) ?>">
+        <?php endif; ?>
         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
             <label class="form-label small fw-medium mb-1">Buscar</label>
             <input type="text" name="buscar" class="form-control form-control-sm"
@@ -117,7 +145,10 @@ include __DIR__ . '/../../mensaje.php';
         </div>
         <div class="col-auto d-flex gap-2">
             <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filtrar</button>
-            <a href="tabla.php" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle"></i> Limpiar</a>
+            <a href="tabla.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
+               class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x-circle"></i> Limpiar
+            </a>
         </div>
     </form>
 
@@ -180,6 +211,7 @@ include __DIR__ . '/../../mensaje.php';
                 <ul class="pagination justify-content-center pagination-sm">
                     <?php
                     $qBase = http_build_query(array_filter([
+                        'periodo'     => $filtros['periodo'],
                         'buscar'      => $filtros['buscar'],
                         'estado'      => $filtros['estado'],
                         'proyecto'    => $filtros['proyecto'],
@@ -312,10 +344,6 @@ const AJAX = '/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php';
 let _idSolicitudActual = null;
 
 // ── Ver detalle (abre modal) ──────────────────────────────────────
-// Nota: los botones en la tabla usan href → detalles_solicitud.php
-// Esta función la usa el footer del modal si se quisiera abrir en modal
-// Se mantiene por compatibilidad con código existente
-
 function verDetalleSolicitud(id) {
     _idSolicitudActual = id;
     document.getElementById('detalleCargando').style.display  = '';
