@@ -44,27 +44,27 @@ class TareaControlador
         $soloLectura = ($rol !== 'estudiante');
 
         $map = [
-            "Resumen" => "Resumen",
-            "Introducción" => "Introduccion",
-            "Introduccion" => "Introduccion",
-            "Planteamiento del Problema" => "PlanteamientoProblema",
-            "Planteamiento del problema" => "PlanteamientoProblema",
-            "Justificación" => "Justificacion",
-            "Justificacion" => "Justificacion",
-            "Objetivos" => "Objetivos",
-            "Marco Teórico" => "MarcoTeorico",
-            "Marco teórico y/o de referencia" => "MarcoTeorico",
-            "MarcoTeorico" => "MarcoTeorico",
-            "Metodología" => "Metodologia",
-            "Metodologia" => "Metodologia",
+            "Resumen"                              => "Resumen",
+            "Introducción"                         => "Introduccion",
+            "Introduccion"                         => "Introduccion",
+            "Planteamiento del Problema"           => "PlanteamientoProblema",
+            "Planteamiento del problema"           => "PlanteamientoProblema",
+            "Justificación"                        => "Justificacion",
+            "Justificacion"                        => "Justificacion",
+            "Objetivos"                            => "Objetivos",
+            "Marco Teórico"                        => "MarcoTeorico",
+            "Marco teórico y/o de referencia"      => "MarcoTeorico",
+            "MarcoTeorico"                         => "MarcoTeorico",
+            "Metodología"                          => "Metodologia",
+            "Metodologia"                          => "Metodologia",
             "Metas, productos esperados e impacto" => "MetasProductosImpacto",
-            "Metas, productos esperados e impactos" => "MetasProductosImpacto",
-            "Cronograma y recursos" => "Cronograma",
-            "Cronograma" => "Cronograma",
-            "Referencias bibliograficas" => "Bibliografia",
-            "Bibliografía" => "Bibliografia",
-            "Anexos" => "Anexos",
-            "Reporte Final" => "ReporteFinal"
+            "Metas, productos esperados e impactos"=> "MetasProductosImpacto",
+            "Cronograma y recursos"                => "Cronograma",
+            "Cronograma"                           => "Cronograma",
+            "Referencias bibliograficas"           => "Bibliografia",
+            "Bibliografía"                         => "Bibliografia",
+            "Anexos"                               => "Anexos",
+            "Reporte Final"                        => "ReporteFinal",
         ];
 
         $descripcionNorm = $map[$descripcion] ?? $descripcion;
@@ -86,6 +86,7 @@ class TareaControlador
         <textarea class='form-control editor' name='contenido' rows='$rows' $dis>" . htmlspecialchars($value) . "</textarea>
     </div>";
     }
+
     private function archivo($datos, $disabled = false)
     {
         $dis  = $disabled ? "disabled" : "";
@@ -114,25 +115,25 @@ class TareaControlador
         return "
     <div class='mb-3'>
         <label class='form-label text-muted small'>Comentarios:</label>
-        <textarea class='form-control editor' name='comentarios' rows='3'>" . htmlspecialchars($datos['comentarios'] ?? '') . "</textarea>
+        <textarea class='form-control' name='comentarios' rows='3'>" . htmlspecialchars($datos['comentarios'] ?? '') . "</textarea>
     </div>";
     }
 
     private function titulo($desc)
     {
         $titulos = [
-            "Resumen" => "1. Resumen / Abstract",
-            "Introduccion" => "2. Introducción",
-            "PlanteamientoProblema" => "3. Planteamiento del Problema",
-            "Justificacion" => "4. Justificación",
-            "Objetivos" => "5. Objetivos",
-            "MarcoTeorico" => "6. Marco teórico y/o de referencia",
-            "Metodologia" => "7. Metodología",
-            "MetasProductosImpacto" => "8. Metas, productos esperados e impacto",
-            "Cronograma" => "9. Cronograma",
-            "Bibliografia" => "10. Bibliografía",
-            "Anexos" => "11. Anexos",
-            "ReporteFinal" => "12. Reporte Final"
+            "Resumen"              => "1. Resumen / Abstract",
+            "Introduccion"         => "2. Introducción",
+            "PlanteamientoProblema"=> "3. Planteamiento del Problema",
+            "Justificacion"        => "4. Justificación",
+            "Objetivos"            => "5. Objetivos",
+            "MarcoTeorico"         => "6. Marco teórico y/o de referencia",
+            "Metodologia"          => "7. Metodología",
+            "MetasProductosImpacto"=> "8. Metas, productos esperados e impacto",
+            "Cronograma"           => "9. Cronograma",
+            "Bibliografia"         => "10. Bibliografía",
+            "Anexos"               => "11. Anexos",
+            "ReporteFinal"         => "12. Reporte Final",
         ];
         return $titulos[$desc] ?? $desc;
     }
@@ -148,7 +149,7 @@ class TareaControlador
             'Aprobado'   => 5,
             'Vencido'    => 6,
             'Entregado'  => 7,
-            'Guardar'    => 10,
+            'Borrador'   => 8,   // ← estado borrador correcto (antes era Guardar=10, inconsistente)
             default      => 0,
         };
     }
@@ -157,8 +158,8 @@ class TareaControlador
     public function encabezadosPrincipal($rol)
     {
         return match ($rol) {
-            'estudiante' => ['Actividad', 'Estado', 'Guía', 'Fecha Entrega', 'Acciones'],
-            'investigador', 'profesor', 'supervisor' => ['Actividad', 'Entregas', 'Estado', 'Guía', 'Fecha Entrega', 'Acciones'],
+            'estudiante'                              => ['Actividad', 'Estado', 'Guía', 'Fecha Entrega', 'Acciones'],
+            'investigador', 'profesor', 'supervisor'  => ['Actividad', 'Entregas', 'Estado', 'Guía', 'Fecha Entrega', 'Acciones'],
             default => [],
         };
     }
@@ -187,7 +188,7 @@ class TareaControlador
             case 'Ver lista':
                 $boton = '<a href="lista_tareas.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
                     class="btn btn-secondary" title="Ver lista de estudiantes" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver lista de alumnos">
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver lista de alumnos">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
                       <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
                     </svg></a>';
@@ -197,15 +198,17 @@ class TareaControlador
                     class="btn btn-warning" title="Editar tarea" data-bs-toggle="tooltip" data-bs-placement="top"
                     data-bs-custom-class="custom-tooltip" data-bs-title="Editar tarea">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
                     </svg></a>';
                 break;
             case 'Detalles':
                 $boton = '<a href="detalles.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
                     class="btn btn-info" title="Ver detalles" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles">
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
+                      <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
+                      <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
+                    </svg></a>';
                 break;
         }
         return $boton;
@@ -214,12 +217,17 @@ class TareaControlador
     public function obtenerbotonesTarea($tipo, $id1 = null, $id2 = null)
     {
         return match ($tipo) {
-            'Aprobar'          => '<button type="submit" name="tipo" value="Aprobado" class="btn btn-success btn-sm">✓ Aprobar</button>',
-            'EnviarTarea'      => '<button type="submit" name="tipo" value="Revisar" class="btn btn-primary btn-sm">Enviar tarea</button>',
-            'Solicitar Corregir' => '<button type="submit" name="tipo" value="Corregir" class="btn btn-warning btn-sm">Solicitar corrección</button>',
-            'Guardar'          => '<button type="submit" name="tipo" value="Guardar" class="btn btn-outline-secondary btn-sm">Guardar borrador</button>',
-            'Activar'          => '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente" class="btn btn-success btn-sm">Activar tarea</a>',
-            default            => '',
+            'Aprobar'            => '<button type="submit" name="tipo" value="Aprobado"  class="btn btn-success btn-sm">✓ Aprobar</button>',
+            'EnviarTarea'        => '<button type="submit" name="tipo" value="Revisar"   class="btn btn-primary btn-sm">Enviar tarea</button>',
+            'ReenviarTarea'      => '<button type="submit" name="tipo" value="Revisar"   class="btn btn-primary btn-sm">Volver a enviar</button>',
+            'Solicitar Corregir' => '<button type="submit" name="tipo" value="Corregir"  class="btn btn-warning btn-sm">Solicitar corrección</button>',
+            // El botón Guardar Borrador usa action propio, no tipo (se maneja por separado en la vista)
+            'Guardar'            => '<button type="submit" form="form-borrador" class="btn btn-outline-secondary btn-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-floppy me-1" viewBox="0 0 16 16">
+                                          <path d="M11 2H9v3h2z"/><path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zm6 6.5v3h-4v-3h4a.5.5 0 0 1 0 0"/>
+                                        </svg> Guardar borrador</button>',
+            'Activar'            => '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente" class="btn btn-success btn-sm">Activar tarea</a>',
+            default              => '',
         };
     }
 
@@ -255,12 +263,12 @@ class TareaControlador
         switch ($rol) {
             case 'investigador':
             case 'profesor':
-                if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido", "Pendiente"])) {
+                if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido", "Pendiente", "Borrador"])) {
                     $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 }
                 break;
             case 'supervisor':
-                if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido", "Pendiente"])) {
+                if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido", "Pendiente", "Borrador"])) {
                     $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 }
                 break;
@@ -273,9 +281,19 @@ class TareaControlador
         $boton = "";
         switch ($rol) {
             case 'estudiante':
-                if (in_array($estado, ["Revisar", "Corregir", "Pendiente"])) {
+                // Estado Pendiente o Borrador: puede enviar o guardar borrador
+                if (in_array($estado, ["Pendiente", "Borrador"])) {
                     $boton  = $this->obtenerbotonesTarea("EnviarTarea");
                     $boton .= " " . $this->obtenerbotonesTarea("Guardar");
+                }
+                // Estado Corregir: puede reenviar o guardar borrador
+                elseif ($estado === "Corregir") {
+                    $boton  = $this->obtenerbotonesTarea("ReenviarTarea");
+                    $boton .= " " . $this->obtenerbotonesTarea("Guardar");
+                }
+                // Estado Revisar: solo puede guardar borrador (ya envió, espera revisión)
+                elseif ($estado === "Revisar") {
+                    $boton = $this->obtenerbotonesTarea("Guardar");
                 }
                 break;
             case 'investigador':
@@ -283,12 +301,8 @@ class TareaControlador
                 if (in_array($estado, ["Revisar", "Corregir"])) {
                     $boton  = $this->obtenerbotonesTarea("Aprobar");
                     $boton .= " " . $this->obtenerbotonesTarea("Solicitar Corregir");
-                    $boton .= " " . $this->obtenerbotonesTarea("Guardar");
-                } elseif (in_array($estado, ["Vencido", "Pendiente"])) {
-                    $boton = $this->obtenerbotonesTarea("Guardar");
                 } elseif ($estado == "Sin activar") {
-                    $boton  = $this->obtenerbotonesTarea("Activar", $id_tarea, $id2);
-                    $boton .= " " . $this->obtenerbotonesTarea("Guardar");
+                    $boton = $this->obtenerbotonesTarea("Activar", $id_tarea, $id2);
                 }
                 break;
         }
@@ -357,21 +371,30 @@ class TareaControlador
     }
 
     //  EDITAR (enrutador estudiante / investigador)
+    //  Solo se usa para cambios de estado (Revisar, Corregir, Aprobado).
+    //  El borrador tiene su propio método: guardar_borrador().
     public function editar($datos, $rol, $id_proyecto, $id_asignacion, $id)
     {
         global $conn;
         $conn->begin_transaction();
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') die("Método no permitido");
-            if (!in_array($rol, ['estudiante', 'investigador'])) die("Sin permiso.");
+            if (!in_array($rol, ['estudiante', 'investigador', 'profesor'])) die("Sin permiso.");
 
             if ($rol === 'estudiante') {
-                $this->editarTareaEstudiante($datos, $id_proyecto, $id_asignacion);
-                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyecto, $id_asignacion, $id, $datos['comentarios']);
-            } else {
-                // El investigador solo deja comentario (el campo comentarios va al historial en actualizarestado)
-                $this->actualizarestado($datos['id_tarea'], $rol, $datos['tipo'], $id_proyecto, $id_asignacion, $id, $datos['comentarios']);
+                // Primero guarda el contenido/archivo y luego cambia el estado
+                $this->_guardarContenidoEstudiante($datos, $id_proyecto, $id_asignacion);
             }
+            // El investigador solo cambia estado (Aprobar / Solicitar Corregir) y deja comentario
+            $this->actualizarestado(
+                $datos['id_tarea'],
+                $rol,
+                $datos['tipo'],
+                $id_proyecto,
+                $id_asignacion,
+                $id,
+                $datos['comentarios'] ?? ''
+            );
             $conn->commit();
         } catch (Exception $e) {
             $conn->rollback();
@@ -381,21 +404,23 @@ class TareaControlador
         }
     }
 
-    //  EDITAR TAREA ESTUDIANTE (privado)
-    private function editarTareaEstudiante($_datos, $id_proyecto, $id_asignacion)
+    // 
+    //  GUARDAR CONTENIDO DEL ESTUDIANTE (privado, sin cambio de estado)
+    //  Utilizado tanto por editar() como por guardar_borrador().
+    //  Devuelve el id_documento_entrega generado (o null si no hubo archivo).
+    // 
+    private function _guardarContenidoEstudiante(array $datos, $id_proyecto, $id_asignacion): ?int
     {
-        $id_asignacion = intval($_datos['id_asignacion'] ?? 0);
-        $id_tarea      = intval($_datos['id_tarea'] ?? 0);
+        $id_asignacion = intval($datos['id_asignacion'] ?? 0);
+        $id_tarea      = intval($datos['id_tarea']      ?? 0);
         if ($id_asignacion <= 0 || $id_tarea <= 0) die("Datos incompletos.");
 
         require_once __DIR__ . '/../../vendor/autoload.php';
-
-        $config = HTMLPurifier_Config::createDefault();
+        $config   = HTMLPurifier_Config::createDefault();
         $purifier = new HTMLPurifier($config);
 
-        // Sanitizar contenido
-        $contenido = $purifier->purify($_datos['contenido'] ?? '');
-        $comentarios = $purifier->purify($_datos['comentarios'] ?? '');
+        $contenido   = $purifier->purify($datos['contenido']   ?? '');
+        $comentarios = $purifier->purify($datos['comentarios'] ?? '');
 
         $id_usuario = intval($_SESSION['id_usuario'] ?? 0);
 
@@ -411,7 +436,7 @@ class TareaControlador
             $nombreFinal  = uniqid() . '_' . basename($archivo['name']);
             $tipo_mime    = $archivo['type'];
             $tamano_bytes = $archivo['size'];
-            $etapa_num    = intval($_datos['etapa'] ?? 0);
+            $etapa_num    = intval($datos['etapa'] ?? 0);
             $subcarpeta   = $etapa_num > 0 ? "actividad_{$etapa_num}" : 'actividad';
 
             $base       = "/ITSFCP-PROYECTOS/storage/entregas/alumno_{$id_usuario}/proyecto_{$id_proyecto}/{$subcarpeta}/";
@@ -438,8 +463,76 @@ class TareaControlador
 
         $tarea->editarTareaEstudiante($id_asignacion, $id_tarea, $contenido, $comentarios, $id_documento_entrega);
 
-        header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tarea}&id_proyectos={$id_proyecto}&mensaje=1");
-        exit();
+        return $id_documento_entrega;
+    }
+
+    // 
+    //  GUARDAR BORRADOR (estudiante)
+    //  Guarda contenido + archivo opcional y cambia estado a Borrador (8).
+    //  No cambia a Revisar ni ningún otro estado.
+    // 
+    public function guardar_borrador(
+        int    $id_tarea,
+        int    $id_proyectos,
+        int    $id_asignacion,
+        int    $id_usuarios,
+        string $contenido,
+        string $comentarios = ''
+    ): void {
+        global $conn;
+        $conn->begin_transaction();
+        try {
+            $tarea = new Tarea($conn);
+            $tarea->actualizarTareasVencidos();
+
+            require_once __DIR__ . '/../../vendor/autoload.php';
+            $config   = HTMLPurifier_Config::createDefault();
+            $purifier = new HTMLPurifier($config);
+            $contenido_p   = $purifier->purify($contenido);
+            $comentarios_p = $purifier->purify($comentarios);
+
+            // Subida de archivo opcional (misma lógica que _guardarContenidoEstudiante)
+            $id_documento_entrega = null;
+            if (!empty($_FILES['archivo']['tmp_name']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
+                $archivo      = $_FILES['archivo'];
+                $extension    = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+                $nombreFinal  = uniqid() . '_' . basename($archivo['name']);
+                $tipo_mime    = $archivo['type'];
+                $tamano_bytes = $archivo['size'];
+
+                // Sin número de etapa en el borrador (usamos carpeta genérica)
+                $base       = "/ITSFCP-PROYECTOS/storage/entregas/alumno_{$id_usuarios}/proyecto_{$id_proyectos}/actividad/";
+                $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFinal;
+                $rutaBD     = $base . $nombreFinal;
+
+                if (!is_dir(dirname($rutaFisica))) mkdir(dirname($rutaFisica), 0755, true);
+                if (!move_uploaded_file($archivo['tmp_name'], $rutaFisica)) throw new Exception("Error al guardar archivo del borrador.");
+
+                $id_documento_entrega = $tarea->registrarDocumento(
+                    nombre: basename($archivo['name']),
+                    nombre_archivo: $nombreFinal,
+                    ruta: $rutaBD,
+                    tipo_mime: $tipo_mime,
+                    extension: $extension,
+                    tamano_bytes: $tamano_bytes,
+                    tipo: 'entrega',
+                    visibilidad: 'privado',
+                    id_usuario: $id_usuarios,
+                    id_proyecto: $id_proyectos
+                );
+            }
+
+            $tarea->guardar_borrador($id_tarea, $id_asignacion, $id_usuarios, $contenido_p, $comentarios_p, $id_documento_entrega);
+            $conn->commit();
+
+            header("Location: tarea.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&mensaje=borrador");
+            exit();
+        } catch (Exception $e) {
+            $conn->rollback();
+            error_log($e->getMessage());
+            header("Location: tarea.php?id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}&error=1");
+            exit;
+        }
     }
 
     //  ACTUALIZAR ESTADO (público, llamado desde vistas)
@@ -449,23 +542,13 @@ class TareaControlador
         $tarea = new Tarea($conn);
         $tarea->actualizarTareasVencidos();
 
-        // Usar id_usuario de sesión si no se pasa
         if (!$id_usuarios) $id_usuarios = intval($_SESSION['id_usuario'] ?? 0);
 
         $numeroEstado = $this->numerofiltro($tipo);
 
-        // Guardar (10) = solo guarda contenido, sin cambio de estado real
-        if ($numeroEstado == 10) {
-            header("Location: tarea.php?id_asignacion={$id_asignacion}&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&mensaje=1");
-            exit();
-        }
-
         require_once __DIR__ . '/../../vendor/autoload.php';
-
-        $config = HTMLPurifier_Config::createDefault();
-        $purifier = new HTMLPurifier($config);
-
-        // Sanitizar contenido
+        $config        = HTMLPurifier_Config::createDefault();
+        $purifier      = new HTMLPurifier($config);
         $comentarios_p = $purifier->purify($comentarios ?? '');
 
         $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios_p);
@@ -523,19 +606,19 @@ class TareaControlador
                 $datos = $tareas->obtenerTareaAlumno($id_asignacion);
                 if (!is_array($datos) || empty($datos)) $datos = [];
                 return array_merge([
-                    "id_tarea"          => null,
-                    "id_asignacion"     => $id_asignacion,
-                    "id_proyectos"      => "",
-                    "descripcion"       => "",
-                    "instrucciones"     => "",
-                    "estado"            => "",
-                    "id_estadoT"        => 0,
-                    "tipo_tarea"        => "",
-                    "contenido"         => "",
-                    "comentarios"       => "",
+                    "id_tarea"           => null,
+                    "id_asignacion"      => $id_asignacion,
+                    "id_proyectos"       => "",
+                    "descripcion"        => "",
+                    "instrucciones"      => "",
+                    "estado"             => "",
+                    "id_estadoT"         => 0,
+                    "tipo_tarea"         => "",
+                    "contenido"          => "",
+                    "comentarios"        => "",
                     "fecha_modificacion" => null,
-                    "guia_nombre"       => null,
-                    "guia_ruta"         => null,
+                    "guia_nombre"        => null,
+                    "guia_ruta"          => null,
                 ], $datos);
             }
             return [];
@@ -568,6 +651,7 @@ class TareaControlador
             5 => "success",
             6 => "secondary",
             7 => "info",
+            8 => "light",    // borrador
             default => "light",
         };
     }
@@ -581,6 +665,7 @@ class TareaControlador
             'Vencido'     => "secondary",
             'Aprobado'    => "success",
             'Sin activar' => "dark",
+            'Borrador'    => "light",
             default       => "light",
         };
     }

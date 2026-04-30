@@ -55,31 +55,6 @@
 
     <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
     <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
-    <!--INTEGRACIÓN DE TinyMCE-->
-<script src="https://cdn.tiny.cloud/1/0ro7u4jwmnmqkovrjmi7cc1w5kk7tzragurlph7foryy7xbv/tinymce/6/tinymce.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            tinymce.init({
-                selector: '.editor',
-                height: 350,
-                menubar: true,
-                plugins: 'lists link table code wordcount charmap insertdatetime',
-                toolbar: `
-            undo redo | 
-            bold italic underline | 
-            alignleft aligncenter alignright |
-            bullist numlist |
-            link table |
-            charmap |
-            insertdatetime |
-            code
-        `,
-                toolbar_mode: 'sliding',
-                branding: false,
-                statusbar: true
-            });
-        });
-    </script>
 </body>
 
 </html>
