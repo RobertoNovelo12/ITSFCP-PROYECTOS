@@ -67,7 +67,7 @@ include __DIR__ . '/../../mensaje.php';
                     </select>
                     <?php if (!empty($filtros['periodo'])): ?>
                         <a href="tabla.php" class="btn btn-outline-secondary btn-sm text-nowrap">
-                            <i class="bi bi-x-circle"></i> Limpiar
+                            Limpiar
                         </a>
                     <?php endif; ?>
                 </form>

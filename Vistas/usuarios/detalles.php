@@ -54,7 +54,7 @@ ob_start();
     <!-- INFORMACIÓN GENERAL -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>Información general</h5>
+            <h5 class="mb-0"></i>Información general</h5>
         </div>
         <div class="card-body">
             <div class="row">
@@ -148,7 +148,7 @@ ob_start();
     <?php if (!empty($usuario['matricula'])): ?>
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="bi bi-mortarboard-fill me-2"></i>Datos de estudiante</h5>
+            <h5 class="mb-0">Datos de estudiante</h5>
         </div>
         <div class="card-body">
             <div class="row">

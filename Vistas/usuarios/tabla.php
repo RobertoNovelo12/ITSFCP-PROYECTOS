@@ -66,6 +66,7 @@ $msg = $_GET['msg'] ?? '';
 
 ob_start();
 include __DIR__ . '/../../mensaje.php';
+include __DIR__ . '/../../error.php';
 ?>
 
 <div class="container-fluid py-4">
@@ -78,16 +79,21 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 
     <!-- ALERTAS -->
-    <?php if ($msg === 'aprobado'): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <?php if ($msg === 'aprobado'): 
+        header("Location: tabla.php?mensaje=1");
+        ?>
+        
+        <!--<div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle-fill me-1"></i> Usuario aprobado correctamente.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php elseif ($msg === 'rechazado'): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        </div> -->
+    <?php elseif ($msg === 'rechazado'): 
+        header("Location: tabla.php?mensaje=1");
+        ?>
+        <!--<div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-x-circle-fill me-1"></i> Solicitud rechazada y notificación enviada.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        </div>-->
     <?php endif; ?>
 
     <!-- FILTROS -->

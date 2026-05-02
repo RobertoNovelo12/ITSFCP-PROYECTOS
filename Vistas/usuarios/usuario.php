@@ -15,9 +15,9 @@ if (!isset($_SESSION['id_usuario']) && !isset($_GET['solicitud_enviada'])) {
 $rol = $_GET['rol'] ?? $_SESSION['rol'] ?? '';
 $rol = strtolower(trim($rol));
 
-// =============================
+// 
 // CONSULTAS PARA LOS SELECTS
-// =============================
+// 
 
 // Carreras
 $carreras = $conn->query("SELECT id_carrera, nombre_carrera FROM carreras ORDER BY nombre_carrera");

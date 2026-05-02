@@ -21,7 +21,10 @@ class SupervisorModelo
     public function obtenerPeriodos(): array
     {
         $res = $this->con->query("
-            SELECT id_periodos, periodo, estado
+            SELECT id_periodos, periodo, CASE
+                        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+                        ELSE 'Terminado'
+                    END AS estado
             FROM periodos
             ORDER BY id_periodos DESC
         ");

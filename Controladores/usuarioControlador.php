@@ -34,13 +34,13 @@ class UsuariosControlador
         return $usuario->obtenerUsuarios('espera', $buscar, $tipo);
     }
 
-    public function Aprobado($rol, $buscar = null, $tipo = null)
+    /*public function Aprobado($rol, $buscar = null, $tipo = null)
     {
         if ($rol !== 'supervisor') return json_encode(["usuarios" => [], "paginacion" => []]);
         global $conn;
         $usuario = new Usuarios($conn);
         return $usuario->obtenerUsuarios('aprobado', $buscar, $tipo);
-    }
+    }*/
 
     public function Activo($rol, $buscar = null, $tipo = null)
     {
@@ -78,7 +78,6 @@ class UsuariosControlador
         return [
             'index'     => "Todos ({$filtros['Total']})",
             'Espera'    => "En espera ({$filtros['Espera']})",
-            'Aprobado'  => "Aprobados ({$filtros['Aprobado']})",
             'Activo'    => "Activos ({$filtros['Activo']})",
             'Cancelado' => "Cancelados ({$filtros['Cancelado']})",
         ];
@@ -113,7 +112,7 @@ class UsuariosControlador
         global $conn;
         $modelo = new Usuarios($conn);
 
-        $ok = $modelo->actualizarEstado($id_usuario, 'aprobado');
+        $ok = $modelo->actualizarEstado($id_usuario, 'activo');
         if ($ok) {
             // Enviar correo de aprobación
             $datos = $modelo->obtenerCorreo($id_usuario);
@@ -121,12 +120,12 @@ class UsuariosControlador
                 $this->enviarCorreo(
                     $datos['correo_institucional'],
                     $datos['nombre'] . ' ' . $datos['apellido_paterno'],
-                    'aprobado',
+                    'activo',
                     ''
                 );
             }
         }
-        header("Location: tabla.php?msg=aprobado");
+        header("Location: tabla.php?msg=activo");
         exit;
     }
 
@@ -164,6 +163,7 @@ class UsuariosControlador
 
     // 
     //  ENVÍO DE CORREO CON PHPMAILER
+    //  SE DEBE ACTUALIZAR CON LA INFORMACIÓN DEL INSTITUTO
     // 
     private function enviarCorreo($destinatario, $nombre, $estado, $comentario)
     {
@@ -175,8 +175,8 @@ class UsuariosControlador
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';       // Cambia según proveedor
             $mail->SMTPAuth   = true;
-            $mail->Username   = '---@gmail.com';  // Correo remitente - Cambiar a institucional
-            $mail->Password   = '---';    // Contraseña de aplicación
+            $mail->Username   = 'luismarioiretaxiu1110@gmail.com';  // Correo remitente - Cambiar a institucional
+            $mail->Password   = 'alsu vdxr vbpb tgkr';    // Contraseña de aplicación
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
@@ -187,8 +187,8 @@ class UsuariosControlador
             $mail->isHTML(true);
             $mail->Subject = 'Resultado de tu solicitud en el sistema de proyectos';
 
-            $estadoTexto = ($estado === 'aprobado') ? 'Aprobado' : 'Cancelado / Rechazado';
-            $colorEstado = ($estado === 'aprobado') ? '#198754' : '#dc3545';
+            $estadoTexto = ($estado === 'actjvo') ? 'Activo' : 'Cancelado / Rechazado';
+            $colorEstado = ($estado === 'activo') ? '#198754' : '#dc3545';
             $comentarioHtml = !empty($comentario)
                 ? "<p><strong>Comentario del supervisor:</strong><br>" . nl2br(htmlspecialchars($comentario)) . "</p>"
                 : "";
@@ -229,7 +229,6 @@ class UsuariosControlador
     {
         switch (strtolower($estado)) {
             case 'espera':    return 'warning';
-            case 'aprobado':  return 'info';
             case 'activo':    return 'success';
             case 'cancelado': return 'danger';
             default:          return 'secondary';

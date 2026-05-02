@@ -10,7 +10,9 @@ function crearLink($nombre, $rol)
         "Principal" => "/ITSFCP-PROYECTOS/Vistas/menu/principal.php",
         "Dashboard" => "/ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php",
         "Seguimiento" => "/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php",
-        "Solicitudes" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes/tabla.php",
+        "Integracion a proyecto" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes/tabla.php",
+        "Proyecto" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/index.php",
+        "Actualizar datos" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_actualizacion/tabla.php",
         "Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
         "Calendario" => "/ITSFCP-PROYECTOS/Vistas/Calendario/calendario.php",
         "Reportes" => "/ITSFCP-PROYECTOS/Vistas/Periodo/reportes.php",
@@ -28,6 +30,8 @@ function crearLink($nombre, $rol)
         "Carreras" => "/ITSFCP-PROYECTOS/Vistas/Carreras/tabla.php",
         "Niveles SNI" => "/ITSFCP-PROYECTOS/Vistas/Niveles_SNI/tabla.php",
         "Grados académicos" => "/ITSFCP-PROYECTOS/Vistas/Grados_academicos/tabla.php",
+        "Grado académico" => "/ITSFCP-PROYECTOS/Vistas/Configuracion/grado_academico.php",
+        "Nivel SNI" => "/ITSFCP-PROYECTOS/Vistas/Configuracion/nivel_sni.php",
         "Soporte" => "/ITSFCP-PROYECTOS/Vistas/soporte/soporte.php",
         "Ajustes" => "/ITSFCP-PROYECTOS/Vistas/menu/ajustes.php"
     ];
@@ -36,7 +40,7 @@ function crearLink($nombre, $rol)
 }
 
 // Menús por rol
-$mainMenu = $middleMenu = $submenuProyectos = $submenuMisAlumnos = $submenuVerMas = $footerMenus = [];
+$mainMenu = $middleMenu = $submenuProyectos = $submenuMisAlumnos = $submenuConfiguracion = $submenuSolicitudesProyecto = $submenuSolicitudes = $submenuVerMas = $footerMenus = [];
 
 if ($rol === "estudiante" ||  $rol === "alumno") {
     $mainMenu = ["Principal", "Dashboard"];
@@ -47,12 +51,15 @@ if ($rol === "estudiante" ||  $rol === "alumno") {
 } elseif ($rol === "profesor" || $rol === "investigador") {
     $mainMenu = ["Principal", "Dashboard"];
     $submenuProyectos = ["Seguimiento"];
-    $submenuMisAlumnos = ["Solicitudes", "Constancias"];
+    $submenuMisAlumnos = ["Constancias"];
+    $submenuSolicitudesProyecto = ["Integracion a proyecto"];
+    $submenuConfiguracion = ["Grado académico", "Nivel SNI"];
     $middleMenu = ["Calendario"];
     $footerMenus = ["Soporte", "Ajustes"];
 } elseif ($rol === "supervisor") {
     $mainMenu = ["Principal", "Dashboard", "Panel Supervisor"];
     $submenuProyectos = ["Seguimiento"];
+    $submenuSolicitudes = ["Proyecto", "Actualizar datos"];
     $middleMenu = ["Calendario"];
     $submenuVerMas = ["Usuarios", "Línea de investigación", "Temática", "Área de conocimiento", "Ajuste de documentos", "Plantillas de documentos", "Niveles SNI", "Período", "Grados académicos", "Director", "Carreras", "Instituto"];
     $footerMenus = ["Soporte", "Ajustes"];
@@ -136,6 +143,84 @@ function isActive($link, $current_url)
             </div>
             <div class="submenu <?= $alumnosActive ? 'open' : '' ?>" id="submenuMisAlumnos">
                 <?php foreach ($submenuMisAlumnos as $sub): ?>
+                    <?php $subLink = crearLink($sub, $rol); ?>
+                    <a class="menu-item sub-item <?= isActive($subLink, $current_url) ?>" href="<?= $subLink ?>" data-tooltip="<?= $sub ?>" data-id="<?= strtolower(str_replace(" ", "_", $sub)) ?>">
+                        <span class="menu-icon">
+                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg" alt="<?= $sub ?>">
+                        </span>
+                        <span><?= $sub ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- SUBMENÚ SOLICITUDES DE INTEGRACIÓN DE PROYECTO -->
+        <?php if ($submenuSolicitudesProyecto): ?>
+            <?php
+            $solicitudProyectoActive = array_filter($submenuSolicitudesProyecto, fn($sub) => isActive(crearLink($sub, $rol), $current_url));
+            ?>
+            <div class="menu-item dropdown-btn <?= $solicitudProyectoActive ? 'dropdown-open' : '' ?>"
+                id="btnSolicitudes" data-tooltip="Solicitudes" data-id="solicitudes">
+                <span class="menu-icon">
+                    <img src="/ITSFCP-PROYECTOS/publico/icons/solicitudes_.svg" alt="Solicitudes">
+                </span>
+                <span>Solicitudes</span>
+                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg" alt="Expandir">
+            </div>
+            <div class="submenu <?= $solicitudProyectoActive ? 'open' : '' ?>" id="subsolicitudesProyecto">
+                <?php foreach ($submenuSolicitudesProyecto as $sub): ?>
+                    <?php $subLink = crearLink($sub, $rol); ?>
+                    <a class="menu-item sub-item <?= isActive($subLink, $current_url) ?>" href="<?= $subLink ?>" data-tooltip="<?= $sub ?>" data-id="<?= strtolower(str_replace(" ", "_", $sub)) ?>">
+                        <span class="menu-icon">
+                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg" alt="<?= $sub ?>">
+                        </span>
+                        <span><?= $sub ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- SUBMENÚ CONFIGURACION -->
+        <?php if ($submenuConfiguracion): ?>
+            <?php
+            $configuracionActive = array_filter($submenuConfiguracion, fn($sub) => isActive(crearLink($sub, $rol), $current_url));
+            ?>
+            <div class="menu-item dropdown-btn <?= $configuracionActive ? 'dropdown-open' : '' ?>"
+                id="btnConfiguracion" data-tooltip="Configuración" data-id="configuracion">
+                <span class="menu-icon">
+                    <img src="/ITSFCP-PROYECTOS/publico/icons/configuracion.svg" alt="Configuración">
+                </span>
+                <span>Configuración</span>
+                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg" alt="Expandir">
+            </div>
+            <div class="submenu <?= $configuracionActive ? 'open' : '' ?>" id="submenuMisAlumnos">
+                <?php foreach ($submenuConfiguracion as $sub): ?>
+                    <?php $subLink = crearLink($sub, $rol); ?>
+                    <a class="menu-item sub-item <?= isActive($subLink, $current_url) ?>" href="<?= $subLink ?>" data-tooltip="<?= $sub ?>" data-id="<?= strtolower(str_replace(" ", "_", $sub)) ?>">
+                        <span class="menu-icon">
+                            <img src="/ITSFCP-PROYECTOS/publico/icons/<?= strtolower(str_replace(" ", "_", $sub)) ?>.svg" alt="<?= $sub ?>">
+                        </span>
+                        <span><?= $sub ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+                <!-- SUBMENÚ Solicitud -->
+        <?php if ($submenuSolicitudes): ?>
+            <?php
+            $solicitudActive = array_filter($submenuSolicitudes, fn($sub) => isActive(crearLink($sub, $rol), $current_url));
+            ?>
+            <div class="menu-item dropdown-btn <?= $solicitudActive ? 'dropdown-open' : '' ?>"
+                id="btnSolicitudes" data-tooltip="Solicitudes" data-id="solicitudes">
+                <span class="menu-icon">
+                    <img src="/ITSFCP-PROYECTOS/publico/icons/solicitudes_.svg" alt="Solicitudes">
+                </span>
+                <span>Solicitudes</span>
+                <img class="dropdown-arrow" src="/ITSFCP-PROYECTOS/publico/icons/more.svg" alt="Expandir">
+            </div>
+            <div class="submenu <?= $solicitudActive ? 'open' : '' ?>" id="submenuMisAlumnos">
+                <?php foreach ($submenuSolicitudes as $sub): ?>
                     <?php $subLink = crearLink($sub, $rol); ?>
                     <a class="menu-item sub-item <?= isActive($subLink, $current_url) ?>" href="<?= $subLink ?>" data-tooltip="<?= $sub ?>" data-id="<?= strtolower(str_replace(" ", "_", $sub)) ?>">
                         <span class="menu-icon">

@@ -91,7 +91,7 @@ ob_start();
 
     <?php else: ?>
 
-        <ul class="timeline list-unstyled">
+        <ul class="timeline_historial_estudiante list-unstyled">
 
             <?php foreach ($historialAgrupado as $fecha => $items): ?>
 

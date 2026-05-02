@@ -66,8 +66,8 @@ ob_start();
                     <?php foreach ($periodos as $per): ?>
                         <option value="<?= $per['id_periodos'] ?>"
                             <?= $filtros['periodo'] == $per['id_periodos'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($per['periodo']) ?><?= $per['estado'] ? ' (Activo)' : '' ?>
-                        </option>
+                            <?= htmlspecialchars($per['periodo']) ?>
+                            <?= ($per['estado'] == "Activo") ? ' (Activo)' : '(Terminado)' ?> </option>
                     <?php endforeach; ?>
                 </select>
             </div>

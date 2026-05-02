@@ -17,9 +17,7 @@ class Usuarios
     {
         $sql = "SELECT
                     COUNT(*)                                                      AS Total,
-                    SUM(CASE WHEN u.estado_usuario = 'espera'    THEN 1 ELSE 0 END) AS Espera,
-                    SUM(CASE WHEN u.estado_usuario = 'aprobado'  THEN 1 ELSE 0 END) AS Aprobado,
-                    SUM(CASE WHEN u.estado_usuario = 'activo'    THEN 1 ELSE 0 END) AS Activo,
+                    SUM(CASE WHEN u.estado_usuario = 'espera'    THEN 1 ELSE 0 END) AS Espera,                    SUM(CASE WHEN u.estado_usuario = 'activo'    THEN 1 ELSE 0 END) AS Activo,
                     SUM(CASE WHEN u.estado_usuario = 'cancelado' THEN 1 ELSE 0 END) AS Cancelado
                 FROM usuarios u";
 

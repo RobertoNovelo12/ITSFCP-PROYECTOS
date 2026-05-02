@@ -64,13 +64,13 @@ ob_start();
         </div>
     </div>
 
-    <div class="card shadow-lg border-0">
+    <div class="card border-0">
         <div class="card-body">
 
             <!-- INFORMACIÓN RESUMIDA DEL USUARIO -->
             <div class="mb-4">
                 <h5 class="text-danger">
-                    <i class="bi bi-person-x-fill me-2"></i>Información del usuario
+                    Información del usuario
                 </h5>
                 <div class="row">
                     <div class="col-md-6">
@@ -115,7 +115,7 @@ ob_start();
                 <label class="form-label fw-bold">Estado resultante</label>
                 <div>
                     <span class="badge rounded-pill text-bg-danger fs-6 px-3 py-2">
-                        <i class="bi bi-x-circle-fill me-1"></i> Rechazado / Cancelado
+                        Rechazado / Cancelado
                     </span>
                 </div>
                 <small class="text-muted">
@@ -151,7 +151,7 @@ ob_start();
                     </a>
                     <button type="submit" class="btn btn-danger"
                             onclick="return confirm('¿Confirmar el rechazo de este usuario? Se enviará una notificación por correo.')">
-                        <i class="bi bi-x-circle-fill me-1"></i> Confirmar rechazo
+                         Confirmar rechazo
                     </button>
                 </div>
 

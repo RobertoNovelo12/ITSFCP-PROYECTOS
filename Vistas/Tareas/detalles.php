@@ -74,11 +74,11 @@ ob_start();
         <div class="card-body">
             <div class="mb-4">
                 <p class="tarea-seccion-label mb-1">Descripción</p>
-                <p class="mb-0"><?= $datos['descripcion'] ?></p>
+                <p class="mb-0"><?= $tarea['descripcion'] ?></p>
             </div>
             <div class="mb-0">
                 <p class="tarea-seccion-label mb-1">Instrucciones</p>
-                <p class="mb-0"><?= $datos['instrucciones'] ?></p>
+                <p class="mb-0"><?= $tarea['instrucciones'] ?></p>
             </div>
         </div>
     </div>

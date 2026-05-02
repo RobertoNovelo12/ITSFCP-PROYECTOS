@@ -9,7 +9,8 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
-
+$rol = $_SESSION['rol'];
+$id = $_SESSION['id_usuario'];
 // Esta vista solo la usa el supervisor
 if ($rol !== 'supervisor') {
     header('Location: /ITSFCP-PROYECTOS/index.php');
@@ -76,7 +77,7 @@ ob_start();
 </div>
 <?php
 $contenido = ob_get_clean();
-$titulo = "Comentarios";
+$titulo = "Cancelar solicitud";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';
