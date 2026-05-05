@@ -187,7 +187,7 @@ class UsuariosControlador
             $mail->isHTML(true);
             $mail->Subject = 'Resultado de tu solicitud en el sistema de proyectos';
 
-            $estadoTexto = ($estado === 'actjvo') ? 'Activo' : 'Cancelado / Rechazado';
+            $estadoTexto = ($estado === 'activo') ? 'Activo' : 'Cancelado / Rechazado';
             $colorEstado = ($estado === 'activo') ? '#198754' : '#dc3545';
             $comentarioHtml = !empty($comentario)
                 ? "<p><strong>Comentario del supervisor:</strong><br>" . nl2br(htmlspecialchars($comentario)) . "</p>"

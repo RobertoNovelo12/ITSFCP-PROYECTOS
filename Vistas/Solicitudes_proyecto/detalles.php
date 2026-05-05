@@ -250,7 +250,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- ACCIONES DEL SUPERVISOR -->
     <?php if ($rol === 'supervisor'): ?>
         <div class="card mb-4 shadow-sm border-primary">
-            <div class="card-header fw-semibold bg-primary text-white">Acciones sobre la solicitud</div>
+            <div class="card-header fw-semibold text-white">Acciones sobre la solicitud</div>
             <div class="card-body">
 
                 <?php if ($tipo_solicitud === 'creacion' && $proyecto['estado_proyecto'] === 'Por aprobar'): ?>
