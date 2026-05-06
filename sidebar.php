@@ -8,7 +8,7 @@ function crearLink($nombre, $rol)
 {
     $links = [
         "Principal" => "/ITSFCP-PROYECTOS/Vistas/menu/principal.php",
-        "Dashboard" => "/ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php",
+        "Dashboard" => "/ITSFCP-PROYECTOS/Vistas/Dashboard/index.php",
         "Seguimiento" => "/ITSFCP-PROYECTOS/Vistas/Proyectos/tabla.php",
         "Solicitudes" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes/tabla.php",
         "Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
