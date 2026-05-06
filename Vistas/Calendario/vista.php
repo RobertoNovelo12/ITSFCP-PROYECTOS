@@ -1,10 +1,4 @@
-<?php
-if (!isset($_SESSION))
-    session_start();
-$titulo = "Calendario";
-$necesitaQuill = true;
 
-$contenido = '
 <div class="container-fluid py-4">
 
     <!-- CALENDARIO PRINCIPAL SIN SIDEBAR -->
@@ -158,7 +152,3 @@ $contenido = '
 
 <script src="/ITSFCP-PROYECTOS/publico/js/calendario.js"></script>
 <script src="/ITSFCP-PROYECTOS/publico/js/evento.js"></script>
-';
-
-include __DIR__ . "/../../layout.php";
-?>

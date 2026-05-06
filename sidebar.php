@@ -14,7 +14,7 @@ function crearLink($nombre, $rol)
         "Proyecto" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/index.php",
         "Actualizar datos" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_actualizacion/tabla.php",
         "Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
-        "Calendario" => "/ITSFCP-PROYECTOS/Vistas/Calendario/calendario.php",
+        "Calendario" => "/ITSFCP-PROYECTOS/Vistas/Calendario/index.php",
         "Reportes" => "/ITSFCP-PROYECTOS/Vistas/Periodo/reportes.php",
         "Mis alumnos" => "/ITSFCP-PROYECTOS/Vistas/usuarios/alumno.php",
         "Usuarios" => "/ITSFCP-PROYECTOS/Vistas/usuarios/tabla.php",
