@@ -274,6 +274,13 @@ class Director
         $id = $stmt->insert_id;
         $stmt->close();
 
+        // Registrar historial
+        $this->registrarHistorial(
+            $id,
+            'CREACION',
+            "Se registró el director {$nombre} {$apellido}"
+        );
+
         return $id;
     }
 
@@ -301,10 +308,27 @@ class Director
         $stmt = $this->con->prepare($sql);
         if (!$stmt) throw new Exception("Error en prepare (editarDirector): " . $this->con->error);
 
-        $stmt->bind_param("issssisss", $id_grado, $nombre, $apellido, $correo, $telefono, $id_director, $fecha_inicio, $fecha_final, $motivo_fin);
+        $stmt->bind_param(
+            "isssssssi",
+            $id_grado,
+            $nombre,
+            $apellido,
+            $correo,
+            $telefono,
+            $fecha_inicio,
+            $fecha_final,
+            $motivo_fin,
+            $id_director
+        );
         if (!$stmt->execute()) throw new Exception("Error en execute (editarDirector): " . $stmt->error);
 
         $stmt->close();
+        // Registrar historial
+        $this->registrarHistorial(
+            $id_director,
+            'ACTUALIZACION',
+            "Se actualizaron los datos del director {$nombre} {$apellido}"
+        );
         return $id_director;
     }
 
@@ -356,6 +380,12 @@ class Director
             throw new Exception("El director ya estaba activo o no se pudo actualizar.");
         }
 
+        $this->registrarHistorial(
+            $id_director,
+            'ACTUALIZACION',
+            "El director fue reactivado"
+        );
+
         $stmt->close();
     }
 
@@ -399,6 +429,14 @@ class Director
 
         $filas = $stmt->affected_rows;
         $stmt->close();
+
+        if ($filas > 0) {
+            $this->registrarHistorial(
+                $id_director,
+                'BAJA',
+                "El director fue desactivado"
+            );
+        }
 
         return $filas;
     }
@@ -524,33 +562,117 @@ class Director
         ];
     }
 
-/**
- * Desactiva directores cuyo periodo ya venció.
- *
- * @return int Número de registros afectados
- * @throws Exception
- */
-public function desactivarDirectoresVencidos(): int
-{
-    $sql = "UPDATE director 
+    /**
+     * Desactiva directores cuyo periodo ya venció.
+     *
+     * @return int Número de registros afectados
+     * @throws Exception
+     */
+    public function desactivarDirectoresVencidos(): int
+    {
+        $sql = "UPDATE director 
             SET estado = 0 
             WHERE estado = 1 
             AND fecha_final IS NOT NULL 
             AND CURDATE() > fecha_final";
 
-    $stmt = $this->con->prepare($sql);
-    if (!$stmt) {
-        throw new Exception("Error en prepare: " . $this->con->error);
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Error en prepare: " . $this->con->error);
+        }
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute: " . $stmt->error);
+        }
+
+        $filasAfectadas = $stmt->affected_rows;
+
+        $stmt->close();
+
+        return $filasAfectadas;
     }
 
-    if (!$stmt->execute()) {
-        throw new Exception("Error en execute: " . $stmt->error);
+    // MODELO: director.php
+
+    public function linea_tiempo_director($id_director, $pagina = 1)
+    {
+        $pagina = max(1, (int)$pagina);
+        $por_pagina = 5;
+        $desde = ($pagina - 1) * $por_pagina;
+
+        // TOTAL
+        $sqlTotal = "SELECT COUNT(*) as total
+                 FROM historial_director
+                 WHERE id_director = ?";
+
+        $stmt = $this->con->prepare($sqlTotal);
+        if (!$stmt) {
+            throw new Exception("Error en prepare (obtenerPeriodoEditar): " . $this->con->error);
+        }
+        $stmt->bind_param("i", $id_director);
+        $stmt->execute();
+        $total = $stmt->get_result()->fetch_assoc()['total'];
+        $stmt->close();
+
+        $total_paginas = ceil($total / $por_pagina);
+
+        // DATOS
+        $sql = "SELECT 
+                h.accion AS tipo_evento,
+                h.descripcion,
+                h.fecha
+            FROM historial_director h
+            WHERE h.id_director = ?
+            ORDER BY h.fecha DESC
+            LIMIT ?, ?";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Error en prepare (linea_tiempo_director): " . $this->con->error);
+        }
+        $stmt->bind_param("iii", $id_director, $desde, $por_pagina);
+        $stmt->execute();
+
+        $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        // AGRUPAR POR FECHA
+        $agrupado = [];
+        foreach ($historial as $item) {
+            $fecha = date("d/m/Y", strtotime($item['fecha']));
+            $agrupado[$fecha][] = $item;
+        }
+
+        return [
+            "datos" => $agrupado,
+            "paginacion" => [
+                "total" => $total,
+                "por_pagina" => $por_pagina,
+                "pagina" => $pagina,
+                "total_paginas" => $total_paginas
+            ]
+        ];
     }
 
-    $filasAfectadas = $stmt->affected_rows;
+    /**
+     * Registra un evento en el historial del director
+     */
+    public function registrarHistorial(int $id_director, string $accion, string $descripcion): void
+    {
+        $sql = "INSERT INTO historial_director (id_director, accion, descripcion, fecha)
+            VALUES (?, ?, ?, NOW())";
 
-    $stmt->close();
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Error en prepare (registrarHistorial): " . $this->con->error);
+        }
 
-    return $filasAfectadas;
-}
+        $stmt->bind_param("iss", $id_director, $accion, $descripcion);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (registrarHistorial): " . $stmt->error);
+        }
+
+        $stmt->close();
+    }
 }

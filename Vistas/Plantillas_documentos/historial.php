@@ -42,9 +42,6 @@ ob_start();
                 <a href="tabla.php?id_tipo_documento=<?= $id_tipo_documento; ?>" class="btn btn-danger">Regresar</a>
             </div>
         </div>
-
-
-
         <div class="row mb-1">
             <div class="card mb-3 p-3">
                 <strong>Resumen</strong><br>
@@ -52,7 +49,7 @@ ob_start();
                 Tipo de documento ID: <?= $id_tipo_documento ?>
             </div>
             <div class="mb-3">
-                <ul class="timeline">
+                <ul class="timeline_plantilla">
 
                     <?php foreach ($historialAgrupado as $version => $items): ?>
 
@@ -65,7 +62,7 @@ ob_start();
 
                         <li>
 
-                            <div class="timeline-content">
+                            <div class="timeline_plantilla-content">
 
                                 <span class="badge bg-<?= $plantilladocumentoControlador->EstiloTimeLine($item['tipo_evento']) ?>">
                                     <?= ucfirst(strtolower($item['tipo_evento'])) ?>

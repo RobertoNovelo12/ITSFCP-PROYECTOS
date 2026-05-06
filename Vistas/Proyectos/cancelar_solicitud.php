@@ -9,7 +9,8 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
-
+$rol = $_SESSION['rol'];
+$id = $_SESSION['id_usuario'];
 // Esta vista solo la usa el supervisor
 if ($rol !== 'supervisor') {
     header('Location: /ITSFCP-PROYECTOS/index.php');
@@ -48,7 +49,9 @@ ob_start();
                 <h3>Comentario</h3>
             </div>
             <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
-                <a href="tabla.php" class="btn btn-danger w-100 w-md-auto">Regresar</a>
+                <a href="tabla.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Regresar
+                </a>
             </div>
             <form method="POST" action="comentarios.php">
                 <div class="row mb-1">
@@ -74,7 +77,7 @@ ob_start();
 </div>
 <?php
 $contenido = ob_get_clean();
-$titulo = "Comentarios";
+$titulo = "Cancelar solicitud";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';

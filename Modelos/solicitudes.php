@@ -75,10 +75,40 @@ class Solicitud
         return true;
     }
 
+    // ── Periodos disponibles ──────────────────────────────────────
+
+    /**
+     * Devuelve los periodos que tienen proyectos del investigador dado,
+     * incluyendo la bandera "estado" del periodo para mostrarlo en el selector.
+     */
+    public function periodosDelInvestigador(int $id): array
+    {
+        $sql = "
+            SELECT DISTINCT
+                pe.id_periodos,
+                pe.periodo,
+                pe.estado
+            FROM solicitud_proyecto sp
+            JOIN proyectos p  ON p.id_proyectos = sp.id_proyectos
+            JOIN periodos pe  ON pe.id_periodos  = p.id_periodos
+            WHERE p.id_investigador = ?
+              AND pe.periodo IS NOT NULL
+              AND pe.id_periodos <> ''
+            ORDER BY pe.periodo DESC
+        ";
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error prepare (periodosDelInvestigador): " . $this->con->error);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
     // ── Resumen / listado ─────────────────────────────────────────
 
-    public function resumen(int $id): array
+    public function resumen(int $id, ?int $id_periodo = null): array
     {
+        $wherePeriodo = $id_periodo ? "AND p.id_periodos = ?" : "";
+
         $sql = "
             SELECT
                 COUNT(*)                          total,
@@ -90,9 +120,14 @@ class Solicitud
             FROM solicitud_proyecto sp
             JOIN proyectos p ON p.id_proyectos = sp.id_proyectos
             WHERE p.id_investigador = ?
+            $wherePeriodo
         ";
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id);
+        if ($id_periodo) {
+            $stmt->bind_param("ii", $id, $id_periodo);
+        } else {
+            $stmt->bind_param("i", $id);
+        }
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc() ?? [];
     }
@@ -149,6 +184,13 @@ class Solicitud
         $cond   = ["p.id_investigador = ?"];
         $params = [$id];
         $types  = "i";
+
+        // Filtro global por periodo
+        if (!empty($f['periodo'])) {
+            $cond[]   = "p.id_periodos = ?";
+            $params[] = intval($f['periodo']);
+            $types   .= "i";
+        }
 
         if (!empty($f['estado'])) {
             $cond[]   = "sp.estado = ?";

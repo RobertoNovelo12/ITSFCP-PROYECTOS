@@ -1,17 +1,38 @@
-    <?php if (isset($_GET['mensaje'])): ?>
-        <div class="modal-overlay" id="modalMensaje">
-            <div class="modal-content">
-                <h2>¡Operación realizada!</h2>
-                <p><img src="publico/icons/comprobar.svg" alt=""></p>
-                <button class="submit-btn" onclick="cerrarModal()">Aceptar</button>
+<?php if (isset($_GET['mensaje'])): ?>
+    <div class="modal-overlay" id="modalMensaje">
+        <div class="modal-content">
+
+            <div class="img_modal">
+                <img src="/ITSFCP-PROYECTOS/publico/icons/comprobar.svg" alt="icono">
             </div>
+
+            <h2>¡Operación realizada!</h2>
+
+            <div class="modal-actions">
+                <button class="submit-btn btn-primary" onclick="cerrarModal()">
+                    Aceptar
+                </button>
+            </div>
+
         </div>
+    </div>
 
-        <script>
-            document.getElementById("modalMensaje").style.display = "flex";
+    <script>
+        const modalMensaje = document.getElementById("modalMensaje");
+        modalMensaje.style.display = "flex";
 
-            function cerrarModal() {
-                document.getElementById("modalMensaje").style.display = "none";
-            }
-        </script>
-    <?php endif; ?>
+        function cerrarModal() {
+            modalMensaje.style.display = "none";
+        }
+
+        // cerrar con ESC
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") cerrarModal();
+        });
+
+        // cerrar clic fuera
+        modalMensaje.addEventListener("click", (e) => {
+            if (e.target === modalMensaje) cerrarModal();
+        });
+    </script>
+<?php endif; ?>

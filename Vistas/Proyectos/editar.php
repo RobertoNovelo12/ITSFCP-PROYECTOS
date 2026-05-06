@@ -15,6 +15,11 @@ $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? null;
 
+if (!in_array($rol, ['investigador', 'profesor'], true)) {
+    header('Location: /ITSFCP-PROYECTOS/index.php');
+    exit;
+}
+
 require_once '../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
@@ -45,7 +50,7 @@ include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
@@ -64,7 +69,7 @@ include __DIR__ . '/../../error.php';
         <input type="hidden" name="action" value="editarProyecto">
         <input type="hidden" name="id_proyectos" value="<?= $p['id_proyectos']; ?>">
 
-        <h5>Información del proyecto <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']); ?>"><?= htmlspecialchars($proyecto['estado_proyecto'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></h5>
+        <h5>Información del proyecto <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($p['estado_proyecto']); ?>"><?= htmlspecialchars($proyecto['estado_proyecto'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></h5>
 
         <div class="mb-3">
             <label>Nombre del proyecto</label>

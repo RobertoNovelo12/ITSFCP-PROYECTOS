@@ -158,6 +158,111 @@ ob_start();
             </div>
         </div>
     </div>
+
+    <?php
+    // OBTENER HISTORIAL
+    $resultado = $directorControlador->info_linea_tiempo($id_director);
+    $historialAgrupado = $resultado['datos'];
+    $paginacion = $resultado['paginacion'];
+    ?>
+
+    <!-- HISTORIAL -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Historial del Director</h5>
+        </div>
+        <div class="card-body">
+
+            <div class="mb-3">
+                <strong>Resumen</strong><br>
+                Última actualización: <?= date("d/m/Y H:i") ?><br>
+                ID Director: <?= $id_director ?>
+            </div>
+
+            <ul class="timeline">
+
+                <?php if (empty($historialAgrupado)): ?>
+
+                    <div class="alert alert-info text-center">
+                        No hay historial registrado para este director.
+                    </div>
+
+                <?php else: ?>
+
+                    <?php foreach ($historialAgrupado as $fecha => $items): ?>
+
+                        <li class="mb-4">
+                            <div class="fw-bold text-primary">
+                                <?= $fecha ?>
+                            </div>
+
+                            <?php foreach ($items as $item): ?>
+
+                        <li>
+                            <div class="timeline-content">
+
+                                <span class="badge bg-<?= $directorControlador->EstiloTimeLine($item['tipo_evento']) ?>">
+                                    <?= ucfirst(strtolower($item['tipo_evento'])) ?>
+                                </span>
+
+                                <small class="text-muted">
+                                    <?= date("H:i", strtotime($item['fecha'])) ?>
+                                </small>
+
+                                <p><?= $item['descripcion'] ?></p>
+
+                                <small>
+                                    <?= $item['usuario'] ?? 'Sistema' ?>
+                                </small>
+
+                            </div>
+                        </li>
+
+                    <?php endforeach; ?>
+
+                    </li>
+
+                <?php endforeach; ?>
+
+            <?php endif; ?>
+
+            </ul>
+
+            <!-- PAGINACIÓN -->
+            <?php if ($paginacion['total_paginas'] > 1): ?>
+
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+
+                        <?php
+                        $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
+                        $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
+                        ?>
+
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total'] ?>
+                            </span>
+                        </li>
+
+                        <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
+
+                            <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
+                                <a class="page-link"
+                                    href="?id_director=<?= $id_director ?>&pagina=<?= $i ?>">
+                                    <?= $i ?>
+                                </a>
+                            </li>
+
+                        <?php endfor; ?>
+
+                    </ul>
+                </nav>
+
+            <?php endif; ?>
+
+        </div>
+    </div>
 </div>
 
 <?php

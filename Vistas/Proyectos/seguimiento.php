@@ -47,7 +47,7 @@ $estados = [
 ob_start();
 ?>
 
-<div class="container-fluid py-4 px-lg-5">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
@@ -96,7 +96,7 @@ ob_start();
             <div class="etapas-container">
                 <div class="etapas-titulo">Flujo de documentación</div>
 
-                <div class="timeline">
+                <div class="timeline_seguimiento">
                     <?php foreach ($etapas as $i => $etapa):
 
                         $cfg = $estados[$etapa['estado']] ?? $estados['pendiente'];
@@ -104,28 +104,28 @@ ob_start();
                         $activa = ($etapa['estado'] === 'proceso') ? 'active' : '';
                     ?>
 
-                        <div class="timeline-item <?= $cfg['clase'] ?> <?= $bloqueada ? 'locked' : '' ?> <?= $activa ?>">
+                        <div class="timeline_seguimiento-item <?= $cfg['clase'] ?> <?= $bloqueada ? 'locked' : '' ?> <?= $activa ?>">
 
-                            <div class="timeline-left">
-                                <div class="timeline-dot"><?= $cfg['icono'] ?></div>
+                            <div class="timeline_seguimiento-left">
+                                <div class="timeline_seguimiento-dot"><?= $cfg['icono'] ?></div>
                                 <?php if ($i < count($etapas) - 1): ?>
-                                    <div class="timeline-line"></div>
+                                    <div class="timeline_seguimiento-line"></div>
                                 <?php endif; ?>
                             </div>
 
-                            <div class="timeline-content">
-                                <div class="timeline-card">
+                            <div class="timeline_seguimiento-content">
+                                <div class="timeline_seguimiento-card">
 
-                                    <div class="timeline-header">
-                                        <div class="timeline-title">
+                                    <div class="timeline_seguimiento-header">
+                                        <div class="timeline_seguimiento-title">
                                             <?= $i + 1 ?>. <?= htmlspecialchars($etapa['nombre']) ?>
                                         </div>
-                                        <span class="timeline-badge <?= $cfg['badge'] ?>">
+                                        <span class="timeline_seguimiento-badge <?= $cfg['badge'] ?>">
                                             <?= $cfg['texto'] ?>
                                         </span>
                                     </div>
 
-                                    <div class="timeline-desc">
+                                    <div class="timeline_seguimiento-desc">
                                         <?= htmlspecialchars($etapa['descripcion']) ?>
                                     </div>
 

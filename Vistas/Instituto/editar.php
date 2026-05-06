@@ -25,10 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // MENSAJE DIRECTOR
+/*
 $mensajeDirector = "";
 if (!$director) {
     $mensajeDirector = "<small class='text-danger'>No hay un director asignado o activo.</small>";
-}
+}*/
 
 ob_start();
 ?>

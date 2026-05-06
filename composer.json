@@ -1,0 +1,6 @@
+{
+    "require": {
+        "ezyang/htmlpurifier": "^4.19",
+        "phpmailer/phpmailer": "^7.0"
+    }
+}

@@ -45,16 +45,16 @@ if (!empty($historialAgrupado)) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- HEADER -->
     <div class="row mb-3">
         <div class="col-md-6">
             <h3 class="fw-bold">Historial del estudiante</h3>
         </div>
-        <div class="col-md-6 text-end">
-            <a href="editar.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-danger">
-                ← Regresar
+        <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
+            <a href="detalles.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>
     </div>
@@ -91,7 +91,7 @@ ob_start();
 
     <?php else: ?>
 
-        <ul class="timeline list-unstyled">
+        <ul class="timeline_historial_estudiante list-unstyled">
 
             <?php foreach ($historialAgrupado as $fecha => $items): ?>
 
@@ -148,7 +148,7 @@ ob_start();
                 <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
                     <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
                         <a class="page-link"
-                           href="?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $id_usuario ?>&pagina=<?= $i ?>">
+                            href="?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $id_usuario ?>&pagina=<?= $i ?>">
                             <?= $i ?>
                         </a>
                     </li>

@@ -27,14 +27,16 @@ if ($action == 'registrarProyecto') {
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="max-width:95%;">
     <div class="row mb-3 align-items-center">
         <div class="row mb-1">
             <div class="col-6">
                 <h3>Crear Proyecto</h3>
             </div>
             <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
-                <a href="tabla.php" class="btn btn-danger w-100 w-md-auto">Regresar</a>
+                <a href="tabla.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Regresar
+                </a>
             </div>
             <form method="POST" id="formProyecto" action="">
                 <input type="hidden" id="input_hidden" name="action" value="registrarProyecto">

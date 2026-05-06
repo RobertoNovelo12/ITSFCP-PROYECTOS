@@ -1,26 +1,28 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $titulo ?? 'Panel' ?></title>
-    
+
     <?php if (isset($necesitaQuill) && $necesitaQuill): ?>
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <?php endif; ?>
-    
-    <!-- ⬇ AGREGAR ESTO ANTES DEL CSS -->
+
+    <!-- AGREGAR ESTO ANTES DEL CSS -->
     <script>
         // Aplicar estado del sidebar INMEDIATAMENTE antes de que se renderice
         (() => {
             try {
                 const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
-                
+
                 if (sidebarCollapsed === "true") {
                     // Agregar clase al HTML antes de que se renderice
                     document.documentElement.classList.add("sidebar-collapsed-initial");
                 }
-                
+
                 const isDark = localStorage.getItem("darkModeEnabled") === "true";
                 if (isDark) {
                     document.documentElement.classList.add("dark-mode");
@@ -53,7 +55,6 @@
 
     <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
     <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
-
 </body>
 
 </html>

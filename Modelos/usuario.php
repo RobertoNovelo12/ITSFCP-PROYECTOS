@@ -1,10 +1,8 @@
-
 <?php
 require_once __DIR__ . '/../publico/config/conexion.php';
 
 class Usuarios
 {
-
     private $con;
 
     public function __construct($conn)
@@ -12,330 +10,237 @@ class Usuarios
         $this->con = $conn;
     }
 
-    //DATOS GENERALES SIN FILTRO
-    public function obtenerUsuarios($id, $rol, $buscar = null)
+    // 
+    //  DATOS DE FILTROS (conteos por estado)
+    // 
+    public function obtenerUsuariosDatosFiltro()
     {
-        // Normalizar rol para evitar problemas de mayúsculas/minúsculas
-        $rol = strtolower($rol);
+        $sql = "SELECT
+                    COUNT(*)                                                      AS Total,
+                    SUM(CASE WHEN u.estado_usuario = 'espera'    THEN 1 ELSE 0 END) AS Espera,                    SUM(CASE WHEN u.estado_usuario = 'activo'    THEN 1 ELSE 0 END) AS Activo,
+                    SUM(CASE WHEN u.estado_usuario = 'cancelado' THEN 1 ELSE 0 END) AS Cancelado
+                FROM usuarios u";
 
-        // Cantidad totales
-        $total_usuarios = $this->obtenerCantidadUsuarios($id, 0, $rol, $buscar);
-
-        // Parámetros de paginación
-        $por_pagina = 6;
-        $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
-        $desde = ($pagina - 1) * $por_pagina;
-
-        $total_paginas = ($total_usuarios > 0) ? ceil($total_usuarios / $por_pagina) : 1;
-
-        // Inicializar variables
-        $sql = "";
-        $params = [];
-        $types = "";
-        $whereAdded = false;
-
-        // Consultas base según rol
-        switch ($rol) {
-            case 'supervisor':
-                $sql = "SELECT 
-    usua.id_usuarios,
-    usua.CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno) AS nombre_completo,
-    usua.estado_usuario,
-    usua.fecha_registro,
-    CASE
-        WHEN e.id_estudiante IS NOT NULL THEN 'estudiante'
-        WHEN i.id_investigador IS NOT NULL THEN 'investigador'
-        WHEN s.id_supervisor IS NOT NULL THEN 'supervisor'
-        ELSE 'desconocido'
-    END AS tipo_usuario
-FROM usuarios u
-LEFT JOIN estudiantes e ON u.id_usuarios = e.id_usuario
-LEFT JOIN investigadores i ON u.id_usuarios = i.id_usuario
-LEFT JOIN supervisores s ON u.id_usuarios = s.id_usuario;";
-                // supervisor no añade WHERE por defecto
-                $whereAdded = false;
-                break;
-
-            default:
-                // Si el rol es inesperado devolvemos vacío (evita errores posteriores)
-                return json_encode([
-                    "usuarios" => [],
-                    "paginacion" => [
-                        "total_usuarios" => 0,
-                        "por_pagina"      => $por_pagina,
-                        "pagina"          => $pagina,
-                        "total_paginas"   => 1
-                    ]
-                ]);
-        }
-
-        // Filtro de búsqueda (si aplica)
-        if (!empty($buscar)) {
-            if ($whereAdded) {
-                $sql .= " AND (usua.nombre LIKE ? 
-                        OR usua.apellido_paterno LIKE ?
-                        OR usua.apellido_materno LIKE ?) ";
-            } else {
-                $sql .= " WHERE (usua.nombre LIKE ? 
-                        OR usua.apellido_paterno LIKE ?
-                        OR usua.apellido_materno LIKE ?) ";
-                $whereAdded = true;
-            }
-
-            $params[] = "%$buscar%";
-            $params[] = "%$buscar%";
-            $params[] = "%$buscar%";
-
-            $types .= "sss";
-        }
-
-
-        // GROUP BY y LIMIT al final (LIMIT siempre al final de la query)
-        $sql .= " GROUP BY usua.id_usuarios ORDER BY usua.id_usuarios ASC LIMIT ?, ?";
-
-        // Añadir params para paginación (siempre enteros)
-        $params[] = $desde;
-        $params[] = $por_pagina;
-        $types .= "ii";
-
-        // Preparar y ejecutar
         $stmt = $this->con->prepare($sql);
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error . "<br>SQL: $sql");
-        }
-
-        // bind_param requiere tipos y valores; si types está vacío no bindear
-        if ($types !== "") {
-            // Usar operador splat para pasar los parámetros
-            $stmt->bind_param($types, ...$params);
-        }
-
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error . "<br>SQL: $sql");
-        }
-
-        $resultado = [
-            "usuarios" => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
-            "paginacion" => [
-                "total_usuarios" => $total_usuarios,
-                "por_pagina"      => $por_pagina,
-                "pagina"          => $pagina,
-                "total_paginas"   => $total_paginas
-            ]
-        ];
-
-        return json_encode($resultado);
-    }
-
-
-    //DATOS DEL FILTRO
-    public function obtenerUsuariosDatosFiltro($id, $rol)
-    {
-        switch ($rol) {
-
-            case 'supervisor':
-                $sql = "SELECT 
-  COUNT(*) AS Total,
-  SUM(CASE WHEN estado_usuario='espera' THEN 1 ELSE 0 END) AS Espera,
-  SUM(CASE WHEN estado_usuario=a'aprobado' THEN 1 ELSE 0 END) AS Aprobado,
-  SUM(CASE WHEN estado_usuario='activo' THEN 1 ELSE 0 END) AS Activo,
-  SUM(CASE WHEN estado_usuario='rechazado' THEN 1 ELSE 0 END) AS Rechazado,
-FROM gestion_proyectos.usuarios";
-
-                $stmt = $this->con->prepare($sql);
-                break;
-            default:
-                return []; // Retorna un array vacío si el rol no es válido
-        }
+        if (!$stmt) die("Error prepare filtros: " . $this->con->error);
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $stmt->get_result()->fetch_assoc();
     }
 
-    //DATOS FILTRADOS SEGUN SELECCION
-    public function obtenerUsuariosTablaFiltro($id, $filtro, $rol, $buscar = null)
+    // 
+    //  CONTAR USUARIOS (para paginación)
+    // 
+    public function obtenerCantidadUsuarios($estado = null, $buscar = null, $tipo = null)
     {
-        // --- Paginación ---
-        $total_usuarios = $this->obtenerCantidadUsuarios($id, $filtro, $rol, $buscar);
-        $por_pagina = 6;
-        $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
-        $desde = ($pagina - 1) * $por_pagina;
-        $total_paginas = ($total_usuarios > 0) ? ceil($total_usuarios / $por_pagina) : 1;
-
-        // --- SQL BASE POR ROL ---
-        $base = "";
         $params = [];
-        $types = "";
-        $where = [];
+        $types  = "";
+        $where  = [];
 
-        switch ($rol) {
-            case 'supervisor':
-                $base = "
-                SELECT 
-                    proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
-                    espr.nombre AS estado, peri.periodo
-                FROM proyectos proy
-                JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-                JOIN periodos peri ON proy.id_periodos = peri.id_periodos
-                ";
-                break;
+        $sql = "SELECT COUNT(DISTINCT u.id_usuarios) AS total
+                FROM usuarios u
+                LEFT JOIN usuarios_roles   ur ON ur.id_usuarios = u.id_usuarios
+                LEFT JOIN roles            r  ON r.id_roles     = ur.id_rol
+                LEFT JOIN estudiantes      es ON es.id_usuarios = u.id_usuarios
+                LEFT JOIN investigadores   inv ON inv.id_usuarios = u.id_usuarios
+                LEFT JOIN supervisores     su ON su.id_usuarios = u.id_usuarios";
 
-            default:
-                return json_encode([
-                    "usuarios" => [],
-                    "paginacion" => []
-                ]);
-        }
-
-        // --- Filtro por estado ---
-        if ($filtro != 0) {
-            $where[] = "usua.estado_usuario = ?";
-            $params[] = $filtro;
+        if (!empty($estado)) {
+            $where[] = "u.estado_usuario = ?";
+            $params[] = $estado;
             $types   .= "s";
         }
 
-        // --- Filtro de búsqueda ---
         if (!empty($buscar)) {
-            $where[] = "usua.nombre LIKE ?";
+            $where[] = "(u.nombre LIKE ? OR u.apellido_paterno LIKE ? OR u.apellido_materno LIKE ?)";
             $params[] = "%$buscar%";
-            $types   .= "s";
+            $params[] = "%$buscar%";
+            $params[] = "%$buscar%";
+            $types   .= "sss";
         }
 
-        // --- WHERE dinámico ---
-        $sql = $base;
-        if (count($where) > 0) {
+        if (!empty($tipo)) {
+            switch ($tipo) {
+                case 'estudiante':
+                    $where[] = "es.id_usuarios IS NOT NULL";
+                    break;
+                case 'investigador':
+                    $where[] = "inv.id_usuarios IS NOT NULL";
+                    break;
+                case 'supervisor':
+                    $where[] = "su.id_usuarios IS NOT NULL";
+                    break;
+            }
+        }
+
+        if (!empty($where)) {
             $sql .= " WHERE " . implode(" AND ", $where);
         }
 
-        // --- Agrupación, orden y límite ---
-        $sql .= "
-        GROUP BY proy.id_usuarios
-        ORDER BY proy.id_usuarios ASC
-        LIMIT ?, ?
-    ";
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) die("Error prepare count: " . $this->con->error);
+        if (!empty($types)) $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        return (int)($row['total'] ?? 0);
+    }
 
+    // 
+    //  LISTADO DE USUARIOS CON FILTROS Y PAGINACIÓN
+    // 
+    public function obtenerUsuarios($estado = null, $buscar = null, $tipo = null)
+    {
+        $por_pagina = 6;
+        $pagina     = max(1, intval($_GET['pagina'] ?? 1));
+        $desde      = ($pagina - 1) * $por_pagina;
+
+        $total         = $this->obtenerCantidadUsuarios($estado, $buscar, $tipo);
+        $total_paginas = max(1, ceil($total / $por_pagina));
+
+        $params = [];
+        $types  = "";
+        $where  = [];
+
+        $sql = "SELECT
+                    u.id_usuarios,
+                    u.nombre,
+                    u.apellido_paterno,
+                    u.apellido_materno,
+                    CONCAT(u.nombre, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo,
+                    u.correo_institucional,
+                    u.telefono,
+                    u.fecha_registro,
+                    u.estado_usuario,
+                    COALESCE(ANY_VALUE(r.nombre), 'Sin rol') AS tipo_usuario
+                FROM usuarios u
+                LEFT JOIN usuarios_roles ur  ON ur.id_usuarios = u.id_usuarios
+                LEFT JOIN roles          r   ON r.id_roles     = ur.id_rol
+                LEFT JOIN estudiantes    es  ON es.id_usuarios = u.id_usuarios
+                LEFT JOIN investigadores inv ON inv.id_usuarios = u.id_usuarios
+                LEFT JOIN supervisores   su  ON su.id_usuarios  = u.id_usuarios
+                ";
+
+        if (!empty($estado)) {
+            $where[] = "u.estado_usuario = ?";
+            $params[] = $estado;
+            $types   .= "s";
+        }
+
+        if (!empty($buscar)) {
+            $where[] = "(u.nombre LIKE ? OR u.apellido_paterno LIKE ? OR u.apellido_materno LIKE ?)";
+            $params[] = "%$buscar%";
+            $params[] = "%$buscar%";
+            $params[] = "%$buscar%";
+            $types   .= "sss";
+        }
+
+        if (!empty($tipo)) {
+            switch ($tipo) {
+                case 'estudiante':
+                    $where[] = "es.id_usuarios IS NOT NULL";
+                    break;
+                case 'investigador':
+                    $where[] = "inv.id_usuarios IS NOT NULL";
+                    break;
+                case 'supervisor':
+                    $where[] = "su.id_usuarios IS NOT NULL";
+                    break;
+            }
+        }
+
+        if (!empty($where)) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+
+        $sql .= " GROUP BY u.id_usuarios ORDER BY u.fecha_registro DESC LIMIT ?, ?";
         $params[] = $desde;
         $params[] = $por_pagina;
         $types   .= "ii";
 
-        // --- Ejecutar consulta ---
         $stmt = $this->con->prepare($sql);
+        if (!$stmt) die("Error prepare listado: " . $this->con->error);
         $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        $filas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        if (!$stmt->execute()) die("Error execute listado: " . $stmt->error);
 
-        // --- Respuesta final ---
         return json_encode([
-            "usuarios" => $filas,
+            "usuarios"   => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
             "paginacion" => [
-                "total_usuarios" => $total_usuarios,
-                "por_pagina"      => $por_pagina,
-                "pagina"          => $pagina,
-                "total_paginas"   => $total_paginas
+                "total"        => $total,
+                "por_pagina"   => $por_pagina,
+                "pagina"       => $pagina,
+                "total_paginas" => $total_paginas
             ]
         ]);
     }
 
-    //OBTENER LA CANTIDAD DE PROYECTOS
-    public function obtenerCantidadUsuarios($id, $numerofiltro, $rol, $buscar = null)
+    // 
+    //  DETALLE DE UN USUARIO
+    // 
+    public function obtenerUsuario($id_usuario)
     {
-
-        if ($numerofiltro == 0) {
-            // Si el filtro es 0 (Total), no aplicamos ninguna condición adicional
-            switch ($rol) {
-                case 'supervisor':
-                    $sql = "SELECT COUNT(*) AS total_usuarios FROM gestion_proyectos.usuarios as usua WHERE 1";
-                    $params = [];
-                    $types  = "";
-
-                    if (!empty($buscar)) {
-                        $sql .= " AND proy.nombre LIKE ?";
-                        $params[] = "%$buscar%";
-                        $types   .= "s";
-                    }
-
-                    $stmt = $this->con->prepare($sql);
-
-                    break;
-                default:
-                    break; // Retorna 0 si el rol no es válido
-            }
-
-            if (!empty($params)) {
-                $stmt->bind_param($types, ...$params);
-            } else {
-                // No hay parámetros para enlazar
-            }
-            $stmt->execute();
-            $resultado = $stmt->get_result()->fetch_assoc();
-            return $resultado['total_usuario'];   // OBTENER EL NUMERO TOTAL DE PROYECTOS
-        } else {
-            switch ($rol) {
-                case 'supervisor':
-                    $sql = "SELECT COUNT(*) AS total_usuarios FROM gestion_proyectos.usuarios as usua 
-WHERE proy.estado_usuario = ?";
-
-                    $params = [$numerofiltro];
-                    $types  = "i";
-
-                    if (!empty($buscar)) {
-                        $sql .= " AND proy.nombre LIKE ?";
-                        $params[] = "%$buscar%";
-                        $types   .= "s";
-                    }
-
-                    $stmt = $this->con->prepare($sql);
-                    $stmt->bind_param($types, ...$params);
-                    break;
-                default:
-                    break; // Retorna 0 si el rol no es válido
-            }
-            $stmt->execute();
-            $resultado = $stmt->get_result()->fetch_assoc();
-            return $resultado['total_usuarios'];   // OBTENER EL NUMERO TOTAL DE USUARIOS
-        }
-    }
-
-    public function actualizarestado($id_usuarios, $Estado)
-    {
-
-        // 1. Actualizar estado
-        $sql = "UPDATE usuarios 
-            SET estado_usuario = ?, actualizado_en = NOW() 
-            WHERE id_proyectos = ?";
+        $sql = "SELECT
+                    u.*,
+                    g.genero,
+                    COALESCE(ANY_VALUE(r.nombre), 'Sin rol') AS tipo_usuario,
+                    es.matricula,
+                    c.nombre_carrera,
+                    inv.rfc,
+                    ga.nombre  AS grado_academico,
+                    ns.nombre   AS nivel_sni
+                FROM usuarios u
+                LEFT JOIN genero_usuario  g   ON g.id_genero    = u.id_genero
+                LEFT JOIN usuarios_roles  ur  ON ur.id_usuarios = u.id_usuarios
+                LEFT JOIN roles           r   ON r.id_roles     = ur.id_rol
+                LEFT JOIN estudiantes     es  ON es.id_usuarios = u.id_usuarios
+                LEFT JOIN carreras        c   ON c.id_carrera   = es.id_carrera
+                LEFT JOIN investigadores  inv ON inv.id_usuarios = u.id_usuarios
+                LEFT JOIN grados_academicos ga ON ga.id_grado   = inv.id_grado
+                LEFT JOIN niveles_sni     ns  ON ns.id_nivel    = inv.id_nivel_sni
+                LEFT JOIN supervisores    su  ON su.id_usuarios = u.id_usuarios
+                WHERE u.id_usuarios = ?";
 
         $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error);
-        }
-
-
-        $stmt->bind_param("si", $Estado, $id_usuarios);
-
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
-        header("Location: tabla.php");
-        exit();
-    }
-
-    //DETALLES DEL USUARIO
-    function obtenerUsuario($id_usuario)
-    {
-        $sql = "SELECT proy.id_usuario, espr.nombre as estado_proyecto, tema.nombre_tematica as tematica, subt.nombre_subtematica as subtematica, peri.periodo, CASE WHEN CURDATE() BETWEEN peri.fecha_inicio AND peri.fecha_final THEN 'Activo' WHEN CURDATE() < peri.fecha_inicio THEN 'Terminado' ELSE 'Terminado'  END AS estado_periodo, proy.titulo, proy.descripcion, proy.objetivo, proy.fecha_inicio, proy.fecha_fin, proy.presupuesto, proy.creado_en, proy.requisitos, proy.pre_requisitos, proy.modalidad, proy.cantidad_estudiante FROM gestion_proyectos.proyectos as proy
-JOIN estados_proyectos as espr ON proy.id_estadoP = espr.id_estadoP
-JOIN tematica as tema ON tema.id_tematica = proy.id_tematica
-JOIN subtematica as subt ON tema.id_tematica = subt.id_tematica
-JOIN periodos as peri ON peri.id_periodos = proy.id_periodos
-WHERE proy.id_usuario = ?;";
-
-        $params = [$id_usuario];
-        $types  = "i";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param($types, ...$params);
+        if (!$stmt) die("Error prepare detalle: " . $this->con->error);
+        $stmt->bind_param("i", $id_usuario);
         $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    // 
+    //  ACTUALIZAR ESTADO (aprobar / cancelar)
+    // 
+    public function actualizarEstado($id_usuario, $estado)
+    {
+        $sql = "UPDATE usuarios SET estado_usuario = ? WHERE id_usuarios = ?";
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) die("Error prepare update: " . $this->con->error);
+        $stmt->bind_param("si", $estado, $id_usuario);
+        if (!$stmt->execute()) die("Error execute update: " . $stmt->error);
+        return $stmt->affected_rows > 0;
+    }
+
+    // 
+    //  RECHAZAR CON COMENTARIO
+    // 
+    public function rechazarUsuario($id_usuario, $comentario)
+    {
+        // 1. Cambiar estado a 'cancelado'
+        $ok = $this->actualizarEstado($id_usuario, 'cancelado');
+        if (!$ok) return false;
+
+        // 2. Guardar el comentario de rechazo (tabla notificaciones si existe, aquí lo dejamos para el correo)
+        // El correo se envía desde el controlador con PHPMailer
+        return true;
+    }
+
+    // 
+    //  OBTENER CORREO DE USUARIO (para notificación)
+    // 
+    public function obtenerCorreo($id_usuario)
+    {
+        $sql = "SELECT correo_institucional, nombre, apellido_paterno FROM usuarios WHERE id_usuarios = ?";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_usuario);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
     }
 }
-
