@@ -11,8 +11,8 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = $_SESSION['rol'];
-$id  = $_SESSION['id_usuario'];
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo investigador y supervisor pueden ver detalles de la plantilla
 if (!in_array($rol, ['investigador', 'supervisor', 'estudiante'])) {

@@ -283,11 +283,9 @@ class solicitudesControlador
             }
 
             $conn->commit();
-            $this->json(['ok' => true, 'msg' => 'Solicitud vencida. Estudiante no integrado al proyecto.']);
         } catch (Exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
-            $this->json(['ok' => false, 'msg' => 'Error en el proceso.']);
         }
     }
 

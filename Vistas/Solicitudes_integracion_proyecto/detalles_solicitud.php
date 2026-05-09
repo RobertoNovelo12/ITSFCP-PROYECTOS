@@ -76,7 +76,7 @@ ob_start();
     <!-- ══ PANEL DE 3 ETAPAS ══════════════════════════════════════ -->
     <div class="card shadow-sm mb-4 border-primary">
         <div class="card-header text-white">
-            <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Seguimiento del estudiante</h5>
+            <h5 class="mb-0">Seguimiento del estudiante</h5>
         </div>
         <div class="card-body p-0">
             <div class="row g-0">

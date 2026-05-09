@@ -88,7 +88,7 @@ include __DIR__ . '/../../mensaje.php';
 
                 <div class="col-md-6 mb-3">
                     <select class="form-select"
-                        onchange="location.href='index.php?action=' + this.value;">
+                        onchange="location.href='tabla.php?action=' + this.value;">
                         <?php foreach ($opciones as $key => $label): ?>
                             <option value="<?= htmlspecialchars($key) ?>"
                                 <?= ($action === $key) ? 'selected' : '' ?>>
