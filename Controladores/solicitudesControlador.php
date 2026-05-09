@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../Modelos/solicitudes.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
-
+//CONTROLADOR DE SOLICITUDES DE INTEGRACIÓN
 class solicitudesControlador
 {
     private function soloInvestigador(string $rol): void
@@ -30,6 +30,7 @@ class solicitudesControlador
         return strtolower($_SESSION['rol'] ?? '');
     }
 
+    //Solicitudes de integración
     private function procesarArchivo(int $id_solicitud): ?int
     {
         if (empty($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
@@ -45,7 +46,8 @@ class solicitudesControlador
         $mimes = [
             'application/pdf',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'image/png', 'image/jpeg',
+            'image/png',
+            'image/jpeg',
         ];
         if (!in_array($file['type'], $mimes, true)) return null;
 
@@ -62,15 +64,15 @@ class solicitudesControlador
         global $conn;
         $modelo = new Solicitud($conn);
         return $modelo->registrarDocumento(
-            nombre:         basename($file['name']),
+            nombre: basename($file['name']),
             nombre_archivo: $nombreFinal,
-            ruta:           $rutaBD,
-            tipo_mime:      $file['type'],
-            extension:      $ext,
-            tamano_bytes:   $file['size'],
-            tipo:           'recurso',
-            visibilidad:    'privado',
-            id_usuario:     $this->idUsuario()
+            ruta: $rutaBD,
+            tipo_mime: $file['type'],
+            extension: $ext,
+            tamano_bytes: $file['size'],
+            tipo: 'recurso',
+            visibilidad: 'privado',
+            id_usuario: $this->idUsuario()
         );
     }
 
@@ -113,6 +115,7 @@ class solicitudesControlador
             'correcciones' => "<span class='badge bg-warning text-dark'>Correcciones</span>",
             'aceptado'     => "<span class='badge bg-success'>Aceptado</span>",
             'rechazado'    => "<span class='badge bg-danger'>Rechazado</span>",
+            'vencido'    => "<span class='badge bg-dark'>Vencido</span>",
             default        => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
         };
     }
@@ -125,6 +128,7 @@ class solicitudesControlador
         global $conn;
 
         $S          = new Solicitud($conn);
+        $this->vencido();
         $por_pagina = 8;
         $pagina     = max(1, intval($_GET['pagina'] ?? 1));
         $desde      = ($pagina - 1) * $por_pagina;
@@ -195,7 +199,6 @@ class solicitudesControlador
 
             $conn->commit();
             $this->json(['ok' => true, 'msg' => 'Solicitud aceptada. Estudiante integrado al proyecto.']);
-
         } catch (Exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
@@ -248,6 +251,43 @@ class solicitudesControlador
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->json(['ok' => false, 'msg' => 'Error interno.'], 500);
+        }
+    }
+
+    // ── vencido ─────────────────────────────────────────────────
+    // Función que realiza lo siguiente:
+    // 1- Obtiene todos los ids cuyos proyectos hayan vencido fecha_Actual > fecha_fin
+    // 2- Se ejecuta la función vencido con la id de la solicitud
+    // 3- Se guarda en un historial la información.
+    public function vencido(): void
+    {
+        $this->soloInvestigador($this->rol());
+        global $conn;
+
+        $S  = new Solicitud($conn);
+        $conn->begin_transaction();
+        try {
+            $id_vencidos = $S->obtenervencido();
+            foreach ($id_vencidos as $id_vencido) {
+                $datos = $S->obtenerDatosSolicitud($id_vencido);
+                if (!$datos) throw new Exception("Solicitud no encontrada.");
+
+                $S->vencido($id_vencido);
+                $S->registrarHistorialUsuario(
+                    $datos['id_proyectos'],
+                    $datos['id_usuarios'],
+                    'vencido',
+                    'Solicitud de integración vencida al no responer el investigador',
+                    $this->idUsuario()
+                );
+            }
+
+            $conn->commit();
+            $this->json(['ok' => true, 'msg' => 'Solicitud vencida. Estudiante no integrado al proyecto.']);
+        } catch (Exception $e) {
+            $conn->rollback();
+            error_log($e->getMessage());
+            $this->json(['ok' => false, 'msg' => 'Error en el proceso.']);
         }
     }
 

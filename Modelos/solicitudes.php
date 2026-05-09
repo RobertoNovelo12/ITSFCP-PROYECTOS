@@ -40,9 +40,18 @@ class Solicitud
 
         $stmt->bind_param(
             "sssssisisiii",
-            $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
-            $tamano_bytes, $tipo, $visibilidad,
-            $id_usuario, $id_proyecto, $etapa, $version
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $tipo,
+            $visibilidad,
+            $id_usuario,
+            $id_proyecto,
+            $etapa,
+            $version
         );
 
         if (!$stmt->execute()) throw new Exception("Error execute (registrarDocumento): " . $stmt->error);
@@ -336,6 +345,37 @@ class Solicitud
         $stmt->close();
 
         return $this->insertarComentario($id, $id_usuario, 'investigador', $comentario, $id_documento);
+    }
+
+    /*Vencido*/
+    public function vencido(int $id)
+    {
+        $stmt = $this->con->prepare("
+            UPDATE solicitud_proyecto
+            SET estado = 'vencido', fecha_respuesta = CURDATE()
+            WHERE id_solicitud_proyecto = ?
+        ");
+        if (!$stmt) throw new Exception("Error prepare (vencido): " . $this->con->error);
+        $stmt->bind_param("i", $id);
+        if (!$stmt->execute()) throw new Exception("Error execute: " . $stmt->error);
+        $stmt->close();
+    }
+
+    /*Obtener vencidos */
+    public function obtenervencido()
+    {
+        $stmt = $this->con->prepare("
+            SELECT sopr.id_solicitud_proyecto
+FROM solicitud_proyecto AS sopr
+JOIN proyectos AS proy ON proy.id_proyectos = sopr.id_proyectos
+WHERE CURDATE() > proy.fecha_fin
+  AND sopr.estado NOT IN ('vencido', 'rechazado', 'aceptado')
+        ");
+        if (!$stmt) throw new Exception("Error prepare (obtenervencido): " . $this->con->error);
+        if (!$stmt->execute()) throw new Exception("Error execute: " . $stmt->error);
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $result;
     }
 
     public function enviarCorrecciones(int $id, int $id_usuario, string $comentario, ?int $id_documento = null): bool

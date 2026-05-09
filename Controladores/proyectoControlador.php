@@ -230,9 +230,9 @@ class ProyectoControlador
         return match ($estado) {
             'Cierre rechazado', 'Rechazado', 'Terminado' => 'danger',
             'Por cerrar', 'Por aprobar', 'Pendiente'     => 'warning',
-            'Vencido'                                    => 'secondary',
+            'Vencido'                                    => 'dark',
             'Activo'                                     => 'success',
-            'Cierre'                                     => 'dark',
+            'Cierre'                                     => 'secondary',
             default                                      => 'info',
         };
     }

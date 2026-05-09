@@ -662,9 +662,9 @@ class TareaControlador
             'Pendiente'   => "primary",
             'Revisar'     => "warning",
             'Corregir'    => "danger",
-            'Vencido'     => "secondary",
+            'Vencido'     => "dark",
             'Aprobado'    => "success",
-            'Sin activar' => "dark",
+            'Sin activar' => "secondary",
             'Borrador'    => "light",
             default       => "light",
         };
