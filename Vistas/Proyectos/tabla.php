@@ -163,7 +163,7 @@ include __DIR__ . '/../../mensaje.php';
                                             </span>
                                         </td>
                                         <td>
-                                            <a href="seguimiento.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>"
+                                            <a href="../Seguimiento/seguimiento.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>"
                                                class="btn btn-sm btn-primary">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                                     fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16">

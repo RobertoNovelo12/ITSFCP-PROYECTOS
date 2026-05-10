@@ -343,68 +343,6 @@ include __DIR__ . '/../../mensaje.php';
 const AJAX = '/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php';
 let _idSolicitudActual = null;
 
-// ── Ver detalle (abre modal) ──────────────────────────────────────
-function verDetalleSolicitud(id) {
-    _idSolicitudActual = id;
-    document.getElementById('detalleCargando').style.display  = '';
-    document.getElementById('detalleContenido').style.display = 'none';
-    document.getElementById('detalleFooter').style.display    = 'none';
-
-    new bootstrap.Modal(document.getElementById('modalDetalle')).show();
-
-    fetch(`${AJAX}?action=detalle&id=${id}`)
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) { alert(data.error); return; }
-
-            const s   = data.solicitud;
-            const seg = data.seguimiento || {};
-
-            // Info
-            document.getElementById('detalleInfo').innerHTML = `
-                <div class="col-md-6">
-                    <div class="card h-100 border-0 bg-light p-3">
-                        <h6 class="text-primary mb-2"><i class="bi bi-person-fill me-1"></i>Estudiante</h6>
-                        <p class="mb-1"><strong>Nombre:</strong> ${esc(s.estudiante_nombre)}</p>
-                        <p class="mb-1"><strong>Matrícula:</strong> ${esc(s.matricula)}</p>
-                        <p class="mb-1"><strong>Correo:</strong> ${esc(s.correo_institucional)}</p>
-                        <p class="mb-1"><strong>Carrera:</strong> ${esc(s.carrera)}</p>
-                        <p class="mb-0"><strong>Semestre:</strong> ${s.semestre ?? '-'}°  |  <strong>Promedio:</strong> ${s.promedio ?? '-'}</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card h-100 border-0 bg-light p-3">
-                        <h6 class="text-primary mb-2"><i class="bi bi-journal-text me-1"></i>Proyecto</h6>
-                        <p class="mb-1"><strong>Título:</strong> ${esc(s.proyecto_titulo)}</p>
-                        <p class="mb-1"><strong>Modalidad:</strong> ${esc(s.modalidad ?? '—')}</p>
-                        <p class="mb-1"><strong>Fecha solicitud:</strong> ${s.fecha_envio}</p>
-                        <p class="mb-1"><strong>Estado:</strong> ${badgeEstado(s.estado)}</p>
-                        ${s.carta_ruta ? `<a href="/ITSFCP-PROYECTOS/${s.carta_ruta}" target="_blank"
-                            class="btn btn-sm btn-outline-primary mt-1">
-                            <i class="bi bi-download me-1"></i>Carta compromiso (.${s.carta_extension ?? 'doc'})
-                        </a>` : '<p class="small text-muted mb-0">Sin carta adjunta.</p>'}
-                    </div>
-                </div>
-            `;
-
-            // Etapas
-            renderEtapasSeguimiento(seg, s, id);
-
-            // Comentarios
-            renderComentarios(data.comentarios || []);
-
-            // Footer
-            const activos = ['pendiente','en_revision','correcciones'];
-            document.getElementById('detalleFooter').style.display    = '';
-            document.getElementById('btnAceptarDetalle').style.display     = activos.includes(s.estado) ? '' : 'none';
-            document.getElementById('btnCorreccionesDetalle').style.display = activos.includes(s.estado) ? '' : 'none';
-            document.getElementById('btnRechazarDetalle').style.display    = activos.includes(s.estado) ? '' : 'none';
-
-            document.getElementById('detalleCargando').style.display  = 'none';
-            document.getElementById('detalleContenido').style.display = '';
-        })
-        .catch(e => alert('Error al cargar: ' + e.message));
-}
 
 function renderEtapasSeguimiento(seg, sol, id_solicitud) {
     const el = document.getElementById('detalleEtapas');

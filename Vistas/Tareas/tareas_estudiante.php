@@ -11,7 +11,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = $_SESSION['rol'];
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = $_SESSION['id_usuario'];
 
 require_once "../../Controladores/tareasControlador.php";

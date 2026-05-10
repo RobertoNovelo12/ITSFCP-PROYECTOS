@@ -9,7 +9,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = $_SESSION['rol'];
+$rol        = strtolower($_SESSION['rol'] ?? '');
 
 $id_proyecto = $_GET['id_proyecto'] ?? null;
 $id_usuario = $_GET['id_usuario'] ?? null;

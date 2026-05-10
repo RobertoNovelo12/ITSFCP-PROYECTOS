@@ -9,7 +9,7 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
-$rol = $_SESSION['rol'];
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 $action = $_POST['action'] ?? null;
 

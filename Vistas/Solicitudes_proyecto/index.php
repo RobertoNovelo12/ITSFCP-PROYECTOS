@@ -15,7 +15,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo supervisor e investigador acceden a solicitudes
-if (!in_array($rol, ['investigador', 'profesor'])) {
+if (!in_array($rol, ['supervisor'])) {
     header("Location: ../proyectos/tabla.php");
     exit;
 }
