@@ -13,7 +13,8 @@ function crearLink($nombre, $rol)
         "Integracion a proyecto" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/tabla.php",
         "Proyecto" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/index.php",
         "Actualizar datos" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_actualizacion/tabla.php",
-        "Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
+        "Carta de terminación" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_carta_terminacion/index.php",
+        //"Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
         "Calendario" => "/ITSFCP-PROYECTOS/Vistas/Calendario/index.php",
         "Reportes" => "/ITSFCP-PROYECTOS/Vistas/Periodo/reportes.php",
         "Mis alumnos" => "/ITSFCP-PROYECTOS/Vistas/Usuarios/alumno.php",
@@ -59,7 +60,7 @@ if ($rol === "estudiante" ||  $rol === "alumno") {
 } elseif ($rol === "supervisor") {
     $mainMenu = ["Principal", "Dashboard", "Panel Supervisor"];
     $submenuProyectos = ["Seguimiento"];
-    $submenuSolicitudes = ["Proyecto", "Actualizar datos"];
+    $submenuSolicitudes = ["Proyecto", "Actualizar datos", "Carta de terminación"];
     $middleMenu = ["Calendario"];
     $submenuVerMas = ["Usuarios", "Línea de investigación", "Temática", "Área de conocimiento", "Ajuste de documentos", "Plantillas de documentos", "Niveles SNI", "Período", "Grados académicos", "Director", "Carreras", "Instituto"];
     $footerMenus = ["Soporte", "Ajustes"];

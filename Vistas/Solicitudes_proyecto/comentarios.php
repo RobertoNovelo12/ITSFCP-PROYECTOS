@@ -1,3 +1,5 @@
+<!--comentarios.php - > Página para enviar el motivo de rechazo de la solicitud y cambia a rechazo el motivo de la solicitud.-->
+
 <?php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

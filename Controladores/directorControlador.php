@@ -150,9 +150,9 @@ class directorControlador
         if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) return [];
         $data = $filtros[0];
         return [
-            'Total' => "Total (" . ($data['Total'] ?? 0) . " en total)",
-            'Activo' => "Activos (" . ($data['Activo'] ?? 0) . " en total)",
-            'Desactivado' => "Desactivados (" . ($data['Desactivado'] ?? 0) . " en total)"
+            'Total' => "Total (" . ($data['Total'] ?? 0) . ")",
+            'Activo' => "Activos (" . ($data['Activo'] ?? 0) . ")",
+            'Desactivado' => "Desactivados (" . ($data['Desactivado'] ?? 0) . ")"
         ];
     }
 

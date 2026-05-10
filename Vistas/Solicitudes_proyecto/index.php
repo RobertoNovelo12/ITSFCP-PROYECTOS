@@ -1,3 +1,4 @@
+<!--index.php - > Tabla principal con filtros y acciones.-->
 <?php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -14,8 +15,8 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo supervisor e investigador acceden a solicitudes
-if (!in_array($rol, ['supervisor', 'investigador', 'profesor'])) {
-    header("Location: ../proyectos/index.php");
+if (!in_array($rol, ['investigador', 'profesor'])) {
+    header("Location: ../proyectos/tabla.php");
     exit;
 }
 
@@ -45,7 +46,7 @@ $paginacion  = $resultado['paginacion']  ?? [
     'total'        => count($solicitudes),
     'por_pagina'   => 6,
     'pagina'       => $pagina,
-    'total_paginas'=> max(1, ceil(count($solicitudes) / 6))
+    'total_paginas' => max(1, ceil(count($solicitudes) / 6))
 ];
 
 ob_start();
@@ -62,7 +63,7 @@ include __DIR__ . '/../../mensaje.php';
         <div class="col-md-6 text-md-end">
             <!-- Filtro por Periodo -->
             <form class="d-inline-flex align-items-center gap-2" method="GET">
-                <input type="hidden" name="tipo"   value="<?= htmlspecialchars($tipo_filtro) ?>">
+                <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">
                 <input type="hidden" name="buscar" value="<?= htmlspecialchars($buscar) ?>">
                 <label class="mb-0 text-nowrap fw-semibold">Periodo:</label>
                 <select name="id_periodo" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -126,31 +127,32 @@ include __DIR__ . '/../../mensaje.php';
 
         <!-- Tabs / filtros de tipo -->
         <div class="col-md-6 mb-2 mb-md-0">
-            <ul class="nav nav-pills">
-                <?php
-                $tabs = [
-                    'Todas'      => 'Todas',
-                    'Creacion'   => 'Creación',
-                    'Cierre'     => 'Cierre',
-                    'Pendientes' => 'Pendientes',
-                ];
-                foreach ($tabs as $key => $label):
-                    $activo = ($tipo_filtro === $key) ? 'active' : '';
-                    $url = '?tipo=' . urlencode($key) . '&buscar=' . urlencode($buscar) . '&id_periodo=' . $id_periodo;
-                ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $activo ?>" href="<?= $url ?>">
-                            <?= $label ?>
-                        </a>
-                    </li>
+            <?php
+            $tabs = [
+                'Todas'      => 'Todas',
+                'Creacion'   => 'Creación',
+                'Cierre'     => 'Cierre',
+                'Pendientes' => 'Pendientes',
+            ];
+            ?>
+
+            <select class="form-select"
+                onchange="location.href='?tipo=' + this.value + '&buscar=<?= urlencode($buscar) ?>&id_periodo=<?= $id_periodo ?>'">
+
+                <?php foreach ($tabs as $key => $label): ?>
+                    <option value="<?= htmlspecialchars($key) ?>"
+                        <?= ($tipo_filtro === $key) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($label) ?>
+                    </option>
                 <?php endforeach; ?>
-            </ul>
+
+            </select>
         </div>
 
         <!-- Búsqueda -->
         <div class="col-md-6">
             <form class="d-flex gap-2" method="GET">
-                <input type="hidden" name="tipo"       value="<?= htmlspecialchars($tipo_filtro) ?>">
+                <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">
                 <input type="hidden" name="id_periodo" value="<?= $id_periodo ?>">
                 <input type="text" name="buscar" class="form-control"
                     placeholder="Buscar por título..."

@@ -9,8 +9,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = $_SESSION['rol'];
-
+$rol = strtolower($_SESSION['rol'] ?? '');
 require_once '../../Controladores/institutoControlador.php';
 
 $controlador = new institutoControlador();
@@ -111,9 +110,9 @@ ob_start();
                     <option value="">Seleccione un director</option>
 
                     <?php foreach ($directores as $d):
-                        if ($d['estado']==1){
+                        if ($d['estado'] == 1) {
                             $activo = "activo";
-                        }else{
+                        } else {
                             $activo = "inactivo";
                         }
                         if ($activo) $hayActivos = true;
@@ -121,7 +120,7 @@ ob_start();
                         <option value="<?= $d['id_director']; ?>"
                             <?= ($instituto['id_director'] == $d['id_director']) ? 'selected' : ''; ?>
                             <?= !$activo ? 'disabled' : ''; ?>>
-                            <?= $d['nombre'] .' ' . $d['apellido']; ?>
+                            <?= $d['nombre'] . ' ' . $d['apellido']; ?>
                             <?= $activo ? '(Activo)' : '(Inactivo)'; ?>
                         </option>
                     <?php endforeach; ?>

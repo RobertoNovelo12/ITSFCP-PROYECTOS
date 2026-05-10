@@ -1,4 +1,5 @@
 <?php
+//Modelo de proyectos -> Maneja sobre proyectos y solicitudes de integración a proyectos
 
 require_once __DIR__ . '/../publico/config/conexion.php';
 

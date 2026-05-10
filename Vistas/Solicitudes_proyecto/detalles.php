@@ -1,3 +1,5 @@
+<!--detalles.php - > Página para ver detalles de cada solicitud.-->
+
 <?php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -14,8 +16,8 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo supervisor e investigador
-if (!in_array($rol, ['supervisor', 'investigador', 'profesor'])) {
-    header("Location: ../proyectos/index.php");
+if (!in_array($rol, ['investigador', 'profesor'])) {
+    header("Location: ../proyectos/tabla.php");
     exit;
 }
 
