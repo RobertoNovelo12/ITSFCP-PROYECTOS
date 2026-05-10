@@ -50,7 +50,7 @@ ob_start();
     <!-- HEADER -->
     <div class="row mb-3">
         <div class="col-md-6">
-            <h3 class="fw-bold">Historial del estudiante</h3>
+            <h3>Historial del estudiante</h3>
         </div>
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
             <a href="detalles.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary">

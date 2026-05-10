@@ -1060,11 +1060,13 @@ class Proyectos
             u.nombre, u.apellido_paterno, u.apellido_materno,
             c.nombre_carrera AS carrera,
             pu.estado,
+            ep.estado AS estado_proceso,
             hpu.motivo
         FROM proyectos_usuarios pu
         JOIN usuarios u ON u.id_usuarios = pu.id_usuarios
         JOIN estudiantes e ON e.id_usuarios = u.id_usuarios
         JOIN carreras c ON e.id_carrera = c.id_carrera
+        JOIN estados_proceso ep ON pu.id_estados_proceso = ep.id_estados_proceso
         LEFT JOIN (
             SELECT h1.id_proyectos, h1.id_estudiante, h1.motivo
             FROM historial_proyectos_usuarios h1

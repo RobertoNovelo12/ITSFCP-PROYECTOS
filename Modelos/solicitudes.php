@@ -549,8 +549,8 @@ WHERE CURDATE() > proy.fecha_fin
             FROM documentos_subidos ds
             LEFT JOIN seguimiento_documento seg ON seg.id_seguimiento = ds.id_seguimiento
             LEFT JOIN tipo_documento td         ON td.id_tipo_documento = seg.id_tipo_documento
-            WHERE ds.id_usuario  = ?
-              AND ds.id_proyecto = ?
+            WHERE ds.id_usuarios  = ?
+              AND ds.id_proyectos = ?
               AND ds.activo      = 1
               AND ds.tipo        = 'entrega'
             ORDER BY ds.fecha_subida DESC

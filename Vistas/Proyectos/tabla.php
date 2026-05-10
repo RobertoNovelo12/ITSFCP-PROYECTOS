@@ -66,9 +66,9 @@ include __DIR__ . '/../../mensaje.php';
                 <?php if ($rol === 'supervisor'): ?>
                     Proyectos Aprobados
                 <?php elseif ($rol === 'estudiante'): ?>
-                    Mis Proyectos
+                    Proyectos
                 <?php else: ?>
-                    Mis Proyectos
+                    Proyectos
                 <?php endif; ?>
             </h2>
         </div>
