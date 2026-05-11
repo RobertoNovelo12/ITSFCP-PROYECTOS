@@ -232,88 +232,88 @@ include __DIR__ . '/../../mensaje.php';
                                 </tbody>
                             </table>
                         </div>
-
-                        <!-- MÓVIL -->
-                        <div class="d-block d-md-none mt-3">
-                            <?php foreach ($solicitudes as $sol): ?>
-                                <div class="card mb-3 shadow-sm">
-                                    <div class="card-body">
-                                        <h6><?= htmlspecialchars($sol['titulo']) ?></h6>
-                                        <?php
-                                        $tipoLabel = ($sol['tipo_solicitud'] === 'creacion') ? 'Creación' : 'Cierre';
-                                        $tipoBadge = ($sol['tipo_solicitud'] === 'creacion') ? 'primary' : 'dark';
-                                        ?>
-                                        <p>
-                                            <strong>Tipo:</strong>
-                                            <span class="badge text-bg-<?= $tipoBadge ?>"><?= $tipoLabel ?></span>
-                                        </p>
-                                        <p><strong>Investigador:</strong> <?= htmlspecialchars($sol['investigador']) ?></p>
-                                        <p><strong>Periodo:</strong> <?= htmlspecialchars($sol['periodo']) ?></p>
-                                        <p><strong>Fecha:</strong> <?= $sol['fecha_solicitud'] ?></p>
-                                        <p>
-                                            <strong>Estado:</strong>
-                                            <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($sol['estado_proyecto']) ?>">
-                                                <?= htmlspecialchars($sol['estado_proyecto']) ?>
-                                            </span>
-                                        </p>
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            <?= $proyectoControlador->botonesAccionSolicitud(
-                                                $sol['id_proyectos'],
-                                                $rol,
-                                                $sol['tipo_solicitud'],
-                                                $sol['estado_proyecto']
-                                            ) ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-
-                        <!-- PAGINACIÓN -->
-                        <?php if ($paginacion['total_paginas'] > 1): ?>
-                            <nav class="mt-4">
-                                <ul class="pagination justify-content-center">
-
-                                    <?php
-                                    $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                                    $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
-                                    $base   = '?tipo=' . urlencode($tipo_filtro) . '&id_periodo=' . $id_periodo . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-                                    ?>
-
-                                    <li class="page-item disabled">
-                                        <span class="page-link">
-                                            Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total'] ?> entradas
-                                        </span>
-                                    </li>
-
-                                    <li class="page-item <?= ($paginacion['pagina'] <= 1) ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= $base ?>&pagina=<?= $paginacion['pagina'] - 1 ?>">&laquo;</a>
-                                    </li>
-
-                                    <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                                        <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                                            <a class="page-link" href="<?= $base ?>&pagina=<?= $i ?>"><?= $i ?></a>
-                                        </li>
-                                    <?php endfor; ?>
-
-                                    <li class="page-item <?= ($paginacion['pagina'] >= $paginacion['total_paginas']) ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= $base ?>&pagina=<?= $paginacion['pagina'] + 1 ?>">&raquo;</a>
-                                    </li>
-
-                                </ul>
-                            </nav>
-                        <?php endif; ?>
-
-                    <?php else: ?>
-                        <div class="alert alert-info text-center">
-                            No hay solicitudes para mostrar
-                        </div>
-                    <?php endif; ?>
-
                     </div>
                 </div>
+                <!-- MÓVIL -->
+                <div class="d-block d-md-none mt-3">
+                    <?php foreach ($solicitudes as $sol): ?>
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <h6><?= htmlspecialchars($sol['titulo']) ?></h6>
+                                <?php
+                                $tipoLabel = ($sol['tipo_solicitud'] === 'creacion') ? 'Creación' : 'Cierre';
+                                $tipoBadge = ($sol['tipo_solicitud'] === 'creacion') ? 'primary' : 'dark';
+                                ?>
+                                <p>
+                                    <strong>Tipo:</strong>
+                                    <span class="badge text-bg-<?= $tipoBadge ?>"><?= $tipoLabel ?></span>
+                                </p>
+                                <p><strong>Investigador:</strong> <?= htmlspecialchars($sol['investigador']) ?></p>
+                                <p><strong>Periodo:</strong> <?= htmlspecialchars($sol['periodo']) ?></p>
+                                <p><strong>Fecha:</strong> <?= $sol['fecha_solicitud'] ?></p>
+                                <p>
+                                    <strong>Estado:</strong>
+                                    <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($sol['estado_proyecto']) ?>">
+                                        <?= htmlspecialchars($sol['estado_proyecto']) ?>
+                                    </span>
+                                </p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <?= $proyectoControlador->botonesAccionSolicitud(
+                                        $sol['id_proyectos'],
+                                        $rol,
+                                        $sol['tipo_solicitud'],
+                                        $sol['estado_proyecto']
+                                    ) ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                <?php if ($paginacion['total_paginas'] > 1): ?>
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+
+                            <?php
+                            $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
+                            $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
+                            $base   = '?tipo=' . urlencode($tipo_filtro) . '&id_periodo=' . $id_periodo . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+                            ?>
+
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total'] ?> entradas
+                                </span>
+                            </li>
+
+                            <li class="page-item <?= ($paginacion['pagina'] <= 1) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="<?= $base ?>&pagina=<?= $paginacion['pagina'] - 1 ?>">&laquo;</a>
+                            </li>
+
+                            <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
+                                <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
+                                    <a class="page-link" href="<?= $base ?>&pagina=<?= $i ?>"><?= $i ?></a>
+                                </li>
+                            <?php endfor; ?>
+
+                            <li class="page-item <?= ($paginacion['pagina'] >= $paginacion['total_paginas']) ? 'disabled' : '' ?>">
+                                <a class="page-link" href="<?= $base ?>&pagina=<?= $paginacion['pagina'] + 1 ?>">&raquo;</a>
+                            </li>
+
+                        </ul>
+                    </nav>
+                <?php endif; ?>
+
+            <?php else: ?>
+                <div class="alert alert-info text-center">
+                    No hay solicitudes para mostrar
+                </div>
+            <?php endif; ?>
+
         </div>
     </div>
+
 
 </div>
 

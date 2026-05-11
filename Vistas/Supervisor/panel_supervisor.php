@@ -136,18 +136,27 @@ ob_start();
     <!-- MINI TARJETAS SOLICITUDES POR ESTADO -->
     <div class="row g-2 mb-4">
         <?php
+        $total_sol = max(1, array_sum(array_column($tabs_cards ?? [], 'val')));
         $tabs_cards = [
-            ['label' => 'Pendientes',  'val' => $resumen['solicitudes']['pendientes'] ?? 0,  'color' => 'secondary'],
-            ['label' => 'En revisión', 'val' => $resumen['solicitudes']['en_revision'] ?? 0, 'color' => 'info'],
+            ['label' => 'Pendientes',   'val' => $resumen['solicitudes']['pendientes']   ?? 0, 'color' => 'secondary'],
+            ['label' => 'En revisión',  'val' => $resumen['solicitudes']['en_revision']  ?? 0, 'color' => 'info'],
             ['label' => 'Correcciones', 'val' => $resumen['solicitudes']['correcciones'] ?? 0, 'color' => 'warning'],
-            ['label' => 'Aceptadas',   'val' => $resumen['solicitudes']['aceptadas'] ?? 0,   'color' => 'success'],
-            ['label' => 'Rechazadas',  'val' => $resumen['solicitudes']['rechazadas'] ?? 0,  'color' => 'danger'],
+            ['label' => 'Aceptadas',    'val' => $resumen['solicitudes']['aceptadas']    ?? 0, 'color' => 'success'],
+            ['label' => 'Rechazadas',   'val' => $resumen['solicitudes']['rechazadas']   ?? 0, 'color' => 'danger'],
         ];
-        foreach ($tabs_cards as $tc): ?>
+        $total_sol = max(1, array_sum(array_column($tabs_cards, 'val')));
+        foreach ($tabs_cards as $tc):
+            $pct = round(($tc['val'] / $total_sol) * 100);
+        ?>
             <div class="col">
-                <div class="card border-0 bg-light text-center py-2">
-                    <div class="fw-bold text-<?= $tc['color'] ?> fs-5"><?= $tc['val'] ?></div>
-                    <div class="small text-muted"><?= $tc['label'] ?></div>
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center px-1 py-2">
+                        <div class="fw-bold text-<?= $tc['color'] ?> fs-5"><?= $tc['val'] ?></div>
+                        <div class="small text-muted"><?= $tc['label'] ?></div>
+                        <div class="progress mt-2" style="height:4px;">
+                            <div class="progress-bar bg-<?= $tc['color'] ?>" style="width:<?= $pct ?>%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -171,9 +180,9 @@ ob_start();
         <?php endforeach; ?>
     </div>
 
-    <!-- ═══════════════════════════════════════
+    <!-- 
          TAB: RESUMEN
-    ═══════════════════════════════════════ -->
+     -->
     <?php if ($filtros['tab'] === 'resumen'): ?>
         <div class="row g-4">
             <div class="col-md-6">
@@ -340,9 +349,9 @@ ob_start();
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════════
+        <!-- 
          TAB: PROYECTOS
-    ═══════════════════════════════════════ -->
+     -->
     <?php elseif ($filtros['tab'] === 'proyectos'): ?>
 
         <div class="filter-bar">
@@ -516,9 +525,9 @@ ob_start();
         </div>
         <?= $ctrl->htmlPaginacion($pag_proy, 'pag_proy', 'proyectos', $filtros) ?>
 
-        <!-- ═══════════════════════════════════════
+        <!-- 
          TAB: SOLICITUDES
-    ═══════════════════════════════════════ -->
+     -->
     <?php elseif ($filtros['tab'] === 'solicitudes'): ?>
 
         <div class="filter-bar">
@@ -652,9 +661,9 @@ ob_start();
         </div>
         <?= $ctrl->htmlPaginacion($pag_sol, 'pag_sol', 'solicitudes', $filtros) ?>
 
-        <!-- ═══════════════════════════════════════
+        <!-- 
          TAB: ETAPAS & TAREAS
-    ═══════════════════════════════════════ -->
+     -->
     <?php elseif ($filtros['tab'] === 'etapas'): ?>
 
         <!-- Cards etapas (ya responsivas) -->
@@ -818,9 +827,9 @@ ob_start();
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════════
+        <!-- 
          TAB: ESTUDIANTES
-    ═══════════════════════════════════════ -->
+     -->
     <?php elseif ($filtros['tab'] === 'usuarios'): ?>
 
         <div class="filter-bar">

@@ -205,49 +205,62 @@ ob_start();
         <?php if (!empty($solicitudes)): ?>
             <?php foreach ($solicitudes as $s): ?>
                 <div class="card shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h6 class="fw-bold mb-0"><?= htmlspecialchars($s['investigador']) ?></h6>
-                                <small class="text-muted"><?= htmlspecialchars($s['correo_institucional']) ?></small>
+                    <div class="card-body pb-2">
+
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div style="min-width: 0; flex: 1 1 0;">
+                                <h6 class="fw-bold mb-0" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <?= htmlspecialchars($s['investigador']) ?>
+                                </h6>
+                                <small class="text-muted d-block" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <?= htmlspecialchars($s['correo_institucional']) ?>
+                                </small>
                             </div>
-                            <span class="badge rounded-pill bg-<?= $controlador->estiloEstado($s['estado']) ?>">
+                            <span class="badge rounded-pill bg-<?= $controlador->estiloEstado($s['estado']) ?> flex-shrink-0 align-self-start">
                                 <?= ucfirst($s['estado']) ?>
                             </span>
                         </div>
+
                         <hr class="my-2">
-                        <div class="row g-1 small">
-                            <div class="col-6">
-                                <strong>Tipo:</strong><br>
-                                <span class="badge bg-<?= $s['tipo'] === 'sni' ? 'primary' : 'success' ?> rounded-pill">
-                                    <?= $controlador->etiquetaTipo($s['tipo']) ?>
+                        <div class="mb-2">
+                            <small class="text-muted fw-semibold d-block mb-1">Tipo</small>
+                            <span class="badge bg-<?= $s['tipo'] === 'sni' ? 'primary' : 'success' ?> rounded-pill">
+                                <?= $controlador->etiquetaTipo($s['tipo']) ?>
+                            </span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted fw-semibold d-block mb-1">Solicitud</small>
+                            <div class="d-flex align-items-center flex-wrap gap-1">
+                                <span class="badge bg-secondary-subtle text-secondary border">
+                                    <?= htmlspecialchars($s['valor_actual_nombre'] ?? '—') ?>
+                                </span>
+                                <i class="bi bi-arrow-right text-muted"></i>
+                                <span class="badge bg-primary text-white">
+                                    <?= htmlspecialchars($s['valor_nuevo_nombre'] ?? '—') ?>
                                 </span>
                             </div>
-                            <div class="col-6">
-                                <strong>Solicitud:</strong><br>
-                                <?= htmlspecialchars($s['valor_actual_nombre'] ?? '—') ?>
-                                <i class="bi bi-arrow-right mx-1"></i>
-                                <strong><?= htmlspecialchars($s['valor_nuevo_nombre'] ?? '—') ?></strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
+                            <div>
+                                <small class="text-muted fw-semibold d-block mb-1">Fecha</small>
+                                <small><?= date("d/m/Y H:i", strtotime($s['fecha_solicitud'])) ?></small>
                             </div>
-                            <div class="col-6 mt-2">
-                                <strong>Fecha:</strong><br>
-                                <?= date("d/m/Y H:i", strtotime($s['fecha_solicitud'])) ?>
-                            </div>
-                            <div class="col-6 mt-2">
-                                <strong>Documento:</strong><br>
+                            <div>
+                                <small class="text-muted fw-semibold d-block mb-1">Documento</small>
                                 <?php if (!empty($s['nombre_archivo'])): ?>
                                     <a href="<?= htmlspecialchars($s['ruta']) ?>" target="_blank"
                                         class="btn btn-sm btn-outline-danger py-0 px-2">
                                         <i class="bi bi-file-earmark-pdf-fill"></i> PDF
                                     </a>
                                 <?php else: ?>
-                                    <span class="text-muted">Sin doc.</span>
+                                    <small class="text-muted">Sin doc.</small>
                                 <?php endif; ?>
                             </div>
                         </div>
+
                     </div>
-                    <div class="card-footer bg-white border-top">
-                        <div class="d-flex justify-content-center gap-2">
+                    <div class="card-footer bg-white">
+                        <div class="d-flex justify-content-center">
                             <?= $controlador->botonesAccion($s['id_solicitudes_actualizacion'], $s['estado']) ?>
                         </div>
                     </div>

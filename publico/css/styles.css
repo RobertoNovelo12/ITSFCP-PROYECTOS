@@ -5617,3 +5617,8 @@ summary {
   background: #dc3545;
   color: #fff;
 }
+
+/*Para los minis helpes del panel de supervisor*/
+.min-w-0 {
+  min-width: 0;
+}
