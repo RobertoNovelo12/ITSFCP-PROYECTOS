@@ -61,7 +61,7 @@ include __DIR__ . '/../../mensaje.php';
             <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tarea['estado'] ?? '') ?>">
                 <?= htmlspecialchars($tarea['estado'] ?? '') ?>
             </span>
-            <a href="tabla.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>"
+            <a href="index.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>"
                class="btn btn-secondary btn-sm px-3">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>

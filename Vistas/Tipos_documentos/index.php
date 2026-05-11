@@ -61,55 +61,59 @@ include __DIR__ . '/../../mensaje.php';
         </select>
     </div>
     <!-- TABLA LAPTOP -->
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-hover text-center align-middle">
-            <thead>
-                <tr>
-                    <?php
-                    foreach ($encabezados as $encabezado) {
-                        echo "<th>{$encabezado}</th>";
-                    }
-                    ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($rol == "supervisor"): ?>
-                    <?php foreach ($documentos as $doc): ?>
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
                         <tr>
-                            <th scope="row"><?= $doc['nombre'] ?? '-' ?></th>
-                            <td><?= htmlspecialchars(ucfirst($doc['categoria']) ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td title="<?= htmlspecialchars($doc['descripcion']) ?>">
-                                <?= strlen($doc['descripcion']) > 60
-                                    ? substr($doc['descripcion'], 0, 60) . '...'
-                                    : $doc['descripcion']; ?>
-                            </td>
-                            <th scope="row"><?= $doc['orden'] ?? '-' ?></th>
-                            <td>
-                                <span class="badge rounded-pill text-bg-<?php echo $ajustesTiposDocumentoscontrolador->EstiloEstado($doc['estados']); ?>">
-                                    <?= htmlspecialchars($doc['estados']) ?>
-                                </span>
-                            </td>
-                            <!-- Acciones -->
-                            <td>
-                                <a href="editar.php?id_tipo_documento=<?= $doc['id_tipo_documento'] ?>" type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
-                                    data-bs-custom-class="custom-tooltip" data-bs-title="Editar Tipo de documento"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
-                                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
-                                    </svg></a>
-                            </td>
+                            <?php
+                            foreach ($encabezados as $encabezado) {
+                                echo "<th>{$encabezado}</th>";
+                            }
+                            ?>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="7">
-                            <div class="alert alert-danger">
-                                No tiene permiso para editar los tipos de documentos
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        <?php if ($rol == "supervisor"): ?>
+                            <?php foreach ($documentos as $doc): ?>
+                                <tr>
+                                    <th scope="row"><?= $doc['nombre'] ?? '-' ?></th>
+                                    <td><?= htmlspecialchars(ucfirst($doc['categoria']) ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td title="<?= htmlspecialchars($doc['descripcion']) ?>">
+                                        <?= strlen($doc['descripcion']) > 60
+                                            ? substr($doc['descripcion'], 0, 60) . '...'
+                                            : $doc['descripcion']; ?>
+                                    </td>
+                                    <th scope="row"><?= $doc['orden'] ?? '-' ?></th>
+                                    <td>
+                                        <span class="badge rounded-pill text-bg-<?php echo $ajustesTiposDocumentoscontrolador->EstiloEstado($doc['estados']); ?>">
+                                            <?= htmlspecialchars($doc['estados']) ?>
+                                        </span>
+                                    </td>
+                                    <!-- Acciones -->
+                                    <td>
+                                        <a href="editar.php?id_tipo_documento=<?= $doc['id_tipo_documento'] ?>" type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            data-bs-custom-class="custom-tooltip" data-bs-title="Editar Tipo de documento"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                                            </svg></a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7">
+                                    <div class="alert alert-danger">
+                                        No tiene permiso para editar los tipos de documentos
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TARJETAS MOVIL -->

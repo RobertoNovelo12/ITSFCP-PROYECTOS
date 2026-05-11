@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_periodo') {
     $periodoControlador->eliminar($id_periodos, $rol);
 
     // Redirigir para evitar doble ejecución
-    header("Location: tabla.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -83,7 +83,7 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row g-2 mb-4">
         <div class="col-12 col-md-4">
             <select class="form-select"
-                onchange="location.href='tabla.php?action=' + this.value;">
+                onchange="location.href='index.php?action=' + this.value;">
                 <?php foreach ($opciones as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"
                         <?= ($action === $key) ? 'selected' : '' ?>>
@@ -93,7 +93,7 @@ include __DIR__ . '/../../mensaje.php';
             </select>
         </div>
         <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="tabla.php">
+            <form class="d-flex gap-2" method="GET" action="index.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                 <input type="text"
                     name="buscar"
@@ -107,65 +107,69 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
     <!-- TABLA LAPTOP -->
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-hover text-center align-middle">
-            <thead>
-                <tr>
-                    <?php
-                    foreach ($encabezados as $encabezado) {
-                        echo "<th>{$encabezado}</th>";
-                    }
-                    ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($rol == "supervisor"): ?>
-                    <?php if (!empty($periodos)) { ?>
-                        <?php foreach ($periodos as $per): ?>
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <?php
+                            foreach ($encabezados as $encabezado) {
+                                echo "<th>{$encabezado}</th>";
+                            }
+                            ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($rol == "supervisor"): ?>
+                            <?php if (!empty($periodos)) { ?>
+                                <?php foreach ($periodos as $per): ?>
+                                    <tr>
+                                        <td><?= $per['periodo'] ?></td>
+                                        <td>
+                                            <?= date("d/m/Y", strtotime($per['inicio'])) ?>
+                                        </td>
+                                        <td>
+                                            <?= date("d/m/Y", strtotime($per['final'])) ?>
+                                        </td>
+                                        <td>
+                                            <?= date("d/m/Y", strtotime($per['crear'])) ?>
+                                        </td>
+                                        <td>
+                                            <?= date("H:i", strtotime($per['crear'])) ?>
+                                        </td>
+                                        <td>
+                                            <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
+                                                <?= htmlspecialchars($per['estados']) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?= $periodoControlador->botonesAccionPrincipal($per['id_periodos'], $rol, $per['estados']) ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php } else { ?>
+                                <td colspan="7">
+                                    <div class="alert alert-danger">
+                                        No hay periodos
+                                    </div>
+                                </td>
+                                </tr>
+                            <?php } ?>
+                        <?php else: ?>
+
                             <tr>
-                                <td><?= $per['periodo'] ?></td>
-                                <td>
-                                    <?= date("d/m/Y", strtotime($per['inicio'])) ?>
-                                </td>
-                                <td>
-                                    <?= date("d/m/Y", strtotime($per['final'])) ?>
-                                </td>
-                                <td>
-                                    <?= date("d/m/Y", strtotime($per['crear'])) ?>
-                                </td>
-                                <td>
-                                    <?= date("H:i", strtotime($per['crear'])) ?>
-                                </td>
-                                <td>
-                                    <span class="badge rounded-pill text-bg-<?php echo $periodoControlador->EstiloEstadoLista($per['estados']); ?>">
-                                        <?= htmlspecialchars($per['estados']) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?= $periodoControlador->botonesAccionPrincipal($per['id_periodos'], $rol, $per['estados']) ?>
+                                <td colspan="7">
+                                    <div class="alert alert-danger">
+                                        No tiene permiso para editar el periodo
+                                    </div>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php } else { ?>
-                        <td colspan="7">
-                            <div class="alert alert-danger">
-                                No hay periodos
-                            </div>
-                        </td>
-                        </tr>
-                    <?php } ?>
-                <?php else: ?>
-
-                    <tr>
-                        <td colspan="7">
-                            <div class="alert alert-danger">
-                                No tiene permiso para editar el periodo
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TARJETAS MOVIL -->

@@ -280,19 +280,19 @@ class ajustesTiposDocumentoscontrolador
 
 
             if (!$id_tipo_documento) {
-                header("Location: tabla.php?error=10");
+                header("Location: index.php?error=10");
                 exit;
             }
             $conn->commit();
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit;
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
 
             if ($e->getCode() == 1062) {
-                header("Location: tabla.php?error=duplicado");
+                header("Location: index.php?error=duplicado");
             } else {
-                header("Location: tabla.php?error=2");
+                header("Location: index.php?error=2");
             }
 
             exit;
@@ -320,7 +320,7 @@ class ajustesTiposDocumentoscontrolador
                 throw new Exception("Error al eliminar");
             }
             $conn->commit();
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit;
         } catch (Throwable $e) {
 
@@ -331,7 +331,7 @@ class ajustesTiposDocumentoscontrolador
 
             error_log("Error en eliminar(): " . $e->getMessage());
 
-            header("Location: tabla.php?error=10");
+            header("Location: index.php?error=10");
             exit;
         }
     }
@@ -354,15 +354,15 @@ class ajustesTiposDocumentoscontrolador
             $ajustes->reactivar($id_tipo_documento);
 
             $conn->commit();
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit;
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
 
             if ($e->getCode() == 1062) {
-                header("Location: tabla.php?error=duplicado");
+                header("Location: index.php?error=duplicado");
             } else {
-                header("Location: tabla.php?error=2");
+                header("Location: index.php?error=2");
             }
 
             exit;

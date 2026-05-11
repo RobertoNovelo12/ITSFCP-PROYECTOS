@@ -114,9 +114,9 @@ class SolicitudActualizacionControlador
                     $det['tipo']
                 );
             }
-            header("Location: tabla.php?msg=aprobado");
+            header("Location: index.php?msg=aprobado");
         } else {
-            header("Location: tabla.php?error=" . urlencode($resultado['msg']));
+            header("Location: index.php?error=" . urlencode($resultado['msg']));
         }
         exit;
     }
@@ -150,7 +150,7 @@ class SolicitudActualizacionControlador
                     $det['tipo']
                 );
             }
-            header("Location: tabla.php?msg=rechazado");
+            header("Location: index.php?msg=rechazado");
         } else {
             header("Location: respuesta.php?id_solicitud=" . $id_solicitud . "&error=" . urlencode($resultado['msg']));
         }
@@ -195,7 +195,7 @@ class SolicitudActualizacionControlador
                   </a> ';
 
         if ($estado === 'pendiente') {
-            $html .= '<a href="tabla.php?action=aprobar&id_solicitud=' . $id_solicitud . '"
+            $html .= '<a href="index.php?action=aprobar&id_solicitud=' . $id_solicitud . '"
                          class="btn btn-sm btn-success"
                          data-bs-toggle="tooltip" title="Aprobar"
                          onclick="return confirm(\'¿Aprobar esta solicitud?\')">

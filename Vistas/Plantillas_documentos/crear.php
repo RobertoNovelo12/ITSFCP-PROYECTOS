@@ -104,7 +104,7 @@ include __DIR__ . '/../../error.php';
             <h3>Crear Plantilla de documento</h3>
         </div>
         <div class="col-6 text-end">
-            <a href="tabla.php" class="btn btn-danger">Regresar</a>
+            <a href="index.php" class="btn btn-danger">Regresar</a>
         </div>
     </div>
     <!-- DATOS Plantilla de documento -->

@@ -18,39 +18,41 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 $buscar = $_GET['buscar'] ?? '';
 $pagina = intval($_GET['pagina'] ?? 1);
 
-include "../../Controladores/gradoacademicoControlador.php";
+include "../../Controladores/carreraControlador.php";
 
-$gradoacademicoControlador = new gradoacademicoControlador();
+$carreraControlador = new carreraControlador();
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_grados_academicos') {
-    $id_grado = intval($_GET['id_grado']);
-    $gradoacademicoControlador->eliminar($rol, $id_grado);
-    header("Location: tabla.php");
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_carrera') {
+    $id_carrera = intval($_GET['id_carrera']);
+
+    $carreraControlador->eliminar($rol, $id_carrera);
+
+    header("Location: index.php");
     exit;
 }
 
-if (!method_exists($gradoacademicoControlador, $action)) {
+if (!method_exists($carreraControlador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");
 }
 
-$resultado = $gradoacademicoControlador->$action($rol, $buscar);
+$resultado = $carreraControlador->$action($rol, $buscar);
 
 if (is_string($resultado)) {
     $resultado = json_decode($resultado, true);
 }
 
-$registros = $resultado['grados_academicos'] ?? [];
+$carreras = $resultado['carrera'] ?? [];
 
 $paginacion = $resultado['paginacion'] ?? [
-    'total' => count($registros),
+    'total' => count($carreras),
     'por_pagina' => 6,
     'pagina' => $pagina,
-    'total_paginas' => max(1, ceil(count($registros) / 6))
+    'total_paginas' => max(1, ceil(count($carreras) / 6))
 ];
 
-$filtros = $gradoacademicoControlador->filtros($rol);
-$encabezados = $gradoacademicoControlador->encabezadosPrincipal($rol);
-$opciones = $gradoacademicoControlador->opciones($rol, $filtros);
+$filtros = $carreraControlador->filtros($rol);
+$encabezados = $carreraControlador->encabezadosPrincipal($rol);
+$opciones = $carreraControlador->opciones($rol, $filtros);
 
 ob_start();
 include __DIR__ . '/../../mensaje.php';
@@ -62,23 +64,24 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row mb-4 align-items-center">
 
         <div class="col-12 col-md-6">
-            <h3 class="fw-bold mb-2 mb-md-0">Grado Académico</h3>
+            <h3 class="fw-bold mb-2 mb-md-0">Carreras</h3>
         </div>
 
         <div class="col-12 col-md-6 text-md-end">
             <?php if ($rol == "supervisor"): ?>
                 <a href="crear.php" class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i> Crear Grado Académico
+                    <i class="bi bi-plus-lg"></i> Crear Carrera
                 </a>
             <?php endif; ?>
         </div>
     </div>
 
     <!-- FILTROS Y BUSQUEDA -->
+
     <div class="row g-2 mb-4">
         <div class="col-12 col-md-4">
             <select class="form-select"
-                onchange="location.href='tabla.php?action=' + this.value;">
+                onchange="location.href='index.php?action=' + this.value;">
                 <?php foreach ($opciones as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"
                         <?= ($action === $key) ? 'selected' : '' ?>>
@@ -88,7 +91,7 @@ include __DIR__ . '/../../mensaje.php';
             </select>
         </div>
         <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="tabla.php">
+            <form class="d-flex gap-2" method="GET" action="index.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                 <input type="text"
                     name="buscar"
@@ -103,71 +106,76 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 
     <!-- TABLA LAPTOP -->
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-hover text-center align-middle">
-            <thead>
-                <tr>
-                    <?php
-                    foreach ($encabezados as $encabezado) {
-                        echo "<th>{$encabezado}</th>";
-                    }
-                    ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($rol == "supervisor"): ?>
-                    <?php if (!empty($registros)) { ?>
-                        <?php foreach ($registros as $reg): ?>
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <?php
+                            foreach ($encabezados as $encabezado) {
+                                echo "<th>{$encabezado}</th>";
+                            }
+                            ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($rol == "supervisor"): ?>
+                            <?php if (!empty($carreras)) { ?>
+                                <?php foreach ($carreras as $car): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($car['nombre_carrera']) ?></td>
+                                        <td>
+                                            <?= date("d/m/Y", strtotime($car['crear'])) ?>
+                                        </td>
+                                        <td>
+                                            <?= date("H:i", strtotime($car['crear'])) ?>
+                                        </td>
+                                        <td>
+                                            <span class="badge rounded-pill text-bg-<?php echo $carreraControlador->EstiloEstadoLista($car['estados']); ?>">
+                                                <?= htmlspecialchars($car['estados']) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?= $carreraControlador->botonesAccionPrincipal($car['id_carrera'], $rol, $car['estados']) ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php } else { ?>
+                                <td colspan="5">
+                                    <div class="alert alert-danger">
+                                        No hay carreras registradas
+                                    </div>
+                                </td>
+                                </tr>
+                            <?php } ?>
+                        <?php else: ?>
                             <tr>
-                                <td><?= htmlspecialchars($reg['nombre']) ?></td>
-                                <td>
-                                    <?= date("d/m/Y", strtotime($reg['crear'])) ?>
-                                </td>
-                                <td>
-                                    <?= date("H:i", strtotime($reg['crear'])) ?>
-                                </td>
-                                <td>
-                                    <span class="badge rounded-pill text-bg-<?php echo $gradoacademicoControlador->EstiloEstadoLista($reg['estados']); ?>">
-                                        <?= htmlspecialchars($reg['estados']) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?= $gradoacademicoControlador->botonesAccionPrincipal($reg['id_grado'], $rol, $reg['estados']) ?>
+                                <td colspan="5">
+                                    <div class="alert alert-danger">
+                                        No tiene permiso para ver las carreras
+                                    </div>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php } else { ?>
-                        <td colspan="5">
-                            <div class="alert alert-danger">
-                                No hay Grado Académico registrados
-                            </div>
-                        </td>
-                        </tr>
-                    <?php } ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="5">
-                            <div class="alert alert-danger">
-                                No tiene permiso para ver Grado Académico
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TARJETAS MOVIL -->
+
     <div class="d-block d-md-none">
-        <?php foreach ($registros as $reg): ?>
+        <?php foreach ($carreras as $car): ?>
             <div class="card shadow-sm mb-3">
                 <div class="card-body text-center">
                     <h5 class="fw-bold">
-                        <?= htmlspecialchars($reg['nombre']) ?>
+                        <?= htmlspecialchars($car['nombre_carrera']) ?>
                     </h5>
                     <h5 class="fw-bold">
-                        <span class="badge rounded-pill text-bg-<?php echo $gradoacademicoControlador->EstiloEstadoLista($reg['estados']); ?>">
-                            <?= htmlspecialchars($reg['estados']) ?>
+                        <span class="badge rounded-pill text-bg-<?php echo $carreraControlador->EstiloEstadoLista($car['estados']); ?>">
+                            <?= htmlspecialchars($car['estados']) ?>
                         </span>
                     </h5>
                 </div>
@@ -177,13 +185,13 @@ include __DIR__ . '/../../mensaje.php';
                             <div class="col-6">
                                 <strong>Fecha creación</strong>
                                 <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($reg['crear'])) ?>
+                                    <?= date("d/m/Y", strtotime($car['crear'])) ?>
                                 </p>
                             </div>
                             <div class="col-6">
                                 <strong>Hora creación</strong>
                                 <p class="mb-0">
-                                    <?= date("H:i", strtotime($reg['crear'])) ?>
+                                    <?= date("H:i", strtotime($car['crear'])) ?>
                                 </p>
                             </div>
                         </div>
@@ -191,7 +199,7 @@ include __DIR__ . '/../../mensaje.php';
                 </ul>
                 <div class="card-body">
                     <div class="d-flex justify-content-center gap-2">
-                        <?php echo $gradoacademicoControlador->botonesAccionPrincipal($reg['id_grado'], $rol, $reg['estados']); ?>
+                        <?php echo $carreraControlador->botonesAccionPrincipal($car['id_carrera'], $rol, $car['estados']); ?>
                     </div>
                 </div>
             </div>
@@ -199,6 +207,7 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 
     <!-- PAGINACION -->
+
     <?php if ($paginacion['total_paginas'] > 1): ?>
         <nav class="mt-4">
             <ul class="pagination justify-content-center">
@@ -226,7 +235,7 @@ include __DIR__ . '/../../mensaje.php';
 <?php
 
 $contenido = ob_get_clean();
-$titulo = "Grado Académico";
+$titulo = "Carreras";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';

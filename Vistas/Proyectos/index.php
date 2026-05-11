@@ -46,7 +46,7 @@ $paginacion = $resultado['paginacion'] ?? [
     'total'        => count($proyectos),
     'por_pagina'   => 6,
     'pagina'       => $pagina,
-    'total_paginas'=> max(1, ceil(count($proyectos) / 6))
+    'total_paginas' => max(1, ceil(count($proyectos) / 6))
 ];
 
 $filtros    = $proyectoControlador->filtros($id_usuario, $rol);
@@ -88,7 +88,7 @@ include __DIR__ . '/../../mensaje.php';
 
                 <div class="col-md-6 mb-3">
                     <select class="form-select"
-                        onchange="location.href='tabla.php?action=' + this.value;">
+                        onchange="location.href='index.php?action=' + this.value;">
                         <?php foreach ($opciones as $key => $label): ?>
                             <option value="<?= htmlspecialchars($key) ?>"
                                 <?= ($action === $key) ? 'selected' : '' ?>>
@@ -119,78 +119,82 @@ include __DIR__ . '/../../mensaje.php';
             <?php if (!empty($proyectos)): ?>
 
                 <!-- ESCRITORIO -->
-                <div class="table-responsive d-none d-md-block">
-                    <table class="table table-hover text-center align-middle">
-                        <thead>
-                            <tr>
-                                <?php foreach ($encabezados as $encabezado): ?>
-                                    <th><?= htmlspecialchars($encabezado) ?></th>
-                                <?php endforeach; ?>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($proyectos as $proyecto): ?>
-                                <tr>
+                <div class="card shadow-sm d-none d-md-block">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <?php foreach ($encabezados as $encabezado): ?>
+                                            <th><?= htmlspecialchars($encabezado) ?></th>
+                                        <?php endforeach; ?>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($proyectos as $proyecto): ?>
+                                        <tr>
 
-                                    <th><?= $proyecto['id_proyectos'] ?></th>
+                                            <th><?= $proyecto['id_proyectos'] ?></th>
 
-                                    <td title="<?= htmlspecialchars($proyecto['titulo']) ?>">
-                                        <?= strlen($proyecto['titulo']) > 60
-                                            ? substr($proyecto['titulo'], 0, 60) . '...'
-                                            : $proyecto['titulo']; ?>
-                                    </td>
+                                            <td title="<?= htmlspecialchars($proyecto['titulo']) ?>">
+                                                <?= strlen($proyecto['titulo']) > 60
+                                                    ? substr($proyecto['titulo'], 0, 60) . '...'
+                                                    : $proyecto['titulo']; ?>
+                                            </td>
 
-                                    <td><?= $proyecto['fecha_inicio'] ?></td>
-                                    <td><?= $proyecto['fecha_fin'] ?></td>
+                                            <td><?= $proyecto['fecha_inicio'] ?></td>
+                                            <td><?= $proyecto['fecha_fin'] ?></td>
 
-                                    <!-- ESTADO PROYECTO -->
-                                    <td>
-                                        <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
-                                            <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
-                                        </span>
-                                    </td>
+                                            <!-- ESTADO PROYECTO -->
+                                            <td>
+                                                <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
+                                                    <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
+                                                </span>
+                                            </td>
 
-                                    <!-- ESTADO ESTUDIANTE: solo para rol estudiante -->
-                                    <?php if ($rol === 'estudiante'): ?>
-                                        <td>
-                                            <?php
-                                            $estadoEst = $proyecto['estado_estudiante'] ?? 'sin_asignar';
-                                            $clase = ($estadoEst == 'baja') ? 'danger'
-                                                : (($estadoEst == 'concluido') ? 'success' : 'primary');
-                                            ?>
-                                            <span class="badge text-bg-<?= $clase ?>">
-                                                <?= strtoupper($estadoEst) ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a href="../Seguimiento/seguimiento.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>"
-                                               class="btn btn-sm btn-primary">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                    fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16">
-                                                    <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z"/>
-                                                </svg>
-                                            </a>
-                                        </td>
-                                    <?php endif; ?>
+                                            <!-- ESTADO ESTUDIANTE: solo para rol estudiante -->
+                                            <?php if ($rol === 'estudiante'): ?>
+                                                <td>
+                                                    <?php
+                                                    $estadoEst = $proyecto['estado_estudiante'] ?? 'sin_asignar';
+                                                    $clase = ($estadoEst == 'baja') ? 'danger'
+                                                        : (($estadoEst == 'concluido') ? 'success' : 'primary');
+                                                    ?>
+                                                    <span class="badge text-bg-<?= $clase ?>">
+                                                        <?= strtoupper($estadoEst) ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="../Seguimiento/seguimiento.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>"
+                                                        class="btn btn-sm btn-primary">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                            fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16">
+                                                            <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z" />
+                                                        </svg>
+                                                    </a>
+                                                </td>
+                                            <?php endif; ?>
 
-                                    <td><?= $proyecto['periodo'] ?></td>
-                                    <td><?= $proyecto['total'] ?></td>
+                                            <td><?= $proyecto['periodo'] ?></td>
+                                            <td><?= $proyecto['total'] ?></td>
 
-                                    <td>
-                                        <?= $proyectoControlador->botonesAccion(
-                                            $proyecto['id_proyectos'],
-                                            $rol,
-                                            $proyecto['estado_proyecto'],
-                                            $id_usuario,
-                                            $proyecto['puede_cerrar'] ?? 0,
-                                            $proyecto['estado_estudiante'] ?? null
-                                        ); ?>
-                                    </td>
+                                            <td>
+                                                <?= $proyectoControlador->botonesAccion(
+                                                    $proyecto['id_proyectos'],
+                                                    $rol,
+                                                    $proyecto['estado_proyecto'],
+                                                    $id_usuario,
+                                                    $proyecto['puede_cerrar'] ?? 0,
+                                                    $proyecto['estado_estudiante'] ?? null
+                                                ); ?>
+                                            </td>
 
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- MÓVIL -->

@@ -23,7 +23,7 @@ include "../../Controladores/tematicaControlador.php";
 $tematicaControlador = new tematicaControlador();
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_tematica') {
     $id_tematica = intval($_GET['id_tematica']);
-    
+
     $tematicaControlador->eliminar_tematica($id_tematica, $rol);
 
     // Redirigir para evitar doble ejecución
@@ -105,64 +105,68 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
     <!-- TABLA LAPTOP -->
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-hover text-center align-middle">
-            <thead>
-                <tr>
-                    <?php
-                    foreach ($encabezados as $encabezado) {
-                        echo "<th>{$encabezado}</th>";
-                    }
-                    ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($rol == "supervisor"): ?>
-                    <?php foreach ($tematica as $tem): ?>
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
                         <tr>
-                            <td><?= $tem['tematica'] ?></td>
-                            <td title="<?= htmlspecialchars($tem['descripcion']) ?>">
-                                <?= strlen($tem['descripcion']) > 60
-                                    ? substr($tem['descripcion'], 0, 60) . '...'
-                                    : $tem['descripcion']; ?>
-                            </td>
-                            <td><?= $tem['total'] ?></td>
-                            <td>
-                                <span class="badge rounded-pill text-bg-<?php echo $tematicaControlador->EstiloEstadoLista($tem['estado']); ?>">
-                                    <?= htmlspecialchars($tem['estado']) ?>
-                                </span>
-                            </td>
-                            <td>
-                                <?= date("d/m/Y", strtotime($tem['creacion'])) ?>
-                                <br>
-                                <?= date("H:i", strtotime($tem['creacion'])) ?>
-                            </td>
-                            <td>
-                                <?php
-                                if (!empty($tem['modificacion'])) {
-                                    echo date("d/m/Y", strtotime($tem['modificacion'])) . "<br>";
-                                    echo date("H:i", strtotime($tem['modificacion']));
-                                } else {
-                                    echo "No modificado";
-                                }
-                                ?>
-                            </td>
-                            <td>
-                                <?= $tematicaControlador->botonesAccionPrincipal($tem['id_tematica'], $rol, $tem['estado']) ?>
-                            </td>
+                            <?php
+                            foreach ($encabezados as $encabezado) {
+                                echo "<th>{$encabezado}</th>";
+                            }
+                            ?>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="7">
-                            <div class="alert alert-danger">
-                                No tiene permiso para editar la temática y subtemática
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        <?php if ($rol == "supervisor"): ?>
+                            <?php foreach ($tematica as $tem): ?>
+                                <tr>
+                                    <td><?= $tem['tematica'] ?></td>
+                                    <td title="<?= htmlspecialchars($tem['descripcion']) ?>">
+                                        <?= strlen($tem['descripcion']) > 60
+                                            ? substr($tem['descripcion'], 0, 60) . '...'
+                                            : $tem['descripcion']; ?>
+                                    </td>
+                                    <td><?= $tem['total'] ?></td>
+                                    <td>
+                                        <span class="badge rounded-pill text-bg-<?php echo $tematicaControlador->EstiloEstadoLista($tem['estado']); ?>">
+                                            <?= htmlspecialchars($tem['estado']) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?= date("d/m/Y", strtotime($tem['creacion'])) ?>
+                                        <br>
+                                        <?= date("H:i", strtotime($tem['creacion'])) ?>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        if (!empty($tem['modificacion'])) {
+                                            echo date("d/m/Y", strtotime($tem['modificacion'])) . "<br>";
+                                            echo date("H:i", strtotime($tem['modificacion']));
+                                        } else {
+                                            echo "No modificado";
+                                        }
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?= $tematicaControlador->botonesAccionPrincipal($tem['id_tematica'], $rol, $tem['estado']) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7">
+                                    <div class="alert alert-danger">
+                                        No tiene permiso para editar la temática y subtemática
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TARJETAS MOVIL -->

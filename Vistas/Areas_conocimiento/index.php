@@ -24,11 +24,11 @@ $areaControlador = new AreaConocimientoControlador();
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_area') {
     $id_area = intval($_GET['id_area']);
-    
+
     $areaControlador->eliminar_area($id_area, $rol);
 
     // Redirigir para evitar doble ejecución
-    header("Location: tabla.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -84,7 +84,7 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row g-2 mb-4">
         <div class="col-12 col-md-4">
             <select class="form-select"
-                onchange="location.href='tabla.php?action=' + this.value;">
+                onchange="location.href='index.php?action=' + this.value;">
                 <?php foreach ($opciones as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"
                         <?= ($action === $key) ? 'selected' : '' ?>>
@@ -94,7 +94,7 @@ include __DIR__ . '/../../mensaje.php';
             </select>
         </div>
         <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="tabla.php">
+            <form class="d-flex gap-2" method="GET" action="index.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                 <input type="text"
                     name="buscar"
@@ -108,64 +108,68 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
     <!-- TABLA LAPTOP -->
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-hover text-center align-middle">
-            <thead>
-                <tr>
-                    <?php
-                    foreach ($encabezados as $encabezado) {
-                        echo "<th>{$encabezado}</th>";
-                    }
-                    ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($rol == "supervisor"): ?>
-                    <?php foreach ($area as $ar): ?>
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
                         <tr>
-                            <td><?= $ar['nombre'] ?></td>
-                            <td title="<?= htmlspecialchars($ar['descripcion']) ?>">
-                                <?= strlen($ar['descripcion']) > 60
-                                    ? substr($ar['descripcion'], 0, 60) . '...'
-                                    : $ar['descripcion']; ?>
-                            </td>
-                            <td><?= $ar['total'] ?></td>
-                            <td>
-                                <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar['estado']); ?>">
-                                    <?= htmlspecialchars($ar['estado']) ?>
-                                </span>
-                            </td>
-                            <td>
-                                <?= date("d/m/Y", strtotime($ar['creacion'])) ?>
-                                <br>
-                                <?= date("H:i", strtotime($ar['creacion'])) ?>
-                            </td>
-                            <td>
-                                <?php
-                                if (!empty($ar['modificacion'])) {
-                                    echo date("d/m/Y", strtotime($ar['modificacion'])) . "<br>";
-                                    echo date("H:i", strtotime($ar['modificacion']));
-                                } else {
-                                    echo "No modificado";
-                                }
-                                ?>
-                            </td>
-                            <td>
-                                <?= $areaControlador->botonesAccionPrincipal($ar['id_area'], $rol, $ar['estado']) ?>
-                            </td>
+                            <?php
+                            foreach ($encabezados as $encabezado) {
+                                echo "<th>{$encabezado}</th>";
+                            }
+                            ?>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="7">
-                            <div class="alert alert-danger">
-                                No tiene permiso para editar el área y subarea de
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        <?php if ($rol == "supervisor"): ?>
+                            <?php foreach ($area as $ar): ?>
+                                <tr>
+                                    <td><?= $ar['nombre'] ?></td>
+                                    <td title="<?= htmlspecialchars($ar['descripcion']) ?>">
+                                        <?= strlen($ar['descripcion']) > 60
+                                            ? substr($ar['descripcion'], 0, 60) . '...'
+                                            : $ar['descripcion']; ?>
+                                    </td>
+                                    <td><?= $ar['total'] ?></td>
+                                    <td>
+                                        <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar['estado']); ?>">
+                                            <?= htmlspecialchars($ar['estado']) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?= date("d/m/Y", strtotime($ar['creacion'])) ?>
+                                        <br>
+                                        <?= date("H:i", strtotime($ar['creacion'])) ?>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        if (!empty($ar['modificacion'])) {
+                                            echo date("d/m/Y", strtotime($ar['modificacion'])) . "<br>";
+                                            echo date("H:i", strtotime($ar['modificacion']));
+                                        } else {
+                                            echo "No modificado";
+                                        }
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?= $areaControlador->botonesAccionPrincipal($ar['id_area'], $rol, $ar['estado']) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7">
+                                    <div class="alert alert-danger">
+                                        No tiene permiso para editar el área y subarea de
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TARJETAS MOVIL -->

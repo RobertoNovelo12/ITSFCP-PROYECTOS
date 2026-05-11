@@ -305,7 +305,7 @@ include __DIR__ . '/../../mensaje.php';
                 <!-- Ver tareas (disponible siempre para supervisor en cierre) -->
                 <?php if ($tipo_solicitud === 'cierre'): ?>
                     <hr>
-                    <a href="../Tareas/tabla.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-info">
+                    <a href="../Tareas/index.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-info">
                         <i class="bi bi-list-task"></i> Ver tareas del proyecto
                     </a>
                 <?php endif; ?>

@@ -125,7 +125,7 @@ class UsuariosControlador
                 );
             }
         }
-        header("Location: tabla.php?msg=activo");
+        header("Location: index.php?msg=activo");
         exit;
     }
 
@@ -157,7 +157,7 @@ class UsuariosControlador
                 );
             }
         }
-        header("Location: tabla.php?msg=rechazado");
+        header("Location: index.php?msg=rechazado");
         exit;
     }
 
@@ -252,7 +252,7 @@ class UsuariosControlador
 
         if ($estado === 'espera') {
             // Aprobar
-            $html .= '<a href="tabla.php?action=aprobar&id_usuarios=' . $id . '"
+            $html .= '<a href="index.php?action=aprobar&id_usuarios=' . $id . '"
                          class="btn btn-sm btn-success"
                          data-bs-toggle="tooltip" title="Aprobar acceso"
                          onclick="return confirm(\'¿Aprobar este usuario?\')">

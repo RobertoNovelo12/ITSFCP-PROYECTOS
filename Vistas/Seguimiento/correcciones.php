@@ -24,7 +24,7 @@ if ($rol !== 'estudiante') {
 
 $id_solicitud = intval($_GET['id'] ?? 0);
 if (!$id_solicitud) {
-    header('Location: tabla.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -41,7 +41,7 @@ $comentarios = $modelo->obtenerComentarios($id_solicitud);
 
 // Verificar que la solicitud es del estudiante
 if (!$detalle || (int)$detalle['id_estudiante'] !== $id_usuario) {
-    header('Location: tabla.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -57,7 +57,7 @@ ob_start();
 
     <!-- Regresar -->
     <div class="d-flex align-items-center mb-4 gap-3">
-        <a href="tabla.php" class="btn btn-secondary">
+        <a href="index.php" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Regresar
         </a>
         <h4 class="mb-0">Solicitud #<?= $id_solicitud ?></h4>
@@ -139,7 +139,7 @@ ob_start();
                 </div>
                 <div id="mensajeEnvio" class="alert d-none mb-3"></div>
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="tabla.php" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+                    <a href="index.php" class="btn btn-outline-secondary btn-sm">Cancelar</a>
                     <button type="button" class="btn btn-success btn-sm" id="btnEnviarCorrecciones">
                         <i class="bi bi-send-fill me-1"></i>Enviar correcciones
                         <span class="spinner-border spinner-border-sm d-none ms-1" id="spinnerEnvio"></span>

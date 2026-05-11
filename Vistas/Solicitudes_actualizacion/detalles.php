@@ -47,11 +47,11 @@ ob_start();
             </p>
         </div>
         <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
-            <a href="tabla.php" class="btn btn-secondary">
+            <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Regresar
             </a>
             <?php if ($solicitud['estado'] === 'pendiente'): ?>
-                <a href="tabla.php?action=aprobar&id_solicitud=<?= $id_solicitud ?>"
+                <a href="index.php?action=aprobar&id_solicitud=<?= $id_solicitud ?>"
                    class="btn btn-success ms-2"
                    onclick="return confirm('¿Aprobar esta solicitud?')">
                     <i class="bi bi-check-circle-fill me-1"></i> Aprobar

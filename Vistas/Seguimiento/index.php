@@ -103,7 +103,7 @@ ob_start();
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
         <div class="col-md-12 text-md-end">
-            <a href="../Proyectos/tabla.php" class="btn btn-secondary">
+            <a href="../Proyectos/index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>

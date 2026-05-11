@@ -136,7 +136,7 @@ class ProyectoControlador
     // =========================================================
 
     /**
-     * Encabezados para la tabla principal de /proyectos/tabla.php
+     * Encabezados para la tabla principal de /proyectos/index.php
      */
     public function encabezadosProyectos($rol)
     {
@@ -152,7 +152,7 @@ class ProyectoControlador
     }
 
     /**
-     * Encabezados para la tabla de /solicitudes_integracion_proyecto/tabla.php
+     * Encabezados para la tabla de /solicitudes_integracion_proyecto/index.php
      * (se definen directamente en la vista, pero se expone por consistencia)
      */
     public function encabezadosSolicitudes()
@@ -165,7 +165,7 @@ class ProyectoControlador
     // =========================================================
 
     /**
-     * Opciones del select de filtro para /proyectos/tabla.php
+     * Opciones del select de filtro para /proyectos/index.php
      */
     public function opcionesProyectos($rol, $filtros)
     {
@@ -209,7 +209,7 @@ class ProyectoControlador
     }
 
     /**
-     * Opciones del select de filtro para /solicitudes_integracion_proyecto/tabla.php
+     * Opciones del select de filtro para /solicitudes_integracion_proyecto/index.php
      * Se manejan como tabs en la vista; este método es de apoyo.
      */
     public function opcionesSolicitudes()
@@ -255,7 +255,7 @@ class ProyectoControlador
                 break;
 
             case 'Tareas':
-                $boton = '<a href="../Tareas/tabla.php?id_proyectos=' . $id_proyecto . '" class="btn btn-info" data-bs-toggle="tooltip" data-bs-title="Tareas">
+                $boton = '<a href="../Tareas/index.php?id_proyectos=' . $id_proyecto . '" class="btn btn-info" data-bs-toggle="tooltip" data-bs-title="Tareas">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-task" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
                         <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/>
@@ -273,7 +273,7 @@ class ProyectoControlador
                 break;
 
             case 'Aprobar':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos"
+                $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos"
                     class="btn btn-success" data-bs-toggle="tooltip" data-bs-title="Aprobar proyecto">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
@@ -281,7 +281,7 @@ class ProyectoControlador
                 break;
 
             case 'Solicitar cerrar':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"
+                $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"
                     class="btn btn-warning" data-bs-toggle="tooltip" data-bs-title="Solicitar cierre del proyecto">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
@@ -289,7 +289,7 @@ class ProyectoControlador
                 break;
 
             case 'Aprobar cierre':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"
+                $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"
                     class="btn btn-success" data-bs-toggle="tooltip" data-bs-title="Aprobar cierre de proyecto">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
@@ -305,7 +305,7 @@ class ProyectoControlador
                 break;
 
             case 'Volver a enviar cierre':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"
+                $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"
                     class="btn btn-warning" data-bs-toggle="tooltip" data-bs-title="Volver a enviar cierre">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
                         <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
@@ -314,7 +314,7 @@ class ProyectoControlador
                 break;
 
             case 'Volver a enviar proyecto':
-                $boton = '<a href="tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorAprobar"
+                $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorAprobar"
                     class="btn btn-warning" data-bs-toggle="tooltip" data-bs-title="Volver a enviar proyecto">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
                         <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
@@ -371,7 +371,7 @@ class ProyectoControlador
     }
 
     // =========================================================
-    // BOTONES DE ACCIÓN — tabla de proyectos (tabla.php)
+    // BOTONES DE ACCIÓN — tabla de proyectos (index.php)
     // =========================================================
 
     public function botonesAccion($id, $rol, $estado = null, $extra = null, $estado_completados_estudiantes = 0, $estado_estudiante = 'activo')
@@ -412,7 +412,7 @@ class ProyectoControlador
                 'Vencido'         => ['Detalles', 'Tareas', 'Comentarios'],
             ],
 
-            // Supervisor en /proyectos/tabla.php: solo proyectos ya aprobados
+            // Supervisor en /proyectos/index.php: solo proyectos ya aprobados
             'supervisor' => [
                 'Activo'          => ['Detalles', 'Tareas', 'Comentarios'],
                 'Por cerrar'      => ['Aprobar cierre', 'Detalles', 'Tareas', 'Rechazar cierre', 'Comentarios'],
@@ -437,11 +437,11 @@ class ProyectoControlador
     }
 
     // =========================================================
-    // BOTONES DE ACCIÓN — tabla de solicitudes_integracion_proyecto (solicitudes_integracion_proyecto/tabla.php)
+    // BOTONES DE ACCIÓN — tabla de solicitudes_integracion_proyecto (solicitudes_integracion_proyecto/index.php)
     // =========================================================
 
     /**
-     * Botones para la columna Acciones en la tabla de /solicitudes_integracion_proyecto/tabla.php
+     * Botones para la columna Acciones en la tabla de /solicitudes_integracion_proyecto/index.php
      */
     public function botonesAccionSolicitud($id_proyecto, $rol, $tipo_solicitud, $estado_proyecto)
     {
@@ -453,7 +453,7 @@ class ProyectoControlador
         if ($rol === 'supervisor') {
             if ($tipo_solicitud === 'creacion' && $estado_proyecto === 'Por aprobar') {
                 // Aprobar creación
-                $botones .= '<a href="../proyectos/tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos"
+                $botones .= '<a href="../proyectos/index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos"
                     class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar proyecto"
                     onclick="return confirm(\'¿Aprobar este proyecto?\')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
@@ -469,7 +469,7 @@ class ProyectoControlador
 
             if ($tipo_solicitud === 'cierre' && $estado_proyecto === 'Por cerrar') {
                 // Aprobar cierre
-                $botones .= '<a href="../proyectos/tabla.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"
+                $botones .= '<a href="../proyectos/index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"
                     class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar cierre"
                     onclick="return confirm(\'¿Aprobar el cierre de este proyecto?\')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
@@ -574,7 +574,7 @@ class ProyectoControlador
     }
 
     /**
-     * Todos los periodos para el select de filtro en solicitudes_integracion_proyecto/tabla.php
+     * Todos los periodos para el select de filtro en solicitudes_integracion_proyecto/index.php
      */
     public function obtenerTodosPeriodos()
     {
@@ -630,7 +630,7 @@ class ProyectoControlador
                 $proyecto->vincularSubtematica($proyectoId, (int)$idSub);
             }
 
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit();
         } catch (Exception $e) {
             die($e->getMessage());
@@ -669,7 +669,7 @@ class ProyectoControlador
                 $proyecto->ActualizarvincularSubtematica($id_proyecto, (int)$idSub);
             }
 
-            header("Location: tabla.php?id_proyectos={$id_proyecto}");
+            header("Location: index.php?id_proyectos={$id_proyecto}");
             exit();
         } catch (Exception $e) {
             return $e->getMessage();
@@ -713,9 +713,9 @@ class ProyectoControlador
             // Redirigir al origen correcto
             $desde = $data['desde'] ?? 'proyectos';
             if ($desde === 'solicitudes') {
-                header("Location: ../solicitudes_integracion_proyecto/tabla.php?mensaje=1");
+                header("Location: ../solicitudes_integracion_proyecto/index.php?mensaje=1");
             } else {
-                header("Location: tabla.php?mensaje=1");
+                header("Location: index.php?mensaje=1");
             }
             exit();
         } catch (Exception $e) {
@@ -738,7 +738,7 @@ class ProyectoControlador
 
             $proyecto->actualizarestado((int)$id_proyecto, $estado, $porcentaje);
 
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit();
         } catch (Exception $e) {
             return $e->getMessage();

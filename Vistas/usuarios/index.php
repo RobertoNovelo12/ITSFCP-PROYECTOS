@@ -80,7 +80,7 @@ include __DIR__ . '/../../error.php';
 
     <!-- ALERTAS -->
     <?php if ($msg === 'aprobado'):
-        header("Location: tabla.php?mensaje=1");
+        header("Location: index.php?mensaje=1");
     ?>
 
         <!--<div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -88,7 +88,7 @@ include __DIR__ . '/../../error.php';
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div> -->
     <?php elseif ($msg === 'rechazado'):
-        header("Location: tabla.php?mensaje=1");
+        header("Location: index.php?mensaje=1");
     ?>
         <!--<div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-x-circle-fill me-1"></i> Solicitud rechazada y notificación enviada.
@@ -102,7 +102,7 @@ include __DIR__ . '/../../error.php';
         <!-- Select estado -->
         <div class="col-12 col-md-3">
             <select class="form-select"
-                onchange="location.href='tabla.php?action=' + this.value
+                onchange="location.href='index.php?action=' + this.value
                         + '&buscar=<?= urlencode($buscar) ?>&tipo=<?= urlencode($tipo) ?>';">
                 <?php foreach ($opciones as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"
@@ -116,7 +116,7 @@ include __DIR__ . '/../../error.php';
         <!-- Select tipo de usuario -->
         <div class="col-12 col-md-3">
             <select class="form-select"
-                onchange="location.href='tabla.php?action=<?= urlencode($action) ?>&buscar=<?= urlencode($buscar) ?>&tipo=' + this.value;">
+                onchange="location.href='index.php?action=<?= urlencode($action) ?>&buscar=<?= urlencode($buscar) ?>&tipo=' + this.value;">
                 <option value="" <?= ($tipo === '')               ? 'selected' : '' ?>>Todos los tipos</option>
                 <option value="estudiante" <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
                 <option value="investigador" <?= ($tipo === 'investigador') ? 'selected' : '' ?>>Investigador</option>
@@ -126,7 +126,7 @@ include __DIR__ . '/../../error.php';
 
         <!-- Búsqueda por nombre -->
         <div class="col-12 col-md-6">
-            <form class="d-flex gap-2" method="GET" action="tabla.php">
+            <form class="d-flex gap-2" method="GET" action="index.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                 <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo) ?>">
                 <input type="text"
@@ -138,7 +138,7 @@ include __DIR__ . '/../../error.php';
                     <i class="bi bi-search"></i>
                 </button>
                 <?php if (!empty($buscar)): ?>
-                    <a href="tabla.php?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
+                    <a href="index.php?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
                         class="btn btn-secondary" title="Limpiar búsqueda">
                         <i class="bi bi-x-lg"></i>
                     </a>

@@ -64,12 +64,12 @@ class institutoControlador
 
             $conn->commit();
 
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit;
         } catch (Exception $e) {
 
             $conn->rollback();
-            header("Location: tabla.php?error=director");
+            header("Location: index.php?error=director");
             exit;
         }
     }

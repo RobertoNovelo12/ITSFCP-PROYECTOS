@@ -187,13 +187,13 @@ class plantilladocumentoControlador
   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
                 break;
             case 'Desactivar':
-                $boton = '<a href="tabla.php?id_plantilla=' . $id1 . '&id_tipo_documento=' . $id2 . '&action=desactivar" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="index.php?id_plantilla=' . $id1 . '&id_tipo_documento=' . $id2 . '&action=desactivar" type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar plantilla"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
   <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
 </svg></a>';
                 break;
             case 'Reactivar':
-                $boton = '<a href="tabla.php?id_plantilla=' . $id1 . '&id_tipo_documento=' . $id2 . '&action=reactivar" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                $boton = '<a href="index.php?id_plantilla=' . $id1 . '&id_tipo_documento=' . $id2 . '&action=reactivar" type="button" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
         data-bs-custom-class="custom-tooltip" data-bs-title="Reactivar plantilla"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
   <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/>
   <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/>
@@ -300,15 +300,15 @@ class plantilladocumentoControlador
             $obj->registrarHistorial($id_plantilla, $id_usuarios_supervisor, $accion, $descripcion);
 
             $conn->commit();
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit;
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
-            header("Location: tabla.php?error=" . ($e->getCode() == 1062 ? 'duplicado' : '2'));
+            header("Location: index.php?error=" . ($e->getCode() == 1062 ? 'duplicado' : '2'));
             exit;
         } catch (Exception $e) {
             $conn->rollback();
-            header("Location: tabla.php?error=3");
+            header("Location: index.php?error=3");
             exit;
         }
     }
@@ -357,12 +357,12 @@ class plantilladocumentoControlador
 
 
             $conn->commit();
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit;
         } catch (Throwable $e) {
             $conn->rollback();
             error_log("Error en desactivar(): " . $e->getMessage());
-            header("Location: tabla.php?error=10");
+            header("Location: index.php?error=10");
             exit;
         }
     }
@@ -396,12 +396,12 @@ class plantilladocumentoControlador
 
 
             $conn->commit();
-            header("Location: tabla.php?mensaje=1");
+            header("Location: index.php?mensaje=1");
             exit;
         } catch (Throwable $e) {
             $conn->rollback();
             error_log("Error en reactivar(): " . $e->getMessage());
-            header("Location: tabla.php?error=2");
+            header("Location: index.php?error=2");
             exit;
         }
     }

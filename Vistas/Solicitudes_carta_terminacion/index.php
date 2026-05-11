@@ -74,7 +74,7 @@ if (isset($_GET['error']) && $_GET['error']) {
         <div class="col-md-6 text-md-end">
             <!-- Filtro por Periodo -->
             <form class="d-inline-flex align-items-center gap-2" method="GET">
-                <input type="hidden" name="tipo"   value="<?= htmlspecialchars($tipo_filtro) ?>">
+                <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">
                 <input type="hidden" name="buscar" value="<?= htmlspecialchars($buscar) ?>">
                 <label class="mb-0 text-nowrap fw-semibold">Periodo:</label>
                 <select name="id_periodo" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -164,7 +164,7 @@ if (isset($_GET['error']) && $_GET['error']) {
 
         <div class="col-md-8">
             <form class="d-flex gap-2" method="GET">
-                <input type="hidden" name="tipo"       value="<?= htmlspecialchars($tipo_filtro) ?>">
+                <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">
                 <input type="hidden" name="id_periodo" value="<?= $id_periodo ?>">
                 <input type="text" name="buscar" class="form-control"
                     placeholder="Buscar por título de proyecto o estudiante..."
@@ -182,79 +182,83 @@ if (isset($_GET['error']) && $_GET['error']) {
             <?php if (!empty($solicitudes)): ?>
 
                 <!-- ESCRITORIO -->
-                <div class="table-responsive d-none d-md-block">
-                    <table class="table table-hover text-center align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Proyecto</th>
-                                <th>Estudiante</th>
-                                <th>Investigador</th>
-                                <th>Periodo</th>
-                                <th>Fecha solicitud</th>
-                                <th>Estado proceso</th>
-                                <th>Estado carta</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($solicitudes as $sol): ?>
-                                <tr>
-                                    <td class="text-start" title="<?= htmlspecialchars($sol['titulo_proyecto']) ?>">
-                                        <?= strlen($sol['titulo_proyecto']) > 45
-                                            ? substr(htmlspecialchars($sol['titulo_proyecto']), 0, 45) . '…'
-                                            : htmlspecialchars($sol['titulo_proyecto']) ?>
-                                    </td>
+                <div class="card shadow-sm d-none d-md-block">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Proyecto</th>
+                                        <th>Estudiante</th>
+                                        <th>Investigador</th>
+                                        <th>Periodo</th>
+                                        <th>Fecha solicitud</th>
+                                        <th>Estado proceso</th>
+                                        <th>Estado carta</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($solicitudes as $sol): ?>
+                                        <tr>
+                                            <td class="text-start" title="<?= htmlspecialchars($sol['titulo_proyecto']) ?>">
+                                                <?= strlen($sol['titulo_proyecto']) > 45
+                                                    ? substr(htmlspecialchars($sol['titulo_proyecto']), 0, 45) . '…'
+                                                    : htmlspecialchars($sol['titulo_proyecto']) ?>
+                                            </td>
 
-                                    <td><?= htmlspecialchars($sol['estudiante']) ?></td>
+                                            <td><?= htmlspecialchars($sol['estudiante']) ?></td>
 
-                                    <td><?= htmlspecialchars($sol['investigador']) ?></td>
+                                            <td><?= htmlspecialchars($sol['investigador']) ?></td>
 
-                                    <td><?= htmlspecialchars($sol['periodo']) ?></td>
+                                            <td><?= htmlspecialchars($sol['periodo']) ?></td>
 
-                                    <td><?= htmlspecialchars($sol['fecha_solicitud']) ?></td>
+                                            <td><?= htmlspecialchars($sol['fecha_solicitud']) ?></td>
 
-                                    <td>
-                                        <span class="badge text-bg-<?= $ctrl->estiloEstadoProceso($sol['estado_proceso']) ?>">
-                                            <?= $ctrl->etiquetaEstadoProceso($sol['estado_proceso']) ?>
-                                        </span>
-                                    </td>
+                                            <td>
+                                                <span class="badge text-bg-<?= $ctrl->estiloEstadoProceso($sol['estado_proceso']) ?>">
+                                                    <?= $ctrl->etiquetaEstadoProceso($sol['estado_proceso']) ?>
+                                                </span>
+                                            </td>
 
-                                    <td>
-                                        <span class="badge text-bg-<?= $ctrl->estiloCarta($sol['estado_carta']) ?>">
-                                            <?= $ctrl->etiquetaCarta($sol['estado_carta']) ?>
-                                        </span>
-                                    </td>
+                                            <td>
+                                                <span class="badge text-bg-<?= $ctrl->estiloCarta($sol['estado_carta']) ?>">
+                                                    <?= $ctrl->etiquetaCarta($sol['estado_carta']) ?>
+                                                </span>
+                                            </td>
 
-                                    <td>
-                                        <div class="d-flex gap-1 justify-content-center flex-wrap">
-                                            <!-- Ver detalles -->
-                                            <a href="detalles.php?id=<?= $sol['id_cierre_est'] ?>"
-                                               class="btn btn-primary btn-sm"
-                                               data-bs-toggle="tooltip" data-bs-title="Ver detalles">
-                                                <i class="bi bi-eye-fill"></i>
-                                            </a>
+                                            <td>
+                                                <div class="d-flex gap-1 justify-content-center flex-wrap">
+                                                    <!-- Ver detalles -->
+                                                    <a href="detalles.php?id=<?= $sol['id_cierre_est'] ?>"
+                                                        class="btn btn-primary btn-sm"
+                                                        data-bs-toggle="tooltip" data-bs-title="Ver detalles">
+                                                        <i class="bi bi-eye-fill"></i>
+                                                    </a>
 
-                                            <?php if ($sol['estado_carta'] === 'pendiente'): ?>
-                                                <!-- Aprobar -->
-                                                <a href="index.php?action=aprobar&id=<?= $sol['id_cierre_est'] ?>"
-                                                   class="btn btn-success btn-sm"
-                                                   data-bs-toggle="tooltip" data-bs-title="Aprobar carta"
-                                                   onclick="return confirm('¿Confirma que desea APROBAR la carta de terminación de <?= htmlspecialchars($sol['estudiante']) ?>?')">
-                                                    <i class="bi bi-check-circle-fill"></i>
-                                                </a>
-                                                <!-- Rechazar -->
-                                                <a href="motivo_rechazo.php?id=<?= $sol['id_cierre_est'] ?>"
-                                                   class="btn btn-danger btn-sm"
-                                                   data-bs-toggle="tooltip" data-bs-title="Rechazar carta">
-                                                    <i class="bi bi-x-circle-fill"></i>
-                                                </a>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                                                    <?php if ($sol['estado_carta'] === 'pendiente'): ?>
+                                                        <!-- Aprobar -->
+                                                        <a href="index.php?action=aprobar&id=<?= $sol['id_cierre_est'] ?>"
+                                                            class="btn btn-success btn-sm"
+                                                            data-bs-toggle="tooltip" data-bs-title="Aprobar carta"
+                                                            onclick="return confirm('¿Confirma que desea APROBAR la carta de terminación de <?= htmlspecialchars($sol['estudiante']) ?>?')">
+                                                            <i class="bi bi-check-circle-fill"></i>
+                                                        </a>
+                                                        <!-- Rechazar -->
+                                                        <a href="motivo_rechazo.php?id=<?= $sol['id_cierre_est'] ?>"
+                                                            class="btn btn-danger btn-sm"
+                                                            data-bs-toggle="tooltip" data-bs-title="Rechazar carta">
+                                                            <i class="bi bi-x-circle-fill"></i>
+                                                        </a>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- MÓVIL — cards -->
@@ -299,8 +303,8 @@ if (isset($_GET['error']) && $_GET['error']) {
                                     </a>
                                     <?php if ($sol['estado_carta'] === 'pendiente'): ?>
                                         <a href="index.php?action=aprobar&id=<?= $sol['id_cierre_est'] ?>"
-                                           class="btn btn-success btn-sm"
-                                           onclick="return confirm('¿Aprobar la carta de <?= htmlspecialchars($sol['estudiante']) ?>?')">
+                                            class="btn btn-success btn-sm"
+                                            onclick="return confirm('¿Aprobar la carta de <?= htmlspecialchars($sol['estudiante']) ?>?')">
                                             <i class="bi bi-check-circle-fill"></i> Aprobar
                                         </a>
                                         <a href="motivo_rechazo.php?id=<?= $sol['id_cierre_est'] ?>" class="btn btn-danger btn-sm">
@@ -322,8 +326,8 @@ if (isset($_GET['error']) && $_GET['error']) {
                             $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
                             $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
                             $base   = '?tipo=' . urlencode($tipo_filtro)
-                                    . '&id_periodo=' . $id_periodo
-                                    . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+                                . '&id_periodo=' . $id_periodo
+                                . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
                             ?>
                             <li class="page-item disabled">
                                 <span class="page-link small">

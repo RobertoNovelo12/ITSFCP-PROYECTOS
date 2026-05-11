@@ -25,7 +25,7 @@ $directorControlador = new directorControlador();
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_director') {
     $id_director = intval($_GET['id_director']);
     $directorControlador->eliminar($rol, $id_director);
-    header("Location: tabla.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -78,7 +78,7 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row g-2 mb-4">
         <div class="col-12 col-md-4">
             <select class="form-select"
-                onchange="location.href='tabla.php?action=' + this.value;">
+                onchange="location.href='index.php?action=' + this.value;">
                 <?php foreach ($opciones as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"
                         <?= ($action === $key) ? 'selected' : '' ?>>
@@ -88,7 +88,7 @@ include __DIR__ . '/../../mensaje.php';
             </select>
         </div>
         <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="tabla.php">
+            <form class="d-flex gap-2" method="GET" action="index.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                 <input type="text"
                     name="buscar"
@@ -103,56 +103,60 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 
     <!-- TABLA LAPTOP -->
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-hover text-center align-middle">
-            <thead>
-                <tr>
-                    <?php
-                    foreach ($encabezados as $encabezado) {
-                        echo "<th>{$encabezado}</th>";
-                    }
-                    ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($rol == "supervisor"): ?>
-                    <?php if (!empty($directores)) { ?>
-                        <?php foreach ($directores as $dir): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($dir['nombre']) ?></td>
-                                <td><?= htmlspecialchars($dir['apellido']) ?></td>
-                                <td><?= htmlspecialchars($dir['correo'] ?? '—') ?></td>
-                                <td><?= htmlspecialchars($dir['telefono'] ?? '—') ?></td>
-                                <td><?= htmlspecialchars($dir['nombre_grado']) ?></td>
-                                <td>
-                                    <span class="badge rounded-pill text-bg-<?php echo $directorControlador->EstiloEstadoLista($dir['estados']); ?>">
-                                        <?= htmlspecialchars($dir['estados']) ?>
-                                    </span>
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <?php
+                            foreach ($encabezados as $encabezado) {
+                                echo "<th>{$encabezado}</th>";
+                            }
+                            ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($rol == "supervisor"): ?>
+                            <?php if (!empty($directores)) { ?>
+                                <?php foreach ($directores as $dir): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($dir['nombre']) ?></td>
+                                        <td><?= htmlspecialchars($dir['apellido']) ?></td>
+                                        <td><?= htmlspecialchars($dir['correo'] ?? '—') ?></td>
+                                        <td><?= htmlspecialchars($dir['telefono'] ?? '—') ?></td>
+                                        <td><?= htmlspecialchars($dir['nombre_grado']) ?></td>
+                                        <td>
+                                            <span class="badge rounded-pill text-bg-<?php echo $directorControlador->EstiloEstadoLista($dir['estados']); ?>">
+                                                <?= htmlspecialchars($dir['estados']) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?= $directorControlador->botonesAccionPrincipal($dir['id_director'], $rol, $dir['estados']) ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php } else { ?>
+                                <td colspan="9">
+                                    <div class="alert alert-danger">
+                                        No hay directores registrados
+                                    </div>
                                 </td>
-                                <td>
-                                    <?= $directorControlador->botonesAccionPrincipal($dir['id_director'], $rol, $dir['estados']) ?>
+                                </tr>
+                            <?php } ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="9">
+                                    <div class="alert alert-danger">
+                                        No tiene permiso para ver directores
+                                    </div>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php } else { ?>
-                        <td colspan="9">
-                            <div class="alert alert-danger">
-                                No hay directores registrados
-                            </div>
-                        </td>
-                        </tr>
-                    <?php } ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="9">
-                            <div class="alert alert-danger">
-                                No tiene permiso para ver directores
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TARJETAS MOVIL -->

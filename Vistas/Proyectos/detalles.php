@@ -42,7 +42,7 @@ ob_start();
         </div>
 
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
-            <a href="tabla.php" class="btn btn-secondary">
+            <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>
@@ -204,70 +204,57 @@ ob_start();
 
         <!-- TABLA (LAPTOP) -->
 
-        <div class="table-responsive d-none d-md-block">
-
-            <table class="table table-striped text-center">
-
-                <thead>
-
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Carrera</th>
-                        <th>Estado Proceso</th>
-                        <th>Historial</th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <?php foreach ($estudiantes as $alumno): 
-                        $estado_proceso = "";
-                        $clase =  $proyectoControlador->EstiloEstado($alumno['estado_proceso']);
-                        switch($alumno['estado_proceso']){
-                            case 'en_proceso':
-                                $estado_proceso = "En proceso";
-                                break;
-                            case 'carta_subida':
-                                $estado_proceso = "Carta subida";
-                                break;
-                            case 'en_correccion':
-                                $estado_proceso = "En corrección";
-                                break;
-                            case 'liberado_supervisor':
-                                $estado_proceso = "Liberado por supervisor";
-                                break;
-                            default:
-                            $estado_proceso = "Sin estado";
-
-                        }
-                        ?>
-
-                        <tr>
-
-                            <td><?= $alumno['id_usuarios'] ?></td>
-
-                            <td>
-                                <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] . " " . $alumno['apellido_materno'] ?>
-                            </td>
-
-                            <td><?= $alumno['carrera'] ?></td>
-
-                            <td><span class='badge text-bg-<?= $clase ?>'><?= htmlspecialchars($estado_proceso) ?></span></td>
-
-                            <td> <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
-                                    class="btn btn-info btn-sm">
-                                    Historial
-                                </a></td>
-                        </tr>
-
-                    <?php endforeach; ?>
-
-                </tbody>
-
-            </table>
-
+        <div class="card shadow-sm d-none d-md-block">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Carrera</th>
+                                <th>Estado Proceso</th>
+                                <th>Historial</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($estudiantes as $alumno):
+                                $estado_proceso = "";
+                                $clase =  $proyectoControlador->EstiloEstado($alumno['estado_proceso']);
+                                switch ($alumno['estado_proceso']) {
+                                    case 'en_proceso':
+                                        $estado_proceso = "En proceso";
+                                        break;
+                                    case 'carta_subida':
+                                        $estado_proceso = "Carta subida";
+                                        break;
+                                    case 'en_correccion':
+                                        $estado_proceso = "En corrección";
+                                        break;
+                                    case 'liberado_supervisor':
+                                        $estado_proceso = "Liberado por supervisor";
+                                        break;
+                                    default:
+                                        $estado_proceso = "Sin estado";
+                                }
+                            ?>
+                                <tr>
+                                    <td><?= $alumno['id_usuarios'] ?></td>
+                                    <td>
+                                        <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] . " " . $alumno['apellido_materno'] ?>
+                                    </td>
+                                    <td><?= $alumno['carrera'] ?></td>
+                                    <td><span class='badge text-bg-<?= $clase ?>'><?= htmlspecialchars($estado_proceso) ?></span></td>
+                                    <td> <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
+                                            class="btn btn-info btn-sm">
+                                            Historial
+                                        </a></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
 

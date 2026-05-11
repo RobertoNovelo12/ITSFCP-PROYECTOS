@@ -47,13 +47,13 @@ include __DIR__ . '/../../mensaje.php';
                 <label class="fw-semibold small mb-0 text-nowrap">Periodo:</label>
                 <form method="GET" action="" id="formPeriodo" class="d-flex align-items-center gap-2 flex-wrap">
                     <!-- Conservar otros filtros al cambiar periodo -->
-                    <?php foreach (['estado','buscar','proyecto','fecha_desde','fecha_hasta'] as $f): ?>
+                    <?php foreach (['estado', 'buscar', 'proyecto', 'fecha_desde', 'fecha_hasta'] as $f): ?>
                         <?php if (!empty($filtros[$f])): ?>
                             <input type="hidden" name="<?= $f ?>" value="<?= htmlspecialchars($filtros[$f]) ?>">
                         <?php endif; ?>
                     <?php endforeach; ?>
                     <select name="periodo" class="form-select form-select-sm" style="min-width:180px"
-                            onchange="document.getElementById('formPeriodo').submit()">
+                        onchange="document.getElementById('formPeriodo').submit()">
                         <option value="">Todos los periodos</option>
                         <?php foreach ($periodos as $p): ?>
                             <option value="<?= htmlspecialchars($p['id_periodos']) ?>"
@@ -105,16 +105,22 @@ include __DIR__ . '/../../mensaje.php';
         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
             <label class="form-label small fw-medium mb-1">Buscar</label>
             <input type="text" name="buscar" class="form-control form-control-sm"
-                   placeholder="Nombre, matrícula, proyecto…"
-                   value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
+                placeholder="Nombre, matrícula, proyecto…"
+                value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
         </div>
         <div class="col-6 col-sm-4 col-md-2">
             <label class="form-label small fw-medium mb-1">Estado</label>
             <select name="estado" class="form-select form-select-sm">
                 <option value="">Todos</option>
-                <?php foreach (['pendiente' => 'Pendiente', 'en_revision' => 'En revisión',
-                                'correcciones' => 'Correcciones', 'aceptado' => 'Aceptado',
-                                'rechazado' => 'Rechazado'] as $val => $lbl): ?>
+                <?php foreach (
+                    [
+                        'pendiente' => 'Pendiente',
+                        'en_revision' => 'En revisión',
+                        'correcciones' => 'Correcciones',
+                        'aceptado' => 'Aceptado',
+                        'rechazado' => 'Rechazado'
+                    ] as $val => $lbl
+                ): ?>
                     <option value="<?= $val ?>" <?= ($filtros['estado'] ?? '') === $val ? 'selected' : '' ?>>
                         <?= $lbl ?>
                     </option>
@@ -136,17 +142,17 @@ include __DIR__ . '/../../mensaje.php';
         <div class="col-6 col-sm-3 col-md-2">
             <label class="form-label small fw-medium mb-1">Desde</label>
             <input type="date" name="fecha_desde" class="form-control form-control-sm"
-                   value="<?= htmlspecialchars($filtros['fecha_desde'] ?? '') ?>">
+                value="<?= htmlspecialchars($filtros['fecha_desde'] ?? '') ?>">
         </div>
         <div class="col-6 col-sm-3 col-md-2">
             <label class="form-label small fw-medium mb-1">Hasta</label>
             <input type="date" name="fecha_hasta" class="form-control form-control-sm"
-                   value="<?= htmlspecialchars($filtros['fecha_hasta'] ?? '') ?>">
+                value="<?= htmlspecialchars($filtros['fecha_hasta'] ?? '') ?>">
         </div>
         <div class="col-auto d-flex gap-2">
             <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filtrar</button>
             <a href="tabla.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
-               class="btn btn-outline-secondary btn-sm">
+                class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-x-circle"></i> Limpiar
             </a>
         </div>
@@ -154,33 +160,37 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- TABLA -->
     <?php if (!empty($solicitudes)): ?>
-        <div class="table-responsive d-none d-md-block">
-            <table class="table table-hover align-middle text-center">
-                <thead class="table-light">
-                    <tr><?php foreach ($ctrl->encabezados() as $h): ?><th class="small fw-semibold"><?= $h ?></th><?php endforeach; ?></tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($solicitudes as $sol): ?>
-                        <tr>
-                            <td class="text-muted small"><?= $sol['id_solicitud_proyecto'] ?></td>
-                            <td class="text-start">
-                                <div class="fw-medium"><?= htmlspecialchars($sol['estudiante_nombre']) ?></div>
-                                <div class="text-muted small"><?= htmlspecialchars($sol['correo_institucional'] ?? '') ?></div>
-                            </td>
-                            <td><?= htmlspecialchars($sol['matricula'] ?? '-') ?></td>
-                            <td class="small"><?= htmlspecialchars($sol['carrera'] ?? '-') ?></td>
-                            <td class="text-start small"><?= htmlspecialchars(mb_strimwidth($sol['proyecto_titulo'], 0, 45, '…')) ?></td>
-                            <td><?= $sol['semestre'] ? $sol['semestre'] . '°' : '-' ?></td>
-                            <td><?= $sol['promedio'] ?? '-' ?></td>
-                            <td class="small"><?= $sol['fecha_envio'] ?></td>
-                            <td><?= $ctrl->badgeEstado($sol['estado']) ?></td>
-                            <td class="text-nowrap">
-                                <?= $ctrl->botonesAccion($sol['id_solicitud_proyecto'], $sol['estado'], $sol['id_proyectos']) ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+        <div class="card shadow-sm d-none d-md-block">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><?php foreach ($ctrl->encabezados() as $h): ?><th class="small fw-semibold"><?= $h ?></th><?php endforeach; ?></tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($solicitudes as $sol): ?>
+                                <tr>
+                                    <td class="text-muted small"><?= $sol['id_solicitud_proyecto'] ?></td>
+                                    <td class="text-start">
+                                        <div class="fw-medium"><?= htmlspecialchars($sol['estudiante_nombre']) ?></div>
+                                        <div class="text-muted small"><?= htmlspecialchars($sol['correo_institucional'] ?? '') ?></div>
+                                    </td>
+                                    <td><?= htmlspecialchars($sol['matricula'] ?? '-') ?></td>
+                                    <td class="small"><?= htmlspecialchars($sol['carrera'] ?? '-') ?></td>
+                                    <td class="text-start small"><?= htmlspecialchars(mb_strimwidth($sol['proyecto_titulo'], 0, 45, '…')) ?></td>
+                                    <td><?= $sol['semestre'] ? $sol['semestre'] . '°' : '-' ?></td>
+                                    <td><?= $sol['promedio'] ?? '-' ?></td>
+                                    <td class="small"><?= $sol['fecha_envio'] ?></td>
+                                    <td><?= $ctrl->badgeEstado($sol['estado']) ?></td>
+                                    <td class="text-nowrap">
+                                        <?= $ctrl->botonesAccion($sol['id_solicitud_proyecto'], $sol['estado'], $sol['id_proyectos']) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- MÓVIL -->
@@ -316,7 +326,7 @@ include __DIR__ . '/../../mensaje.php';
                         Comentario <span class="text-danger">*</span>
                     </label>
                     <textarea id="accionComentario" class="form-control" rows="4"
-                              placeholder="Escribe tu comentario para el estudiante…"></textarea>
+                        placeholder="Escribe tu comentario para el estudiante…"></textarea>
                 </div>
                 <div class="mb-2">
                     <label class="form-label fw-medium">
@@ -338,33 +348,43 @@ include __DIR__ . '/../../mensaje.php';
 </div>
 
 <script>
-'use strict';
+    'use strict';
 
-const AJAX = '/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php';
-let _idSolicitudActual = null;
+    const AJAX = '/ITSFCP-PROYECTOS/Ajax/solicitudesAjax.php';
+    let _idSolicitudActual = null;
 
 
-function renderEtapasSeguimiento(seg, sol, id_solicitud) {
-    const el = document.getElementById('detalleEtapas');
-    const e1 = seg.e1_estado || sol.estado || 'pendiente';
-    const e2 = seg.e2_estado || 'pendiente';
-    const e3 = seg.e3_estado || 'pendiente';
-    const fase2ok = seg.fase2_ok || false;
+    function renderEtapasSeguimiento(seg, sol, id_solicitud) {
+        const el = document.getElementById('detalleEtapas');
+        const e1 = seg.e1_estado || sol.estado || 'pendiente';
+        const e2 = seg.e2_estado || 'pendiente';
+        const e3 = seg.e3_estado || 'pendiente';
+        const fase2ok = seg.fase2_ok || false;
 
-    const colorMap = {
-        pendiente:'secondary', proceso:'primary', completado:'success',
-        rechazado:'danger', correcciones:'warning', en_revision:'info', aceptado:'success'
-    };
-    const labelMap = {
-        pendiente:'Pendiente', proceso:'En revisión', completado:'Aprobado',
-        rechazado:'Rechazado', correcciones:'Correcciones', en_revision:'En revisión', aceptado:'Aceptado'
-    };
+        const colorMap = {
+            pendiente: 'secondary',
+            proceso: 'primary',
+            completado: 'success',
+            rechazado: 'danger',
+            correcciones: 'warning',
+            en_revision: 'info',
+            aceptado: 'success'
+        };
+        const labelMap = {
+            pendiente: 'Pendiente',
+            proceso: 'En revisión',
+            completado: 'Aprobado',
+            rechazado: 'Rechazado',
+            correcciones: 'Correcciones',
+            en_revision: 'En revisión',
+            aceptado: 'Aceptado'
+        };
 
-    const badge = (e) => `<span class="badge bg-${colorMap[e]||'secondary'} ${e==='correcciones'?'text-dark':''}">${labelMap[e]||e}</span>`;
+        const badge = (e) => `<span class="badge bg-${colorMap[e]||'secondary'} ${e==='correcciones'?'text-dark':''}">${labelMap[e]||e}</span>`;
 
-    const activos1 = ['pendiente','en_revision','correcciones','proceso'];
+        const activos1 = ['pendiente', 'en_revision', 'correcciones', 'proceso'];
 
-    el.innerHTML = `
+        el.innerHTML = `
         <!-- Etapa 1 -->
         <div class="col-md-4 border-end p-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -408,15 +428,15 @@ function renderEtapasSeguimiento(seg, sol, id_solicitud) {
             </a>` : ''}
         </div>
     `;
-}
-
-function renderComentarios(comentarios) {
-    const panel = document.getElementById('panelComentarios');
-    if (!comentarios.length) {
-        panel.innerHTML = '<p class="text-muted small">Sin comentarios aún.</p>';
-        return;
     }
-    panel.innerHTML = comentarios.map(c => `
+
+    function renderComentarios(comentarios) {
+        const panel = document.getElementById('panelComentarios');
+        if (!comentarios.length) {
+            panel.innerHTML = '<p class="text-muted small">Sin comentarios aún.</p>';
+            return;
+        }
+        panel.innerHTML = comentarios.map(c => `
         <div class="msg-item ${c.tipo === 'investigador' ? 'msg-inv' : 'msg-est'}">
             <div>${esc(c.comentario)}</div>
             ${c.archivo_nombre ? `<a href="/ITSFCP-PROYECTOS/${c.archivo_ruta}" target="_blank" class="small text-primary">
@@ -425,100 +445,118 @@ function renderComentarios(comentarios) {
             <div class="msg-meta"><strong>${esc(c.autor_nombre)}</strong> · ${c.tipo === 'investigador' ? 'Investigador' : 'Estudiante'} · ${c.fecha}</div>
         </div>
     `).join('');
-    panel.scrollTop = panel.scrollHeight;
-}
-
-// ── Botones footer modal ──────────────────────────────────────────
-document.getElementById('btnAceptarDetalle').onclick     = () => confirmarAceptar(_idSolicitudActual);
-document.getElementById('btnCorreccionesDetalle').onclick = () => abrirModalAccion(_idSolicitudActual, 'correcciones');
-document.getElementById('btnRechazarDetalle').onclick    = () => abrirModalAccion(_idSolicitudActual, 'rechazar');
-
-// ── Confirmar aceptar ─────────────────────────────────────────────
-function confirmarAceptar(id) {
-    if (!confirm('¿Confirmar aceptación? El estudiante quedará integrado al proyecto.')) return;
-    enviarAccion('aceptar', id, '', null);
-}
-
-// ── Modal de correcciones / rechazo ──────────────────────────────
-function abrirModalAccion(id, tipo) {
-    document.getElementById('accionIdSolicitud').value = id;
-    document.getElementById('accionTipo').value        = tipo;
-    document.getElementById('accionComentario').value  = '';
-    document.getElementById('accionArchivo').value     = '';
-    document.getElementById('accionMensaje').className = 'alert d-none mt-2';
-
-    const esCor = tipo === 'correcciones';
-    document.getElementById('modalAccionTitulo').textContent =
-        esCor ? 'Solicitar correcciones' : 'Rechazar solicitud';
-    document.getElementById('modalAccionHeader').className =
-        'modal-header ' + (esCor ? 'bg-warning' : 'bg-danger text-white');
-    document.getElementById('labelComentario').textContent =
-        esCor ? 'Indica qué debe corregir el estudiante *' : 'Motivo de rechazo *';
-    document.getElementById('btnAccionTexto').textContent =
-        esCor ? 'Enviar correcciones' : 'Rechazar definitivamente';
-
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAccion')).show();
-}
-
-document.getElementById('btnConfirmarAccion').onclick = function () {
-    const id         = document.getElementById('accionIdSolicitud').value;
-    const tipo       = document.getElementById('accionTipo').value;
-    const comentario = document.getElementById('accionComentario').value.trim();
-    const archivo    = document.getElementById('accionArchivo').files[0] || null;
-
-    if (!comentario) {
-        mostrarMensajeAccion('El comentario es obligatorio.', 'danger');
-        return;
+        panel.scrollTop = panel.scrollHeight;
     }
-    enviarAccion(tipo, id, comentario, archivo);
-};
 
-function enviarAccion(action, id, comentario, archivo) {
-    const spinner  = document.getElementById('spinnerAccion');
-    const btnTexto = document.getElementById('btnAccionTexto');
-    spinner?.classList.remove('d-none');
-    btnTexto?.classList.add('d-none');
+    // ── Botones footer modal ──────────────────────────────────────────
+    document.getElementById('btnAceptarDetalle').onclick = () => confirmarAceptar(_idSolicitudActual);
+    document.getElementById('btnCorreccionesDetalle').onclick = () => abrirModalAccion(_idSolicitudActual, 'correcciones');
+    document.getElementById('btnRechazarDetalle').onclick = () => abrirModalAccion(_idSolicitudActual, 'rechazar');
 
-    const fd = new FormData();
-    fd.append('id_solicitud', id);
-    fd.append('comentario',   comentario);
-    if (archivo) fd.append('archivo', archivo);
+    // ── Confirmar aceptar ─────────────────────────────────────────────
+    function confirmarAceptar(id) {
+        if (!confirm('¿Confirmar aceptación? El estudiante quedará integrado al proyecto.')) return;
+        enviarAccion('aceptar', id, '', null);
+    }
 
-    fetch(`${AJAX}?action=${action}`, { method: 'POST', body: fd })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                ['modalAccion','modalDetalle'].forEach(mid => {
-                    bootstrap.Modal.getInstance(document.getElementById(mid))?.hide();
-                });
-                setTimeout(() => location.reload(), 300);
-            } else {
-                mostrarMensajeAccion(data.msg || 'Error al procesar.', 'danger');
-            }
-        })
-        .catch(e => mostrarMensajeAccion('Error de conexión: ' + e.message, 'danger'))
-        .finally(() => { spinner?.classList.add('d-none'); btnTexto?.classList.remove('d-none'); });
-}
+    // ── Modal de correcciones / rechazo ──────────────────────────────
+    function abrirModalAccion(id, tipo) {
+        document.getElementById('accionIdSolicitud').value = id;
+        document.getElementById('accionTipo').value = tipo;
+        document.getElementById('accionComentario').value = '';
+        document.getElementById('accionArchivo').value = '';
+        document.getElementById('accionMensaje').className = 'alert d-none mt-2';
 
-function mostrarMensajeAccion(msg, tipo) {
-    const el = document.getElementById('accionMensaje');
-    el.textContent = msg;
-    el.className   = `alert alert-${tipo} mt-2`;
-}
+        const esCor = tipo === 'correcciones';
+        document.getElementById('modalAccionTitulo').textContent =
+            esCor ? 'Solicitar correcciones' : 'Rechazar solicitud';
+        document.getElementById('modalAccionHeader').className =
+            'modal-header ' + (esCor ? 'bg-warning' : 'bg-danger text-white');
+        document.getElementById('labelComentario').textContent =
+            esCor ? 'Indica qué debe corregir el estudiante *' : 'Motivo de rechazo *';
+        document.getElementById('btnAccionTexto').textContent =
+            esCor ? 'Enviar correcciones' : 'Rechazar definitivamente';
 
-function esc(str) {
-    if (!str) return '';
-    return str.toString()
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAccion')).show();
+    }
 
-function badgeEstado(estado) {
-    const map = { pendiente:'secondary', en_revision:'info', correcciones:'warning', aceptado:'success', rechazado:'danger' };
-    const lbl = { pendiente:'Pendiente', en_revision:'En revisión', correcciones:'Correcciones', aceptado:'Aceptado', rechazado:'Rechazado' };
-    const c   = map[estado] || 'secondary';
-    const td  = (estado==='en_revision'||estado==='correcciones') ? 'text-dark' : '';
-    return `<span class="badge bg-${c} ${td}">${lbl[estado]||estado}</span>`;
-}
+    document.getElementById('btnConfirmarAccion').onclick = function() {
+        const id = document.getElementById('accionIdSolicitud').value;
+        const tipo = document.getElementById('accionTipo').value;
+        const comentario = document.getElementById('accionComentario').value.trim();
+        const archivo = document.getElementById('accionArchivo').files[0] || null;
+
+        if (!comentario) {
+            mostrarMensajeAccion('El comentario es obligatorio.', 'danger');
+            return;
+        }
+        enviarAccion(tipo, id, comentario, archivo);
+    };
+
+    function enviarAccion(action, id, comentario, archivo) {
+        const spinner = document.getElementById('spinnerAccion');
+        const btnTexto = document.getElementById('btnAccionTexto');
+        spinner?.classList.remove('d-none');
+        btnTexto?.classList.add('d-none');
+
+        const fd = new FormData();
+        fd.append('id_solicitud', id);
+        fd.append('comentario', comentario);
+        if (archivo) fd.append('archivo', archivo);
+
+        fetch(`${AJAX}?action=${action}`, {
+                method: 'POST',
+                body: fd
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    ['modalAccion', 'modalDetalle'].forEach(mid => {
+                        bootstrap.Modal.getInstance(document.getElementById(mid))?.hide();
+                    });
+                    setTimeout(() => location.reload(), 300);
+                } else {
+                    mostrarMensajeAccion(data.msg || 'Error al procesar.', 'danger');
+                }
+            })
+            .catch(e => mostrarMensajeAccion('Error de conexión: ' + e.message, 'danger'))
+            .finally(() => {
+                spinner?.classList.add('d-none');
+                btnTexto?.classList.remove('d-none');
+            });
+    }
+
+    function mostrarMensajeAccion(msg, tipo) {
+        const el = document.getElementById('accionMensaje');
+        el.textContent = msg;
+        el.className = `alert alert-${tipo} mt-2`;
+    }
+
+    function esc(str) {
+        if (!str) return '';
+        return str.toString()
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function badgeEstado(estado) {
+        const map = {
+            pendiente: 'secondary',
+            en_revision: 'info',
+            correcciones: 'warning',
+            aceptado: 'success',
+            rechazado: 'danger'
+        };
+        const lbl = {
+            pendiente: 'Pendiente',
+            en_revision: 'En revisión',
+            correcciones: 'Correcciones',
+            aceptado: 'Aceptado',
+            rechazado: 'Rechazado'
+        };
+        const c = map[estado] || 'secondary';
+        const td = (estado === 'en_revision' || estado === 'correcciones') ? 'text-dark' : '';
+        return `<span class="badge bg-${c} ${td}">${lbl[estado]||estado}</span>`;
+    }
 </script>
 
 <?php

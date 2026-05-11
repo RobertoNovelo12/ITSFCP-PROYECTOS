@@ -39,7 +39,7 @@ ob_start();
                 <h3>Historial de plantilla de documento</h3>
             </div>
             <div class="col-6 text-end">
-                <a href="tabla.php?id_tipo_documento=<?= $id_tipo_documento; ?>" class="btn btn-danger">Regresar</a>
+                <a href="index.php?id_tipo_documento=<?= $id_tipo_documento; ?>" class="btn btn-danger">Regresar</a>
             </div>
         </div>
         <div class="row mb-1">

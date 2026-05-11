@@ -67,7 +67,7 @@ ob_start();
             <h3 class="fw-bold mb-0">Detalle de solicitud #<?= $id_solicitud ?></h3>
         </div>
         <div class="col-auto">
-            <a href="tabla.php" class="btn btn-secondary btn-sm">
+            <a href="index.php" class="btn btn-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>

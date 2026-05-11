@@ -51,7 +51,7 @@ $revision  = count(array_filter($tarea, fn($t) => $t['estados_tarea'] === 'Revis
     <!-- Cabecera -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <h3 class="mb-0 fw-semibold">Entregas de Estudiantes</h3>
-        <a href="tabla.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-secondary btn-sm px-4"><i class="bi bi-arrow-left"></i>  Regresar</a>
+        <a href="index.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-secondary btn-sm px-4"><i class="bi bi-arrow-left"></i>  Regresar</a>
     </div>
 
     <!-- Resumen rápido -->
@@ -87,10 +87,10 @@ $revision  = count(array_filter($tarea, fn($t) => $t['estados_tarea'] === 'Revis
     <?php else: ?>
 
         <!-- Tabla (desktop) -->
-        <div class="card border-0 shadow-sm d-none d-md-block">
+        <div class="card shadow-sm d-none d-md-block">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
+                    <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th class="px-3 py-3 text-muted small fw-semibold text-uppercase">#</th>
