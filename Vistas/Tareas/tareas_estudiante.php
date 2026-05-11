@@ -34,7 +34,7 @@ ob_start();
         <h4 class="mb-0 fw-semibold">Mis Actividades</h4>
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
         </div>
-        <a href="../../Vistas/Proyectos/tabla.php" class="btn btn-secondary btn-sm px-3"><i class="bi bi-arrow-left"></i> Regresar
+        <a href="../../Vistas/Proyectos/index.php" class="btn btn-secondary btn-sm px-3"><i class="bi bi-arrow-left"></i> Regresar
         </a>
     </div>
 
