@@ -14,11 +14,10 @@ function crearLink($nombre, $rol)
         "Proyecto" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/index.php",
         "Actualizar datos" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_actualizacion/tabla.php",
         "Carta de terminación" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_carta_terminacion/index.php",
-        //"Constancias" => "/ITSFCP-PROYECTOS/Vistas/Constancias/constancias.php",
+        "Mis alumnos" => "/ITSFCP-PROYECTOS/Vistas/Mis_alumnos/index.php",
         "Calendario" => "/ITSFCP-PROYECTOS/Vistas/Calendario/index.php",
         "Reportes" => "/ITSFCP-PROYECTOS/Vistas/Periodo/reportes.php",
-        "Mis alumnos" => "/ITSFCP-PROYECTOS/Vistas/Usuarios/alumno.php",
-        "Usuarios" => "/ITSFCP-PROYECTOS/Vistas/Usuarios/tabla.php",
+        "Usuarios" => "/ITSFCP-PROYECTOS/Vistas/Usuarios/index.php",
         "Panel Supervisor" => "/ITSFCP-PROYECTOS/Vistas/Supervisor/panel_supervisor.php",
         "Línea de investigación" => "/ITSFCP-PROYECTOS/Vistas/Linea_investigacion/tabla.php",
         "Temática" => "/ITSFCP-PROYECTOS/Vistas/Tematica/tabla.php",
@@ -52,7 +51,7 @@ if ($rol === "estudiante" ||  $rol === "alumno") {
 } elseif ($rol === "profesor" || $rol === "investigador") {
     $mainMenu = ["Principal", "Dashboard"];
     $submenuProyectos = ["Seguimiento"];
-    $submenuMisAlumnos = ["Constancias"];
+    $submenuMisAlumnos = ["Mis alumnos"];
     $submenuSolicitudesProyecto = ["Integracion a proyecto"];
     $submenuConfiguracion = ["Grado académico", "Nivel SNI"];
     $middleMenu = ["Calendario"];

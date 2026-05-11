@@ -11,8 +11,8 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
-$rol = strtolower($_SESSION['rol'] ?? '');
-$id = $_SESSION['id_usuario'];
+$rol        = strtolower($_SESSION['rol'] ?? '');
+$id = intval($_SESSION['id_usuario']);
 $action = $_POST['action'] ?? null;
 
 $id_proyectos = $_GET['id_proyectos'] ?? null;
@@ -23,6 +23,13 @@ if ($motivo == "cierre_rechazado") {
 } else if ($motivo == "creacion_rechazada") {
     $texto_motivo = "Cierre rechazado";
 }
+
+// Solo supervisor
+if (!in_array($rol, ['supervisor'])) {
+    header("Location: ../proyectos/tabla.php");
+    exit;
+}
+
 //Se llama al controlador
 
 require_once '..\..\Controladores\proyectoControlador.php';

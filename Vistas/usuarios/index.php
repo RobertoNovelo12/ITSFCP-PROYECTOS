@@ -53,7 +53,7 @@ $paginacion = $resultado['paginacion'] ?? [
     'total'        => 0,
     'por_pagina'   => 6,
     'pagina'       => $pagina,
-    'total_paginas'=> 1
+    'total_paginas' => 1
 ];
 
 // ── Datos para filtros y tabla ───────────────────────────────────
@@ -79,17 +79,17 @@ include __DIR__ . '/../../error.php';
     </div>
 
     <!-- ALERTAS -->
-    <?php if ($msg === 'aprobado'): 
+    <?php if ($msg === 'aprobado'):
         header("Location: tabla.php?mensaje=1");
-        ?>
-        
+    ?>
+
         <!--<div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle-fill me-1"></i> Usuario aprobado correctamente.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div> -->
-    <?php elseif ($msg === 'rechazado'): 
+    <?php elseif ($msg === 'rechazado'):
         header("Location: tabla.php?mensaje=1");
-        ?>
+    ?>
         <!--<div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-x-circle-fill me-1"></i> Solicitud rechazada y notificación enviada.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -102,7 +102,7 @@ include __DIR__ . '/../../error.php';
         <!-- Select estado -->
         <div class="col-12 col-md-3">
             <select class="form-select"
-                    onchange="location.href='tabla.php?action=' + this.value
+                onchange="location.href='tabla.php?action=' + this.value
                         + '&buscar=<?= urlencode($buscar) ?>&tipo=<?= urlencode($tipo) ?>';">
                 <?php foreach ($opciones as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"
@@ -116,11 +116,11 @@ include __DIR__ . '/../../error.php';
         <!-- Select tipo de usuario -->
         <div class="col-12 col-md-3">
             <select class="form-select"
-                    onchange="location.href='tabla.php?action=<?= urlencode($action) ?>&buscar=<?= urlencode($buscar) ?>&tipo=' + this.value;">
+                onchange="location.href='tabla.php?action=<?= urlencode($action) ?>&buscar=<?= urlencode($buscar) ?>&tipo=' + this.value;">
                 <option value="" <?= ($tipo === '')               ? 'selected' : '' ?>>Todos los tipos</option>
-                <option value="estudiante"   <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
+                <option value="estudiante" <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
                 <option value="investigador" <?= ($tipo === 'investigador') ? 'selected' : '' ?>>Investigador</option>
-                <option value="supervisor"   <?= ($tipo === 'supervisor')   ? 'selected' : '' ?>>Supervisor</option>
+                <option value="supervisor" <?= ($tipo === 'supervisor')   ? 'selected' : '' ?>>Supervisor</option>
             </select>
         </div>
 
@@ -128,18 +128,18 @@ include __DIR__ . '/../../error.php';
         <div class="col-12 col-md-6">
             <form class="d-flex gap-2" method="GET" action="tabla.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                <input type="hidden" name="tipo"   value="<?= htmlspecialchars($tipo) ?>">
+                <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo) ?>">
                 <input type="text"
-                       name="buscar"
-                       class="form-control"
-                       placeholder="Buscar por nombre..."
-                       value="<?= htmlspecialchars($buscar) ?>">
+                    name="buscar"
+                    class="form-control"
+                    placeholder="Buscar por nombre..."
+                    value="<?= htmlspecialchars($buscar) ?>">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search"></i>
                 </button>
                 <?php if (!empty($buscar)): ?>
                     <a href="tabla.php?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
-                       class="btn btn-secondary" title="Limpiar búsqueda">
+                        class="btn btn-secondary" title="Limpiar búsqueda">
                         <i class="bi bi-x-lg"></i>
                     </a>
                 <?php endif; ?>
@@ -149,49 +149,53 @@ include __DIR__ . '/../../error.php';
     </div>
 
     <!-- TABLA ESCRITORIO -->
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-hover text-center align-middle">
-            <thead>
-                <tr>
-                    <?php foreach ($encabezados as $enc): ?>
-                        <th><?= htmlspecialchars($enc) ?></th>
-                    <?php endforeach; ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($usuarios)): ?>
-                    <?php foreach ($usuarios as $u): ?>
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
                         <tr>
-                            <td><?= htmlspecialchars($u['nombre_completo']) ?></td>
-                            <td><?= htmlspecialchars($u['correo_institucional']) ?></td>
-                            <td><?= htmlspecialchars($u['telefono']) ?></td>
-                            <td>
-                                <span class="badge rounded-pill text-bg-secondary">
-                                    <?= htmlspecialchars(ucfirst($u['tipo_usuario'])) ?>
-                                </span>
-                            </td>
-                            <td><?= date("d/m/Y H:i", strtotime($u['fecha_registro'])) ?></td>
-                            <td>
-                                <span class="badge rounded-pill text-bg-<?= $controlador->EstiloEstado($u['estado_usuario']) ?>">
-                                    <?= htmlspecialchars(ucfirst($u['estado_usuario'])) ?>
-                                </span>
-                            </td>
-                            <td>
-                                <div class="d-flex justify-content-center gap-1">
-                                    <?= $controlador->botonesAccion($u['id_usuarios'], $rol, $u['estado_usuario']) ?>
-                                </div>
-                            </td>
+                            <?php foreach ($encabezados as $enc): ?>
+                                <th><?= htmlspecialchars($enc) ?></th>
+                            <?php endforeach; ?>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="<?= count($encabezados) ?>">
-                            <div class="alert alert-info mb-0">No se encontraron usuarios.</div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($usuarios)): ?>
+                            <?php foreach ($usuarios as $u): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($u['nombre_completo']) ?></td>
+                                    <td><?= htmlspecialchars($u['correo_institucional']) ?></td>
+                                    <td><?= htmlspecialchars($u['telefono']) ?></td>
+                                    <td>
+                                        <span class="badge rounded-pill text-bg-secondary">
+                                            <?= htmlspecialchars(ucfirst($u['tipo_usuario'])) ?>
+                                        </span>
+                                    </td>
+                                    <td><?= date("d/m/Y H:i", strtotime($u['fecha_registro'])) ?></td>
+                                    <td>
+                                        <span class="badge rounded-pill text-bg-<?= $controlador->EstiloEstado($u['estado_usuario']) ?>">
+                                            <?= htmlspecialchars(ucfirst($u['estado_usuario'])) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <?= $controlador->botonesAccion($u['id_usuarios'], $rol, $u['estado_usuario']) ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="<?= count($encabezados) ?>">
+                                    <div class="alert alert-info mb-0">No se encontraron usuarios.</div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TARJETAS MÓVIL -->
@@ -244,7 +248,7 @@ include __DIR__ . '/../../error.php';
                 <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
                     <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
                         <a class="page-link"
-                           href="?action=<?= urlencode($action) ?>&pagina=<?= $i ?>
+                            href="?action=<?= urlencode($action) ?>&pagina=<?= $i ?>
                                <?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>
                                <?= !empty($tipo)   ? '&tipo='   . urlencode($tipo)   : '' ?>">
                             <?= $i ?>

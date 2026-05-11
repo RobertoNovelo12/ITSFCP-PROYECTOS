@@ -15,8 +15,8 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-// Solo supervisor e investigador
-if (!in_array($rol, ['investigador', 'profesor'])) {
+// Solo supervisor
+if (!in_array($rol, ['supervisor'])) {
     header("Location: ../proyectos/tabla.php");
     exit;
 }

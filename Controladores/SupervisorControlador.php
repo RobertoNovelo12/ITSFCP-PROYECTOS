@@ -176,6 +176,17 @@ class SupervisorControlador
         };
     }
 
+    public function badgeEstadoEtapa(string $estado): string
+    {
+        return match (strtolower($estado)) {
+            'en_proceso'  => "<span class='badge bg-info text-dark'>En proceso</span>",
+            'en_correccion' => "<span class='badge bg-warning text-dark'>En corrección</span>",
+            'carta_subida'     => "<span class='badge bg-success'>Carta subida</span>",
+            'liberado_supervisor'     => "<span class='badge bg-success'>Liberado supervisor</span>",
+            default        => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
+        };
+    }
+
     public function badgeEstadoProyecto(string $estado): string
     {
         return match ($estado) {

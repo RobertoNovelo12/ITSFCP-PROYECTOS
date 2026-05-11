@@ -14,7 +14,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = $_SESSION['rol'] ?? '';
+$rol        = strtolower($_SESSION['rol'] ?? '');
 $id  = $_SESSION['id_usuario'];
 
 require_once __DIR__ . '/../../Controladores/SupervisorControlador.php';
@@ -242,15 +242,15 @@ ob_start();
                 </div>
             </div>
             <div class="col-12">
-                <div class="card shadow-sm">
+                <div class="card shadow-sm d-none d-md-block">
                     <div class="card-header bg-white">
                         <span class="section-title mb-0">Avance global por sección del documento</span>
                     </div>
                     <div class="card-body p-0">
                         <?php if (!empty($etapas_data['secciones'])): ?>
                             <!-- TABLA DESKTOP -->
-                            <div class="table-responsive d-none d-md-block">
-                                <table class="table table-sm align-middle mb-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Sección</th>
@@ -867,6 +867,7 @@ ob_start();
                                 <th>Matrícula</th>
                                 <th>Carrera</th>
                                 <th class="text-center">Estado</th>
+                                <th class="text-center">Estado proceso</th>
                                 <th class="text-center">Proyectos</th>
                                 <th style="min-width:140px">Avance tareas</th>
                                 <th class="text-center">Registro</th>

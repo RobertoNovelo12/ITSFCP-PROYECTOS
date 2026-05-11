@@ -584,6 +584,7 @@ class SupervisorModelo
                 CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) AS nombre_completo,
                 u.correo_institucional,
                 u.estado_usuario,
+                ep.estado AS estado_proceso,
                 u.fecha_registro,
                 e.matricula,
                 c.nombre_carrera AS carrera,
@@ -603,6 +604,13 @@ class SupervisorModelo
             FROM estudiantes e
             JOIN usuarios u  ON u.id_usuarios = e.id_usuarios
             JOIN carreras c  ON c.id_carrera  = e.id_carrera
+            LEFT JOIN proyectos_usuarios pu ON pu.id_usuarios = e.id_usuarios
+            AND pu.id_integrante = (
+                SELECT MAX(pu2.id_integrante)
+                FROM proyectos_usuarios pu2
+                WHERE pu2.id_usuarios = e.id_usuarios
+            )
+            LEFT JOIN estados_proceso ep ON ep.id_estados_proceso = pu.id_estados_proceso
             {$where}
             ORDER BY u.nombre ASC
             LIMIT ?, ?
@@ -624,10 +632,12 @@ class SupervisorModelo
     {
         // Datos básicos
         $stmt = $this->con->prepare("
-            SELECT u.*, e.matricula, c.nombre_carrera AS carrera, g.genero
+            SELECT u.*, e.matricula, c.nombre_carrera AS carrera, g.genero, ep.estado AS estado_proceso
             FROM usuarios u
             JOIN estudiantes e ON e.id_usuarios = u.id_usuarios
             JOIN carreras c    ON c.id_carrera  = e.id_carrera
+            JOIN proyectos_usuarios pu ON u.id_usuarios = e.id_usuarios
+            JOIN estados_proceso ep ON ep.id_estados_proceso = pu.id_estados_proceso
             LEFT JOIN genero_usuario g ON g.id_genero = u.id_genero
             WHERE u.id_usuarios = ?
         ");
