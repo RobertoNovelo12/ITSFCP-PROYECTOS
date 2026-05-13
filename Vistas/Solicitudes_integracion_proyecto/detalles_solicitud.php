@@ -73,7 +73,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- ══ PANEL DE 3 ETAPAS ══════════════════════════════════════ -->
+    <!--  PANEL DE 3 ETAPAS  -->
     <div class="card shadow-sm mb-4 border-primary">
         <div class="card-header text-white">
             <h5 class="mb-0">Seguimiento del estudiante</h5>
@@ -180,7 +180,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- ══ DOCUMENTOS DEL ESTUDIANTE ══════════════════════════════ -->
+    <!--  DOCUMENTOS DEL ESTUDIANTE  -->
     <?php if (!empty($documentos)): ?>
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -204,7 +204,7 @@ ob_start();
     </div>
     <?php endif; ?>
 
-    <!-- ══ CARTA COMPROMISO (adjunta a la solicitud) ══════════════ -->
+    <!--  CARTA COMPROMISO (adjunta a la solicitud)  -->
     <?php if (!empty($sol['carta_ruta'])): ?>
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -223,7 +223,7 @@ ob_start();
     </div>
     <?php endif; ?>
 
-    <!-- ══ DATOS DEL ESTUDIANTE ════════════════════════════════════ -->
+    <!--  DATOS DEL ESTUDIANTE  -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light"><h5 class="mb-0">Información del estudiante</h5></div>
         <div class="card-body">
@@ -249,7 +249,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- ══ PROYECTO ════════════════════════════════════════════════ -->
+    <!--  PROYECTO  -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light"><h5 class="mb-0">Proyecto solicitado</h5></div>
         <div class="card-body">
@@ -282,7 +282,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- ══ MOTIVACIÓN Y EXPERIENCIA ═══════════════════════════════ -->
+    <!--  MOTIVACIÓN Y EXPERIENCIA ═ -->
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
@@ -302,7 +302,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- ══ HISTORIAL DE COMENTARIOS ═══════════════════════════════ -->
+    <!--  HISTORIAL DE COMENTARIOS ═ -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light"><h5 class="mb-0">Historial de comentarios</h5></div>
         <div class="card-body">
@@ -330,7 +330,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- ══ ACCIONES RÁPIDAS (si la solicitud sigue activa) ════════ -->
+    <!--  ACCIONES RÁPIDAS (si la solicitud sigue activa)  -->
     <?php if (in_array($sol['estado'], ['pendiente','en_revision','correcciones'])): ?>
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light"><h5 class="mb-0">Acciones sobre la solicitud</h5></div>
@@ -353,7 +353,7 @@ ob_start();
 
 </div>
 
-<!-- ══ MODAL ACCIÓN ═══════════════════════════════════════════════ -->
+<!--  MODAL ACCIÓN ═ -->
 <div class="modal fade" id="modalAccion" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -390,7 +390,7 @@ ob_start();
     </div>
 </div>
 
-<!-- ══ MODAL CIERRE ═══════════════════════════════════════════════ -->
+<!--  MODAL CIERRE ═ -->
 <div class="modal fade" id="modalCierre" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

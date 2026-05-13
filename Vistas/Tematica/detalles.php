@@ -38,7 +38,7 @@ ob_start();
         </div>
 
         <div class="col-md-6 text-md-end">
-            <a href="tabla.php" class="btn btn-secondary">
+            <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>
