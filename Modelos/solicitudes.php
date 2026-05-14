@@ -40,18 +40,9 @@ class Solicitud
 
         $stmt->bind_param(
             "sssssisisiii",
-            $nombre,
-            $nombre_archivo,
-            $ruta,
-            $tipo_mime,
-            $extension,
-            $tamano_bytes,
-            $tipo,
-            $visibilidad,
-            $id_usuario,
-            $id_proyecto,
-            $etapa,
-            $version
+            $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
+            $tamano_bytes, $tipo, $visibilidad, $id_usuario,
+            $id_proyecto, $etapa, $version
         );
 
         if (!$stmt->execute()) throw new Exception("Error execute (registrarDocumento): " . $stmt->error);
@@ -84,12 +75,8 @@ class Solicitud
         return true;
     }
 
-    // ── Periodos disponibles ──────────────────────────────────────
+    // ── Periodos ──────────────────────────────────────────────────
 
-    /**
-     * Devuelve los periodos que tienen proyectos del investigador dado,
-     * incluyendo la bandera "estado" del periodo para mostrarlo en el selector.
-     */
     public function periodosDelInvestigador(int $id): array
     {
         $sql = "
@@ -194,13 +181,11 @@ class Solicitud
         $params = [$id];
         $types  = "i";
 
-        // Filtro global por periodo
         if (!empty($f['periodo'])) {
             $cond[]   = "p.id_periodos = ?";
             $params[] = intval($f['periodo']);
             $types   .= "i";
         }
-
         if (!empty($f['estado'])) {
             $cond[]   = "sp.estado = ?";
             $params[] = $f['estado'];
@@ -238,10 +223,6 @@ class Solicitud
 
     // ── Detalle ───────────────────────────────────────────────────
 
-    /**
-     * Detalle completo de la solicitud incluyendo carta compromiso
-     * (id_documento en solicitud_proyecto → documentos_subidos).
-     */
     public function obtenerDetalle(int $id): ?array
     {
         $sql = "
@@ -254,19 +235,15 @@ class Solicitud
                 p.titulo               AS proyecto_titulo,
                 p.modalidad,
                 p.id_investigador,
-
-                -- Carta compromiso adjunta por el estudiante al enviar la solicitud
                 ds.nombre              AS carta_nombre,
                 ds.ruta                AS carta_ruta,
                 ds.extension           AS carta_extension
-
             FROM solicitud_proyecto sp
             JOIN proyectos p    ON p.id_proyectos   = sp.id_proyectos
             JOIN usuarios u     ON u.id_usuarios    = sp.id_estudiante
             JOIN estudiantes e  ON e.id_usuarios    = sp.id_estudiante
             JOIN carreras c     ON c.id_carrera     = e.id_carrera
             LEFT JOIN documentos_subidos ds ON ds.id_documento = sp.id_documento
-
             WHERE sp.id_solicitud_proyecto = ?
         ";
         $stmt = $this->con->prepare($sql);
@@ -304,9 +281,6 @@ class Solicitud
         return $stmt->execute();
     }
 
-    /**
-     * Acepta la solicitud, inserta en proyectos_usuarios y registra en historial.
-     */
     public function aceptar(int $id): bool
     {
         $stmt = $this->con->prepare("
@@ -347,8 +321,7 @@ class Solicitud
         return $this->insertarComentario($id, $id_usuario, 'investigador', $comentario, $id_documento);
     }
 
-    /*Vencido*/
-    public function vencido(int $id)
+    public function vencido(int $id): void
     {
         $stmt = $this->con->prepare("
             UPDATE solicitud_proyecto
@@ -361,26 +334,55 @@ class Solicitud
         $stmt->close();
     }
 
-    /*Obtener vencidos */
-    public function obtenervencido()
+    public function obtenervencido(): array
     {
         $stmt = $this->con->prepare("
             SELECT sopr.id_solicitud_proyecto
-FROM solicitud_proyecto AS sopr
-JOIN proyectos AS proy ON proy.id_proyectos = sopr.id_proyectos
-WHERE CURDATE() > proy.fecha_fin
-  AND sopr.estado NOT IN ('vencido', 'rechazado', 'aceptado')
+            FROM solicitud_proyecto AS sopr
+            JOIN proyectos AS proy ON proy.id_proyectos = sopr.id_proyectos
+            WHERE CURDATE() > proy.fecha_fin
+              AND sopr.estado NOT IN ('vencido', 'rechazado', 'aceptado')
         ");
         if (!$stmt) throw new Exception("Error prepare (obtenervencido): " . $this->con->error);
         if (!$stmt->execute()) throw new Exception("Error execute: " . $stmt->error);
-        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $rows   = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
-        return $result;
+        return array_column($rows, 'id_solicitud_proyecto');
     }
 
     public function enviarCorrecciones(int $id, int $id_usuario, string $comentario, ?int $id_documento = null): bool
     {
         return $this->insertarComentario($id, $id_usuario, 'estudiante', $comentario, $id_documento);
+    }
+
+    // ── Cierre (etapa 3) ──────────────────────────────────────────
+
+    /**
+     * Actualiza el estado del seguimiento de cierre y registra un comentario
+     * del investigador si se proporciona.
+     *
+     * @param int    $id_seguimiento  ID en seguimiento_documento
+     * @param string $estado          'completado' | 'correcciones' | 'rechazado'
+     * @param int    $id_usuario      Investigador que responde
+     * @param string $comentario      Comentario opcional (obligatorio para rechazar/correcciones)
+     */
+    public function actualizarEstadoCierre(
+        int    $id_seguimiento,
+        string $estado,
+        int    $id_usuario,
+        string $comentario = ''
+    ): bool {
+        $stmt = $this->con->prepare("
+            UPDATE seguimiento_documento
+            SET estado = ?, fecha_revision = NOW(), comentario_supervisor = ?
+            WHERE id_seguimiento = ?
+        ");
+        if (!$stmt) throw new Exception("Error prepare (actualizarEstadoCierre): " . $this->con->error);
+        $stmt->bind_param("ssi", $estado, $comentario, $id_seguimiento);
+        if (!$stmt->execute()) throw new Exception("Error execute: " . $stmt->error);
+        $ok = $stmt->affected_rows > 0;
+        $stmt->close();
+        return $ok;
     }
 
     // ── Comentarios (lectura) ─────────────────────────────────────
@@ -445,9 +447,6 @@ WHERE CURDATE() > proy.fecha_fin
         $stmt->close();
     }
 
-    /**
-     * Inserta en proyectos_usuarios. Si ya existe (UNIQUE key), actualiza estado a activo.
-     */
     public function vincularEstudianteProyecto(int $id_proyecto, int $id_usuario): void
     {
         $stmt = $this->con->prepare("
@@ -466,9 +465,6 @@ WHERE CURDATE() > proy.fecha_fin
         $stmt->close();
     }
 
-    /**
-     * Registra en historial_proyectos_usuarios.
-     */
     public function registrarHistorialUsuario(
         int    $id_proyecto,
         int    $id_estudiante,
@@ -487,12 +483,8 @@ WHERE CURDATE() > proy.fecha_fin
         $stmt->close();
     }
 
-    // ── Seguimiento etapas (para detalles_solicitud) ──────────────
+    // ── Seguimiento etapas ────────────────────────────────────────
 
-    /**
-     * Devuelve el estado de las 3 etapas del estudiante en el proyecto,
-     * el id del seguimiento de cierre, los documentos subidos y si la fase 2 está completa.
-     */
     public function getDatosSeguimientoEstudiante(int $id_proyecto, int $id_estudiante, int $id_investigador): array
     {
         // Etapa 1: estado de la solicitud
@@ -503,14 +495,14 @@ WHERE CURDATE() > proy.fecha_fin
         ");
         $stmt1->bind_param("ii", $id_proyecto, $id_estudiante);
         $stmt1->execute();
-        $sol = $stmt1->get_result()->fetch_assoc();
+        $sol       = $stmt1->get_result()->fetch_assoc();
         $e1_estado = $sol['estado'] ?? 'pendiente';
 
         // Etapa 2: actividades aprobadas (id_estadoT = 5)
         $stmt2 = $this->con->prepare("
             SELECT
-                COUNT(*)                    AS total,
-                SUM(tu.id_estadoT = 5)      AS aprobadas
+                COUNT(*)               AS total,
+                SUM(tu.id_estadoT = 5) AS aprobadas
             FROM tareas_usuarios tu
             JOIN tareas t           ON t.id_tarea    = tu.id_tarea
             JOIN tbl_seguimiento ts ON ts.id_avances = t.id_avances
@@ -518,7 +510,7 @@ WHERE CURDATE() > proy.fecha_fin
         ");
         $stmt2->bind_param("ii", $id_proyecto, $id_estudiante);
         $stmt2->execute();
-        $act = $stmt2->get_result()->fetch_assoc();
+        $act           = $stmt2->get_result()->fetch_assoc();
         $total_act     = (int)($act['total']     ?? 0);
         $aprobadas_act = (int)($act['aprobadas'] ?? 0);
         $fase2_ok      = $total_act > 0 && $aprobadas_act >= 11;
@@ -533,9 +525,9 @@ WHERE CURDATE() > proy.fecha_fin
         ");
         $stmt3->bind_param("ii", $id_proyecto, $id_estudiante);
         $stmt3->execute();
-        $cierre = $stmt3->get_result()->fetch_assoc();
-        $e3_estado         = $cierre['estado'] ?? 'pendiente';
-        $id_seg_cierre     = $cierre['id_seguimiento'] ?? null;
+        $cierre        = $stmt3->get_result()->fetch_assoc();
+        $e3_estado     = $cierre['estado']       ?? 'pendiente';
+        $id_seg_cierre = $cierre['id_seguimiento'] ?? null;
 
         // Documentos subidos por el estudiante en este proyecto
         $stmt4 = $this->con->prepare("
@@ -551,8 +543,8 @@ WHERE CURDATE() > proy.fecha_fin
             LEFT JOIN tipo_documento td         ON td.id_tipo_documento = seg.id_tipo_documento
             WHERE ds.id_usuarios  = ?
               AND ds.id_proyectos = ?
-              AND ds.activo      = 1
-              AND ds.tipo        = 'entrega'
+              AND ds.activo       = 1
+              AND ds.tipo         = 'entrega'
             ORDER BY ds.fecha_subida DESC
         ");
         $stmt4->bind_param("ii", $id_estudiante, $id_proyecto);
@@ -560,14 +552,14 @@ WHERE CURDATE() > proy.fecha_fin
         $documentos = $stmt4->get_result()->fetch_all(MYSQLI_ASSOC);
 
         return [
-            'e1_estado'           => $e1_estado,
-            'e2_estado'           => $e2_estado,
-            'e3_estado'           => $e3_estado,
-            'fase2_ok'            => $fase2_ok,
-            'id_seguimiento_cierre' => $id_seg_cierre,
-            'documentos'          => $documentos,
-            'actividades_total'   => $total_act,
-            'actividades_aprobadas' => $aprobadas_act,
+            'e1_estado'              => $e1_estado,
+            'e2_estado'              => $e2_estado,
+            'e3_estado'              => $e3_estado,
+            'fase2_ok'               => $fase2_ok,
+            'id_seguimiento_cierre'  => $id_seg_cierre,
+            'documentos'             => $documentos,
+            'actividades_total'      => $total_act,
+            'actividades_aprobadas'  => $aprobadas_act,
         ];
     }
 
@@ -575,7 +567,9 @@ WHERE CURDATE() > proy.fecha_fin
 
     public function proyectosDelInvestigador(int $id): array
     {
-        $stmt = $this->con->prepare("SELECT id_proyectos, titulo FROM proyectos WHERE id_investigador = ?");
+        $stmt = $this->con->prepare("
+            SELECT id_proyectos, titulo FROM proyectos WHERE id_investigador = ?
+        ");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

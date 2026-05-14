@@ -20,6 +20,20 @@
   --color-sombra-fuerte: rgba(75, 85, 99, 0.25);
   --color-hover-gris: #f3f4f6;
   --color-rojo-logout: #b91c1c;
+
+  /*  Variables TecNM  */
+  --tecnm-red: #c41230; /* Rojo institucional TecNM         */
+  --tecnm-red-dk: #991020; /* Rojo oscuro hover                */
+  --tecnm-navy: #1a2e4a; /* Azul marino encabezados          */
+  --tecnm-blue: #1e5fad; /* Azul medio acento                */
+  --tecnm-gold: #d4a017; /* Dorado acento secundario         */
+  --tecnm-light: #f5f7fa; /* Fondo general                    */
+  --tecnm-border: #e2e8f0; /* Bordes sutiles                   */
+  --tecnm-text: #2d3748; /* Texto principal                  */
+  --tecnm-muted: #718096; /* Texto secundario                 */
+  --card-radius: 10px;
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.07);
+  --shadow-md: 0 3px 12px rgba(0, 0, 0, 0.1);
 }
 
 html.dark-mode {
@@ -5621,4 +5635,358 @@ summary {
 /*Para los minis helpes del panel de supervisor*/
 .min-w-0 {
   min-width: 0;
+}
+
+/* 
+     ESTILOS LOCALES — paleta TecNM + refinamiento visual
+      */
+
+/*  Layout base  */
+.sup-page {
+  background: var(--tecnm-light);
+  min-height: 100vh;
+}
+
+/*  Encabezado de página  */
+.sup-header {
+  border-radius: var(--card-radius);
+  padding: 1.4rem 1.8rem;
+  color: var(--tecnm-text);
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+.sup-header h4 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+.sup-header span {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+.sup-header .badge-modo {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--tecnm-text);
+  font-size: 0.72rem;
+  padding: 0.35em 0.75em;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/*  Bloque filtro periodo  */
+.filter-periodo {
+  background: #fff;
+  border: 1px solid var(--tecnm-border);
+  border-radius: var(--card-radius);
+  padding: 0.75rem 1.2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.filter-periodo label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tecnm-navy);
+  white-space: nowrap;
+  margin: 0;
+}
+
+/*  Tarjetas de resumen principales ─ */
+.kpi-card {
+  background: var(--fondo-web);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--tecnm-border);
+  box-shadow: var(--shadow-sm);
+  padding: 1.2rem 1.4rem;
+  height: 100%;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--card-radius) var(--card-radius) 0 0;
+}
+.kpi-card.azul::before {
+  background: var(--tecnm-blue);
+}
+.kpi-card.verde::before {
+  background: #22c55e;
+}
+.kpi-card.amber::before {
+  background: var(--tecnm-gold);
+}
+.kpi-card.rojo::before {
+  background: var(--tecnm-red);
+}
+
+.kpi-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 0.9rem;
+}
+.kpi-icon.azul {
+  background: #ebf4ff;
+  color: var(--tecnm-blue);
+}
+.kpi-icon.verde {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.kpi-icon.amber {
+  background: #fefce8;
+  color: #ca8a04;
+}
+.kpi-icon.rojo {
+  background: #fff1f2;
+  color: var(--tecnm-red);
+}
+
+.kpi-num {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--tecnm-navy);
+  margin-bottom: 0.2rem;
+}
+.kpi-lbl {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tecnm-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.15rem;
+}
+.kpi-desc {
+  font-size: 0.76rem;
+  color: var(--tecnm-muted);
+  line-height: 1.4;
+  margin-bottom: 0.65rem;
+}
+.kpi-sub {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+/*  Mini tarjetas de estado solicitudes ─ */
+.mini-stat-card {
+  background: #fff;
+  border: 1px solid var(--tecnm-border);
+  border-radius: 8px;
+  padding: 0.8rem 0.6rem 0.65rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+}
+.mini-stat-card .val {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.mini-stat-card .lbl {
+  font-size: 0.7rem;
+  color: var(--tecnm-muted);
+  font-weight: 500;
+  margin-top: 0.2rem;
+}
+.mini-stat-card .barra {
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 0.5rem;
+}
+
+/*  Tabs de navegación  */
+.nav-tabs-custom {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+  border-bottom: 2px solid var(--tecnm-border);
+  padding-bottom: 0.6rem;
+}
+.nav-tabs-custom a {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--tecnm-muted);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.nav-tabs-custom a:hover {
+  background: #ebf4ff;
+  color: var(--tecnm-blue);
+  border-color: #bfdbfe;
+}
+.nav-tabs-custom a.active {
+  background: var(--tecnm-navy);
+  color: #fff;
+  border-color: var(--tecnm-navy);
+}
+
+/*  Tarjeta de sección genérica ─ */
+.sec-card {
+  background: #fff;
+  border: 1px solid var(--tecnm-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.sec-card-header {
+  padding: 0.75rem 1.2rem;
+  border-bottom: 1px solid var(--tecnm-border);
+  background: #fafbfc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sec-card-header .sec-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--tecnm-navy);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.sec-card-header .sec-sub {
+  font-size: 0.74rem;
+  color: var(--tecnm-muted);
+}
+
+/*  Tabla interna ─ */
+.tbl-sup thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--tecnm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 2px solid var(--tecnm-border);
+  padding: 0.6rem 0.9rem;
+  background: #fafbfc;
+}
+.tbl-sup tbody td {
+  font-size: 0.82rem;
+  color: var(--tecnm-text);
+  padding: 0.65rem 0.9rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--tecnm-border);
+}
+.tbl-sup tbody tr:last-child td {
+  border-bottom: none;
+}
+.tbl-sup tbody tr:hover {
+  background: #f8fbff;
+}
+
+/*  Investigador card (resumen) ─ */
+.inv-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--tecnm-border);
+  transition: background 0.15s;
+}
+.inv-row:last-child {
+  border-bottom: none;
+}
+.inv-row:hover {
+  background: #f8fbff;
+}
+.inv-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--tecnm-navy);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.inv-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tecnm-text);
+}
+.inv-email {
+  font-size: 0.72rem;
+  color: var(--tecnm-muted);
+}
+.inv-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--tecnm-blue);
+  background: #ebf4ff;
+  padding: 0.2em 0.55em;
+  border-radius: 4px;
+}
+
+/*  Barras de progreso de etapas  */
+.etapa-prog {
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.etapa-prog-inner {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/*  Contenedor de gráfica  */
+.chart-wrap {
+  position: relative;
+  padding: 1rem 1.2rem 1.2rem;
+}
+
+/*  Filtro bar tabs ─ */
+.filter-bar {
+  background: #fff;
+  border: 1px solid var(--tecnm-border);
+  border-radius: 8px;
+  padding: 0.75rem 1.1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+/*  Responsive ─ */
+@media (max-width: 767px) {
+  .kpi-num {
+    font-size: 1.8rem;
+  }
+  .kpi-card {
+    padding: 1rem;
+  }
 }
