@@ -3,7 +3,6 @@
 /**
  * SupervisorControlador.php
  * Dashboard exclusivo del supervisor — solo lectura, con filtros y paginación.
- * Ruta: /ITSFCP-PROYECTOS/Controladores/SupervisorControlador.php
  */
 
 require_once __DIR__ . '/../Modelos/SupervisorModelo.php';
@@ -62,40 +61,33 @@ class SupervisorControlador
 
         $filtros = $this->filtrosGET();
 
-        // -- Datos para selects de filtro
         $periodos       = $this->modelo->obtenerPeriodos();
         $investigadores = $this->modelo->obtenerInvestigadores();
         $estadosP       = $this->modelo->obtenerEstadosProyecto();
         $carreras       = $this->modelo->obtenerCarreras();
 
-        // -- Resumen global (tarjetas)
         $resumen = $this->modelo->resumenGlobal($filtros);
 
-        // -- Proyectos paginados
-        $pp_proy   = 8;
-        $pag_proy  = max(1, (int)($_GET['pag_proy'] ?? 1));
+        $pp_proy    = 8;
+        $pag_proy   = max(1, (int)($_GET['pag_proy'] ?? 1));
         $desde_proy = ($pag_proy - 1) * $pp_proy;
         $total_proy = $this->modelo->contarProyectos($filtros);
         $proyectos  = $this->modelo->obtenerProyectos($filtros, $desde_proy, $pp_proy);
 
-        // -- Solicitudes paginadas
         $pp_sol    = 10;
         $pag_sol   = max(1, (int)($_GET['pag_sol'] ?? 1));
         $desde_sol = ($pag_sol - 1) * $pp_sol;
         $total_sol = $this->modelo->contarSolicitudes($filtros);
         $solicitudes = $this->modelo->obtenerSolicitudes($filtros, $desde_sol, $pp_sol);
 
-        // -- Etapas
         $etapas_data = $this->modelo->resumenEtapas($filtros);
 
-        // -- Estudiantes paginados
         $pp_usr    = 10;
         $pag_usr   = max(1, (int)($_GET['pag_usr'] ?? 1));
         $desde_usr = ($pag_usr - 1) * $pp_usr;
         $total_usr = $this->modelo->contarEstudiantes($filtros);
         $estudiantes = $this->modelo->obtenerEstudiantes($filtros, $desde_usr, $pp_usr);
 
-        // -- Resumen investigadores
         $resumen_inv = $this->modelo->resumenInvestigadores($filtros);
 
         return [
@@ -117,7 +109,7 @@ class SupervisorControlador
     }
 
     // ================================================================
-    // detalleProyecto — vista dedicada de un proyecto
+    // detalleProyecto
     // ================================================================
 
     public function detalleProyecto(): array
@@ -132,7 +124,7 @@ class SupervisorControlador
     }
 
     // ================================================================
-    // detalleEstudiante — vista dedicada de un estudiante
+    // detalleEstudiante
     // ================================================================
 
     public function detalleEstudiante(): array
@@ -166,73 +158,87 @@ class SupervisorControlador
 
     public function badgeEstadoSolicitud(string $estado): string
     {
-        return match (strtolower($estado)) {
+        return match (strtolower(trim($estado))) {
             'pendiente'    => "<span class='badge bg-secondary'>Pendiente</span>",
             'en_revision'  => "<span class='badge bg-info text-dark'>En revisión</span>",
             'correcciones' => "<span class='badge bg-warning text-dark'>Correcciones</span>",
             'aceptado'     => "<span class='badge bg-success'>Aceptado</span>",
             'rechazado'    => "<span class='badge bg-danger'>Rechazado</span>",
-            default        => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
+            default        => "<span class='badge bg-light text-dark border'>" . htmlspecialchars($estado) . "</span>",
         };
     }
 
     public function badgeEstadoEtapa(string $estado): string
     {
-        return match (strtolower($estado)) {
-            'en_proceso'  => "<span class='badge bg-info text-dark'>En proceso</span>",
-            'en_correccion' => "<span class='badge bg-warning text-dark'>En corrección</span>",
-            'carta_subida'     => "<span class='badge bg-success'>Carta subida</span>",
-            'liberado_supervisor'     => "<span class='badge bg-success'>Liberado supervisor</span>",
-            default        => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
+        return match (strtolower(trim($estado))) {
+            'en_proceso'             => "<span class='badge bg-info text-dark'>En proceso</span>",
+            'en_correccion'          => "<span class='badge bg-warning text-dark'>En corrección</span>",
+            'carta_subida'           => "<span class='badge bg-success'>Carta subida</span>",
+            'liberado_supervisor'    => "<span class='badge bg-primary'>Liberado supervisor</span>",
+            'pendiente'              => "<span class='badge bg-secondary'>Pendiente</span>",
+            'completado'             => "<span class='badge bg-success'>Completado</span>",
+            'rechazado'              => "<span class='badge bg-danger'>Rechazado</span>",
+            default                  => "<span class='badge bg-light text-dark border'>" . htmlspecialchars($estado) . "</span>",
         };
     }
 
     public function badgeEstadoProyecto(string $estado): string
     {
-        return match ($estado) {
+        return match (trim($estado)) {
             'Activo'      => "<span class='badge bg-success'>Activo</span>",
             'Por aprobar' => "<span class='badge bg-warning text-dark'>Por aprobar</span>",
             'Por cerrar'  => "<span class='badge bg-info text-dark'>Por cerrar</span>",
             'Rechazado'   => "<span class='badge bg-danger'>Rechazado</span>",
             'Vencido'     => "<span class='badge bg-secondary'>Vencido</span>",
             'Cierre'      => "<span class='badge bg-dark'>Cerrado</span>",
-            default       => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
+            default       => "<span class='badge bg-light text-dark border'>" . htmlspecialchars($estado) . "</span>",
         };
     }
 
+    /**
+     * Estados de tarea coherentes con la BD:
+     *  Sin activar → gris claro (no cuenta en totales)
+     *  Pendiente   → gris
+     *  Entregado   → azul (alumno envió, aún no revisada)
+     *  Revisar     → celeste (investigador revisando)
+     *  Corregir    → amarillo
+     *  Aprobado    → verde
+     *  Vencido     → rojo
+     */
     public function badgeEstadoTarea(string $estado): string
     {
-        return match ($estado) {
+        return match (trim($estado)) {
             'Aprobado'    => "<span class='badge bg-success'>Aprobado</span>",
             'Pendiente'   => "<span class='badge bg-secondary'>Pendiente</span>",
-            'Revisar'     => "<span class='badge bg-info text-dark'>Por revisar</span>",
             'Entregado'   => "<span class='badge bg-primary'>Entregado</span>",
+            'Revisar'     => "<span class='badge bg-info text-dark'>Por revisar</span>",
             'Corregir'    => "<span class='badge bg-warning text-dark'>Correcciones</span>",
             'Vencido'     => "<span class='badge bg-danger'>Vencido</span>",
-            'Sin activar' => "<span class='badge bg-light text-muted'>Sin activar</span>",
-            default       => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
+            'Sin activar' => "<span class='badge bg-light text-muted border'>Sin activar</span>",
+            default       => "<span class='badge bg-light text-dark border'>" . htmlspecialchars($estado) . "</span>",
         };
     }
 
     public function badgeEstadoUsuario(string $estado): string
     {
-        return match ($estado) {
+        return match (strtolower(trim($estado))) {
             'activo'    => "<span class='badge bg-success'>Activo</span>",
             'aprobado'  => "<span class='badge bg-info text-dark'>Aprobado</span>",
             'espera'    => "<span class='badge bg-warning text-dark'>En espera</span>",
             'cancelado' => "<span class='badge bg-danger'>Cancelado</span>",
-            default     => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
+            'inactivo'  => "<span class='badge bg-secondary'>Inactivo</span>",
+            default     => "<span class='badge bg-light text-dark border'>" . htmlspecialchars($estado) . "</span>",
         };
     }
 
     public function badgeParticipacion(string $estado): string
     {
-        return match ($estado) {
+        return match (strtolower(trim($estado))) {
             'activo'    => "<span class='badge bg-success'>Activo</span>",
             'concluido' => "<span class='badge bg-primary'>Concluido</span>",
             'baja'      => "<span class='badge bg-danger'>Baja</span>",
             'cancelado' => "<span class='badge bg-secondary'>Cancelado</span>",
-            default     => "<span class='badge bg-light text-dark'>" . htmlspecialchars($estado) . "</span>",
+            default     => "<span class='badge bg-light text-dark border'>" . htmlspecialchars($estado) . "</span>",
         };
     }
 
@@ -257,8 +263,8 @@ class SupervisorControlador
             'fecha_hasta'     => $filtros['fecha_hasta']     ?? '',
         ]);
 
-        $q = http_build_query($base);
-        $p = $pag['pagina'];
+        $q  = http_build_query($base);
+        $p  = $pag['pagina'];
         $tp = $pag['total_paginas'];
 
         $html  = '<nav class="mt-3"><ul class="pagination justify-content-center pagination-sm">';
@@ -279,7 +285,7 @@ class SupervisorControlador
         $html .= '</ul>';
 
         $desde = ($p - 1) * $pag['por_pagina'] + 1;
-        $hasta  = min($p * $pag['por_pagina'], $pag['total']);
+        $hasta = min($p * $pag['por_pagina'], $pag['total']);
         $html .= '<p class="text-center text-muted small mb-0">Mostrando ' . $desde . '–' . $hasta . ' de ' . $pag['total'] . ' registros</p>';
         $html .= '</nav>';
         return $html;

@@ -19,6 +19,7 @@ $pagina = intval($_GET['pagina'] ?? 1);
 
 require_once "../../Controladores/proyectoControlador.php";
 $proyectoControlador = new ProyectoControlador();
+$periodo = $proyectoControlador->periodoactual();
 
 // Solo acciones de proyectos (no solicitudes)
 $accionesPermitidas = ['index', 'Total', 'Activos', 'Cierre', 'PorAprobar', 'Rechazados', 'PorCerrar', 'Vencido', 'Cierrerechazado'];
@@ -50,8 +51,15 @@ $paginacion = $resultado['paginacion'] ?? [
 ];
 
 $filtros    = $proyectoControlador->filtros($id_usuario, $rol);
+
 $encabezados = $proyectoControlador->encabezadosProyectos($rol);
 $opciones   = $proyectoControlador->opcionesProyectos($rol, $filtros);
+
+//PARA ACTIVAR O DESACTIVAR EL CREAR Y EDITAR PROYECTO
+// ¿Puede el investigador crear proyecto hoy?
+$hoy = date('Y-m-d');
+$puedeCrear_Editar = ($hoy >= $periodo['fecha_inicio_proyectos']
+    && $hoy <= $periodo['fecha_fin_proyectos']);
 
 ob_start();
 include __DIR__ . '/../../mensaje.php';
@@ -73,10 +81,17 @@ include __DIR__ . '/../../mensaje.php';
             </h2>
         </div>
         <div class="col-md-6 text-md-end">
-            <?php if ($rol === 'investigador' || $rol === 'profesor'): ?>
-                <a href="crear.php" class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i> Crear proyecto
-                </a>
+            <?php if ($rol === 'investigador' || $rol === 'profesor'):
+
+
+            ?>
+                <?php if ($puedeCrear_Editar): ?>
+                    <a href="crear_proyecto.php" class="btn btn-primary">Crear proyecto</a>
+                <?php else: ?>
+                    <button class="btn btn-secondary" disabled title="Fuera del periodo de registro">
+                        Crear proyecto
+                    </button>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -139,7 +154,7 @@ include __DIR__ . '/../../mensaje.php';
                                             <td title="<?= htmlspecialchars($proyecto['titulo']) ?>">
                                                 <?= strlen($proyecto['titulo']) > 60
                                                     ? substr($proyecto['titulo'], 0, 60) . '...'
-                                                    : $proyecto['titulo']; ?>
+                                                    : htmlspecialchars($proyecto['titulo']); ?>
                                             </td>
 
                                             <td><?= $proyecto['fecha_inicio'] ?></td>
@@ -165,7 +180,7 @@ include __DIR__ . '/../../mensaje.php';
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <a href="../Seguimiento/seguimiento.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>"
+                                                    <a href="../Seguimiento/index.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>"
                                                         class="btn btn-sm btn-primary">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                                             fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16">
@@ -185,7 +200,8 @@ include __DIR__ . '/../../mensaje.php';
                                                     $proyecto['estado_proyecto'],
                                                     $id_usuario,
                                                     $proyecto['puede_cerrar'] ?? 0,
-                                                    $proyecto['estado_estudiante'] ?? null
+                                                    $proyecto['estado_estudiante'] ?? null,
+                                                    $puedeCrear_Editar
                                                 ); ?>
                                             </td>
 
@@ -237,7 +253,8 @@ include __DIR__ . '/../../mensaje.php';
                                         $proyecto['estado_proyecto'],
                                         null,
                                         $proyecto['puede_cerrar'] ?? 0,
-                                        $proyecto['estado_estudiante'] ?? null
+                                        $proyecto['estado_estudiante'] ?? null,
+                                        $puedeCrear_Editar
                                     ); ?>
                                 </div>
 

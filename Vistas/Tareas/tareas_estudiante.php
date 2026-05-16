@@ -13,12 +13,13 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = $_SESSION['id_usuario'];
+$id_proyectos = $_GET["id_proyectos"] ?? $_POST["id_proyectos"] ?? null;
+
 
 require_once "../../Controladores/tareasControlador.php";
 $tareaControlador = new TareaControlador();
 
-$tareas = $tareaControlador->listarTareasEstudiante($id_usuario);
-
+$tareas = $tareaControlador->listarTareasEstudiante($id_usuario, $id_proyectos);
 // Separar tareas activas de archivadas
 $tareasActivas   = array_filter($tareas, fn($t) => !in_array($t['id_estadoT'], [4]));
 
@@ -66,7 +67,7 @@ ob_start();
 
                 <!-- Instrucciones (preview) -->
                 <?php if (!empty($tarea['instrucciones'])): ?>
-                    <p class="task-instrucciones mt-2 mb-2"><?= htmlspecialchars($tarea['instrucciones']) ?></p>
+                    <p class="task-instrucciones mt-2 mb-2"><?= $tarea['instrucciones'] ?></p>
                 <?php endif; ?>
 
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">

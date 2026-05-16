@@ -18,7 +18,6 @@ class Tarea
     {
         $hoy = date("Y-m-d");
 
-        // 1. Detectar qué asignaciones se van a vencer (para registrar historial)
         $sqlDetectar = "
             SELECT taus.id_asignacion, taus.id_estadoT
             FROM tareas_usuarios taus
@@ -34,7 +33,6 @@ class Tarea
 
         if (empty($vencidos)) return;
 
-        // 2. Actualizar estado a Vencido (6), incluye borradores (8) que superaron la fecha
         $sqlUpdate = "
             UPDATE tareas_usuarios taus
             JOIN tareas tare ON taus.id_tarea = tare.id_tarea
@@ -47,7 +45,6 @@ class Tarea
         $stmt->execute();
         $stmt->close();
 
-        // 3. Registrar en historial (id_usuarios = 1 = sistema)
         $sqlHist = "
             INSERT INTO tareas_historial (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
             VALUES (?, 6, 1, 'Tarea marcada como vencida automáticamente', 'estado')
@@ -59,6 +56,151 @@ class Tarea
         }
         $stmtH->close();
     }
+
+    // ════════════════════════════════════════════════════════════════════════════
+//  MODELO — método actualizarTareasConcluidas()
+//
+//  Lógica:
+//    Una tarea pasa a estado 9 (Concluido) en la tabla `tareas` cuando
+//    TODOS los estudiantes ACTIVOS del proyecto (proyectos_usuarios.estado = 'activo')
+//    que tienen asignación en tareas_usuarios tienen id_estadoT = 5 (Aprobado).
+//
+//    Se ignoran estudiantes con baja/cancelado/concluido en proyectos_usuarios,
+//    ya que dejaron de ser participantes activos.
+//
+//    Se llama igual que actualizarTareasVencidos: antes de cualquier
+//    operación relevante en el controlador.
+//
+//  Parámetro opcional $id_tarea:
+//    - Si se pasa: solo evalúa esa tarea (más eficiente al aprobar una asignación).
+//    - Si es null: evalúa todas las tareas activas (para revisiones globales).
+// ════════════════════════════════════════════════════════════════════════════
+  
+public function actualizarTareasConcluidas(?int $id_tarea = null): void
+{
+    // ── 1. Obtener tareas candidatas ─────────────────────────────────────
+    //    Candidatas: tareas con id_estadoT IN (1,2,3) — activas pero no
+    //    concluidas ni vencidas ni sin activar.
+    //    Si se pasa $id_tarea solo evaluamos esa.
+ 
+    if ($id_tarea !== null) {
+        $sqlTareas = "
+            SELECT t.id_tarea, tbse.id_proyectos
+            FROM tareas t
+            JOIN tbl_seguimiento tbse ON tbse.id_avances = t.id_avances
+            WHERE t.id_tarea     = ?
+              AND t.id_estadoT   IN (1, 2, 3)
+        ";
+        $stmtT = $this->con->prepare($sqlTareas);
+        if (!$stmtT) return;
+        $stmtT->bind_param("i", $id_tarea);
+    } else {
+        $sqlTareas = "
+            SELECT t.id_tarea, tbse.id_proyectos
+            FROM tareas t
+            JOIN tbl_seguimiento tbse ON tbse.id_avances = t.id_avances
+            WHERE t.id_estadoT IN (1, 2, 3)
+        ";
+        $stmtT = $this->con->prepare($sqlTareas);
+        if (!$stmtT) return;
+    }
+ 
+    $stmtT->execute();
+    $tareas = $stmtT->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmtT->close();
+ 
+    if (empty($tareas)) return;
+ 
+    // ── 2. Para cada tarea verificar si TODOS los activos están aprobados ─
+ 
+    // 2a. Contar estudiantes activos del proyecto que tienen asignación
+    $sqlTotalActivos = "
+        SELECT COUNT(*) AS total
+        FROM tareas_usuarios tu
+        JOIN proyectos_usuarios pu
+             ON pu.id_proyectos = ?
+            AND pu.id_usuarios  = tu.id_usuarios
+            AND pu.estado       = 'activo'
+        WHERE tu.id_tarea = ?
+    ";
+    $stmtTotal = $this->con->prepare($sqlTotalActivos);
+    if (!$stmtTotal) return;
+ 
+    // 2b. Contar cuántos de esos activos tienen estado Aprobado (5)
+    $sqlAprobados = "
+        SELECT COUNT(*) AS aprobados
+        FROM tareas_usuarios tu
+        JOIN proyectos_usuarios pu
+             ON pu.id_proyectos = ?
+            AND pu.id_usuarios  = tu.id_usuarios
+            AND pu.estado       = 'activo'
+        WHERE tu.id_tarea    = ?
+          AND tu.id_estadoT  = 5
+    ";
+    $stmtAprobados = $this->con->prepare($sqlAprobados);
+    if (!$stmtAprobados) return;
+ 
+    // 2c. UPDATE tarea a Concluido (9)
+    $sqlConcluir = "
+        UPDATE tareas
+        SET id_estadoT = 9
+        WHERE id_tarea = ?
+          AND id_estadoT IN (1, 2, 3)
+    ";
+    $stmtConcluir = $this->con->prepare($sqlConcluir);
+    if (!$stmtConcluir) return;
+ 
+    // 2d. Registrar en historial por cada asignación de la tarea
+    $sqlHistorial = "
+        INSERT INTO tareas_historial
+            (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
+        SELECT tu.id_asignacion, 9, 1,
+               'Tarea marcada como concluida automáticamente', 'estado'
+        FROM tareas_usuarios tu
+        JOIN proyectos_usuarios pu
+             ON pu.id_proyectos = ?
+            AND pu.id_usuarios  = tu.id_usuarios
+            AND pu.estado       = 'activo'
+        WHERE tu.id_tarea = ?
+    ";
+    $stmtHist = $this->con->prepare($sqlHistorial);
+    if (!$stmtHist) return;
+ 
+    foreach ($tareas as $tarea) {
+        $idT  = (int) $tarea['id_tarea'];
+        $idP  = (int) $tarea['id_proyectos'];
+ 
+        // Contar activos con asignación
+        $stmtTotal->bind_param("ii", $idP, $idT);
+        $stmtTotal->execute();
+        $total = (int) $stmtTotal->get_result()->fetch_assoc()['total'];
+ 
+        // Debe haber al menos 1 activo para poder concluir
+        if ($total === 0) continue;
+ 
+        // Contar aprobados
+        $stmtAprobados->bind_param("ii", $idP, $idT);
+        $stmtAprobados->execute();
+        $aprobados = (int) $stmtAprobados->get_result()->fetch_assoc()['aprobados'];
+ 
+        // Si todos los activos están aprobados → concluir
+        if ($aprobados === $total) {
+            $stmtConcluir->bind_param("i", $idT);
+            $stmtConcluir->execute();
+ 
+            // Solo registrar historial si efectivamente se actualizó
+            if ($stmtConcluir->affected_rows > 0) {
+                $stmtHist->bind_param("ii", $idP, $idT);
+                $stmtHist->execute();
+            }
+        }
+    }
+ 
+    $stmtTotal->close();
+    $stmtAprobados->close();
+    $stmtConcluir->close();
+    $stmtHist->close();
+}
 
     // 
     //  OBTENER TAREAS (tabla principal)
@@ -195,7 +337,7 @@ class Tarea
     // 
     //  OBTENER TAREAS ESTUDIANTE
     // 
-    public function obtenerTareasEstudiante($id_usuario)
+    public function obtenerTareasEstudiante(int $id_usuario, int $id_proyectos)
     {
         $sql = "
         SELECT 
@@ -222,12 +364,12 @@ class Tarea
         INNER JOIN tareas t ON t.id_tarea = tu.id_tarea
         INNER JOIN tipo_tarea AS tita ON t.id_tareatipo = tita.id_tareatipo
         INNER JOIN tbl_seguimiento AS ts ON ts.id_avances = t.id_avances 
-        WHERE tu.id_usuarios = ?
+        WHERE tu.id_usuarios = ? AND ts.id_proyectos = ?
         ORDER BY tu.id_asignacion DESC
         ";
 
         $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_usuario);
+        $stmt->bind_param("ii", $id_usuario, $id_proyectos);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
@@ -285,7 +427,6 @@ class Tarea
 
     // 
     //  EDITAR TAREA GENERAL (investigador - plantilla)
-    //  Registra en historial los campos modificados
     // 
     public function editarTareaGeneral(
         int     $id_tarea,
@@ -296,7 +437,6 @@ class Tarea
         int     $id_usuario
     ): void {
 
-        // Obtener valores actuales para comparar
         $sqlActual = "SELECT descripcion, instrucciones, fecha_entrega FROM tareas WHERE id_tarea = ?";
         $stmtA = $this->con->prepare($sqlActual);
         $stmtA->bind_param("i", $id_tarea);
@@ -304,7 +444,6 @@ class Tarea
         $actual = $stmtA->get_result()->fetch_assoc();
         $stmtA->close();
 
-        // Obtener cualquier id_asignacion para registrar en historial
         $sqlAsig = "SELECT id_asignacion FROM tareas_usuarios WHERE id_tarea = ? LIMIT 1";
         $stmtAsi = $this->con->prepare($sqlAsig);
         $stmtAsi->bind_param("i", $id_tarea);
@@ -312,7 +451,6 @@ class Tarea
         $primeraAsig = $stmtAsi->get_result()->fetch_assoc();
         $stmtAsi->close();
 
-        // UPDATE tareas
         if ($id_documento_recurso === null) {
             $sql  = "UPDATE tareas SET descripcion=?, instrucciones=?, fecha_entrega=?, fecha_modificacion=NOW() WHERE id_tarea=?";
             $stmt = $this->con->prepare($sql);
@@ -330,7 +468,6 @@ class Tarea
 
         if (!$primeraAsig) return;
 
-        // Obtener TODAS las asignaciones de esta tarea
         $sqlAllAsig = "SELECT id_asignacion FROM tareas_usuarios WHERE id_tarea = ?";
         $stmtAll = $this->con->prepare($sqlAllAsig);
         $stmtAll->bind_param("i", $id_tarea);
@@ -338,7 +475,6 @@ class Tarea
         $todasAsig = $stmtAll->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmtAll->close();
 
-        // Detectar qué campos cambiaron
         $cambios = [];
         if ($actual['descripcion'] !== $descripcion) {
             $cambios[] = ['campo_modificado' => 'descripcion',   'valor_anterior' => $actual['descripcion'],   'valor_nuevo' => $descripcion];
@@ -380,16 +516,13 @@ class Tarea
     }
 
     // 
-    //  EDITAR TAREA ESTUDIANTE (entrega de actividad / cambio de estado)
-    //  Se llama cuando el estudiante envía (Revisar) o reenvía (Revisar tras Corregir).
-    //  comentarios se guarda en la columna correspondiente de tareas_usuarios si existe,
-    //  de lo contrario se omite (ajusta el campo según tu esquema real).
+    //  EDITAR TAREA ESTUDIANTE
     // 
     public function editarTareaEstudiante(
         int     $id_asignacion,
         int     $id_tarea,
         string  $contenido,
-        string  $comentarios,           // ← parámetro añadido (coherente con el controlador)
+        string  $comentarios,
         ?int    $id_documento_entrega
     ): bool {
         $sql = "
@@ -412,10 +545,7 @@ class Tarea
     }
 
     // 
-    //  GUARDAR BORRADOR (estudiante)
-    //  Estado 8 = Borrador.
-    //  Guarda contenido, comentarios y opcionalmente documento.
-    //  Registra en historial.
+    //  GUARDAR BORRADOR (estado 8)
     // 
     public function guardar_borrador(
         int     $id_tarea,
@@ -443,7 +573,6 @@ class Tarea
         if (!$stmt->execute()) throw new Exception("Error execute (guardar_borrador): " . $stmt->error);
         $stmt->close();
 
-        // Registrar en historial
         $sqlHist = "
             INSERT INTO tareas_historial
                 (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
@@ -458,19 +587,34 @@ class Tarea
 
     // 
     //  ACTUALIZAR ESTADO
-    // 
-    public function actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentario): void
-    {
-        //  ACTIVAR TAREA (estado 1)
+    //
+    public function actualizarestado(
+        $id_tarea,
+        $numeroEstado,
+        $id_proyectos,
+        $id_asignacion,
+        $id_usuarios,
+        $comentario
+    ): void {
+
+        $numeroEstado = (int) $numeroEstado;
+
+        if ($numeroEstado == 0) {
+            error_log("actualizarestado (modelo): numeroEstado=0, se ignora la operación.");
+            return;
+        }
+
+        // 
+        //  ESTADO 1 — ACTIVAR TAREA
+        // 
         if ($numeroEstado == 1) {
-            // Actualizar la plantilla general
-            $sql = "UPDATE tareas SET id_estadoT = ? WHERE id_tarea = ?";
+
+            $sql  = "UPDATE tareas SET id_estadoT = ? WHERE id_tarea = ?";
             $stmt = $this->con->prepare($sql);
             $stmt->bind_param("ii", $numeroEstado, $id_tarea);
             $stmt->execute();
             $stmt->close();
 
-            // Obtener proyecto
             $sqlProyecto = "
                 SELECT tbse.id_proyectos, tare.id_tarea
                 FROM tareas tare
@@ -483,39 +627,47 @@ class Tarea
             $proy = $stmtP->get_result()->fetch_assoc();
             $stmtP->close();
 
+            if (!$proy) {
+                error_log("actualizarestado: no se encontró proyecto para id_tarea={$id_tarea}");
+                return;
+            }
+
             $id_proyectos = $proy['id_proyectos'];
             $id_tarea     = $proy['id_tarea'];
 
-            // Obtener alumnos del proyecto
             $sqlEstudiante = "SELECT id_usuarios FROM proyectos_usuarios WHERE id_proyectos = ?";
-            $stmtAlumnos = $this->con->prepare($sqlEstudiante);
+            $stmtAlumnos   = $this->con->prepare($sqlEstudiante);
             $stmtAlumnos->bind_param("i", $id_proyectos);
             $stmtAlumnos->execute();
-            $alumnos = $stmtAlumnos->get_result();
+            $alumnos = $stmtAlumnos->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmtAlumnos->close();
 
-            // INSERT en tareas_usuarios (evita duplicados)
-            $sqlInsert = "INSERT INTO tareas_usuarios (id_tarea, id_usuarios, id_estadoT)
+            $sqlInsert = "
+                INSERT INTO tareas_usuarios (id_tarea, id_usuarios, id_estadoT)
                 SELECT ?, ?, 1
                 WHERE NOT EXISTS (
                     SELECT 1 FROM tareas_usuarios WHERE id_tarea = ? AND id_usuarios = ?
-                )";
+                )
+            ";
             $stmtInsert = $this->con->prepare($sqlInsert);
 
-            $sqlGetAsig = "SELECT id_asignacion FROM tareas_usuarios WHERE id_tarea = ? AND id_usuarios = ?";
+            $sqlGetAsig  = "SELECT id_asignacion FROM tareas_usuarios WHERE id_tarea = ? AND id_usuarios = ?";
             $stmtGetAsig = $this->con->prepare($sqlGetAsig);
 
-            $sqlHistAct = "INSERT INTO tareas_historial (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
-                           VALUES (?, 1, ?, 'Tarea activada', 'estado')";
+            $sqlHistAct  = "
+                INSERT INTO tareas_historial (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
+                VALUES (?, 1, ?, 'Tarea activada', 'estado')
+            ";
             $stmtHistAct = $this->con->prepare($sqlHistAct);
 
-            while ($al = $alumnos->fetch_assoc()) {
+            foreach ($alumnos as $al) {
                 $stmtInsert->bind_param("iiii", $id_tarea, $al['id_usuarios'], $id_tarea, $al['id_usuarios']);
                 $stmtInsert->execute();
 
                 $stmtGetAsig->bind_param("ii", $id_tarea, $al['id_usuarios']);
                 $stmtGetAsig->execute();
                 $asigRow = $stmtGetAsig->get_result()->fetch_assoc();
+
                 if ($asigRow && $id_usuarios) {
                     $id_asig_nuevo = $asigRow['id_asignacion'];
                     $stmtHistAct->bind_param("ii", $id_asig_nuevo, $id_usuarios);
@@ -523,45 +675,72 @@ class Tarea
                 }
             }
 
+            $stmtInsert->close();
+            $stmtGetAsig->close();
+            $stmtHistAct->close();
         } else {
-            // OTROS ESTADOS: Revisar(2), Corregir(3), Aprobado(5)
-            switch ($numeroEstado) {
-                case 2: // Revisar
-                case 3: // Corregir
-                case 5: // Aprobado
-                    if ($id_asignacion != null) {
-                        $sql = "UPDATE tareas_usuarios SET id_estadoT = ? WHERE id_asignacion = ?";
-                        $stmt = $this->con->prepare($sql);
-                        $stmt->bind_param("ii", $numeroEstado, $id_asignacion);
-                        $stmt->execute();
-                        $stmt->close();
 
-                        $sqlHist = "INSERT INTO tareas_historial
-                            (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
-                            VALUES (?, ?, ?, ?, 'estado')";
-                        $stmtH = $this->con->prepare($sqlHist);
-                        $stmtH->bind_param("iiis", $id_asignacion, $numeroEstado, $id_usuarios, $comentario);
-                        $stmtH->execute();
-                        $stmtH->close();
+            // ─
+            //  ESTADOS 2 (Revisar), 3 (Corregir), 5 (Aprobado)
+            // ─
+            switch ($numeroEstado) {
+
+                case 2:
+                case 3:
+                case 5:
+
+                    if ($id_asignacion != 0) {
+                        //  UPDATE estado de la asignación 
+                        $sqlUpd  = "UPDATE tareas_usuarios SET id_estadoT = ? WHERE id_asignacion = ?";
+                        $stmtUpd = $this->con->prepare($sqlUpd);
+                        if (!$stmtUpd) {
+                            throw new Exception("Error prepare (actualizarestado UPDATE): " . $this->con->error);
+                        }
+                        $stmtUpd->bind_param("ii", $numeroEstado, $id_asignacion);
+                        if (!$stmtUpd->execute()) {
+                            throw new Exception("Error execute (actualizarestado UPDATE): " . $stmtUpd->error);
+                        }
+                        $stmtUpd->close();
+
+                        //  INSERT historial 
+                        $sqlHist  = "
+                            INSERT INTO tareas_historial
+                                (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
+                            VALUES (?, ?, ?, ?, 'estado')
+                        ";
+                        $stmtHist = $this->con->prepare($sqlHist);
+                        if (!$stmtHist) {
+                            throw new Exception("Error prepare (actualizarestado historial): " . $this->con->error);
+                        }
+                        $stmtHist->bind_param("iiis", $id_asignacion, $numeroEstado, $id_usuarios, $comentario);
+                        if (!$stmtHist->execute()) {
+                            throw new Exception("Error execute (actualizarestado historial): " . $stmtHist->error);
+                        }
+                        $stmtHist->close();
                     } else {
-                        $sql = "UPDATE tareas_usuarios SET id_estadoT = ? WHERE id_tarea = ?";
-                        $stmt = $this->con->prepare($sql);
-                        $stmt->bind_param("ii", $numeroEstado, $id_tarea);
-                        $stmt->execute();
-                        $stmt->close();
+                        // Sin asignación específica: actualizar todas las filas de la tarea
+                        $sqlUpd  = "UPDATE tareas_usuarios SET id_estadoT = ? WHERE id_tarea = ?";
+                        $stmtUpd = $this->con->prepare($sqlUpd);
+                        $stmtUpd->bind_param("ii", $numeroEstado, $id_tarea);
+                        if (!$stmtUpd) {
+                            throw new Exception("Error prepare (actualizarestado UPDATE): " . $this->con->error);
+                        }
+                        if (!$stmtUpd->execute()) {
+                            throw new Exception("Error execute (actualizarestado UPDATE): " . $stmtUpd->error);
+                        }
+                        $stmtUpd->close();
                     }
                     break;
 
                 default:
-                    // Estado desconocido: registrar en log y no hacer nada destructivo
-                    error_log("actualizarestado: estado no válido recibido: {$numeroEstado}");
+                    error_log("actualizarestado (modelo): estado no válido recibido: {$numeroEstado}");
                     break;
             }
         }
     }
 
     // 
-    //  OBTENER TAREA ALUMNO (para vista tarea.php)
+    //  OBTENER TAREA ALUMNO
     // 
     public function obtenerTareaAlumno($id_asignacion)
     {
@@ -605,7 +784,7 @@ class Tarea
     }
 
     // 
-    //  OBTENER TAREA GENERAL (para editar.php / detalles.php)
+    //  OBTENER TAREA GENERAL
     // 
     public function obtenerTareaGeneral($id_tarea)
     {
@@ -641,7 +820,7 @@ class Tarea
     }
 
     // 
-    //  EDICIONES RECIENTES DE UNA TAREA
+    //  EDICIONES RECIENTES
     // 
     public function obtenerEdicionesRecientes($id_tarea, $limite = 5)
     {
@@ -667,9 +846,9 @@ class Tarea
     }
 
     // 
-    //  LÍNEA DE TIEMPO (solo cambios de estado)
+    //  LÍNEA DE TIEMPO
     // 
-    public function linea_tiempo_tarea($id_asignacion, $pagina = 1, $por_pagina = 10)
+    public function linea_tiempo_tarea($id_asignacion, $pagina = 1, $por_pagina = 6)
     {
         $pagina = max(1, (int)$pagina);
         $desde  = ($pagina - 1) * $por_pagina;
@@ -715,7 +894,6 @@ class Tarea
         $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Agrupar por fecha
         $agrupado = [];
         foreach ($historial as $item) {
             $fecha = date("d/m/Y", strtotime($item['fecha']));

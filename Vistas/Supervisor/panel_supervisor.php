@@ -3,7 +3,7 @@
 /**
  * panel_supervisor.php
  * Dashboard de solo lectura del supervisor — responsivo con tarjetas móvil.
- * Rediseño: paleta TecNM, Chart.js (MIT), tarjetas descriptivas, minimalista-académico.
+ * Paleta TecNM, Chart.js (MIT), tarjetas descriptivas, minimalista-académico.
  */
 
 ini_set('display_errors', 0);
@@ -18,7 +18,6 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id  = $_SESSION['id_usuario'];
 
-// Solo supervisor acceden
 if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
@@ -93,7 +92,10 @@ ob_start();
                 <div class="kpi-sub">
                     <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['activos'] ?? 0 ?> activos</span>
                     <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['por_aprobar'] ?? 0 ?> por aprobar</span>
-                    <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['cerrados'] ?? 0 ?> cerrados</span>
+                    <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['por_cerrar'] ?? 0 ?> por cerrar</span>
+                    <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['rechazados'] ?? 0 ?> rechazados</span>
+                    <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['vencidos'] ?? 0 ?> vencidos</span>
+                    <span class="text-dark"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['cerrados'] ?? 0 ?> cerrados</span>
                 </div>
             </div>
         </div>
@@ -107,7 +109,8 @@ ob_start();
                 <div class="kpi-desc">Estudiantes integrados a algún proyecto de investigación, incluyendo activos y con proyecto concluido.</div>
                 <div class="kpi-sub">
                     <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['activos'] ?? 0 ?> activos</span>
-                    <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['concluidos'] ?? 0 ?> concluidos</span>
+                    <span class="text-primary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['concluidos'] ?? 0 ?> concluidos</span>
+                    <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['bajas'] ?? 0 ?> bajas</span>
                 </div>
             </div>
         </div>
@@ -122,28 +125,26 @@ ob_start();
                 <div class="kpi-sub">
                     <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['pendientes'] ?? 0 ?> pendientes</span>
                     <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['en_revision'] ?? 0 ?> en revisión</span>
+                    <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['correcciones'] ?? 0 ?> correcciones</span>
                     <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['aceptadas'] ?? 0 ?> aceptadas</span>
+                    <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['rechazadas'] ?? 0 ?> rechazadas</span>
                 </div>
             </div>
         </div>
 
-        <!-- Tareas del documento -->
+        <!-- Tareas / secciones del documento -->
         <div class="col-6 col-md-3">
             <div class="kpi-card rojo h-100">
                 <div class="kpi-icon rojo"><i class="bi bi-list-task"></i></div>
                 <div class="kpi-num"><?= $resumen['tareas']['total_tareas'] ?? 0 ?></div>
                 <div class="kpi-lbl">Secciones del documento</div>
-                <!--
-                    NOTA: "Secciones" = instancias de tareas_usuarios (una por cada
-                    sección del documento de investigación asignada a cada estudiante).
-                    El total puede ser alto aunque aprobadas y vencidas sean 0, porque
-                    las demás están en estados intermedios: pendiente, en proceso,
-                    en revisión o correcciones.
-                -->
-                <div class="kpi-desc">Instancias de secciones del documento asignadas a cada estudiante en todos los proyectos.</div>
+                <div class="kpi-desc">Instancias de secciones del documento asignadas a cada estudiante en todos los proyectos (excluye "Sin activar").</div>
                 <div class="kpi-sub">
                     <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['aprobadas'] ?? 0 ?> aprobadas</span>
-                    <span class="text-primary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['en_proceso'] ?? 0 ?> en proceso</span>
+                    <span class="text-primary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['entregadas'] ?? 0 ?> entregadas</span>
+                    <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['en_revision'] ?? 0 ?> en revisión</span>
+                    <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['corregir'] ?? 0 ?> a corregir</span>
+                    <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['pendientes'] ?? 0 ?> pendientes</span>
                     <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['vencidas'] ?? 0 ?> vencidas</span>
                 </div>
             </div>
@@ -161,8 +162,8 @@ ob_start();
                     <div class="sec-title"><i class="bi bi-pie-chart-fill text-warning"></i>Solicitudes por estado</div>
                     <span class="sec-sub">Distribución actual</span>
                 </div>
-                <div class="chart-wrap" style="height:240px; display:flex; align-items:center; justify-content:center;">
-                    <canvas id="chartSolicitudes"></canvas>
+                <div style="position:relative; height:260px; padding:12px;">
+                    <canvas id="chartSolicitudes" style="display:block;width:100%;height:100%;"></canvas>
                 </div>
             </div>
         </div>
@@ -174,8 +175,12 @@ ob_start();
                     <div class="sec-title"><i class="bi bi-bar-chart-fill text-primary"></i>Avance global por sección del documento</div>
                     <span class="sec-sub">Aprobadas vs. pendientes</span>
                 </div>
-                <div class="chart-wrap" style="height:240px;">
-                    <canvas id="chartSecciones"></canvas>
+                <?php
+                $numSecciones = count($etapas_data['secciones'] ?? []);
+                $alturaBarras = max(260, $numSecciones * 32 + 60);
+                ?>
+                <div style="position:relative; height:<?= $alturaBarras ?>px; padding:12px;">
+                    <canvas id="chartSecciones" style="display:block;width:100%;height:100%;"></canvas>
                 </div>
             </div>
         </div>
@@ -297,6 +302,41 @@ ob_start();
                 </div>
             </div>
 
+            <!-- Resumen de tareas por estado -->
+            <div class="col-12">
+                <div class="sec-card">
+                    <div class="sec-card-header">
+                        <div class="sec-title"><i class="bi bi-bar-chart-steps"></i>Resumen global de secciones por estado</div>
+                        <span class="sec-sub">Total: <?= $resumen['tareas']['total_tareas'] ?? 0 ?> instancias activas</span>
+                    </div>
+                    <div class="p-3">
+                        <?php
+                        $estados_tareas_res = [
+                            'aprobadas'  => ['Aprobadas',    'success', $resumen['tareas']['aprobadas']  ?? 0],
+                            'entregadas' => ['Entregadas',   'primary', $resumen['tareas']['entregadas'] ?? 0],
+                            'en_revision'=> ['En revisión',  'info',    $resumen['tareas']['en_revision']?? 0],
+                            'corregir'   => ['A corregir',   'warning', $resumen['tareas']['corregir']   ?? 0],
+                            'pendientes' => ['Pendientes',   'secondary',$resumen['tareas']['pendientes']?? 0],
+                            'vencidas'   => ['Vencidas',     'danger',  $resumen['tareas']['vencidas']   ?? 0],
+                        ];
+                        $total_t = max(1, $resumen['tareas']['total_tareas'] ?? 0);
+                        foreach ($estados_tareas_res as [$lbl, $color, $val]):
+                            $pct = round(($val / $total_t) * 100);
+                        ?>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.8rem; color:var(--tecnm-text)"><?= $lbl ?></span>
+                                    <span style="font-size:.8rem; font-weight:700; color:var(--tecnm-navy)"><?= $val ?> <span class="fw-normal text-muted">(<?= $pct ?>%)</span></span>
+                                </div>
+                                <div class="etapa-prog">
+                                    <div class="etapa-prog-inner bg-<?= $color ?>" style="width:<?= max(0,$pct) ?>%"></div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tabla de secciones del documento -->
             <div class="col-12">
                 <div class="sec-card">
@@ -313,8 +353,10 @@ ob_start();
                                         <th>Sección</th>
                                         <th class="text-center">Instancias</th>
                                         <th class="text-center" style="color:#16A34A">Aprobadas</th>
+                                        <th class="text-center" style="color:#2563EB">Entregadas</th>
                                         <th class="text-center" style="color:#0EA5E9">En revisión</th>
                                         <th class="text-center" style="color:#D4A017">Correcciones</th>
+                                        <th class="text-center" style="color:#718096">Pendientes</th>
                                         <th class="text-center" style="color:#C41230">Vencidas</th>
                                         <th style="min-width:130px">Avance</th>
                                     </tr>
@@ -329,8 +371,10 @@ ob_start();
                                             <td class="fw-semibold"><?= htmlspecialchars($sec['seccion']) ?></td>
                                             <td class="text-center"><?= $sec['total_instancias'] ?></td>
                                             <td class="text-center fw-bold" style="color:#16A34A"><?= $sec['aprobadas'] ?></td>
+                                            <td class="text-center" style="color:#2563EB"><?= $sec['entregadas'] ?? 0 ?></td>
                                             <td class="text-center" style="color:#0EA5E9"><?= $sec['en_revision'] ?></td>
                                             <td class="text-center" style="color:#D4A017"><?= $sec['correcciones'] ?></td>
+                                            <td class="text-center text-secondary"><?= $sec['pendientes'] ?></td>
                                             <td class="text-center" style="color:#C41230"><?= $sec['vencidas'] ?></td>
                                             <td>
                                                 <div class="etapa-prog">
@@ -361,8 +405,10 @@ ob_start();
                                         </div>
                                         <div class="row text-center g-0" style="font-size:.72rem">
                                             <div class="col"><span class="text-success fw-bold"><?= $sec['aprobadas'] ?></span><br>Aprob.</div>
+                                            <div class="col"><span style="color:#2563EB"><?= $sec['entregadas'] ?? 0 ?></span><br>Entregadas</div>
                                             <div class="col"><span style="color:#0EA5E9"><?= $sec['en_revision'] ?></span><br>Revisión</div>
                                             <div class="col"><span class="text-warning"><?= $sec['correcciones'] ?></span><br>Correc.</div>
+                                            <div class="col"><span class="text-secondary"><?= $sec['pendientes'] ?></span><br>Pend.</div>
                                             <div class="col"><span class="text-danger"><?= $sec['vencidas'] ?></span><br>Venc.</div>
                                         </div>
                                     </div>
@@ -706,6 +752,7 @@ ob_start();
                             <th>Sección</th>
                             <th class="text-center">Instancias</th>
                             <th class="text-center" style="color:#16A34A">Aprobadas</th>
+                            <th class="text-center" style="color:#2563EB">Entregadas</th>
                             <th class="text-center" style="color:#0EA5E9">En revisión</th>
                             <th class="text-center" style="color:#D4A017">Correcciones</th>
                             <th class="text-center" style="color:#718096">Pendientes</th>
@@ -724,6 +771,7 @@ ob_start();
                                 <td class="fw-semibold"><?= htmlspecialchars($sec['seccion']) ?></td>
                                 <td class="text-center"><?= $sec['total_instancias'] ?></td>
                                 <td class="text-center fw-bold" style="color:#16A34A"><?= $sec['aprobadas'] ?></td>
+                                <td class="text-center" style="color:#2563EB"><?= $sec['entregadas'] ?? 0 ?></td>
                                 <td class="text-center" style="color:#0EA5E9"><?= $sec['en_revision'] ?></td>
                                 <td class="text-center" style="color:#D4A017"><?= $sec['correcciones'] ?></td>
                                 <td class="text-center text-secondary"><?= $sec['pendientes'] ?></td>
@@ -737,7 +785,7 @@ ob_start();
                             </tr>
                         <?php endforeach; ?>
                         <?php if (empty($etapas_data['secciones'])): ?>
-                            <tr><td colspan="9" class="text-center text-muted py-3 small">Sin datos de secciones.</td></tr>
+                            <tr><td colspan="10" class="text-center text-muted py-3 small">Sin datos de secciones.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -758,6 +806,7 @@ ob_start();
                             <div class="etapa-prog mb-2"><div class="etapa-prog-inner bg-<?= $col_s ?>" style="width:<?= $pct_s ?>%"></div></div>
                             <div class="row text-center g-0" style="font-size:.72rem">
                                 <div class="col"><span class="text-success fw-bold"><?= $sec['aprobadas'] ?></span><br>Aprob.</div>
+                                <div class="col"><span style="color:#2563EB"><?= $sec['entregadas'] ?? 0 ?></span><br>Entregadas</div>
                                 <div class="col"><span style="color:#0EA5E9"><?= $sec['en_revision'] ?></span><br>Revisión</div>
                                 <div class="col"><span class="text-warning"><?= $sec['correcciones'] ?></span><br>Correc.</div>
                                 <div class="col"><span class="text-secondary"><?= $sec['pendientes'] ?></span><br>Pend.</div>
@@ -891,14 +940,14 @@ ob_start();
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     CHART.JS — MIT License — via cdnjs (sin costo, sin licencia comercial)
+     CHART.JS — MIT License — via cdnjs
      ═══════════════════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
         integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3oD+sCoJrzXJ+yKHMO1EP6/OIo5ZQ5z0P1N2Y/7I3IUTU/C7xK3JA=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
-/* ── Paleta TecNM compartida ──────────────────────────────────── */
+/* ── Paleta TecNM ─────────────────────────────────────────────── */
 const TECNM = {
     navy : '#1A2E4A',
     blue : '#1E5FAD',
@@ -907,6 +956,7 @@ const TECNM = {
     green: '#16A34A',
     gray : '#718096',
     cyan : '#0EA5E9',
+    indigo: '#2563EB',
 };
 
 /* ── Gráfica dona: solicitudes por estado ─────────────────────── */
@@ -914,40 +964,43 @@ const TECNM = {
     const ctx = document.getElementById('chartSolicitudes');
     if (!ctx) return;
 
-    const datos = {
-        labels : ['Pendientes', 'En revisión', 'Correcciones', 'Aceptadas', 'Rechazadas'],
-        values : [
-            <?= intval($resumen['solicitudes']['pendientes']   ?? 0) ?>,
-            <?= intval($resumen['solicitudes']['en_revision']  ?? 0) ?>,
-            <?= intval($resumen['solicitudes']['correcciones'] ?? 0) ?>,
-            <?= intval($resumen['solicitudes']['aceptadas']    ?? 0) ?>,
-            <?= intval($resumen['solicitudes']['rechazadas']   ?? 0) ?>,
-        ],
-        colors: [TECNM.gray, TECNM.cyan, TECNM.gold, TECNM.green, TECNM.red],
-    };
+    const valores = [
+        <?= intval($resumen['solicitudes']['pendientes']   ?? 0) ?>,
+        <?= intval($resumen['solicitudes']['en_revision']  ?? 0) ?>,
+        <?= intval($resumen['solicitudes']['correcciones'] ?? 0) ?>,
+        <?= intval($resumen['solicitudes']['aceptadas']    ?? 0) ?>,
+        <?= intval($resumen['solicitudes']['rechazadas']   ?? 0) ?>,
+    ];
+
+    // Si todos son cero, mostrar placeholder
+    const totalSol = valores.reduce((a,b) => a+b, 0);
 
     new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels  : datos.labels,
+            labels  : ['Pendientes', 'En revisión', 'Correcciones', 'Aceptadas', 'Rechazadas'],
             datasets: [{
-                data           : datos.values,
-                backgroundColor: datos.colors,
+                data           : totalSol > 0 ? valores : [1],
+                backgroundColor: totalSol > 0
+                    ? [TECNM.gray, TECNM.cyan, TECNM.gold, TECNM.green, TECNM.red]
+                    : ['#E2E8F0'],
                 borderWidth    : 2,
                 borderColor    : '#fff',
                 hoverOffset    : 6,
             }],
         },
         options: {
-            responsive : true,
-            maintainAspectRatio: true,
-            cutout     : '65%',
+            responsive          : true,
+            maintainAspectRatio : false,
+            cutout              : '60%',
             plugins: {
                 legend: {
+                    display : totalSol > 0,
                     position: 'bottom',
                     labels  : { font: { size: 11 }, padding: 10, boxWidth: 12 },
                 },
                 tooltip: {
+                    enabled: totalSol > 0,
                     callbacks: {
                         label: ctx => ` ${ctx.label}: ${ctx.parsed}`,
                     },
@@ -955,6 +1008,16 @@ const TECNM = {
             },
         },
     });
+
+    if (totalSol === 0) {
+        // Etiqueta central "Sin datos"
+        const parent = ctx.parentElement;
+        const lbl = document.createElement('div');
+        lbl.textContent = 'Sin datos';
+        lbl.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.8rem;color:#718096;pointer-events:none;';
+        parent.style.position = 'relative';
+        parent.appendChild(lbl);
+    }
 })();
 
 /* ── Gráfica barras horizontales: avance por sección ─────────── */
@@ -965,58 +1028,69 @@ const TECNM = {
     <?php
     $secciones_labels  = [];
     $secciones_aprob   = [];
+    $secciones_entregadas = [];
+    $secciones_revision   = [];
+    $secciones_correc  = [];
     $secciones_pend    = [];
+    $secciones_venc    = [];
     foreach ($etapas_data['secciones'] ?? [] as $sec) {
-        $secciones_labels[] = mb_strimwidth($sec['seccion'], 0, 28, '…');
-        $secciones_aprob[]  = (int)$sec['aprobadas'];
-        $pend = (int)$sec['total_instancias'] - (int)$sec['aprobadas'];
-        $secciones_pend[] = max(0, $pend);
+        $secciones_labels[]     = mb_strimwidth($sec['seccion'], 0, 30, '…');
+        $secciones_aprob[]      = (int)$sec['aprobadas'];
+        $secciones_entregadas[] = (int)($sec['entregadas'] ?? 0);
+        $secciones_revision[]   = (int)$sec['en_revision'];
+        $secciones_correc[]     = (int)$sec['correcciones'];
+        $secciones_pend[]       = (int)$sec['pendientes'];
+        $secciones_venc[]       = (int)$sec['vencidas'];
     }
     ?>
 
-    const labels    = <?= json_encode($secciones_labels, JSON_UNESCAPED_UNICODE) ?>;
-    const aprobadas = <?= json_encode($secciones_aprob) ?>;
-    const pendientes= <?= json_encode($secciones_pend) ?>;
+    const labels     = <?= json_encode($secciones_labels,     JSON_UNESCAPED_UNICODE) ?>;
+    const aprobadas  = <?= json_encode($secciones_aprob) ?>;
+    const entregadas = <?= json_encode($secciones_entregadas) ?>;
+    const revision   = <?= json_encode($secciones_revision) ?>;
+    const correc     = <?= json_encode($secciones_correc) ?>;
+    const pendientes = <?= json_encode($secciones_pend) ?>;
+    const vencidas   = <?= json_encode($secciones_venc) ?>;
+
+    if (labels.length === 0) {
+        ctx.parentElement.innerHTML = '<p style="text-align:center;color:#718096;padding:2rem;font-size:.85rem;">Sin secciones registradas para este periodo.</p>';
+        return;
+    }
 
     new Chart(ctx, {
         type: 'bar',
         data: {
             labels,
             datasets: [
-                {
-                    label          : 'Aprobadas',
-                    data           : aprobadas,
-                    backgroundColor: TECNM.green,
-                    borderRadius   : 3,
-                    borderSkipped  : false,
-                },
-                {
-                    label          : 'Restantes',
-                    data           : pendientes,
-                    backgroundColor: '#E2E8F0',
-                    borderRadius   : 3,
-                    borderSkipped  : false,
-                },
+                { label: 'Aprobadas',    data: aprobadas,  backgroundColor: TECNM.green,  borderRadius: 2, borderSkipped: false },
+                { label: 'Entregadas',   data: entregadas, backgroundColor: TECNM.indigo, borderRadius: 2, borderSkipped: false },
+                { label: 'En revisión',  data: revision,   backgroundColor: TECNM.cyan,   borderRadius: 2, borderSkipped: false },
+                { label: 'Correcciones', data: correc,     backgroundColor: TECNM.gold,   borderRadius: 2, borderSkipped: false },
+                { label: 'Pendientes',   data: pendientes, backgroundColor: '#CBD5E0',    borderRadius: 2, borderSkipped: false },
+                { label: 'Vencidas',     data: vencidas,   backgroundColor: TECNM.red,    borderRadius: 2, borderSkipped: false },
             ],
         },
         options: {
-            indexAxis : 'y',    // barras horizontales
+            indexAxis : 'y',
             responsive: true,
             maintainAspectRatio: false,
             scales: {
                 x: {
-                    stacked : true,
-                    grid    : { color: '#F1F5F9' },
-                    ticks   : { font: { size: 10 } },
+                    stacked: true,
+                    grid   : { color: '#F1F5F9' },
+                    ticks  : { font: { size: 10 } },
                 },
                 y: {
-                    stacked : true,
-                    grid    : { display: false },
-                    ticks   : { font: { size: 10 } },
+                    stacked: true,
+                    grid   : { display: false },
+                    ticks  : { font: { size: 10 } },
                 },
             },
             plugins: {
-                legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, boxWidth: 12 } },
+                legend: {
+                    position: 'bottom',
+                    labels  : { font: { size: 10 }, padding: 8, boxWidth: 10 },
+                },
                 tooltip: {
                     callbacks: {
                         label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x}`,

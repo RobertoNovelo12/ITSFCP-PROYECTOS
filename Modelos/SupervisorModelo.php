@@ -90,7 +90,8 @@ class SupervisorModelo
                 COUNT(DISTINCT pu.id_usuarios)      AS total_estudiantes,
                 SUM(pu.estado = 'activo')            AS activos,
                 SUM(pu.estado = 'concluido')         AS concluidos,
-                SUM(pu.estado = 'baja')              AS bajas
+                SUM(pu.estado = 'baja')              AS bajas,
+                SUM(pu.estado = 'cancelado')         AS cancelados
             FROM proyectos_usuarios pu
             JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
             WHERE 1=1 {$wherePeriodo}
@@ -118,24 +119,32 @@ class SupervisorModelo
         $stmt->execute();
         $solicitudes = $stmt->get_result()->fetch_assoc() ?? [];
 
-        // ── Tareas / documentos ────────────────────────────────────
-        $sqlPeriodo = !empty($f['periodo'])
-            ? "JOIN tbl_seguimiento ts ON ts.id_avances = t.id_avances
-               JOIN proyectos p ON p.id_proyectos = ts.id_proyectos AND p.id_periodos = ?"
-            : "JOIN tbl_seguimiento ts ON ts.id_avances = t.id_avances";
+        // ── Tareas / secciones del documento ──────────────────────
+        // Solo contamos tareas activas (excluye 'Sin activar')
+        // Mapeamos todos los estados existentes de forma coherente:
+        //   Pendiente   → pendientes
+        //   Entregado   → entregadas  (alumno entregó, aún no revisada)
+        //   Revisar     → en_revision (investigador está revisando)
+        //   Corregir    → corregir
+        //   Aprobado    → aprobadas
+        //   Vencido     → vencidas
+        $sqlPeriodoJoin = !empty($f['periodo'])
+            ? "JOIN proyectos p ON p.id_proyectos = ts.id_proyectos AND p.id_periodos = ?"
+            : "JOIN proyectos p ON p.id_proyectos = ts.id_proyectos";
 
         $sql = "
             SELECT
-                COUNT(*)                         AS total_tareas,
-                SUM(et.nombre = 'Pendiente')     AS pendientes,
-                SUM(et.nombre = 'Revisar')       AS en_revision,
-                SUM(et.nombre = 'Corregir')      AS corregir,
-                SUM(et.nombre = 'Aprobado')      AS aprobadas,
-                SUM(et.nombre = 'Vencido')       AS vencidas,
-                SUM(et.nombre = 'Entregado')     AS entregadas
+                COUNT(*)                              AS total_tareas,
+                SUM(et.nombre = 'Pendiente')          AS pendientes,
+                SUM(et.nombre = 'Entregado')          AS entregadas,
+                SUM(et.nombre = 'Revisar')            AS en_revision,
+                SUM(et.nombre = 'Corregir')           AS corregir,
+                SUM(et.nombre = 'Aprobado')           AS aprobadas,
+                SUM(et.nombre = 'Vencido')            AS vencidas
             FROM tareas t
             JOIN estados_tarea et ON et.id_estadoT = t.id_estadoT
-            {$sqlPeriodo}
+            JOIN tbl_seguimiento ts ON ts.id_avances = t.id_avances
+            {$sqlPeriodoJoin}
             WHERE et.nombre != 'Sin activar'
         ";
         $stmt = $this->con->prepare($sql);
@@ -245,7 +254,6 @@ class SupervisorModelo
 
     public function detalleProyecto(int $id_proyecto): array
     {
-        // Datos básicos
         $stmt = $this->con->prepare("
             SELECT p.*, ep.nombre AS estado,
                    CONCAT(ui.nombre,' ',ui.apellido_paterno,' ',ui.apellido_materno) AS investigador_nombre,
@@ -265,7 +273,6 @@ class SupervisorModelo
         $stmt->execute();
         $proyecto = $stmt->get_result()->fetch_assoc() ?? [];
 
-        // Alumnos del proyecto con su avance en tareas
         $stmt = $this->con->prepare("
             SELECT
                 u.id_usuarios,
@@ -275,23 +282,23 @@ class SupervisorModelo
                 c.nombre_carrera AS carrera,
                 pu.estado        AS estado_participacion,
                 pu.fecha_asignacion,
-                -- Tareas asignadas
-                (SELECT COUNT(*) FROM tareas_usuarios tu2
-                 JOIN tareas t2 ON t2.id_tarea = tu2.id_tarea
-                 JOIN tbl_seguimiento ts2 ON ts2.id_avances = t2.id_avances
-                 WHERE ts2.id_proyectos = ? AND tu2.id_usuarios = u.id_usuarios) AS tareas_totales,
-                -- Tareas aprobadas
                 (SELECT COUNT(*) FROM tareas_usuarios tu2
                  JOIN tareas t2 ON t2.id_tarea = tu2.id_tarea
                  JOIN tbl_seguimiento ts2 ON ts2.id_avances = t2.id_avances
                  JOIN estados_tarea et2 ON et2.id_estadoT = tu2.id_estadoT
-                 WHERE ts2.id_proyectos = ? AND tu2.id_usuarios = u.id_usuarios AND et2.nombre = 'Aprobado') AS tareas_aprobadas,
-                -- Última tarea activa
+                 WHERE ts2.id_proyectos = ? AND tu2.id_usuarios = u.id_usuarios
+                   AND et2.nombre != 'Sin activar') AS tareas_totales,
+                (SELECT COUNT(*) FROM tareas_usuarios tu2
+                 JOIN tareas t2 ON t2.id_tarea = tu2.id_tarea
+                 JOIN tbl_seguimiento ts2 ON ts2.id_avances = t2.id_avances
+                 JOIN estados_tarea et2 ON et2.id_estadoT = tu2.id_estadoT
+                 WHERE ts2.id_proyectos = ? AND tu2.id_usuarios = u.id_usuarios
+                   AND et2.nombre = 'Aprobado') AS tareas_aprobadas,
                 (SELECT tt.descripcion_tipo FROM tareas t3
                  JOIN tipo_tarea tt ON tt.id_tareatipo = t3.id_tareatipo
                  JOIN tbl_seguimiento ts3 ON ts3.id_avances = t3.id_avances
                  JOIN estados_tarea et3 ON et3.id_estadoT = t3.id_estadoT
-                 WHERE ts3.id_proyectos = ? AND et3.nombre IN ('Pendiente','Revisar','Corregir')
+                 WHERE ts3.id_proyectos = ? AND et3.nombre IN ('Pendiente','Revisar','Corregir','Entregado')
                  ORDER BY t3.id_tarea DESC LIMIT 1) AS tarea_actual
             FROM proyectos_usuarios pu
             JOIN usuarios u  ON u.id_usuarios  = pu.id_usuarios
@@ -304,7 +311,6 @@ class SupervisorModelo
         $stmt->execute();
         $estudiantes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-        // Solicitudes del proyecto
         $stmt = $this->con->prepare("
             SELECT sp.*,
                    CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) AS estudiante_nombre,
@@ -320,14 +326,16 @@ class SupervisorModelo
         $stmt->execute();
         $solicitudes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-        // Tareas del proyecto con avance global
         $stmt = $this->con->prepare("
             SELECT t.id_tarea, tt.descripcion_tipo AS tipo, et.nombre AS estado,
                    t.fecha_entrega, t.descripcion,
-                   COUNT(tu.id_asignacion)                        AS total_asignados,
-                   SUM(etu.nombre = 'Aprobado')                   AS aprobados,
-                   SUM(etu.nombre IN ('Revisar','Entregado'))      AS en_revision,
-                   SUM(etu.nombre = 'Vencido')                    AS vencidos
+                   COUNT(tu.id_asignacion)                          AS total_asignados,
+                   SUM(etu.nombre = 'Aprobado')                     AS aprobados,
+                   SUM(etu.nombre = 'Entregado')                    AS entregados,
+                   SUM(etu.nombre = 'Revisar')                      AS en_revision,
+                   SUM(etu.nombre = 'Corregir')                     AS en_correccion,
+                   SUM(etu.nombre = 'Pendiente')                    AS pendientes,
+                   SUM(etu.nombre = 'Vencido')                      AS vencidos
             FROM tareas t
             JOIN tipo_tarea tt ON tt.id_tareatipo = t.id_tareatipo
             JOIN estados_tarea et ON et.id_estadoT = t.id_estadoT
@@ -342,9 +350,8 @@ class SupervisorModelo
         $stmt->execute();
         $tareas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-        // Timeline del proyecto (historial de estados)
         $stmt = $this->con->prepare("
-            SELECT hp.*, 
+            SELECT hp.*,
                    CONCAT(u.nombre,' ',u.apellido_paterno) AS usuario_nombre,
                    ep.nombre AS estado_nombre
             FROM historial_proyectos_usuarios hp
@@ -502,23 +509,28 @@ class SupervisorModelo
         $stmt->execute();
         $etapas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-        // Resumen de tareas (secciones del documento) por tipo_tarea
+        // Resumen de secciones del documento con TODOS los estados separados
+        $sqlPeriodoJoin = !empty($f['periodo'])
+            ? "JOIN proyectos p ON p.id_proyectos = ts.id_proyectos AND p.id_periodos = ?"
+            : "JOIN proyectos p ON p.id_proyectos = ts.id_proyectos";
+
         $sqlTareas = "
             SELECT
                 tt.id_tareatipo,
-                tt.descripcion_tipo AS seccion,
-                COUNT(DISTINCT t.id_tarea)                          AS total_instancias,
-                SUM(et.nombre = 'Aprobado')                         AS aprobadas,
-                SUM(et.nombre IN ('Pendiente','Sin activar'))        AS pendientes,
-                SUM(et.nombre IN ('Revisar','Entregado'))            AS en_revision,
-                SUM(et.nombre = 'Corregir')                         AS correcciones,
-                SUM(et.nombre = 'Vencido')                          AS vencidas
+                tt.descripcion_tipo                                       AS seccion,
+                COUNT(DISTINCT t.id_tarea)                                AS total_instancias,
+                SUM(et.nombre = 'Aprobado')                               AS aprobadas,
+                SUM(et.nombre = 'Entregado')                              AS entregadas,
+                SUM(et.nombre = 'Revisar')                                AS en_revision,
+                SUM(et.nombre = 'Corregir')                               AS correcciones,
+                SUM(et.nombre = 'Pendiente')                              AS pendientes,
+                SUM(et.nombre = 'Vencido')                                AS vencidas
             FROM tareas t
             JOIN tipo_tarea tt ON tt.id_tareatipo = t.id_tareatipo
             JOIN estados_tarea et ON et.id_estadoT = t.id_estadoT
             JOIN tbl_seguimiento ts ON ts.id_avances = t.id_avances
-            JOIN proyectos p ON p.id_proyectos = ts.id_proyectos
-            WHERE 1=1 {$wherePeriodo}
+            {$sqlPeriodoJoin}
+            WHERE et.nombre != 'Sin activar'
             GROUP BY tt.id_tareatipo
             ORDER BY tt.id_tareatipo ASC
         ";
@@ -588,19 +600,16 @@ class SupervisorModelo
                 u.fecha_registro,
                 e.matricula,
                 c.nombre_carrera AS carrera,
-                -- Proyectos activos
                 (SELECT COUNT(*) FROM proyectos_usuarios pu2
                  WHERE pu2.id_usuarios = u.id_usuarios AND pu2.estado = 'activo')    AS proyectos_activos,
-                -- Proyectos totales
                 (SELECT COUNT(*) FROM proyectos_usuarios pu3
                  WHERE pu3.id_usuarios = u.id_usuarios)                              AS proyectos_total,
-                -- Tareas aprobadas
                 (SELECT COUNT(*) FROM tareas_usuarios tu
                  JOIN estados_tarea eta ON eta.id_estadoT = tu.id_estadoT
                  WHERE tu.id_usuarios = u.id_usuarios AND eta.nombre = 'Aprobado')   AS tareas_aprobadas,
-                -- Total tareas asignadas
                 (SELECT COUNT(*) FROM tareas_usuarios tu2
-                 WHERE tu2.id_usuarios = u.id_usuarios)                              AS tareas_total
+                 JOIN estados_tarea eta2 ON eta2.id_estadoT = tu2.id_estadoT
+                 WHERE tu2.id_usuarios = u.id_usuarios AND eta2.nombre != 'Sin activar') AS tareas_total
             FROM estudiantes e
             JOIN usuarios u  ON u.id_usuarios = e.id_usuarios
             JOIN carreras c  ON c.id_carrera  = e.id_carrera
@@ -630,7 +639,6 @@ class SupervisorModelo
 
     public function detalleEstudiante(int $id_usuario): array
     {
-        // Datos básicos
         $stmt = $this->con->prepare("
             SELECT u.*, e.matricula, c.nombre_carrera AS carrera, g.genero, ep.estado AS estado_proceso
             FROM usuarios u
@@ -641,34 +649,29 @@ class SupervisorModelo
             LEFT JOIN genero_usuario g ON g.id_genero = u.id_genero
             WHERE u.id_usuarios = ?
         ");
-        if (!$stmt) {
-            throw new Exception("Error en prepare (detalleEstudiante): " . $this->con->error);
-        }
+        if (!$stmt) throw new Exception("Error en prepare (detalleEstudiante): " . $this->con->error);
         $stmt->bind_param("i", $id_usuario);
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (detalleEstudiante): " . $stmt->error);
-        }
-        $stmt->execute();
+        if (!$stmt->execute()) throw new Exception("Error en execute (detalleEstudiante): " . $stmt->error);
         $usuario = $stmt->get_result()->fetch_assoc() ?? [];
 
-        // Proyectos en los que ha participado
         $stmt = $this->con->prepare("
             SELECT p.id_proyectos, p.titulo, p.modalidad, p.fecha_inicio, p.fecha_fin,
                    ep.nombre AS estado_proyecto,
                    per.periodo,
                    pu.estado AS estado_participacion, pu.fecha_asignacion, pu.fecha_terminacion,
                    CONCAT(ui.nombre,' ',ui.apellido_paterno) AS investigador_nombre,
-                   -- % avance tareas en ese proyecto
                    (SELECT COUNT(*) FROM tareas_usuarios tu2
                     JOIN tareas t2 ON t2.id_tarea = tu2.id_tarea
                     JOIN tbl_seguimiento ts2 ON ts2.id_avances = t2.id_avances
-                    WHERE ts2.id_proyectos = p.id_proyectos AND tu2.id_usuarios = ?)   AS tareas_total,
+                    JOIN estados_tarea et2 ON et2.id_estadoT = tu2.id_estadoT
+                    WHERE ts2.id_proyectos = p.id_proyectos AND tu2.id_usuarios = ?
+                      AND et2.nombre != 'Sin activar')    AS tareas_total,
                    (SELECT COUNT(*) FROM tareas_usuarios tu3
                     JOIN tareas t3 ON t3.id_tarea = tu3.id_tarea
                     JOIN tbl_seguimiento ts3 ON ts3.id_avances = t3.id_avances
                     JOIN estados_tarea et3 ON et3.id_estadoT = tu3.id_estadoT
                     WHERE ts3.id_proyectos = p.id_proyectos AND tu3.id_usuarios = ?
-                    AND et3.nombre = 'Aprobado')                                       AS tareas_aprobadas
+                    AND et3.nombre = 'Aprobado')           AS tareas_aprobadas
             FROM proyectos_usuarios pu
             JOIN proyectos p          ON p.id_proyectos  = pu.id_proyectos
             JOIN estados_proyectos ep ON ep.id_estadoP   = p.id_estadoP
@@ -677,16 +680,11 @@ class SupervisorModelo
             WHERE pu.id_usuarios = ?
             ORDER BY pu.fecha_asignacion DESC
         ");
-        if (!$stmt) {
-            throw new Exception("Error en prepare (detalleEstudiante): " . $this->con->error);
-        }
+        if (!$stmt) throw new Exception("Error en prepare (proyectos): " . $this->con->error);
         $stmt->bind_param("iii", $id_usuario, $id_usuario, $id_usuario);
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (detalleEstudiante): " . $stmt->error);
-        }
+        if (!$stmt->execute()) throw new Exception("Error en execute (proyectos): " . $stmt->error);
         $proyectos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-        // Detalle de tareas con estado
         $stmt = $this->con->prepare("
             SELECT tt.descripcion_tipo AS seccion, et.nombre AS estado,
                    t.fecha_entrega, tu.contenido,
@@ -700,16 +698,11 @@ class SupervisorModelo
             WHERE tu.id_usuarios = ?
             ORDER BY p.id_proyectos ASC, t.id_tarea ASC
         ");
-        if (!$stmt) {
-            throw new Exception("Error en prepare (detalleEstudiante): " . $this->con->error);
-        }
+        if (!$stmt) throw new Exception("Error en prepare (tareas): " . $this->con->error);
         $stmt->bind_param("i", $id_usuario);
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (detalleEstudiante): " . $stmt->error);
-        }
+        if (!$stmt->execute()) throw new Exception("Error en execute (tareas): " . $stmt->error);
         $tareas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-        // Solicitudes del estudiante
         $stmt = $this->con->prepare("
             SELECT sp.*, p.titulo AS proyecto_titulo
             FROM solicitud_proyecto sp
@@ -725,7 +718,7 @@ class SupervisorModelo
     }
 
     // ================================================================
-    // RESUMEN POR INVESTIGADOR (para el tab de proyectos)
+    // RESUMEN POR INVESTIGADOR
     // ================================================================
 
     public function resumenInvestigadores(array $f): array

@@ -11,9 +11,9 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 
 class SolicitudSniControlador
 {
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  INVESTIGADOR — DATOS PARA LA VISTA
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function datosInvestigador($id_usuario)
     {
@@ -26,9 +26,9 @@ class SolicitudSniControlador
         ];
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  INVESTIGADOR — HISTORIAL (línea de tiempo)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function historialInvestigador($id_usuario)
     {
@@ -38,9 +38,9 @@ class SolicitudSniControlador
         return $modelo->historialInvestigador($id_usuario, $pagina);
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  INVESTIGADOR — CREAR SOLICITUD (POST)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function crearSolicitud($id_usuario)
     {
@@ -70,9 +70,9 @@ class SolicitudSniControlador
         exit;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  SUPERVISOR — LISTADO
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function index($buscar = null)
     {
@@ -110,9 +110,9 @@ class SolicitudSniControlador
         return $resultado;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  SUPERVISOR — FILTROS (conteos para el select)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function filtros()
     {
@@ -136,9 +136,9 @@ class SolicitudSniControlador
         return ['Investigador', 'Nivel actual', 'Nivel solicitado', 'Documento', 'Estado', 'Fecha', 'Acciones'];
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  SUPERVISOR — DETALLE
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function detalle($id_solicitud)
     {
@@ -149,9 +149,9 @@ class SolicitudSniControlador
         return ['solicitud' => $solicitud, 'historial' => $historial];
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  SUPERVISOR — APROBAR (GET)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function aprobar($id_solicitud, $id_supervisor)
     {
@@ -177,9 +177,9 @@ class SolicitudSniControlador
         exit;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  SUPERVISOR — RECHAZAR (POST)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function rechazar($data, $id_supervisor)
     {
@@ -212,9 +212,9 @@ class SolicitudSniControlador
         exit;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  HELPERS DE UI
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function estiloEstado($estado)
     {
@@ -260,9 +260,9 @@ class SolicitudSniControlador
         return $html;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  CORREO (PHPMailer)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     private function enviarCorreo($destinatario, $nombre, $estado, $comentario)
     {

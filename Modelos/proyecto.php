@@ -13,9 +13,9 @@ class Proyectos
         $this->con = $conn;
     }
 
-    // =========================================================
+    // 
     // HELPER INTERNO
-    // =========================================================
+    // 
 
     private function ejecutar($sql, $types = "", $params = [], $fetchAll = true)
     {
@@ -36,9 +36,9 @@ class Proyectos
         return true;
     }
 
-    // =========================================================
+    // 
     // MANTENIMIENTO AUTOMÁTICO DE ESTADOS
-    // =========================================================
+    // 
 
     public function actualizarProyectosVencidos()
     {
@@ -106,9 +106,9 @@ class Proyectos
         return $this->ejecutar($sql_update_concluido);
     }
 
-    // =========================================================
+    // 
     // FILTROS / CONTEOS
-    // =========================================================
+    // 
 
     public function obtenerProyectosDatosFiltro($id, $rol)
     {
@@ -129,7 +129,6 @@ class Proyectos
                 $stmt = $this->con->prepare($sql);
                 $stmt->bind_param("i", $id);
                 break;
-
             case 'investigador':
             case 'profesor':
                 $sql = "SELECT 
@@ -172,9 +171,9 @@ class Proyectos
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // =========================================================
+    // 
     // TABLA DE PROYECTOS (centralizado)
-    // =========================================================
+    // 
 
     public function obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar)
     {
@@ -438,8 +437,16 @@ class Proyectos
         $params = [$id];
         $types  = "i";
 
-        if ($filtro != 0) { $sql .= " AND proy.id_estadoP = ?"; $params[] = $filtro; $types .= "i"; }
-        if (!empty($buscar)) { $sql .= " AND proy.titulo LIKE ?"; $params[] = "%$buscar%"; $types .= "s"; }
+        if ($filtro != 0) {
+            $sql .= " AND proy.id_estadoP = ?";
+            $params[] = $filtro;
+            $types .= "i";
+        }
+        if (!empty($buscar)) {
+            $sql .= " AND proy.titulo LIKE ?";
+            $params[] = "%$buscar%";
+            $types .= "s";
+        }
 
         return $this->ejecutar($sql, $types, $params, false)['total'] ?? 0;
     }
@@ -450,22 +457,30 @@ class Proyectos
         $params = [$id];
         $types  = "i";
 
-        if ($filtro != 0) { $sql .= " AND id_estadoP = ?"; $params[] = $filtro; $types .= "i"; }
-        if (!empty($buscar)) { $sql .= " AND titulo LIKE ?"; $params[] = "%$buscar%"; $types .= "s"; }
+        if ($filtro != 0) {
+            $sql .= " AND id_estadoP = ?";
+            $params[] = $filtro;
+            $types .= "i";
+        }
+        if (!empty($buscar)) {
+            $sql .= " AND titulo LIKE ?";
+            $params[] = "%$buscar%";
+            $types .= "s";
+        }
 
         return $this->ejecutar($sql, $types, $params, false)['total'] ?? 0;
     }
 
-    // =========================================================
+    // 
     // MÓDULO SOLICITUDES
-    // =========================================================
+    // 
 
     /**
      * Resumen de conteos para el bloque de tarjetas en solicitudes/index.php
      */
-    public function resumenSolicitudes($rol, $id_usuario, $id_periodo = 0)
+    public function resumenSolicitudes($rol, $id_usuario, $id_ = 0)
     {
-        $where_periodo = $id_periodo ? " AND proy.id_periodos = $id_periodo" : "";
+        $where_ = $id_ ? " AND proy.id_s = $id_" : "";
 
         if ($rol === 'supervisor') {
             // Supervisor ve todas las solicitudes
@@ -477,7 +492,7 @@ class Proyectos
             FROM proyectos proy
             JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
             WHERE proy.id_estadoP IN (3, 5, 2, 1)
-            $where_periodo";
+            $where_";
 
             $stmt = $this->con->prepare($sql);
             $stmt->execute();
@@ -492,7 +507,7 @@ class Proyectos
             JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
             WHERE proy.id_investigador = ?
               AND proy.id_estadoP IN (3, 4, 5, 7, 2, 1)
-            $where_periodo";
+            $where_";
 
             $stmt = $this->con->prepare($sql);
             $stmt->bind_param("i", $id_usuario);
@@ -500,7 +515,10 @@ class Proyectos
         }
 
         return $stmt->get_result()->fetch_assoc() ?? [
-            'total' => 0, 'pendientes_creacion' => 0, 'pendientes_cierre' => 0, 'aprobadas' => 0
+            'total' => 0,
+            'pendientes_creacion' => 0,
+            'pendientes_cierre' => 0,
+            'aprobadas' => 0
         ];
     }
 
@@ -512,7 +530,7 @@ class Proyectos
      * Los proyectos de tipo "Cierre" son Por cerrar (5), Cierre rechazado (7), Cierre (1)
      * "Pendientes" = Por aprobar + Por cerrar
      */
-    public function listarSolicitudes($rol, $id_usuario, $tipo_filtro = 'Todas', $buscar = '', $pagina = 1, $id_periodo = 0)
+    public function listarSolicitudes($rol, $id_usuario, $tipo_filtro = 'Todas', $buscar = '', $pagina = 1, $id_ = 0)
     {
         $por_pagina = 6;
         $pagina     = max(1, intval($pagina));
@@ -525,18 +543,26 @@ class Proyectos
         $estados_todos      = [3, 4, 5, 7, 1, 2]; // Todo excepto Vencido (6)
 
         switch ($tipo_filtro) {
-            case 'Creacion':   $estados = $estados_creacion;   break;
-            case 'Cierre':     $estados = $estados_cierre;     break;
-            case 'Pendientes': $estados = $estados_pendientes; break;
-            default:           $estados = $estados_todos;      break;
+            case 'Creacion':
+                $estados = $estados_creacion;
+                break;
+            case 'Cierre':
+                $estados = $estados_cierre;
+                break;
+            case 'Pendientes':
+                $estados = $estados_pendientes;
+                break;
+            default:
+                $estados = $estados_todos;
+                break;
         }
 
         // Supervisor ve todos; investigador/profesor solo los suyos
         $where_rol  = ($rol === 'supervisor') ? "" : " AND proy.id_investigador = ?";
         $base_where = "proy.id_estadoP IN (" . implode(',', $estados) . ") $where_rol";
 
-        if ($id_periodo) {
-            $base_where .= " AND proy.id_periodos = ?";
+        if ($id_) {
+            $base_where .= " AND proy.id_s = ?";
         }
         if (!empty($buscar)) {
             $base_where .= " AND proy.titulo LIKE ?";
@@ -555,8 +581,8 @@ class Proyectos
             $bind_total_params[] = $id_usuario;
             $bind_total_types   .= "i";
         }
-        if ($id_periodo) {
-            $bind_total_params[] = $id_periodo;
+        if ($id_) {
+            $bind_total_params[] = $id_;
             $bind_total_types   .= "i";
         }
         if (!empty($buscar)) {
@@ -599,8 +625,8 @@ class Proyectos
             $params[] = $id_usuario;
             $types   .= "i";
         }
-        if ($id_periodo) {
-            $params[] = $id_periodo;
+        if ($id_) {
+            $params[] = $id_;
             $types   .= "i";
         }
         if (!empty($buscar)) {
@@ -623,9 +649,9 @@ class Proyectos
         ]);
     }
 
-    // =========================================================
+    // 
     // CATÁLOGOS
-    // =========================================================
+    // 
 
     public function tematica()
     {
@@ -648,11 +674,11 @@ class Proyectos
     }
 
     /**
-     * Periodo vigente (para crear proyecto)
+     *  vigente (para crear proyecto)
      */
-    public function obtenerperiodo()
+    public function obtener()
     {
-        $sql  = "SELECT id_periodos, periodo,
+        $sql  = "SELECT id_s, ,
                     fecha_inicio AS FechaInicio,
                     fecha_final  AS FechaFinal,
                     CASE 
@@ -660,18 +686,18 @@ class Proyectos
                         WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
                         ELSE 'Terminado'
                     END AS estado
-                 FROM periodos ORDER BY periodo DESC LIMIT 1";
+                 FROM s ORDER BY  DESC LIMIT 1";
         $stmt = $this->con->prepare($sql);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
 
     /**
-     * Todos los periodos (para el filtro por periodo en solicitudes)
+     * Todos los s (para el filtro por  en solicitudes)
      */
-    public function obtenerTodosPeriodos()
+    public function obtenerTodoss()
     {
-        $sql  = "SELECT id_periodos, periodo FROM periodos ORDER BY periodo DESC";
+        $sql  = "SELECT id_s,  FROM s ORDER BY  DESC";
         $stmt = $this->con->prepare($sql);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -685,14 +711,14 @@ class Proyectos
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // =========================================================
+    // 
     // CRUD DE PROYECTOS
-    // =========================================================
+    // 
 
-    public function registrarProyecto($id_investigador, $id_estadoP, $id_instituto, $id_periodos, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
+    public function registrarProyecto($id_investigador, $id_estadoP, $id_instituto, $id_s, $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final, $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad)
     {
         $sql  = "INSERT INTO proyectos 
-                 (id_investigador, id_estadoP, id_instituto, id_periodos, titulo, descripcion, objetivo,
+                 (id_investigador, id_estadoP, id_instituto, id_s, titulo, descripcion, objetivo,
                   fecha_inicio, fecha_fin, presupuesto, actualizado_en, requisitos, pre_requisitos, modalidad, cantidad_estudiante)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
         $stmt = $this->con->prepare($sql);
@@ -700,9 +726,20 @@ class Proyectos
 
         $stmt->bind_param(
             "iiiisssssssssi",
-            $id_investigador, $id_estadoP, $id_instituto, $id_periodos,
-            $titulo, $descripcion, $objetivo, $fecha_inicio, $fecha_final,
-            $presupuesto, $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad
+            $id_investigador,
+            $id_estadoP,
+            $id_instituto,
+            $id_s,
+            $titulo,
+            $descripcion,
+            $objetivo,
+            $fecha_inicio,
+            $fecha_final,
+            $presupuesto,
+            $requisitos,
+            $Pre_requisitos,
+            $modalidad,
+            $AlumnosCantidad
         );
 
         if (!$stmt->execute()) die("Error en execute(): " . $stmt->error);
@@ -721,17 +758,26 @@ class Proyectos
 
         $stmt->bind_param(
             "sssssiisissi",
-            $titulo, $descripcion, $objetivo, $Pre_requisitos, $requisitos,
-            $AlumnosCantidad, $modalidad, $presupuesto, $fecha_inicio, $fecha_final,
-            $id_proyecto, $id_investigador
+            $titulo,
+            $descripcion,
+            $objetivo,
+            $Pre_requisitos,
+            $requisitos,
+            $AlumnosCantidad,
+            $modalidad,
+            $presupuesto,
+            $fecha_inicio,
+            $fecha_final,
+            $id_proyecto,
+            $id_investigador
         );
 
         if (!$stmt->execute()) die("Error en execute(): " . $stmt->error);
     }
 
-    // =========================================================
+    // 
     // ACTUALIZAR ESTADO
-    // =========================================================
+    // 
 
     public function actualizarEstadoProyectoRechazo($id_usuario, $id_proyectos, $tipo, $comentario)
     {
@@ -811,7 +857,7 @@ class Proyectos
             $stmtTarea->close();
             $stmtTareaDoc->close();
 
-        // Estado 5: Por cerrar → insertar tbl_cierres
+            // Estado 5: Por cerrar → insertar tbl_cierres
         } elseif ($numeroEstado === 5) {
 
             $stmtInv = $this->con->prepare("SELECT id_investigador FROM proyectos WHERE id_proyectos = ?");
@@ -831,7 +877,7 @@ class Proyectos
                 $stmtC->close();
             }
 
-        // Estado 1: Cerrado → aprobar cierre
+            // Estado 1: Cerrado → aprobar cierre
         } elseif ($numeroEstado === 1) {
 
             $stmtInv = $this->con->prepare("SELECT id_investigador FROM proyectos WHERE id_proyectos = ?");
@@ -860,9 +906,9 @@ class Proyectos
         }
     }
 
-    // =========================================================
+    // 
     // PORCENTAJE DE AVANCE
-    // =========================================================
+    // 
 
     function valorPorEstado($estado)
     {
@@ -893,9 +939,9 @@ class Proyectos
         return round(min(100, ($suma / $totalTareas) * 100), 2);
     }
 
-    // =========================================================
+    // 
     // DETALLES DEL PROYECTO
-    // =========================================================
+    // 
 
     function obtenerProyecto($id_proyecto)
     {
@@ -918,7 +964,7 @@ class Proyectos
         JOIN proyectos_subtematica AS proy_sub ON proy.id_proyectos = proy_sub.id_proyectos
         JOIN subtematica AS subt ON proy_sub.id_subtematica = subt.id_subtematica
         JOIN tematica AS tema ON tema.id_tematica = subt.id_tematica
-        JOIN periodos AS peri ON peri.id_periodos = proy.id_periodos
+        JOIN periodos peri ON proy.id_periodos = peri.id_periodos
         WHERE proy.id_proyectos = ?
         GROUP BY proy.id_proyectos, espr.nombre, tema.nombre_tematica
         ORDER BY proy.id_proyectos DESC";
@@ -1025,9 +1071,9 @@ class Proyectos
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // =========================================================
+    // 
     // SUBTEMATICAS
-    // =========================================================
+    // 
 
     public function vincularSubtematica($id_proyecto, $id_subtematica)
     {
@@ -1049,9 +1095,9 @@ class Proyectos
         if (!$stmt->execute()) die("Error execute(): " . $stmt->error);
     }
 
-    // =========================================================
+    // 
     // ESTUDIANTES EN EL PROYECTO
-    // =========================================================
+    // 
 
     public function estudiantes($id_proyecto)
     {
@@ -1166,9 +1212,9 @@ class Proyectos
         }
     }
 
-    // =========================================================
+    // 
     // HISTORIAL DE ESTUDIANTE EN PROYECTO
-    // =========================================================
+    // 
 
     public function lineaTiempoProyectoUsuarios($id_proyecto, $id_usuario, $pagina = 1, $por_pagina = 5)
     {
@@ -1207,5 +1253,53 @@ class Proyectos
             "datos"      => $agrupado,
             "paginacion" => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas]
         ];
+    }
+
+    public function obtenerperiodo()
+    {
+        $sql = "SELECT 
+        id_periodos,
+        periodo,
+        fecha_inicio AS FechaInicio,
+        fecha_final AS FechaFinal,
+    CASE 
+        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
+        ELSE 'Terminado'
+    END AS estado
+FROM periodos ORDER BY periodo DESC
+LIMIT 1;";
+
+        $stmt = $this->con->prepare($sql);
+
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function obtenerTodosPeriodos(){
+                $sql = "SELECT 
+        id_periodos,
+        periodo,
+        fecha_inicio AS FechaInicio,
+        fecha_final AS FechaFinal,
+    CASE 
+        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
+        ELSE 'Terminado'
+    END AS estado
+FROM periodos ORDER BY periodo DESC;";
+
+        $stmt = $this->con->prepare($sql);
+
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function periodoactual()
+    {
+        $sql = "SELECT fecha_inicio_proyectos, fecha_fin_proyectos FROM periodos ORDER BY id_periodos DESC LIMIT 1";
+        $stmt  = $this->con->prepare($sql);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
     }
 }

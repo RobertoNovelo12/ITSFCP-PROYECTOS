@@ -7,9 +7,9 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 class ProyectoControlador
 {
 
-    // =========================================================
+    // 
     // VALIDACIONES INTERNAS
-    // =========================================================
+    // 
 
     private function rolValido($rol)
     {
@@ -30,11 +30,11 @@ class ProyectoControlador
         }
     }
 
-    // =========================================================
+    // 
     // MÉTODO BASE REUTILIZABLE (proyectos)
-    // =========================================================
+    // 
 
-    private function obtenerDatos($id, $rol, $buscar, $filtro = null, $tipo = 'general')
+    private function obtenerDatos($id, $rol, $buscar, $filtro = null, $tipo = 'filtro')
     {
         global $conn;
         try {
@@ -57,9 +57,9 @@ class ProyectoControlador
         }
     }
 
-    // =========================================================
+    // 
     // ACCIONES DE PROYECTOS (tabla principal)
-    // =========================================================
+    // 
 
     public function index($id, $rol, $buscar = null)
     {
@@ -111,9 +111,9 @@ class ProyectoControlador
         return $this->obtenerDatos((int)$id, $rol, $buscar, 7, 'tabla');
     }
 
-    // =========================================================
+    // 
     // NÚMERO DE FILTRO (conversión action -> id_estadoP)
-    // =========================================================
+    // 
 
     public function numerofiltro($action)
     {
@@ -131,9 +131,9 @@ class ProyectoControlador
         };
     }
 
-    // =========================================================
+    // 
     // ENCABEZADOS — separados por módulo
-    // =========================================================
+    // 
 
     /**
      * Encabezados para la tabla principal de /proyectos/index.php
@@ -143,9 +143,16 @@ class ProyectoControlador
         $base = ['ID', 'Título', 'Inicio', 'Fin', 'Estado', 'Período', 'Pendientes', 'Acciones'];
 
         $estudiante = [
-            'ID', 'Título', 'Inicio', 'Fin',
-            'Estado Proyecto', 'Estado Estudiante', 'Documentación',
-            'Período', 'Pendientes', 'Acciones'
+            'ID',
+            'Título',
+            'Inicio',
+            'Fin',
+            'Estado Proyecto',
+            'Estado Estudiante',
+            'Documentación',
+            'Período',
+            'Pendientes',
+            'Acciones'
         ];
 
         return ($rol === 'estudiante') ? $estudiante : $base;
@@ -160,9 +167,9 @@ class ProyectoControlador
         return ['ID', 'Título', 'Tipo solicitud', 'Investigador', 'Periodo', 'Fecha solicitud', 'Estado', 'Acciones'];
     }
 
-    // =========================================================
+    // 
     // OPCIONES DE FILTRO — separadas por módulo
-    // =========================================================
+    // 
 
     /**
      * Opciones del select de filtro para /proyectos/index.php
@@ -222,9 +229,9 @@ class ProyectoControlador
         ];
     }
 
-    // =========================================================
+    // 
     // ESTILO DE ESTADO (badge Bootstrap)
-    // =========================================================
+    // 
 
     public function EstiloEstado($estado)
     {
@@ -238,9 +245,9 @@ class ProyectoControlador
         };
     }
 
-    // =========================================================
+    // 
     // BOTONES INDIVIDUALES
-    // =========================================================
+    // 
 
     public function obtenerbotones($tipo, $id_proyecto, $id_usuario = null)
     {
@@ -264,7 +271,7 @@ class ProyectoControlador
                 break;
 
             case 'Ver Tareas Alumnos':
-                $boton = '<a href="../Tareas/tareas_estudiante.php?id_usuario=' . $id_usuario . '" class="btn btn-info" data-bs-toggle="tooltip" data-bs-title="Ver Tareas">
+                $boton = '<a href="../Tareas/tareas_estudiante.php?id_usuario=' . $id_usuario . '&id_proyectos=' . $id_proyecto . '" class="btn btn-info" data-bs-toggle="tooltip" data-bs-title="Ver Tareas">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-task" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
                         <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/>
@@ -370,14 +377,20 @@ class ProyectoControlador
         return $boton;
     }
 
-    // =========================================================
+    // 
     // BOTONES DE ACCIÓN — tabla de proyectos (index.php)
-    // =========================================================
+    // 
 
-    public function botonesAccion($id, $rol, $estado = null, $extra = null, $estado_completados_estudiantes = 0, $estado_estudiante = 'activo')
+    public function botonesAccion($id, $rol, $estado = null, $extra = null, $estado_completados_estudiantes = 0, $estado_estudiante = 'activo', $estado_editar = false)
     {
         $solicitar = ($estado_completados_estudiantes == 1) ? 'Solicitar cerrar' : '';
 
+         if ($estado_editar == true){
+            $editar = "Editar";
+         } else{
+            $editar = "";
+         }
+         
         // Bloqueo para estudiante en baja
         if ($rol === 'estudiante' && strtolower($estado_estudiante) === 'baja') {
             return $this->obtenerbotones('Detalles', $id);
@@ -387,36 +400,36 @@ class ProyectoControlador
 
             'estudiante' => [
                 'Activo'    => ['Detalles', 'Ver Tareas Alumnos'],
-                'Por cerrar'=> ['Detalles', 'Ver Tareas Alumnos'],
+                'Por cerrar' => ['Detalles', 'Ver Tareas Alumnos'],
                 'Vencido'   => ['Detalles', 'Ver Tareas Alumnos'],
                 'Cierre'    => ['Detalles', 'Ver Tareas Alumnos'],
             ],
 
             'investigador' => [
-                'Activo'          => ['Detalles', 'Tareas', 'Editar', 'Comentarios', $solicitar],
+                'Activo'          => ['Detalles', 'Tareas', $editar, 'Comentarios', $solicitar],
                 'Por aprobar'     => ['Detalles', 'Comentarios'],
                 'Por cerrar'      => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'          => ['Detalles', 'Tareas', 'Comentarios'],
-                'Cierre rechazado'=> ['Volver a enviar cierre', 'Detalles', 'Editar', 'Tareas', 'Comentarios'],
-                'Rechazado'       => ['Volver a enviar proyecto', 'Detalles', 'Editar', 'Comentarios'],
+                'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
+                'Rechazado'       => ['Volver a enviar proyecto', 'Detalles', $editar, 'Comentarios'],
                 'Vencido'         => ['Detalles', 'Tareas', 'Comentarios'],
             ],
 
             'profesor' => [
-                'Activo'          => ['Detalles', 'Tareas', 'Editar', 'Comentarios', $solicitar],
+                'Activo'          => ['Detalles', 'Tareas', $editar, 'Comentarios', $solicitar],
                 'Por aprobar'     => ['Detalles', 'Comentarios'],
                 'Por cerrar'      => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'          => ['Detalles', 'Tareas', 'Comentarios'],
-                'Cierre rechazado'=> ['Volver a enviar cierre', 'Detalles', 'Editar', 'Tareas', 'Comentarios'],
-                'Rechazado'       => ['Volver a enviar proyecto', 'Detalles', 'Editar', 'Comentarios'],
+                'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
+                'Rechazado'       => ['Volver a enviar proyecto', 'Detalles', $editar, 'Comentarios'],
                 'Vencido'         => ['Detalles', 'Tareas', 'Comentarios'],
             ],
 
             // Supervisor en /proyectos/index.php: solo proyectos ya aprobados
             'supervisor' => [
                 'Activo'          => ['Detalles', 'Tareas', 'Comentarios'],
-                'Por cerrar'      => ['Aprobar cierre', 'Detalles', 'Tareas', 'Rechazar cierre', 'Comentarios'],
-                'Cierre rechazado'=> ['Detalles', 'Tareas', 'Comentarios'],
+                'Por cerrar'      => ['Detalles', 'Tareas', 'Comentarios'],
+                'Cierre rechazado' => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'          => ['Detalles', 'Tareas', 'Comentarios'],
                 'Vencido'         => ['Detalles', 'Tareas', 'Comentarios'],
             ],
@@ -428,7 +441,7 @@ class ProyectoControlador
         foreach ($acciones[$rol][$estado] as $accion) {
             if (empty($accion)) continue;
             if ($accion === 'Ver Tareas Alumnos') {
-                $botones .= $this->obtenerbotones($accion, null, $extra);
+                $botones .= $this->obtenerbotones($accion, $id, $extra);
             } else {
                 $botones .= $this->obtenerbotones($accion, $id);
             }
@@ -436,9 +449,9 @@ class ProyectoControlador
         return $botones;
     }
 
-    // =========================================================
+    // 
     // BOTONES DE ACCIÓN — tabla de solicitudes_integracion_proyecto (solicitudes_integracion_proyecto/index.php)
-    // =========================================================
+    // 
 
     /**
      * Botones para la columna Acciones en la tabla de /solicitudes_integracion_proyecto/index.php
@@ -487,9 +500,9 @@ class ProyectoControlador
         return $botones;
     }
 
-    // =========================================================
+    // 
     // BOTONES EDITAR ESTUDIANTE
-    // =========================================================
+    // 
 
     public function botonesAccionEditarEstudiante($id_estudiante, $rol, $estado, $id_proyecto, $estado_proyecto)
     {
@@ -508,9 +521,9 @@ class ProyectoControlador
         return $boton;
     }
 
-    // =========================================================
+    // 
     // PORCENTAJE DE AVANCE
-    // =========================================================
+    // 
 
     public function obtenerPorcentajeAvance($id_proyecto)
     {
@@ -525,9 +538,9 @@ class ProyectoControlador
         }
     }
 
-    // =========================================================
+    // 
     // CATÁLOGOS
-    // =========================================================
+    // 
 
     public function tematica()
     {
@@ -587,9 +600,9 @@ class ProyectoControlador
         }
     }
 
-    // =========================================================
+    // 
     // CRUD DE PROYECTOS
-    // =========================================================
+    // 
 
     public function registrarProyecto($datos, $id, $rol)
     {
@@ -686,9 +699,9 @@ class ProyectoControlador
         }
     }
 
-    // =========================================================
+    // 
     // ACTUALIZAR ESTADO
-    // =========================================================
+    // 
 
     public function actualizarestadoRechazo($data, $id_usuario, $rol)
     {
@@ -745,9 +758,9 @@ class ProyectoControlador
         }
     }
 
-    // =========================================================
+    // 
     // DATOS DE DETALLE
-    // =========================================================
+    // 
 
     public function datosproyecto($id_proyecto)
     {
@@ -813,9 +826,9 @@ class ProyectoControlador
         }
     }
 
-    // =========================================================
+    // 
     // ACCIONES DE ESTUDIANTE (baja / reactivar)
-    // =========================================================
+    // 
 
     public function accionEstudiante($datos)
     {
@@ -839,9 +852,9 @@ class ProyectoControlador
         header("Location: editar.php?id_proyectos=" . $id_proyecto . "&mensaje=1");
     }
 
-    // =========================================================
+    // 
     // MÓDULO SOLICITUDES — métodos específicos
-    // =========================================================
+    // 
 
     /**
      * Resumen de conteos para el dashboard de solicitudes (supervisor)
@@ -868,6 +881,18 @@ class ProyectoControlador
         } catch (Exception $e) {
             error_log($e->getMessage());
             return json_encode(['solicitudes' => [], 'paginacion' => []]);
+        }
+    }
+
+    public function periodoactual()
+    {
+        global $conn;
+        try {
+            return (new Proyectos($conn))->periodoactual();
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            header("Location: index.php?error=1");
+            exit;
         }
     }
 }
