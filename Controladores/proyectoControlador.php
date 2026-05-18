@@ -403,7 +403,7 @@ class ProyectoControlador
             ],
 
             'investigador' => [
-                'Activo'          => ['Detalles', 'Tareas', $editar, 'Comentarios', $solicitar],
+                'Activo'          => ['Detalles', 'Tareas', 'Comentarios', $solicitar],
                 'Por cerrar'      => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'          => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
@@ -412,7 +412,7 @@ class ProyectoControlador
             ],
 
             'profesor' => [
-                'Activo'          => ['Detalles', 'Tareas', $editar, 'Comentarios', $solicitar],
+                'Activo'          => ['Detalles', 'Tareas','Comentarios', $solicitar],
                 'Por cerrar'      => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'          => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],

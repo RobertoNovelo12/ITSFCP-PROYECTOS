@@ -10,9 +10,6 @@
  *   POST enviarCorreccionesCarta → Estudiante: reenvía correcciones al supervisor (AJAX JSON)
  *   POST actualizarEstado       → Investigador: aprueba/rechaza/corrige seguimiento_documento (AJAX JSON)
  *
- * CORRECCIONES APLICADAS:
- *   - index(): NO provoca location.reload() tras subir; la vista maneja el estado
- *     de forma persistente sin reiniciar.
  *   - subirCartaTerminacion(): estado inicial 'finalizacion_pendiente' en cierres_estudiante.
  *   - enviarCorreccionesCarta(): nuevo método para que el estudiante responda al supervisor
  *     desde correcciones_carta.php (espejo de correcciones.php para solicitudes).
@@ -34,9 +31,9 @@ class SeguimientoControlador
         $this->modelo = new SeguimientoModelo($conn);
     }
 
-    // =========================================================================
+    // 
     //  HELPERS PRIVADOS
-    // =========================================================================
+    // 
 
     private function esEstudiante(string $rol): bool
     {
@@ -66,9 +63,9 @@ class SeguimientoControlador
         return strtolower($_SESSION['rol'] ?? '');
     }
 
-    // =========================================================================
+    // 
     //  INDEX — ESTUDIANTE (GET)
-    // =========================================================================
+    // 
 
     /**
      * Carga los datos para la vista de seguimiento del estudiante.
@@ -117,10 +114,10 @@ class SeguimientoControlador
         ];
     }
 
-    // =========================================================================
+    // 
     //  SUBIR DOCUMENTO — Etapa 1: Carta Compromiso (POST → AJAX JSON)
     //  Ruta física: /storage/etapas/proyecto_{id}/
-    // =========================================================================
+    // 
 
     public function subirDocumento(): void
     {
@@ -195,10 +192,10 @@ class SeguimientoControlador
         ]);
     }
 
-    // =========================================================================
+    // 
     //  SUBIR CARTA DE TERMINACIÓN — Etapa 3 (POST → AJAX JSON)
     //  Crea registro en cierres_estudiante con estado 'finalizacion_pendiente'.
-    // =========================================================================
+    // 
 
     public function subirCartaTerminacion(): void
     {
@@ -288,13 +285,6 @@ class SeguimientoControlador
         if ($ok) {
             $this->modelo->actualizarEstadoProcesoCarta($id_integrante);
 
-            // Notificar al supervisor
-            $this->modelo->notificar(
-                $id_supervisor,
-                'Nueva carta de terminación',
-                'Un estudiante ha enviado su carta de terminación firmada y está esperando revisión.',
-                '/ITSFCP-PROYECTOS/Vistas/cartas_terminacion/index.php'
-            );
         }
 
         $this->json([
@@ -305,12 +295,12 @@ class SeguimientoControlador
         ]);
     }
 
-    // =========================================================================
+    // 
     //  ENVIAR CORRECCIONES CARTA — Etapa 3 (POST → AJAX JSON)
     //  El estudiante responde al rechazo del supervisor desde correcciones_carta.php
     //  Solo envía comentario + archivo opcional (sin reemplazar la carta).
     //  Para reenviar una carta corregida se usa subirCartaTerminacion().
-    // =========================================================================
+    // 
 
     public function enviarCorreccionesCarta(): void
     {
@@ -367,16 +357,6 @@ class SeguimientoControlador
             $archivo_ruta
         );
 
-        if ($ok) {
-            // Notificar al supervisor del reenvío de correcciones
-            $this->modelo->notificar(
-                (int)$cierre['id_supervisor'],
-                'Correcciones enviadas por estudiante',
-                'El estudiante envió correcciones sobre su carta de terminación. Revisa el hilo.',
-                '/ITSFCP-PROYECTOS/Vistas/cartas_terminacion/index.php'
-            );
-        }
-
         $this->json([
             'ok'  => $ok,
             'msg' => $ok
@@ -385,9 +365,9 @@ class SeguimientoControlador
         ]);
     }
 
-    // =========================================================================
+    // 
     //  ACTUALIZAR ESTADO — Investigador (AJAX POST)
-    // =========================================================================
+    // 
 
     public function actualizarEstado(): void
     {
@@ -419,7 +399,7 @@ class SeguimientoControlador
                     (int)$seg['id_usuarios'],
                     'Reporte Final aprobado',
                     'El investigador aprobó tu Reporte Final. Ya puedes descargar y subir tu Carta de Terminación.',
-                    '/ITSFCP-PROYECTOS/Vistas/Seguimiento/seguimiento.php?id_proyectos=' . $seg['id_proyectos']
+                    '/ITSFCP-PROYECTOS/Vistas/Seguimiento/index.php?id_proyectos=' . $seg['id_proyectos']
                 );
             }
         }
@@ -436,9 +416,9 @@ class SeguimientoControlador
         ]);
     }
 
-    // =========================================================================
+    // 
     //  HELPERS PÚBLICOS PARA VISTAS EXTERNAS
-    // =========================================================================
+    // 
 
     public function contarTareasTotales($id_proyecto, $id_estudiante): int
     {
@@ -508,9 +488,9 @@ class SeguimientoControlador
         return "<span class='badge bg-{$color}'>{$texto}</span>";
     }
 
-    // =========================================================================
+    // 
     //  HELPERS PRIVADOS — validación de archivos subidos
-    // =========================================================================
+    // 
 
     /**
      * Valida MIME real y tamaño del archivo.

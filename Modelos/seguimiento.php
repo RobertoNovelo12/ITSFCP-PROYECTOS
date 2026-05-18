@@ -19,7 +19,6 @@
  *   Estado 'finalizacion_pendiente' en cierres_estudiante cuando el alumno
  *   ya terminó actividades, subió la carta y el supervisor no ha respondido.
  *
- * CORRECCIONES APLICADAS:
  *   - getEtapasPorProyecto: Etapa 1 siempre 'completado'; expone documento
  *     subido para descarga exclusiva (no re-subida).
  *   - getCierreEstudiante: mapea 'finalizacion_pendiente' correctamente.
@@ -43,7 +42,7 @@ class SeguimientoModelo
     // 
 
     /**
-     * Datos del proyecto visibles para el estudiante (debe tener membresía activa/concluida).
+     * Datos del proyecto visibles para el estudiante (debe estar activa/concluida).
      * Incluye estado_proceso, id_integrante y datos de solicitud de integración.
      */
     public function getProyectoPorId(int $id_usuario, int $id_proyecto): ?array
@@ -139,15 +138,14 @@ class SeguimientoModelo
             $orden = (int)$etapa['orden'];
 
             if ($orden === 1) {
-                // ── Etapa 1 ──────────────────────────────────────────────────
+                //  Etapa 1 
                 // El alumno llegó aquí porque fue aceptado → SIEMPRE completado.
                 $etapa['estado'] = 'completado';
 
                 // Documento subido por el estudiante (carta firmada) — solo descarga
                 $etapa['documento_subido'] = $this->getDocumentoEtapa1($id_proyecto, $id_usuario);
-
             } elseif ($orden === 2) {
-                // ── Etapa 2 ──────────────────────────────────────────────────
+                //  Etapa 2 
                 $total     = $this->contarTareasTotales($id_proyecto, $id_usuario);
                 $aprobadas = $this->contarTareasAprobadas($id_proyecto, $id_usuario);
 
@@ -166,15 +164,40 @@ class SeguimientoModelo
                 $etapa['id_seguimiento']   = null;
                 $etapa['id_plantilla']     = null;
                 $etapa['documento_subido'] = null;
-
             } elseif ($orden === 3) {
-                // ── Etapa 3 ──────────────────────────────────────────────────
+                //  Etapa 3 — Carta de Terminación
+                //
+                // Condiciones para estar accesible:
+                //   1. Etapa 2 completada (todas las tareas aprobadas).
+                //   2. El proyecto está en estado 'Por cerrar' o 'Cierre',
+                //      lo que significa que el investigador ya solicitó el cierre
+                //      institucional y el supervisor lo tiene en revisión.
+                //
+                // Si alguna condición falla → bloqueado con mensaje específico.
+
                 $cierre = $this->getCierreEstudiante($id_proyecto, $id_usuario);
                 $etapa['documento_subido'] = null;
+                $etapa['cierre']           = $cierre;
 
+                // Verificar prerequisitos solo si aún no hay cierre iniciado
                 if (!$cierre) {
-                    $etapa['estado'] = 'pendiente';
+                    $etapa2_completa       = $this->todasSeccionesAprobadas($id_proyecto, $id_usuario);
+                    $proyecto_en_cierre    = $this->proyectoPermiteCierreEstudiante($id_proyecto);
+
+                    if (!$etapa2_completa) {
+                        // Bloqueado: tareas pendientes
+                        $etapa['estado']   = 'bloqueado';
+                        $etapa['motivo_bloqueo'] = 'Debes completar todas tus actividades primero.';
+                    } elseif (!$proyecto_en_cierre) {
+                        // Etapa 2 lista pero el investigador aún no solicitó el cierre
+                        $etapa['estado']   = 'esperando_cierre';
+                        $etapa['motivo_bloqueo'] = 'Tus actividades están completas. En espera de que el investigador inicie el cierre del proyecto.';
+                    } else {
+                        // Todo listo → el estudiante puede subir su carta
+                        $etapa['estado']   = 'pendiente';
+                    }
                 } else {
+                    // Ya hay un cierre iniciado → mostrar su estado actual
                     $etapa['estado'] = match ($cierre['estado']) {
                         'pendiente'              => 'finalizacion_pendiente',
                         'finalizacion_pendiente' => 'finalizacion_pendiente',
@@ -182,19 +205,40 @@ class SeguimientoModelo
                         'rechazado'              => 'rechazado',
                         default                  => 'pendiente',
                     };
+
                     $etapa['comentario_supervisor'] = $cierre['comentarios'] ?? null;
 
-                    // Exponer documento de carta de terminación para descarga
                     if (!empty($cierre['id_documento'])) {
                         $etapa['documento_subido'] = $this->getDocumentoPorId((int)$cierre['id_documento']);
                     }
                 }
-                $etapa['cierre'] = $cierre;
             }
         }
         unset($etapa);
 
         return $rows;
+    }
+
+    /**
+     * Verifica si el proyecto está en un estado que permite
+     * al estudiante subir su Carta de Terminación.
+     * Estados válidos: 'Por cerrar' (id=5) y 'Cierre' (id=1).
+     */
+    public function proyectoPermiteCierreEstudiante(int $id_proyecto): bool
+    {
+        $sql = "
+        SELECT COUNT(*) AS total
+        FROM proyectos p
+        JOIN estados_proyectos ep ON ep.id_estadoP = p.id_estadoP
+        WHERE p.id_proyectos = ?
+          AND ep.nombre IN ('Por cerrar', 'Cierre')
+    ";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("i", $id_proyecto);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return (int)$row['total'] > 0;
     }
 
     // 
@@ -310,8 +354,17 @@ class SeguimientoModelo
 
         $stmt->bind_param(
             "sssssiiiiii",
-            $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension, $tamano_bytes,
-            $id_usuario, $id_proyecto, $id_etapa, $id_seguimiento, $id_plantilla
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $id_usuario,
+            $id_proyecto,
+            $id_etapa,
+            $id_seguimiento,
+            $id_plantilla
         );
         $ok = $stmt->execute();
         $stmt->close();
@@ -343,8 +396,15 @@ class SeguimientoModelo
         if (!$stmt) return 0;
         $stmt->bind_param(
             "sssssiiiii",
-            $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension, $tamano_bytes,
-            $id_usuario, $id_proyecto, $id_etapa
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $id_usuario,
+            $id_proyecto,
+            $id_etapa
         );
         $stmt->execute();
         $id = $this->con->insert_id;

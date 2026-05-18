@@ -222,7 +222,7 @@ class Proyectos
         $total         = $this->obtenerCantidadEstudiante($id, $filtro, $buscar);
         $total_paginas = ceil($total / $por_pagina);
 
-        // Solo proyectos con membresía confirmada (estado = 'activo').
+        // Solo proyectos confirmada (estado = 'activo').
         // Se excluye cualquier proyecto donde el estudiante solo tenga una solicitud
         // en proceso pero aún no haya sido vinculado como integrante activo.
         $sql = "
@@ -291,53 +291,98 @@ class Proyectos
         // Excluye 'Por aprobar' (id_estadoP = 3): proyectos cuya solicitud de creación
         // aún está pendiente de aprobación por el supervisor.
         $sql = "
-        SELECT
-            proy.id_proyectos,
-            proy.titulo,
-            proy.fecha_inicio,
-            proy.fecha_fin,
-            espr.nombre           AS estado_proyecto,
-            peri.periodo,
-            COALESCE(tr.total, 0)  AS total,
-            CASE
-                WHEN COALESCE(pa.total_alumnos,     0) > 0
-                 AND COALESCE(tt.total_tareas,       0) >= 11
-                 AND COALESCE(tc.tareas_completadas, 0) = (COALESCE(tt.total_tareas, 0) * COALESCE(pa.total_alumnos, 0))
-                THEN 1 ELSE 0
-            END AS puede_cerrar
-        FROM proyectos proy
-        JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-        JOIN periodos peri          ON proy.id_periodos = peri.id_periodos
-        LEFT JOIN (
-            SELECT ts.id_proyectos,
-                   COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
-            FROM tbl_seguimiento ts
-            JOIN tareas t                ON t.id_avances = ts.id_avances
-            LEFT JOIN tareas_usuarios tu ON tu.id_tarea  = t.id_tarea
-            GROUP BY ts.id_proyectos
-        ) tr ON tr.id_proyectos = proy.id_proyectos
-        LEFT JOIN (
-            SELECT id_proyectos, COUNT(*) AS total_alumnos
-            FROM proyectos_usuarios WHERE estado = 'activo'
-            GROUP BY id_proyectos
-        ) pa ON pa.id_proyectos = proy.id_proyectos
-        LEFT JOIN (
-            SELECT ts.id_proyectos, COUNT(DISTINCT t.id_tarea) AS total_tareas
-            FROM tbl_seguimiento ts
-            JOIN tareas t ON t.id_avances = ts.id_avances
-            GROUP BY ts.id_proyectos
-        ) tt ON tt.id_proyectos = proy.id_proyectos
-        LEFT JOIN (
-            SELECT ts.id_proyectos, COUNT(*) AS tareas_completadas
-            FROM tbl_seguimiento ts
-            JOIN tareas t                ON t.id_avances  = ts.id_avances
-            JOIN tareas_usuarios tu      ON tu.id_tarea   = t.id_tarea
-            JOIN proyectos_usuarios pu   ON pu.id_usuarios = tu.id_usuarios
-            WHERE tu.id_estadoT = 5 AND pu.estado = 'activo'
-            GROUP BY ts.id_proyectos
-        ) tc ON tc.id_proyectos = proy.id_proyectos
-        WHERE proy.id_investigador = ?
-          AND proy.id_estadoP     <> 3    -- excluye 'Por aprobar'
+            SELECT
+        proy.id_proyectos,
+        proy.titulo,
+        proy.fecha_inicio,
+        proy.fecha_fin,
+        espr.nombre           AS estado_proyecto,
+        peri.periodo,
+        COALESCE(tr.total, 0)  AS total,
+        CASE
+            -- Sin estudiantes: no se puede cerrar
+            WHEN COALESCE(total_est.total_estudiantes, 0) = 0
+                THEN 0
+            -- Bloqueado: existe al menos un activo con Etapa 2 incompleta
+            WHEN COALESCE(activos_bloqueados.total, 0) > 0
+                THEN 0
+            -- Caso 1: existe al menos un activo con Etapa 2 completada
+            WHEN COALESCE(activos_completos.total, 0) > 0
+                THEN 1
+            -- Caso 2: no hay ningún activo (todos baja/cancelado/concluido)
+            WHEN COALESCE(total_activos.total, 0) = 0
+                THEN 1
+            ELSE 0
+        END AS puede_cerrar
+    FROM proyectos proy
+    JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
+    JOIN periodos peri           ON proy.id_periodos = peri.id_periodos
+
+    -- Conteo de tareas aprobadas del proyecto (se mantiene sin cambios)
+    LEFT JOIN (
+        SELECT ts.id_proyectos,
+            COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
+        FROM tbl_seguimiento ts
+        JOIN tareas t                ON t.id_avances = ts.id_avances
+        LEFT JOIN tareas_usuarios tu ON tu.id_tarea  = t.id_tarea
+        GROUP BY ts.id_proyectos
+    ) tr ON tr.id_proyectos = proy.id_proyectos
+
+    -- Total de estudiantes asignados al proyecto (cualquier estado)
+    LEFT JOIN (
+        SELECT id_proyectos, COUNT(*) AS total_estudiantes
+        FROM proyectos_usuarios
+        GROUP BY id_proyectos
+    ) total_est ON total_est.id_proyectos = proy.id_proyectos
+
+    -- Total de estudiantes con estado activo
+    LEFT JOIN (
+        SELECT id_proyectos, COUNT(*) AS total
+        FROM proyectos_usuarios
+        WHERE estado = 'activo'
+        GROUP BY id_proyectos
+    ) total_activos ON total_activos.id_proyectos = proy.id_proyectos
+
+    -- Activos con Etapa 2 COMPLETA:
+    -- tiene al menos una tarea Y todas están en id_estadoT = 5
+    LEFT JOIN (
+        SELECT pu.id_proyectos, COUNT(DISTINCT pu.id_usuarios) AS total
+        FROM proyectos_usuarios pu
+        WHERE pu.estado = 'activo'
+        AND EXISTS (
+            SELECT 1 FROM tareas_usuarios tu2
+            WHERE tu2.id_usuarios = pu.id_usuarios
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM tareas_usuarios tu3
+            WHERE tu3.id_usuarios = pu.id_usuarios
+                AND tu3.id_estadoT <> 5
+        )
+        GROUP BY pu.id_proyectos
+    ) activos_completos ON activos_completos.id_proyectos = proy.id_proyectos
+
+    -- Activos con Etapa 2 INCOMPLETA:
+    -- no tiene tareas asignadas O tiene al menos una tarea no aprobada
+    LEFT JOIN (
+        SELECT pu.id_proyectos, COUNT(DISTINCT pu.id_usuarios) AS total
+        FROM proyectos_usuarios pu
+        WHERE pu.estado = 'activo'
+        AND (
+            NOT EXISTS (
+                SELECT 1 FROM tareas_usuarios tu4
+                WHERE tu4.id_usuarios = pu.id_usuarios
+            )
+            OR EXISTS (
+                SELECT 1 FROM tareas_usuarios tu5
+                WHERE tu5.id_usuarios = pu.id_usuarios
+                    AND tu5.id_estadoT <> 5
+            )
+        )
+        GROUP BY pu.id_proyectos
+    ) activos_bloqueados ON activos_bloqueados.id_proyectos = proy.id_proyectos
+
+    WHERE proy.id_investigador = ?
+    AND proy.id_estadoP     <> 3    -- excluye 'Por aprobar'
     ";
 
         $params = [$id];
