@@ -4642,8 +4642,16 @@ summary {
 .desactivado {
   color: var(--color-rojo-logout);
 }
+/*
+ * seguimiento
+ * Estilos para el panel de seguimiento de documentación del estudiante.
+ * Solo barra de progreso general + cards de etapas.
+ * Responsive: desktop → tablet (≤768px) → móvil (≤480px) → pequeño (≤360px)
+ */
 
-/*LINEA DE TIEMPO PARA SEGUIMIENTO DE DOCUMENTACION*/
+/* 
+   PORTAL — CONTENEDOR PRINCIPAL
+    */
 .portal {
   width: 100%;
   max-width: 1200px;
@@ -4651,6 +4659,9 @@ summary {
   padding: 1.5rem;
 }
 
+/* 
+   PORTAL HEADER
+    */
 .portal-header {
   background: linear-gradient(135deg, var(--color-primario), var(--hover-boton));
   color: var(--fondo-inputs);
@@ -4660,17 +4671,16 @@ summary {
   align-items: center;
   gap: 14px;
 }
-
 .portal-header h2 {
   font-size: 18px;
   font-weight: 600;
+  margin: 0;
 }
-
 .portal-header p {
   font-size: 13px;
   opacity: 0.85;
+  margin: 0;
 }
-
 .portal-header .initials {
   width: 40px;
   height: 40px;
@@ -4685,13 +4695,15 @@ summary {
   flex-shrink: 0;
 }
 
+/* 
+   BARRA DE PROGRESO GENERAL
+    */
 .progress-bar-wrap {
   background: var(--fondo-web);
   padding: 12px 20px;
   border: 0.5px solid var(--borde-menu);
   border-top: none;
 }
-
 .prog-label {
   font-size: 12px;
   color: var(--color-texto-secundario);
@@ -4699,14 +4711,12 @@ summary {
   display: flex;
   justify-content: space-between;
 }
-
 .prog-track {
   height: 8px;
   background: var(--borde-menu);
   border-radius: 4px;
   overflow: hidden;
 }
-
 .prog-fill {
   height: 100%;
   background: var(--hover-boton);
@@ -4714,13 +4724,15 @@ summary {
   transition: width 0.4s;
 }
 
+/* 
+   CONTENEDOR DE ETAPAS
+    */
 .etapas-container {
   background: var(--fondo-inputs);
   border: 0.5px solid var(--borde-menu);
   border-top: none;
   padding: 20px;
 }
-
 .etapas-titulo {
   font-size: 13px;
   font-weight: 500;
@@ -4730,161 +4742,104 @@ summary {
   margin-bottom: 16px;
 }
 
-.etapa-row {
-  display: flex;
-  gap: 0;
-  margin-bottom: 0;
-  position: relative;
-}
-
-.etapa-row::before {
-  content: "";
-  position: absolute;
-  left: 20px;
-  top: 44px;
-  bottom: 0;
-  width: 1px;
-  background: var(--borde-menu);
-  z-index: 0;
-}
-
-.etapa-row:last-child::before {
-  display: none;
-}
-
-.etapa-dot-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 42px;
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.etapa-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 500;
+/* 
+   ETAPA — CARD (sin timeline, layout simple)
+    */
+.etapa-card {
   background: var(--fondo-inputs);
-  flex-shrink: 0;
-  margin-top: 11px;
+  border: 1px solid var(--borde-menu);
+  border-radius: var(--card-radius, 10px);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.25s ease;
+  word-break: break-word;
+}
+.etapa-card:last-child {
+  margin-bottom: 0;
+}
+.etapa-card:hover {
+  box-shadow: var(--shadow-md, 0 3px 12px rgba(0,0,0,.10));
+}
+.etapa-card.locked {
+  opacity: 0.65;
+}
+.etapa-card.active {
+  border-color: var(--hover-boton, #1e5fad);
+  background: rgba(30, 95, 173, 0.03);
 }
 
-.etapa-dot.completado {
-  border-color: var(--badge-activo-color);
-  background: var(--badge-activo-color);
-  color: var(--fondo-inputs);
-}
-
-.etapa-dot.proceso {
-  border-color: var(--hover-boton);
-  background: var(--hover-boton);
-  color: var(--fondo-inputs);
-}
-
-.etapa-dot.pendiente {
-  border-color: var(--borde-menu);
-  color: var(--color-texto-secundario);
-}
-
-.etapa-dot.rechazado {
-  border-color: var(--color-rojo-institucional);
-  background: var(--color-rojo-institucional);
-  color: var(--fondo-inputs);
-}
-
-.etapa-body {
-  flex: 1;
-  padding: 8px 0 20px 14px;
-}
-
-.etapa-nombre {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-texto-principal);
-}
-
-.etapa-desc {
-  font-size: 12px;
-  color: var(--color-texto-secundario);
-  margin-top: 2px;
-}
-
-.etapa-estado {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-top: 6px;
-}
-
-.badge-comp {
-  background: var(--badge-activo-bg);
-  color: var(--badge-activo-color);
-}
-
-.badge-proc {
-  background: var(--badge-poraprobar-bg);
-  color: var(--badge-poraprobar-color);
-}
-
-.badge-pend {
-  background: var(--fondo-web);
-  color: var(--color-texto-secundario);
-}
-
-.badge-rech {
-  background: rgba(196, 18, 48, 0.08);
-  color: var(--color-rojo-institucional);
-}
-
-.docs-adjuntos {
-  margin-top: 12px;
+/* Header de la card: título + badge */
+.etapa-card-header {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.etapa-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-texto-principal);
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.35;
+}
+.etapa-card-desc {
+  font-size: 12.5px;
+  color: var(--color-texto-secundario);
+  line-height: 1.45;
+  margin-bottom: 10px;
 }
 
-.doc-pill {
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--borde-menu);
-  background: var(--fondo-web);
-  transition: all 0.2s ease;
+/* 
+   BADGES DE ESTADO
+    */
+.etapa-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  line-height: 1.4;
+  background: var(--badge-cierre-bg,    rgba(113,128,150,.12));
+  color:      var(--badge-cierre-color, #718096);
+  border: 1px solid var(--badge-cierre-border, #718096);
+}
+.badge-comp {
+  background: var(--badge-activo-bg,    rgba(26,111,53,.10));
+  color:      var(--badge-activo-color, #1a6f35);
+  border: 1px solid var(--badge-activo-border, #1a6f35);
+}
+.badge-proc {
+  background: var(--badge-poraprobar-bg,    rgba(30,95,173,.10));
+  color:      var(--badge-poraprobar-color, #1e5fad);
+  border: 1px solid var(--badge-poraprobar-border, #1e5fad);
+}
+.badge-pend {
+  background: var(--badge-cierre-bg,    rgba(113,128,150,.12));
+  color:      var(--badge-cierre-color, #718096);
+  border: 1px solid var(--badge-cierre-border, #718096);
+}
+.badge-rech {
+  background: rgba(196,18,48,.08);
+  color:      var(--color-rojo-institucional, #c41230);
+  border: 1px solid var(--color-rojo-institucional, #c41230);
+}
+.badge-pend-val {
+  background: var(--badge-porcerrar-bg,    rgba(212,160,23,.12));
+  color:      var(--badge-porcerrar-color, #a87a10);
+  border: 1px solid var(--badge-porcerrar-border, #d4a017);
+  white-space: normal;
+  text-align: right;
 }
 
-.doc-pill:hover {
-  background: var(--fondo-inputs);
-  color: var(--color-primario);
-  border-color: var(--hover-boton);
-}
-
-.doc-pill svg {
-  opacity: 0.6;
-}
-
-.doc-subir {
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--hover-boton);
-  background: rgba(30, 95, 173, 0.07);
-  color: var(--color-primario);
-  font-weight: 500;
-}
-
-.doc-subir:hover {
-  background: rgba(30, 95, 173, 0.14);
-}
-
+/* 
+   OBSERVACIÓN DEL SUPERVISOR
+    */
 .observacion {
   background: rgba(212, 160, 23, 0.08);
   border-left: 4px solid var(--color-boton-modificar);
@@ -4894,133 +4849,329 @@ summary {
   font-size: 13px;
 }
 
-.tab-nav {
-  display: flex;
-  gap: 4px;
-  border-bottom: 0.5px solid var(--borde-menu);
-  padding: 0 20px;
-  background: var(--fondo-web);
-}
-
-.tab-btn {
-  font-size: 13px;
-  padding: 10px 14px;
-  border: none;
-  background: none;
-  color: var(--color-texto-secundario);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -0.5px;
-}
-
-.tab-btn.active {
-  color: var(--color-texto-principal);
-  border-bottom-color: var(--hover-boton);
-  font-weight: 500;
-}
-
-/* TIMELINE NUEVO */
-.timeline_seguimiento {
-  position: relative;
+/* 
+   DOCS ADJUNTOS — bloque de acciones
+    */
+.docs-adjuntos {
   margin-top: 10px;
+  display: block;   /* block en lugar de flex evita que hijos se compriman */
 }
 
-.timeline_seguimiento-item {
-  gap: 18px;
-  margin-bottom: 6px;
-}
-
-/* COLUMNA IZQUIERDA */
-.timeline_seguimiento-left {
-  width: 50px;
-}
-
-.timeline_seguimiento-dot {
-  width: 28px;
-  height: 28px;
-  font-size: 13px;
-}
-
-/* Línea */
-.timeline_seguimiento-line {
-  width: 3px;
-}
-
-/* CARD */
-.timeline_seguimiento-content {
-  flex: 1;
-  padding-bottom: 18px;
-}
-
-.timeline_seguimiento-card {
-  background: var(--fondo-inputs);
-  border: 1px solid var(--borde-menu);
-  border-radius: var(--card-radius);
-  padding: 16px 18px;
-  transition: all 0.25s ease;
-}
-
-.timeline_seguimiento-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-/* HEADER */
-.timeline_seguimiento-header {
+/* 
+   ALERTAS DENTRO DE LAS ETAPAS
+    */
+.alert-etapa {
   display: flex;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: .5rem;
+  padding: .65rem .9rem;
+  border-radius: 8px;
+  font-size: .875rem;
+  margin-bottom: .75rem;
+  line-height: 1.5;
+  width: 100%;
+  box-sizing: border-box;
+}
+.alert-etapa > i,
+.alert-etapa > .bi {
+  flex-shrink: 0;
+  margin-top: .15rem;
+}
+.alert-etapa-success {
+  background: var(--badge-activo-bg,    rgba(26, 111, 53, .10));
+  color:      var(--badge-activo-color, #1a6f35);
+  border: 1px solid var(--badge-activo-border, #1a6f35);
+}
+.alert-etapa-info {
+  background: var(--badge-poraprobar-bg,    rgba(30, 95, 173, .10));
+  color:      var(--badge-poraprobar-color, #1e5fad);
+  border: 1px solid var(--badge-poraprobar-border, #1e5fad);
+}
+.alert-etapa-warning {
+  background: var(--badge-porcerrar-bg, rgba(212, 160, 23, .12));
+  color: #856404;
+  border: 1px solid var(--badge-porcerrar-border, #d4a017);
+}
+.alert-etapa-danger {
+  background: rgba(196, 18, 48, .08);
+  color:      var(--color-rojo-institucional, #c41230);
+  border: 1px solid var(--color-rojo-institucional, #c41230);
+}
+
+/* 
+   BOTÓN DE DESCARGA DE DOCUMENTO
+   El truco: display:inline-flex + white-space:nowrap en base.
+   En móvil: block + ancho 100% + font-size menor.
+    */
+.btn-doc-descarga {
+  display: inline-flex;
   align-items: center;
-}
-
-.timeline_seguimiento-title {
-  font-size: 15px;
+  gap: .4rem;
+  padding: .45rem .9rem;
+  border-radius: 7px;
+  font-size: .85rem;
   font-weight: 600;
-  color: var(--color-texto-principal);
+  text-decoration: none;
+  background: var(--badge-activo-bg,    rgba(26, 111, 53, .10));
+  color:      var(--badge-activo-color, #1a6f35);
+  border: 1px solid var(--badge-activo-border, #1a6f35);
+  transition: background .2s, transform .15s;
+  margin-bottom: .35rem;
+  white-space: nowrap;      /* ← una sola línea: ícono · texto · ext */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.btn-doc-descarga:hover {
+  background: rgba(26, 111, 53, .18);
+  transform: translateY(-1px);
+  color: var(--badge-activo-color, #1a6f35);
+  text-decoration: none;
+}
+.btn-doc-descarga.btn-doc-secondary {
+  background: var(--badge-poraprobar-bg,    rgba(30, 95, 173, .10));
+  color:      var(--badge-poraprobar-color, #1e5fad);
+  border-color: var(--badge-poraprobar-border, #1e5fad);
+}
+.btn-doc-descarga.btn-doc-secondary:hover {
+  background: rgba(30, 95, 173, .18);
+  color: var(--badge-poraprobar-color, #1e5fad);
 }
 
-.timeline_seguimiento-desc {
-  font-size: 13px;
-  margin-top: 6px;
-  color: var(--color-texto-secundario);
+/* Etiqueta de extensión */
+.doc-ext {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: .1em .4em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, .08);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* 
+   BADGE BLOQUEADO
+    */
+.badge-bloqueado {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .35rem .75rem;
+  border-radius: 7px;
+  font-size: .82rem;
+  background: var(--badge-cierre-bg,    rgba(113, 128, 150, .12));
+  color:      var(--badge-cierre-color, #718096);
+  border: 1px solid var(--badge-cierre-border, #718096);
+  width: 100%;
+  box-sizing: border-box;
+  white-space: normal;
   line-height: 1.4;
 }
-
-/* BADGE */
-.timeline_seguimiento-badge {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 4px;
+.badge-bloqueado > i,
+.badge-bloqueado > .bi {
+  flex-shrink: 0;
 }
 
-/* ESTADOS */
-.timeline_seguimiento-item.completado .timeline-dot {
-  background: var(--badge-activo-color);
-  border-color: var(--badge-activo-color);
-  color: var(--fondo-inputs);
+/* 
+   MINI BARRA DE PROGRESO DE TAREAS (Etapa 2)
+    */
+.tareas-progreso {
+  margin-top: .5rem;
+  width: 100%;
+}
+.tareas-label {
+  font-size: .8rem;
+  color: var(--color-texto-secundario, #718096);
+  display: block;
+  margin-bottom: .25rem;
+}
+.tareas-track {
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  overflow: hidden;
+  max-width: 260px;
+  width: 100%;
+}
+.tareas-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--hover-boton, #1e5fad);
+  transition: width .4s ease;
 }
 
-.timeline_seguimiento-item.proceso .timeline-dot {
-  background: var(--hover-boton);
+/* 
+   MISCELÁNEA
+    */
+.doc-pill {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--borde-menu);
+  background: var(--fondo-web);
+  transition: all 0.2s ease;
+}
+.doc-pill:hover {
+  background: var(--fondo-inputs);
+  color: var(--color-primario);
   border-color: var(--hover-boton);
-  color: var(--fondo-inputs);
-  animation: pulse 1.5s infinite;
+}
+.doc-subir {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--hover-boton);
+  background: rgba(30, 95, 173, 0.07);
+  color: var(--color-primario);
+  font-weight: 500;
+}
+.doc-subir:hover {
+  background: rgba(30, 95, 173, 0.14);
 }
 
-.timeline_seguimiento-item.pendiente .timeline-dot {
-  border-color: var(--borde-menu);
-  color: var(--color-texto-secundario);
+/* 
+   RESPONSIVE — TABLET  (≤ 768px)
+    */
+@media (max-width: 768px) {
+  .portal {
+    padding: 1rem;
+  }
+  .alert-etapa {
+    font-size: .845rem;
+    padding: .6rem .8rem;
+  }
+  .btn-doc-descarga {
+    font-size: .82rem;
+    padding: .4rem .75rem;
+  }
+  .tareas-track {
+    max-width: 100%;
+  }
 }
 
-.timeline_seguimiento-item.rechazado .timeline-dot {
-  background: var(--color-rojo-institucional);
-  border-color: var(--color-rojo-institucional);
-  color: var(--fondo-inputs);
+/* 
+   RESPONSIVE — MÓVIL  (≤ 480px)  — Pixel 7 / 412px
+    */
+@media (max-width: 480px) {
+
+  .portal {
+    padding: .75rem;
+  }
+  .portal-header {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .portal-header h2 {
+    font-size: 15px;
+  }
+  .portal-header p {
+    font-size: 12px;
+  }
+  .etapas-container {
+    padding: 14px 12px;
+  }
+  .etapa-card {
+    padding: 13px 13px;
+  }
+  .etapa-card-title {
+    font-size: 13px;
+  }
+  .etapa-card-desc {
+    font-size: 12px;
+  }
+
+  /* Alerta: flex pero más compacta */
+  .alert-etapa {
+    font-size: .8rem;
+    padding: .55rem .7rem;
+    gap: .35rem;
+  }
+  .alert-etapa > i,
+  .alert-etapa > .bi {
+    font-size: .9rem;
+  }
+
+  /* Botón descarga: ocupa todo el ancho, una sola línea */
+  .btn-doc-descarga {
+    display: flex;
+    width: 100%;
+    white-space: nowrap;    /* sigue en una línea */
+    font-size: .78rem;
+    padding: .5rem .7rem;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+  /* Si el texto aún no cabe (textos muy largos), trunca con ellipsis */
+  .btn-doc-descarga > span:not(.doc-ext) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .doc-ext {
+    font-size: .65rem;
+    padding: .08em .3em;
+    flex-shrink: 0;
+  }
+
+  /* Badge bloqueado */
+  .badge-bloqueado {
+    font-size: .78rem;
+    padding: .3rem .6rem;
+  }
+
+  /* Badge terminación */
+  .badge-pend-val {
+    font-size: .72rem;
+    padding: .25em .55em;
+  }
+
+  /* Badge de estado en header */
+  .etapa-badge {
+    font-size: 9.5px;
+    padding: 2px 6px;
+    max-width: 140px;
+    white-space: normal;
+    text-align: right;
+    line-height: 1.3;
+  }
+
+  /* Barra tareas */
+  .tareas-track {
+    max-width: 100%;
+  }
 }
 
-/* ACTIVO */
-.timeline_seguimiento-item.active .timeline-card {
-  border-color: var(--hover-boton);
-  background: rgba(30, 95, 173, 0.04);
+/* 
+   RESPONSIVE — MÓVIL PEQUEÑO  (≤ 360px)
+    */
+@media (max-width: 360px) {
+  .portal-header {
+    padding: 12px 13px;
+  }
+  .etapa-card {
+    padding: 11px 11px;
+  }
+  .alert-etapa {
+    font-size: .76rem;
+    padding: .5rem .6rem;
+  }
+  .btn-doc-descarga {
+    font-size: .75rem;
+    padding: .45rem .55rem;
+  }
+  .badge-bloqueado {
+    font-size: .74rem;
+  }
+  .etapa-badge {
+    font-size: 9px;
+    padding: 2px 5px;
+    max-width: 110px;
+  }
 }
 
 /* ANIMACIÓN */
@@ -5653,9 +5804,9 @@ summary {
   min-width: 0;
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ════
    ESTILOS LOCALES — paleta TecNM + refinamiento visual
-   ═══════════════════════════════════════════════════════════════ */
+   ════ */
 
 /*  Layout base  */
 .sup-page {

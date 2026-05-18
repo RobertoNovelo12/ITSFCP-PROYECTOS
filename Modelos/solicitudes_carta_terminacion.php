@@ -13,9 +13,9 @@ class solicitudes_carta_terminacion
         $this->con = $conn;
     }
 
-    // =========================================================
+    // 
     // HELPER INTERNO
-    // =========================================================
+    // 
 
     private function ejecutar($sql, $types = "", $params = [], $fetchAll = true)
     {
@@ -36,9 +36,9 @@ class solicitudes_carta_terminacion
         return true;
     }
 
-    // =========================================================
+    // 
     // CATÁLOGOS
-    // =========================================================
+    // 
 
     /**
      * Todos los periodos para el filtro
@@ -49,9 +49,9 @@ class solicitudes_carta_terminacion
         return $this->ejecutar($sql);
     }
 
-    // =========================================================
+    // 
     // RESUMEN — tarjetas del dashboard
-    // =========================================================
+    // 
 
     /**
      * Conteos para las tarjetas superiores del supervisor
@@ -78,9 +78,9 @@ class solicitudes_carta_terminacion
         ];
     }
 
-    // =========================================================
+    // 
     // LISTADO PAGINADO
-    // =========================================================
+    // 
 
     /**
      * Lista paginada de solicitudes de carta de terminación
@@ -172,9 +172,9 @@ class solicitudes_carta_terminacion
         ];
     }
 
-    // =========================================================
+    // 
     // DETALLE DE UNA SOLICITUD
-    // =========================================================
+    // 
 
     public function detalleCarta($id_cierre_est)
     {
@@ -225,9 +225,9 @@ class solicitudes_carta_terminacion
         return $this->ejecutar($sql, "i", [$id_cierre_est], false);
     }
 
-    // =========================================================
+    // 
     // HISTORIAL DEL PROCESO DEL ESTUDIANTE
-    // =========================================================
+    // 
 
     /**
      * Historial de acciones del estudiante en el proyecto
@@ -309,9 +309,9 @@ class solicitudes_carta_terminacion
         ]);
     }
 
-    // =========================================================
+    // 
     // APROBAR CARTA
-    // =========================================================
+    // 
 
     public function aprobarCarta($id_cierre_est, $id_supervisor)
     {
@@ -381,9 +381,9 @@ class solicitudes_carta_terminacion
         }
     }
 
-    // =========================================================
+    // 
     // RECHAZAR CARTA
-    // =========================================================
+    // 
 
     public function rechazarCarta($id_cierre_est, $id_supervisor, $comentario)
     {
@@ -450,9 +450,9 @@ class solicitudes_carta_terminacion
         }
     }
 
-    // =========================================================
+    // 
     // ESTILO BADGE SEGÚN ESTADO DE LA CARTA
-    // =========================================================
+    // 
 
     public function estiloCarta($estado)
     {

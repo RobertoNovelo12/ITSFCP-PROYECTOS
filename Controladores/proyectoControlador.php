@@ -193,7 +193,6 @@ class ProyectoControlador
 
         if (in_array($rol, ['investigador', 'profesor'])) {
             return $base + [
-                'PorAprobar'      => "Por Aprobar ({$filtros[0]['PorAprobar']})",
                 'Rechazados'      => "Rechazados ({$filtros[0]['Rechazados']})",
                 'Cierre'          => "Cierre ({$filtros[0]['Cierre']})",
                 'PorCerrar'       => "Por Cerrar ({$filtros[0]['PorCerrar']})",
@@ -405,7 +404,6 @@ class ProyectoControlador
 
             'investigador' => [
                 'Activo'          => ['Detalles', 'Tareas', $editar, 'Comentarios', $solicitar],
-                'Por aprobar'     => ['Detalles', 'Comentarios'],
                 'Por cerrar'      => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'          => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
@@ -415,7 +413,6 @@ class ProyectoControlador
 
             'profesor' => [
                 'Activo'          => ['Detalles', 'Tareas', $editar, 'Comentarios', $solicitar],
-                'Por aprobar'     => ['Detalles', 'Comentarios'],
                 'Por cerrar'      => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'          => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
