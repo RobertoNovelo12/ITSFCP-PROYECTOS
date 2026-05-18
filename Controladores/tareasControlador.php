@@ -248,10 +248,10 @@ class TareaControlador
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido", "Sin activar"])) {
                     $boton  = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
                     $boton .= " " . $this->obtenerbotones("Editar Tarea", $id, $id_proyectos);
-                }  elseif ($estado === "Concluido") {
-                // Solo ver lista, sin editar
-                $boton = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
-            }
+                } elseif ($estado === "Concluido") {
+                    // Solo ver lista, sin editar
+                    $boton = $this->obtenerbotones("Ver lista", $id, $id_proyectos);
+                }
                 break;
             case 'supervisor':
                 if (in_array($estado, ["Pendiente", "Revisar", "Corregir", "Aprobado", "Vencido", "Sin activar", "Concluido"])) {
@@ -269,7 +269,7 @@ class TareaControlador
         switch ($rol) {
             case 'investigador':
             case 'profesor':
-                case 'supervisor':
+            case 'supervisor':
                 if (in_array($estado, ["Revisar", "Corregir", "Aprobado", "Vencido", "Pendiente", "Borrador"])) {
                     $boton = $this->obtenerbotones("Ver Tarea", $id1, $id2, $id3, $id4, $estado);
                 }
@@ -304,6 +304,134 @@ class TareaControlador
                 break;
         }
         return $boton;
+    }
+
+    // En TareaControlador
+    public function notaAccionTarea(string $rol, string $estado, string $tipo_tarea = ''): string
+    {
+        // Investigador — Sin activar
+        if ($rol === 'investigador' && $estado === 'Sin activar') {
+            return $this->_nota(
+                'advertencia',
+                'Importante',
+                'Al activar la tarea, se asignará automáticamente a 
+             <strong>todos los estudiantes activos</strong> del proyecto. 
+             Una vez activada, no es posible revertirla al estado <em>Sin activar</em>.'
+            );
+        }
+
+        // Investigador — revisando entrega
+        if ($rol === 'investigador' && in_array($estado, ['Revisar', 'Corregir'])) {
+            return $this->_nota(
+                'info',
+                'Nota',
+                'Puedes <strong>aprobar</strong> la entrega o solicitar 
+             <strong>corrección</strong> al estudiante. La decisión 
+             quedará registrada en el historial.'
+            );
+        }
+
+        // Investigador — tarea concluida
+        if ($estado === 'Concluido') {
+            return $this->_nota(
+                'exito',
+                'Tarea concluida',
+                'Todos los estudiantes activos tienen esta actividad 
+             <strong>aprobada</strong>. No admite más cambios de estado.'
+            );
+        }
+
+        // Estudiante — pendiente o borrador
+        if ($rol === 'estudiante' && in_array($estado, ['Pendiente', 'Borrador'])) {
+            return $this->_nota(
+                'info',
+                'Nota',
+                'Puedes <strong>guardar un borrador</strong> y continuar después, 
+             o <strong>enviar tu tarea</strong> cuando esté lista para revisión.'
+            );
+        }
+
+        // Estudiante — a corregir
+        if ($rol === 'estudiante' && $estado === 'Corregir') {
+            return $this->_nota(
+                'advertencia',
+                'Corrección solicitada',
+                'El investigador ha solicitado cambios en tu entrega. 
+             Revisa los comentarios del historial y vuelve a enviar.'
+            );
+        }
+
+        // Estudiante — en revisión
+        if ($rol === 'estudiante' && $estado === 'Revisar') {
+            return $this->_nota(
+                'info',
+                'En revisión',
+                'Tu entrega está siendo revisada por el investigador. 
+             Puedes guardar cambios pero <strong>no reenviar</strong> 
+             hasta recibir retroalimentación.'
+            );
+        }
+
+        // Estudiante — aprobado
+        if ($rol === 'estudiante' && $estado === 'Aprobado') {
+            return $this->_nota(
+                'exito',
+                'Aprobado',
+                'El investigador ha aprobado tu entrega. 
+             Esta actividad está <strong>finalizada</strong>.'
+            );
+        }
+
+        // Vencido (cualquier rol)
+        if ($estado === 'Vencido') {
+            return $this->_nota(
+                'advertencia',
+                'Tarea vencida',
+                'La fecha de entrega ha pasado. 
+             Contacta al investigador si tienes dudas sobre esta actividad.'
+            );
+        }
+
+        return '';
+    }
+
+    // Método privado que construye el HTML — igual que obtenerbotonesTarea()
+    // genera el HTML de los botones, este genera el HTML de la nota
+    private function _nota(string $variante, string $etiqueta, string $mensaje): string
+    {
+        $clase = match ($variante) {
+            'advertencia' => 'nota-tecnm nota-advertencia',
+            'exito'       => 'nota-tecnm nota-exito',
+            default       => 'nota-tecnm',
+        };
+
+        $icono = match ($variante) {
+            'advertencia' => '
+            <path d="M9.13 3.4L2.2 15.1A1 1 0 0 0 3.07 16.6h13.86a1 1 0 0 0 .87-1.5L10.87 3.4a1 1 0 0 0-1.74 0z"
+                  stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M10 8.5v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="10" cy="13.8" r="0.75" fill="currentColor"/>',
+            'exito' => '
+            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M6.5 10.2l2.3 2.3 4.7-4.7" stroke="currentColor"
+                  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+            default => '
+            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="10" cy="6.5" r="0.8" fill="currentColor"/>',
+        };
+
+        return "
+    <div class='{$clase}'>
+        <svg class='nota-icon' viewBox='0 0 20 20' fill='none'
+             xmlns='http://www.w3.org/2000/svg' aria-hidden='true'>
+            {$icono}
+        </svg>
+        <div>
+            <p class='nota-label'>{$etiqueta}</p>
+            <p class='nota-texto'>{$mensaje}</p>
+        </div>
+    </div>";
     }
 
     //  EDITAR TAREA GENERAL (investigador - plantilla)

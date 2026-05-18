@@ -309,14 +309,6 @@ ob_start();
                     <input type="hidden" name="id_asignacion"
                         value="<?= (int) $datos['id_asignacion'] ?>">
 
-                    <!--
-                        FIX — Bug 1 (crítico):
-                        Los botones submit con name="tipo" NO se incluyen en el POST
-                        cuando el form se envía vía JS (inst.save() de TinyMCE dispara
-                        requestSubmit / submit, no un click real en el botón).
-                        Solución: campo hidden que recibe el valor del botón clickeado
-                        ANTES de que TinyMCE haga save() y envíe el form.
-                    -->
                     <input type="hidden" name="tipo" id="campo-tipo" value="">
 
                     <?= $tareaControlador->tareas($datos['tipo_tarea'], $rol, $datos) ?? '' ?>
@@ -330,20 +322,17 @@ ob_start();
                         ) ?>
                     </div>
                 </form>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <?= $tareaControlador->botonesAccionTarea(
+                        $datos['id_tarea'],
+                        $rol,
+                        $datos['estado'],
+                        $datos['id_asignacion']
+                    ) ?>
+                </div>
 
                 <?php if ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3])): ?>
-                    <!--
-                        FIX — Bug 2:
-                        El form-borrador es d-none y separado del form-principal,
-                        por lo que el <input type="file" name="archivo"> del form-principal
-                        nunca llega a este form. No es posible clonar un FileList por
-                        seguridad del navegador, así que el borrador guarda contenido/
-                        comentarios pero no puede capturar el archivo adjunto elegido
-                        en el mismo render. Esto es una limitación del navegador.
-                        Si necesitas que el borrador también suba el archivo,
-                        mueve el input[file] a este form y usa JS para sincronizarlo
-                        con el form-principal, o usa un único form con action dinámica.
-                    -->
+
                     <form id="form-borrador"
                         action="tarea.php"
                         method="POST"

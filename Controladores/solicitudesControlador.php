@@ -11,7 +11,7 @@ require_once __DIR__ . '/../publico/config/conexion.php';
  */
 class solicitudesControlador
 {
-    // ── Guardas de rol ────────────────────────────────────────────
+    //  Guardas de rol ─
 
     private function soloInvestigador(string $rol): void
     {
@@ -21,7 +21,7 @@ class solicitudesControlador
         }
     }
 
-    // ── Helpers de archivos ───────────────────────────────────────
+    //  Helpers de archivos 
 
     /**
      * Procesa el archivo adjunto (si existe) y devuelve el id_documento
@@ -75,7 +75,7 @@ class solicitudesControlador
         );
     }
 
-    // ── Helpers de vista ──────────────────────────────────────────
+    //  Helpers de vista ─
 
     public function encabezados(): array
     {
@@ -142,7 +142,7 @@ class solicitudesControlador
         };
     }
 
-    // ── index ─────────────────────────────────────────────────────
+    //  index 
 
     public function index(int $id_usuario, string $rol): array
     {
@@ -189,7 +189,7 @@ class solicitudesControlador
         ];
     }
 
-    // ── aceptar ───────────────────────────────────────────────────
+    //  aceptar 
 
     /**
      * Acepta la solicitud y redirige con mensaje de resultado.
@@ -242,7 +242,7 @@ class solicitudesControlador
         }
     }
 
-    // ── pedirCorrecciones ─────────────────────────────────────────
+    //  pedirCorrecciones 
 
     /**
      * Guarda correcciones y redirige.
@@ -299,7 +299,7 @@ class solicitudesControlador
         }
     }
 
-    // ── rechazar ──────────────────────────────────────────────────
+    //  rechazar ─
 
     /**
      * Rechaza la solicitud y redirige.
@@ -356,7 +356,7 @@ class solicitudesControlador
         }
     }
 
-    // ── responderCierre (etapa 3) ─────────────────────────────────
+    //  responderCierre (etapa 3) 
 
     /**
      * Aprueba, pide correcciones o rechaza el cierre del proyecto (etapa 3).
@@ -421,7 +421,7 @@ class solicitudesControlador
         }
     }
 
-    // ── vencido ───────────────────────────────────────────────────
+    //  vencido 
 
     /**
      * Marca automáticamente como vencidas las solicitudes de proyectos
@@ -456,7 +456,7 @@ class solicitudesControlador
         }
     }
 
-    // ── enviarCorrecciones (estudiante) ───────────────────────────
+    //  enviarCorrecciones (estudiante) 
 
     public function enviarCorrecciones(int $id_solicitud, int $id_usuario): void
     {
@@ -481,7 +481,7 @@ class solicitudesControlador
         exit;
     }
 
-    // ── detallePagina ─────────────────────────────────────────────
+    //  detallePagina 
 
     public function detallePagina(int $id_solicitud, int $id_usuario, string $rol): array
     {
@@ -507,7 +507,7 @@ class solicitudesControlador
         ];
     }
 
-    // ── getDatosSeguimientoEstudiante ─────────────────────────────
+    //  getDatosSeguimientoEstudiante 
 
     public function getDatosSeguimientoEstudiante(int $id_proyecto, int $id_estudiante, int $id_usuario): array
     {
@@ -516,7 +516,7 @@ class solicitudesControlador
         return $S->getDatosSeguimientoEstudiante($id_proyecto, $id_estudiante, $id_usuario);
     }
 
-    // ── Utilidad: PRG redirect ────────────────────────────────────
+    //  Utilidad: PRG redirect ─
 
     /**
      * Redirige con mensaje de éxito (ok=…) o error (error=…) en la URL.

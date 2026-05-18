@@ -203,110 +203,117 @@ ob_start();
         <h5 class="mb-3">Estudiantes involucrados</h5>
 
         <!-- TABLA (LAPTOP) -->
+        <?php if (!empty($estudiantes)) { ?>
 
-        <div class="card shadow-sm d-none d-md-block">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Carrera</th>
-                                <th>Estado Proceso</th>
-                                <th>Historial</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($estudiantes as $alumno):
-                                $estado_proceso = "";
-                                $clase =  $proyectoControlador->EstiloEstado($alumno['estado_proceso']);
-                                switch ($alumno['estado_proceso']) {
-                                    case 'en_proceso':
-                                        $estado_proceso = "En proceso";
-                                        break;
-                                    case 'carta_subida':
-                                        $estado_proceso = "Carta subida";
-                                        break;
-                                    case 'en_correccion':
-                                        $estado_proceso = "En corrección";
-                                        break;
-                                    case 'liberado_supervisor':
-                                        $estado_proceso = "Liberado por supervisor";
-                                        break;
-                                    default:
-                                        $estado_proceso = "Sin estado";
-                                }
-                            ?>
+            <div class="card shadow-sm d-none d-md-block">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <td><?= $alumno['id_usuarios'] ?></td>
-                                    <td>
-                                        <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] . " " . $alumno['apellido_materno'] ?>
-                                    </td>
-                                    <td><?= $alumno['carrera'] ?></td>
-                                    <td><span class='badge text-bg-<?= $clase ?>'><?= htmlspecialchars($estado_proceso) ?></span></td>
-                                    <td> <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
-                                            class="btn btn-info btn-sm">
-                                            Historial
-                                        </a></td>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Carrera</th>
+                                    <th>Estado Proceso</th>
+                                    <th>Historial</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($estudiantes as $alumno):
+                                    $estado_proceso = "";
+                                    $clase =  $proyectoControlador->EstiloEstado($alumno['estado_proceso']);
+                                    switch ($alumno['estado_proceso']) {
+                                        case 'en_proceso':
+                                            $estado_proceso = "En proceso";
+                                            break;
+                                        case 'carta_subida':
+                                            $estado_proceso = "Carta subida";
+                                            break;
+                                        case 'en_correccion':
+                                            $estado_proceso = "En corrección";
+                                            break;
+                                        case 'liberado_supervisor':
+                                            $estado_proceso = "Liberado por supervisor";
+                                            break;
+                                        default:
+                                            $estado_proceso = "Sin estado";
+                                    }
+                                ?>
+                                    <tr>
+                                        <td><?= $alumno['id_usuarios'] ?></td>
+                                        <td>
+                                            <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] . " " . $alumno['apellido_materno'] ?>
+                                        </td>
+                                        <td><?= $alumno['carrera'] ?></td>
+                                        <td><span class='badge text-bg-<?= $clase ?>'><?= htmlspecialchars($estado_proceso) ?></span></td>
+                                        <td> <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
+                                                class="btn btn-info btn-sm">
+                                                Historial
+                                            </a></td>
+                                    </tr>
+                                <?php endforeach; ?>
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
 
 
-        <!-- TARJETAS (MÓVIL) -->
+            <!-- TARJETAS (MÓVIL) -->
 
-        <div class="d-md-none">
+            <div class="d-md-none">
 
-            <?php foreach ($estudiantes as $alumno): ?>
+                <?php foreach ($estudiantes as $alumno): ?>
 
-                <div class="card mb-3">
+                    <div class="card mb-3">
 
-                    <div class="card-body">
+                        <div class="card-body">
 
-                        <h5 class="card-title">
-                            <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] ?>
-                        </h5>
+                            <h5 class="card-title">
+                                <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] ?>
+                            </h5>
 
-                        <ul class="list-group list-group-flush">
+                            <ul class="list-group list-group-flush">
 
-                            <li class="list-group-item">
-                                <b>ID:</b> <?= $alumno['id_usuarios'] ?>
-                            </li>
+                                <li class="list-group-item">
+                                    <b>ID:</b> <?= $alumno['id_usuarios'] ?>
+                                </li>
 
-                            <li class="list-group-item">
-                                <b>Carrera:</b> <?= $alumno['carrera'] ?>
-                            </li>
+                                <li class="list-group-item">
+                                    <b>Carrera:</b> <?= $alumno['carrera'] ?>
+                                </li>
 
-                            <li class="list-group-item">
-                                <b>Área:</b> <?= $estudiantes['area']['area'] ?? "No tiene área" ?>
-                            </li>
+                                <li class="list-group-item">
+                                    <b>Área:</b> <?= $estudiantes['area']['area'] ?? "No tiene área" ?>
+                                </li>
 
-                            <li class="list-group-item">
-                                <b>Subárea:</b> <?= $estudiantes['area']['subarea'] ?? "No tiene subárea" ?>
-                            </li>
-                            <li class="list-group-item">
-                                <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
-                                    class="btn btn-info btn-sm">
-                                    Historial
-                                </a>
-                            </li>
+                                <li class="list-group-item">
+                                    <b>Subárea:</b> <?= $estudiantes['area']['subarea'] ?? "No tiene subárea" ?>
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
+                                        class="btn btn-info btn-sm">
+                                        Historial
+                                    </a>
+                                </li>
 
-                        </ul>
+                            </ul>
+
+                        </div>
 
                     </div>
 
-                </div>
+                <?php endforeach; ?>
 
-            <?php endforeach; ?>
-
-        </div>
-
+            </div>
+        <?php } else { ?>
+            <div class="alert alert-info text-center">
+                No hay estudiantes para mostrar
+            </div>
+        <?php } ?>
     <?php endif; ?>
+
 
 </div>
 

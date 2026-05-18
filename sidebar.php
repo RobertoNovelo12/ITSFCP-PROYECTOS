@@ -7,7 +7,7 @@ $rol = strtolower($_SESSION["rol"] ?? "");
 function crearLink($nombre, $rol)
 {
     $links = [
-        "Principal" => "/ITSFCP-PROYECTOS/Vistas/menu/principal.php",
+        "Principal" => "/ITSFCP-PROYECTOS/Vistas/Principal/index.php",
         "Dashboard" => "/ITSFCP-PROYECTOS/Vistas/Dashboard/index.php",
         "Seguimiento" => "/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php",
         "Integracion a proyecto" => "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/index.php",
