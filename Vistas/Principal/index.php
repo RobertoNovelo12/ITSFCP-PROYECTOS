@@ -135,24 +135,93 @@ ob_start();
     </div>
 
     <!--  Nota para estudiante ─ -->
-    <?php if ($rol === 'estudiante' && $ventanaAbierta): ?>
-        <div class="nota-convocatoria">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
-                <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
-                <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
-            </svg>
-            <span>La convocatoria está abierta. Puedes elegir <strong>hasta 3 proyectos</strong> de tu interés para solicitar integración.</span>
-        </div>
-    <?php elseif ($rol === 'estudiante' && !$ventanaAbierta): ?>
-        <div class="nota-convocatoria" style="border-left-color:var(--tecnm-gold);background:rgba(212,160,23,.08);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20" style="color:#a87a10">
-                <path d="M9.13 3.4L2.2 15.1A1 1 0 0 0 3.07 16.6h13.86a1 1 0 0 0 .87-1.5L10.87 3.4a1 1 0 0 0-1.74 0z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-                <path d="M10 8.5v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                <circle cx="10" cy="13.8" r="0.75" fill="currentColor" />
-            </svg>
-            <span style="color:#3d2a00">El periodo de <strong style="color:#a87a10">solicitud de integración está cerrado</strong>. Puedes consultar los proyectos disponibles.</span>
-        </div>
+    <?php if ($rol === 'estudiante'): ?>
+
+        <?php
+        /*
+     * Carga del estudiante en la vista de listado de proyectos.
+     * El controlador listarProyectos() no calcula la carga global por defecto
+     * (es un listado, no un detalle), por lo que se obtiene aquí de forma
+     * puntual usando el mismo método del modelo.
+     * En detalles_proyecto.php ya viene en $datos['carga'].
+     */
+        $carga_nota = $carga ?? null;   // en detalles ya existe como $datos['carga']
+
+        if ($carga_nota === null) {
+            // Estamos en el listado principal: calcular sobre la marcha
+            global $conn;
+            $modelo_nota  = new principal($conn);
+            $carga_nota   = $modelo_nota->obtenerCargaProyectosEstudiante($id_usuario);
+        }
+
+        $compromisos_actuales = (int)$carga_nota['activos'] + (int)$carga_nota['en_espera'];
+        $max_proyectos        = 3;
+        $disponibles          = max(0, $max_proyectos - $compromisos_actuales);
+        ?>
+
+        <?php if ($ventanaAbierta ?? $ventana_abierta ?? false): ?>
+
+            <div class="nota-convocatoria">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
+                    <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
+                    <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
+                </svg>
+
+                <?php if ($disponibles === 0): ?>
+                    <span>
+                        La convocatoria está abierta, sin embargo has alcanzado el límite de
+                        <strong><?= $max_proyectos ?> solicitudes o integraciones activas</strong>
+                        permitidas por periodo. No es posible enviar nuevas solicitudes hasta que
+                        alguna sea rechazada o concluya.
+                    </span>
+
+                <?php elseif ($disponibles === $max_proyectos): ?>
+                    <span>
+                        La convocatoria está abierta. Puedes solicitar integración en
+                        <strong>hasta <?= $max_proyectos ?> proyectos</strong> durante este periodo.
+                        Actualmente no tienes ninguna solicitud activa ni membresía vigente.
+                    </span>
+
+                <?php else: ?>
+                    <?php
+                    $texto_disp = $disponibles === 1
+                        ? 'solicitar integración en <strong>1 proyecto adicional</strong>'
+                        : 'solicitar integración en <strong>' . $disponibles . ' proyectos adicionales</strong>';
+                    $texto_comp = $compromisos_actuales === 1
+                        ? '1 solicitud o membresía activa'
+                        : $compromisos_actuales . ' solicitudes o membresías activas';
+                    ?>
+                    <span>
+                        La convocatoria está abierta. Cuentas con la posibilidad de <?= $texto_disp ?>
+                        (<?= $texto_comp ?> de <?= $max_proyectos ?> permitidas en este periodo).
+                    </span>
+                <?php endif; ?>
+            </div>
+
+        <?php else: ?>
+
+            <div class="nota-convocatoria" style="border-left-color:var(--color-boton-modificar);background:rgba(212,160,23,.08);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20" style="color:#a87a10">
+                    <path d="M9.13 3.4L2.2 15.1A1 1 0 0 0 3.07 16.6h13.86a1 1 0 0 0 .87-1.5L10.87 3.4a1 1 0 0 0-1.74 0z"
+                        stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                    <path d="M10 8.5v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    <circle cx="10" cy="13.8" r="0.75" fill="currentColor" />
+                </svg>
+                <span style="color:#3d2a00">
+                    El periodo de <strong style="color:#a87a10">solicitud de integración está cerrado</strong>.
+                    Puedes consultar los proyectos disponibles para el siguiente periodo.
+                    <?php if ($compromisos_actuales > 0): ?>
+                        Actualmente tienes
+                        <strong><?= $compromisos_actuales ?> solicitud<?= $compromisos_actuales > 1 ? 'es' : '' ?>
+                            o membresía<?= $compromisos_actuales > 1 ? 's' : '' ?> activa<?= $compromisos_actuales > 1 ? 's' : '' ?></strong>
+                        en este periodo.
+                    <?php endif; ?>
+                </span>
+            </div>
+
+        <?php endif; ?>
+
     <?php endif; ?>
 
     <!--  Encabezado de resultados ─ -->

@@ -82,7 +82,7 @@ include __DIR__ . '/../../mensaje.php';
     <?php endif; ?>
 
     <!-- CONTEXTO — info de la solicitud -->
-    <div class="card mb-4 shadow-sm border-0 bg-light">
+    <div class="card mb-4 shadow-sm border-0">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-8">

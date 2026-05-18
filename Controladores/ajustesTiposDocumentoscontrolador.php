@@ -222,13 +222,13 @@ class ajustesTiposDocumentoscontrolador
         $boton = "";
         switch ($tipo) {
             case 'Desactivar':
-                $boton = '<button type="submit" name="action" value="Desactivar" class="btn btn-danger">Desactivar</button>';
+                $boton = '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>';
                 break;
             case 'Reactivar':
-                $boton = '<button type="submit" name="action" value="Reactivar" class="btn btn-warning">Reactivar</button>';
+                $boton = '<button type="submit" name="action" value="Reactivar" class="btn btn-sm btn-warning">Reactivar</button>';
                 break;
             case 'Guardar':
-                $boton = '<button type="submit" name="action" value="Guardar" class="btn btn-guardar">Guardar cambios</button>';
+                $boton = '<button type="submit" name="action" value="Guardar" class="btn btn-sm btn-guardar">Guardar cambios</button>';
                 break;
             default:
                 break;

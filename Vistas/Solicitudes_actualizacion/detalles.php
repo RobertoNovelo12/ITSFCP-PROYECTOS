@@ -95,8 +95,8 @@ ob_start();
 
             <!-- Datos del investigador -->
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
-                    <i class="bi bi-person-badge text-primary fs-5"></i>
+                <div class="card-header border-bottom d-flex align-items-center gap-2 py-3">
+                    <i class="bi bi-person-badge fs-5"></i>
                     <h6 class="mb-0 fw-semibold">Datos del investigador</h6>
                 </div>
                 <div class="card-body">
@@ -115,8 +115,8 @@ ob_start();
 
             <!-- Valores -->
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
-                    <i class="bi bi-arrow-left-right text-success fs-5"></i>
+                <div class="card-header border-bottom d-flex align-items-center gap-2 py-3">
+                    <i class="bi bi-arrow-left-right fs-5"></i>
                     <h6 class="mb-0 fw-semibold">Cambio solicitado</h6>
                 </div>
                 <div class="card-body">
@@ -150,8 +150,8 @@ ob_start();
 
             <!-- Documento adjunto -->
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
-                    <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                <div class="card-header border-bottom d-flex align-items-center gap-2 py-3">
+                    <i class="bi bi-file-earmark-pdf-fill fs-5"></i>
                     <h6 class="mb-0 fw-semibold">Documento de evidencia</h6>
                 </div>
                 <div class="card-body">
@@ -180,8 +180,8 @@ ob_start();
         <!-- Columna derecha: historial -->
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
-                    <i class="bi bi-clock-history text-secondary fs-5"></i>
+                <div class="card-header border-bottom d-flex align-items-center gap-2 py-3">
+                    <i class="bi bi-clock-history fs-5"></i>
                     <h6 class="mb-0 fw-semibold">Historial de la solicitud</h6>
                 </div>
                 <div class="card-body">

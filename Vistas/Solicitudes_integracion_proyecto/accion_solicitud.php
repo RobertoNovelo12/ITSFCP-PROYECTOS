@@ -91,7 +91,7 @@ include __DIR__ . '/../../mensaje.php';
     <?php endif; ?>
 
     <!-- CONTEXTO — datos de la solicitud -->
-    <div class="card mb-4 shadow-sm border-0 bg-light">
+    <div class="card mb-4 shadow-sm border-0">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-8">
@@ -157,7 +157,7 @@ include __DIR__ . '/../../mensaje.php';
                   onsubmit="return confirm('<?= $es_correcciones
                       ? '¿Enviar solicitud de correcciones a ' . htmlspecialchars(addslashes($sol['estudiante_nombre'])) . '?'
                       : '¿Confirmar el rechazo de la solicitud de ' . htmlspecialchars(addslashes($sol['estudiante_nombre'])) . '? Esta acción no se puede deshacer.' ?>
-                  ')">
+                  )">
 
                 <div class="mb-3">
                     <label for="comentario" class="form-label fw-semibold">

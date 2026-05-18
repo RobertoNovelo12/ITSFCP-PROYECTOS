@@ -7,9 +7,9 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 
 class solicitudes_carta_terminacionControlador
 {
-    // =========================================================
+    // 
     // VALIDACIONES INTERNAS
-    // =========================================================
+    // 
 
     private function validarAcceso($rol, array $permitidos)
     {
@@ -25,9 +25,9 @@ class solicitudes_carta_terminacionControlador
         }
     }
 
-    // =========================================================
+    // 
     // CATÁLOGOS
-    // =========================================================
+    // 
 
     public function obtenerTodosPeriodos()
     {
@@ -40,9 +40,9 @@ class solicitudes_carta_terminacionControlador
         }
     }
 
-    // =========================================================
+    // 
     // DASHBOARD — resumen de tarjetas
-    // =========================================================
+    // 
 
     public function resumenCartas($id_periodo = 0)
     {
@@ -55,9 +55,9 @@ class solicitudes_carta_terminacionControlador
         }
     }
 
-    // =========================================================
+    // 
     // LISTADO PAGINADO
-    // =========================================================
+    // 
 
     public function listarCartas($tipo_filtro = 'Todas', $buscar = '', $pagina = 1, $id_periodo = 0)
     {
@@ -70,9 +70,9 @@ class solicitudes_carta_terminacionControlador
         }
     }
 
-    // =========================================================
+    // 
     // DETALLE
-    // =========================================================
+    // 
 
     public function detalleCarta($id_cierre_est)
     {
@@ -96,9 +96,9 @@ class solicitudes_carta_terminacionControlador
         }
     }
 
-    // =========================================================
+    // 
     // APROBAR CARTA
-    // =========================================================
+    // 
 
     public function aprobarCarta($id_cierre_est, $id_supervisor, $rol)
     {
@@ -119,9 +119,9 @@ class solicitudes_carta_terminacionControlador
         }
     }
 
-    // =========================================================
+    // 
     // RECHAZAR CARTA — recibe POST con comentario
-    // =========================================================
+    // 
 
     public function rechazarCarta($data, $id_supervisor, $rol)
     {
@@ -151,9 +151,9 @@ class solicitudes_carta_terminacionControlador
         }
     }
 
-    // =========================================================
+    // 
     // HELPERS DE PRESENTACIÓN (reutilizables en vistas)
-    // =========================================================
+    // 
 
     public function estiloCarta($estado)
     {

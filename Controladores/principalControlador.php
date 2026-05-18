@@ -256,22 +256,20 @@ class principalControlador
         //      g) no tiene 3 o más solicitudes vigentes (en espera) en total   
         $puede_solicitar  = false;
         $cupo_disponible  = (int)($proyecto['lugares_disponibles'] ?? 0) > 0;
-        $limite_alcanzado = false;   // se calculará solo si el estudiante pasa los filtros previos
+        $limite_alcanzado = false;
+        $carga            = ['activos' => 0, 'en_espera' => 0]; // siempre disponible para la vista
 
         if ($rol === 'estudiante' && $ventana_abierta && !$es_integrante && $cupo_disponible) {
-
             $estado_sol = $solicitud['estado'] ?? null;
 
             if ($estado_sol === null || $estado_sol === 'rechazado') {
-
-                // Consultar carga global del estudiante solo cuando realmente importa
-                $carga = $modelo->obtenerCargaProyectosEstudiante($id_usuario);
-
-                // El límite se cumple si entre activos + en_espera llega a 3 o más
+                $carga            = $modelo->obtenerCargaProyectosEstudiante($id_usuario);
                 $limite_alcanzado = ($carga['activos'] + $carga['en_espera']) >= 3;
-
-                $puede_solicitar = !$limite_alcanzado;
+                $puede_solicitar  = !$limite_alcanzado;
             }
+        } elseif ($rol === 'estudiante') {
+            // Cargar igualmente para mostrar el contador en la nota aunque no pueda solicitar aquí
+            $carga = $modelo->obtenerCargaProyectosEstudiante($id_usuario);
         }
         // 6. ¿Puede cancelar su solicitud?
         $puede_cancelar = false;
@@ -286,6 +284,8 @@ class principalControlador
             'ventana_abierta' => $ventana_abierta,
             'puede_solicitar' => $puede_solicitar,
             'puede_cancelar'  => $puede_cancelar,
+            'carga'           => $carga,   // ← expuesto para la nota
+
         ];
     }
 

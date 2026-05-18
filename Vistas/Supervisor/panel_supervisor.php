@@ -46,7 +46,7 @@ ob_start();
 
 <div class="container-fluid py-4 sup-page" style="max-width:95%;">
 
-    <!-- ══ ENCABEZADO ══════════════════════════════════════════════ -->
+    <!--  ENCABEZADO ═ -->
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
             <h4><i class="bi bi-speedometer2 me-2"></i>Panel del Supervisor</h4>
@@ -55,7 +55,7 @@ ob_start();
         <span class="badge-modo"><i class="bi bi-eye me-1"></i>Modo visualización</span>
     </div>
 <br><br>
-    <!-- ══ FILTRO GLOBAL: PERIODO ═══════════════════════════════════ -->
+    <!--  FILTRO GLOBAL: PERIODO  -->
     <div class="filter-periodo">
         <label><i class="bi bi-calendar3 me-1"></i>Filtrar por periodo académico:</label>
         <form method="GET" class="d-flex align-items-center gap-2 flex-wrap mb-0">
@@ -72,14 +72,14 @@ ob_start();
                 <?php endforeach; ?>
             </select>
             <?php if ($filtros['periodo']): ?>
-                <a href="?tab=<?= $filtros['tab'] ?>" class="btn btn-outline-secondary btn-sm">
+                <a href="?tab=<?= $filtros['tab'] ?>" class="btn btn-secondary btn-sm">
                     <i class="bi bi-x-circle me-1"></i>Limpiar
                 </a>
             <?php endif; ?>
         </form>
     </div>
 
-    <!-- ══ TARJETAS KPI PRINCIPALES ════════════════════════════════ -->
+    <!--  TARJETAS KPI PRINCIPALES ═ -->
     <div class="row g-3 mb-4">
 
         <!-- Proyectos -->
@@ -152,42 +152,7 @@ ob_start();
 
     </div>
 
-    <!-- ══ FILA: GRÁFICA SOLICITUDES + GRÁFICA AVANCE TAREAS ═══════ -->
-    <div class="row g-3 mb-4">
-
-        <!-- Gráfica de dona: distribución de solicitudes por estado -->
-        <div class="col-md-4">
-            <div class="sec-card h-100">
-                <div class="sec-card-header">
-                    <div class="sec-title"><i class="bi bi-pie-chart-fill text-warning"></i>Solicitudes por estado</div>
-                    <span class="sec-sub">Distribución actual</span>
-                </div>
-                <div style="position:relative; height:260px; padding:12px;">
-                    <canvas id="chartSolicitudes" style="display:block;width:100%;height:100%;"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gráfica de barras: avance global de secciones -->
-        <div class="col-md-8">
-            <div class="sec-card h-100">
-                <div class="sec-card-header">
-                    <div class="sec-title"><i class="bi bi-bar-chart-fill text-primary"></i>Avance global por sección del documento</div>
-                    <span class="sec-sub">Aprobadas vs. pendientes</span>
-                </div>
-                <?php
-                $numSecciones = count($etapas_data['secciones'] ?? []);
-                $alturaBarras = max(260, $numSecciones * 32 + 60);
-                ?>
-                <div style="position:relative; height:<?= $alturaBarras ?>px; padding:12px;">
-                    <canvas id="chartSecciones" style="display:block;width:100%;height:100%;"></canvas>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- ══ MINI TARJETAS SOLICITUDES ═══════════════════════════════ -->
+    <!--  MINI TARJETAS SOLICITUDES  -->
     <div class="row g-2 mb-4">
         <?php
         $tabs_cards = [
@@ -211,7 +176,7 @@ ob_start();
         <?php endforeach; ?>
     </div>
 
-    <!-- ══ TABS DE NAVEGACIÓN ════════════════════════════════════════ -->
+    <!--  TABS DE NAVEGACIÓN ═ -->
     <div class="nav-tabs-custom">
         <?php
         $tabs_nav = [
@@ -229,9 +194,9 @@ ob_start();
         <?php endforeach; ?>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════
+    <!-- 
          TAB: RESUMEN
-         ═══════════════════════════════════════════════════════════ -->
+          -->
     <?php if ($filtros['tab'] === 'resumen'): ?>
         <div class="row g-3">
 
@@ -422,9 +387,9 @@ ob_start();
             </div>
         </div>
 
-    <!-- ══════════════════════════════════════════════════════════════
+    <!-- 
          TAB: PROYECTOS
-         ═══════════════════════════════════════════════════════════ -->
+          -->
     <?php elseif ($filtros['tab'] === 'proyectos'): ?>
 
         <div class="filter-bar">
@@ -467,7 +432,7 @@ ob_start();
                 </div>
                 <div class="col-auto d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                    <a href="?tab=proyectos&periodo=<?= $filtros['periodo'] ?>" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+                    <a href="?tab=proyectos&periodo=<?= $filtros['periodo'] ?>" class="btn btn-secondary btn-sm">Limpiar</a>
                 </div>
             </form>
         </div>
@@ -500,7 +465,7 @@ ob_start();
                                 <td style="font-size:.8rem"><?= htmlspecialchars($p['investigador_nombre']) ?></td>
                                 <td class="text-center"><?= $ctrl->badgeEstadoProyecto($p['estado']) ?></td>
                                 <td class="text-center">
-                                    <span class="badge bg-light text-dark text-capitalize border"><?= $p['modalidad'] ?></span>
+                                    <span class="badge text-dark text-capitalize border"><?= $p['modalidad'] ?></span>
                                 </td>
                                 <td class="text-center">
                                     <span class="fw-bold"><?= $p['alumnos_activos'] ?></span>
@@ -522,7 +487,7 @@ ob_start();
                                 </td>
                                 <td>
                                     <a href="detalle_proyecto.php?id=<?= $p['id_proyectos'] ?>"
-                                       class="btn btn-sm btn-outline-primary" style="font-size:.75rem">
+                                       class="btn btn-sm btn-primary" style="font-size:.75rem">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
@@ -554,7 +519,7 @@ ob_start();
                             <span class="badge bg-danger mb-1"><?= $p['tareas_vencidas'] ?> secciones vencidas</span>
                         <?php endif; ?>
                         <div class="mt-2">
-                            <a href="detalle_proyecto.php?id=<?= $p['id_proyectos'] ?>" class="btn btn-outline-primary btn-sm">
+                            <a href="detalle_proyecto.php?id=<?= $p['id_proyectos'] ?>" class="btn btn-primary btn-sm">
                                 <i class="bi bi-eye me-1"></i>Ver detalle
                             </a>
                         </div>
@@ -568,9 +533,9 @@ ob_start();
 
         <?= $ctrl->htmlPaginacion($pag_proy, 'pag_proy', 'proyectos', $filtros) ?>
 
-    <!-- ══════════════════════════════════════════════════════════════
+    <!-- 
          TAB: SOLICITUDES
-         ═══════════════════════════════════════════════════════════ -->
+          -->
     <?php elseif ($filtros['tab'] === 'solicitudes'): ?>
 
         <div class="filter-bar">
@@ -607,7 +572,7 @@ ob_start();
                 </div>
                 <div class="col-auto d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                    <a href="?tab=solicitudes&periodo=<?= $filtros['periodo'] ?>" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+                    <a href="?tab=solicitudes&periodo=<?= $filtros['periodo'] ?>" class="btn btn-secondary btn-sm">Limpiar</a>
                 </div>
             </form>
         </div>
@@ -680,9 +645,9 @@ ob_start();
 
         <?= $ctrl->htmlPaginacion($pag_sol, 'pag_sol', 'solicitudes', $filtros) ?>
 
-    <!-- ══════════════════════════════════════════════════════════════
+    <!-- 
          TAB: ETAPAS & SECCIONES
-         ═══════════════════════════════════════════════════════════ -->
+          -->
     <?php elseif ($filtros['tab'] === 'etapas'): ?>
 
         <div class="row g-3 mb-4">
@@ -818,9 +783,9 @@ ob_start();
             </div>
         </div>
 
-    <!-- ══════════════════════════════════════════════════════════════
+    <!-- 
          TAB: ESTUDIANTES
-         ═══════════════════════════════════════════════════════════ -->
+          -->
     <?php elseif ($filtros['tab'] === 'usuarios'): ?>
 
         <div class="filter-bar">
@@ -851,7 +816,7 @@ ob_start();
                 </div>
                 <div class="col-auto d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                    <a href="?tab=usuarios&periodo=<?= $filtros['periodo'] ?>" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+                    <a href="?tab=usuarios&periodo=<?= $filtros['periodo'] ?>" class="btn btn-secondary btn-sm">Limpiar</a>
                 </div>
             </form>
         </div>
@@ -892,7 +857,7 @@ ob_start();
                                 </td>
                                 <td>
                                     <a href="detalle_estudiante.php?id=<?= $est['id_usuarios'] ?>"
-                                       class="btn btn-sm btn-outline-primary" style="font-size:.75rem">
+                                       class="btn btn-sm btn-primary" style="font-size:.75rem">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
@@ -922,7 +887,7 @@ ob_start();
                         <p class="small mb-1"><strong>Carrera:</strong> <?= htmlspecialchars(mb_substr($est['carrera'], 0, 40)) ?></p>
                         <p class="small mb-2"><strong>Proyectos:</strong> <?= $est['proyectos_activos'] ?> activos / <?= $est['proyectos_total'] ?> total</p>
                         <div class="mb-2"><?= barraProgreso((int)$est['tareas_aprobadas'], (int)$est['tareas_total']) ?></div>
-                        <a href="detalle_estudiante.php?id=<?= $est['id_usuarios'] ?>" class="btn btn-outline-primary btn-sm">
+                        <a href="detalle_estudiante.php?id=<?= $est['id_usuarios'] ?>" class="btn btn-primary btn-sm">
                             <i class="bi bi-eye me-1"></i>Ver detalle
                         </a>
                     </div>
@@ -939,168 +904,6 @@ ob_start();
 
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     CHART.JS — MIT License — via cdnjs
-     ═══════════════════════════════════════════════════════════════ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
-        integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3oD+sCoJrzXJ+yKHMO1EP6/OIo5ZQ5z0P1N2Y/7I3IUTU/C7xK3JA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-<script>
-/* ── Paleta TecNM ─────────────────────────────────────────────── */
-const TECNM = {
-    navy : '#1A2E4A',
-    blue : '#1E5FAD',
-    red  : '#C41230',
-    gold : '#D4A017',
-    green: '#16A34A',
-    gray : '#718096',
-    cyan : '#0EA5E9',
-    indigo: '#2563EB',
-};
-
-/* ── Gráfica dona: solicitudes por estado ─────────────────────── */
-(function () {
-    const ctx = document.getElementById('chartSolicitudes');
-    if (!ctx) return;
-
-    const valores = [
-        <?= intval($resumen['solicitudes']['pendientes']   ?? 0) ?>,
-        <?= intval($resumen['solicitudes']['en_revision']  ?? 0) ?>,
-        <?= intval($resumen['solicitudes']['correcciones'] ?? 0) ?>,
-        <?= intval($resumen['solicitudes']['aceptadas']    ?? 0) ?>,
-        <?= intval($resumen['solicitudes']['rechazadas']   ?? 0) ?>,
-    ];
-
-    // Si todos son cero, mostrar placeholder
-    const totalSol = valores.reduce((a,b) => a+b, 0);
-
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels  : ['Pendientes', 'En revisión', 'Correcciones', 'Aceptadas', 'Rechazadas'],
-            datasets: [{
-                data           : totalSol > 0 ? valores : [1],
-                backgroundColor: totalSol > 0
-                    ? [TECNM.gray, TECNM.cyan, TECNM.gold, TECNM.green, TECNM.red]
-                    : ['#E2E8F0'],
-                borderWidth    : 2,
-                borderColor    : '#fff',
-                hoverOffset    : 6,
-            }],
-        },
-        options: {
-            responsive          : true,
-            maintainAspectRatio : false,
-            cutout              : '60%',
-            plugins: {
-                legend: {
-                    display : totalSol > 0,
-                    position: 'bottom',
-                    labels  : { font: { size: 11 }, padding: 10, boxWidth: 12 },
-                },
-                tooltip: {
-                    enabled: totalSol > 0,
-                    callbacks: {
-                        label: ctx => ` ${ctx.label}: ${ctx.parsed}`,
-                    },
-                },
-            },
-        },
-    });
-
-    if (totalSol === 0) {
-        // Etiqueta central "Sin datos"
-        const parent = ctx.parentElement;
-        const lbl = document.createElement('div');
-        lbl.textContent = 'Sin datos';
-        lbl.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.8rem;color:#718096;pointer-events:none;';
-        parent.style.position = 'relative';
-        parent.appendChild(lbl);
-    }
-})();
-
-/* ── Gráfica barras horizontales: avance por sección ─────────── */
-(function () {
-    const ctx = document.getElementById('chartSecciones');
-    if (!ctx) return;
-
-    <?php
-    $secciones_labels  = [];
-    $secciones_aprob   = [];
-    $secciones_entregadas = [];
-    $secciones_revision   = [];
-    $secciones_correc  = [];
-    $secciones_pend    = [];
-    $secciones_venc    = [];
-    foreach ($etapas_data['secciones'] ?? [] as $sec) {
-        $secciones_labels[]     = mb_strimwidth($sec['seccion'], 0, 30, '…');
-        $secciones_aprob[]      = (int)$sec['aprobadas'];
-        $secciones_entregadas[] = (int)($sec['entregadas'] ?? 0);
-        $secciones_revision[]   = (int)$sec['en_revision'];
-        $secciones_correc[]     = (int)$sec['correcciones'];
-        $secciones_pend[]       = (int)$sec['pendientes'];
-        $secciones_venc[]       = (int)$sec['vencidas'];
-    }
-    ?>
-
-    const labels     = <?= json_encode($secciones_labels,     JSON_UNESCAPED_UNICODE) ?>;
-    const aprobadas  = <?= json_encode($secciones_aprob) ?>;
-    const entregadas = <?= json_encode($secciones_entregadas) ?>;
-    const revision   = <?= json_encode($secciones_revision) ?>;
-    const correc     = <?= json_encode($secciones_correc) ?>;
-    const pendientes = <?= json_encode($secciones_pend) ?>;
-    const vencidas   = <?= json_encode($secciones_venc) ?>;
-
-    if (labels.length === 0) {
-        ctx.parentElement.innerHTML = '<p style="text-align:center;color:#718096;padding:2rem;font-size:.85rem;">Sin secciones registradas para este periodo.</p>';
-        return;
-    }
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [
-                { label: 'Aprobadas',    data: aprobadas,  backgroundColor: TECNM.green,  borderRadius: 2, borderSkipped: false },
-                { label: 'Entregadas',   data: entregadas, backgroundColor: TECNM.indigo, borderRadius: 2, borderSkipped: false },
-                { label: 'En revisión',  data: revision,   backgroundColor: TECNM.cyan,   borderRadius: 2, borderSkipped: false },
-                { label: 'Correcciones', data: correc,     backgroundColor: TECNM.gold,   borderRadius: 2, borderSkipped: false },
-                { label: 'Pendientes',   data: pendientes, backgroundColor: '#CBD5E0',    borderRadius: 2, borderSkipped: false },
-                { label: 'Vencidas',     data: vencidas,   backgroundColor: TECNM.red,    borderRadius: 2, borderSkipped: false },
-            ],
-        },
-        options: {
-            indexAxis : 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    stacked: true,
-                    grid   : { color: '#F1F5F9' },
-                    ticks  : { font: { size: 10 } },
-                },
-                y: {
-                    stacked: true,
-                    grid   : { display: false },
-                    ticks  : { font: { size: 10 } },
-                },
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels  : { font: { size: 10 }, padding: 8, boxWidth: 10 },
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x}`,
-                    },
-                },
-            },
-        },
-    });
-})();
-</script>
 
 <?php
 $contenido  = ob_get_clean();

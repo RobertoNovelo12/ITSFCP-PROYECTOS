@@ -38,9 +38,9 @@ class SeguimientoModelo
         $this->con = $conn;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // PROYECTOS
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Proyecto visible para un estudiante (debe estar en proyectos_usuarios activo/concluido).
@@ -83,9 +83,9 @@ class SeguimientoModelo
         return $row ?: null;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // ETAPAS — vista del estudiante
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Construye las 3 etapas de seguimiento para el estudiante con su estado real.
@@ -191,9 +191,9 @@ class SeguimientoModelo
         return $rows;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // CIERRES_ESTUDIANTE (Etapa 3)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Obtiene el registro de cierres_estudiante de un estudiante en un proyecto.
@@ -323,9 +323,9 @@ class SeguimientoModelo
         return $ok;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // SEGUIMIENTO_DOCUMENTO — Reporte Final (necesario antes de Etapa 3)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Reporte Final del estudiante en el proyecto.
@@ -365,9 +365,9 @@ class SeguimientoModelo
         return $row ?: null;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // SOLICITUDES DE INTEGRACIÓN
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Solicitud más reciente del estudiante en el proyecto.
@@ -389,9 +389,9 @@ class SeguimientoModelo
         return $row ?: null;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // SEGUIMIENTO_DOCUMENTO — operaciones
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Crea un nuevo seguimiento_documento con estado 'proceso'.
@@ -464,9 +464,9 @@ class SeguimientoModelo
         return (int)$row['total'] > 0;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // DOCUMENTOS_SUBIDOS
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Registra un documento en la tabla centralizada documentos_subidos.
@@ -607,9 +607,9 @@ class SeguimientoModelo
         return $rows;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // TIPO_DOCUMENTO — utilidades
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Devuelve el id_etapa (FK a etapas_documento) según el tipo_documento.
@@ -630,9 +630,9 @@ class SeguimientoModelo
         return $row ? (int)$row['id_etapa'] : null;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // TAREAS — para determinar si Etapa 2 está completa
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Total de tareas asignadas al estudiante en el proyecto.
@@ -684,9 +684,9 @@ class SeguimientoModelo
         return $total > 0 && $aprobadas >= $total;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // PROYECTOS_USUARIOS + HISTORIAL
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Verifica que el estudiante pertenezca al proyecto (activo o concluido).
@@ -789,9 +789,9 @@ class SeguimientoModelo
         return $ok;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     // NOTIFICACIONES
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     /**
      * Inserta una notificación para el usuario indicado.

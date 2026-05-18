@@ -47,9 +47,9 @@ class SeguimientoControlador
         $this->modelo = new SeguimientoModelo($conn);
     }
 
-    // ──────────────────────────────────────────────────────────────
+    // 
     // HELPERS PRIVADOS
-    // ──────────────────────────────────────────────────────────────
+    // 
 
     private function esEstudiante(string $rol): bool
     {
@@ -79,9 +79,9 @@ class SeguimientoControlador
         return strtolower($_SESSION['rol'] ?? '');
     }
 
-    // ──────────────────────────────────────────────────────────────
+    // 
     // INDEX — ESTUDIANTE (GET)
-    // ──────────────────────────────────────────────────────────────
+    // 
 
     /**
      * Carga los datos para la vista de seguimiento del estudiante.
@@ -130,10 +130,10 @@ class SeguimientoControlador
         ];
     }
 
-    // ──────────────────────────────────────────────────────────────
+    // 
     // SUBIR DOCUMENTO — Etapa 1: Carta Compromiso (POST)
     // Ruta física: /storage/etapas/proyecto_{id}/
-    // ──────────────────────────────────────────────────────────────
+    // 
 
     public function subirDocumento(): void
     {
@@ -214,11 +214,11 @@ class SeguimientoControlador
         ]);
     }
 
-    // ──────────────────────────────────────────────────────────────
+    // 
     // SUBIR CARTA DE TERMINACIÓN — Etapa 3 (POST)
     // Ruta física: /storage/etapas/proyecto_{id}/
     // Crea registro en cierres_estudiante (tabla nueva).
-    // ──────────────────────────────────────────────────────────────
+    // 
 
     public function subirCartaTerminacion(): void
     {
@@ -332,10 +332,10 @@ class SeguimientoControlador
         ]);
     }
 
-    // ──────────────────────────────────────────────────────────────
+    // 
     // ACTUALIZAR ESTADO — Investigador (AJAX POST)
     // Para seguimiento_documento de Etapas 1 y (si aplica) Reporte Final
-    // ──────────────────────────────────────────────────────────────
+    // 
 
     public function actualizarEstado(): void
     {
@@ -393,10 +393,10 @@ class SeguimientoControlador
         return $total;
     }
 
-    // ──────────────────────────────────────────────────────────────
+    // 
     // getDatosSeguimientoEstudiante
     // Usado por detalles_solicitud.php del investigador
-    // ──────────────────────────────────────────────────────────────
+    // 
 
     public function getDatosSeguimientoEstudiante(
         int $id_proyecto,
@@ -438,9 +438,9 @@ class SeguimientoControlador
         ];
     }
 
-    // ──────────────────────────────────────────────────────────────
+    // 
     // HELPERS PÚBLICOS
-    // ──────────────────────────────────────────────────────────────
+    // 
 
     public function todasSeccionesAprobadas(int $id_proyecto, int $id_estudiante): bool
     {
@@ -462,9 +462,9 @@ class SeguimientoControlador
         return "<span class='badge bg-{$color}'>{$texto}</span>";
     }
 
-    // ──────────────────────────────────────────────────────────────
+    // 
     // HELPER PRIVADO — validación de archivo subido
-    // ──────────────────────────────────────────────────────────────
+    // 
 
     /**
      * Valida MIME real y tamaño del archivo.

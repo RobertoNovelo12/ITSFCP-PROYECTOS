@@ -59,13 +59,13 @@ $opEstadoProceso = [
 
 <div class="container-fluid py-4" style="max-width:95%;">
 
-    <!-- ══════════════════════════════════════════
+    <!-- 
          ENCABEZADO
-    ══════════════════════════════════════════ -->
-    <!-- ══════════════════════════════════════════
+     -->
+    <!-- 
          FILTRO INDEPENDIENTE DE PERIODO
          (afecta al resto de selects y a los datos)
-    ══════════════════════════════════════════ -->
+     -->
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
         <div class="col-md-6">
@@ -94,9 +94,9 @@ $opEstadoProceso = [
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════
+    <!-- 
          TARJETAS RESUMEN
-    ══════════════════════════════════════════ -->
+     -->
     <!-- TARJETAS RESUMEN -->
     <div class="row mb-4 g-3">
 
@@ -139,10 +139,10 @@ $opEstadoProceso = [
 
     </div>
 
-    <!-- ══════════════════════════════════════════
+    <!-- 
          FILTROS SECUNDARIOS + BÚSQUEDA
          (dependientes del periodo seleccionado)
-    ══════════════════════════════════════════ -->
+     -->
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-2">
             <form method="GET" class="row g-2 align-items-end">
@@ -226,9 +226,9 @@ $opEstadoProceso = [
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════
+    <!-- 
          CONTENIDO PRINCIPAL
-    ══════════════════════════════════════════ -->
+     -->
     <?php if (!empty($alumnos)): ?>
 
         <!-- ── TABLA DESKTOP ──────────────────────────────────── -->
@@ -273,7 +273,7 @@ $opEstadoProceso = [
 
                                     <!-- Periodo + estado del periodo -->
                                     <td class="text-center">
-                                        <span class="badge bg-light text-dark border">
+                                        <span class="badge text-dark border">
                                             <?= htmlspecialchars($a['periodo']) ?>
                                         </span>
                                         <br>
@@ -351,7 +351,7 @@ $opEstadoProceso = [
                             <strong>Proyecto:</strong><br>
                             <?= htmlspecialchars(mb_substr($a['titulo_proyecto'], 0, 65))
                                 . (mb_strlen($a['titulo_proyecto']) > 65 ? '…' : '') ?>
-                            <span class="badge bg-light text-dark border ms-1">
+                            <span class="badge text-dark border ms-1">
                                 <?= htmlspecialchars($a['periodo']) ?>
                             </span>
                         </li>

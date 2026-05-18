@@ -1,4 +1,5 @@
 <?php
+//detalles_solicitud.php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 session_start();
@@ -220,7 +221,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- DOCUMENTOS DEL ESTUDIANTE -->
     <?php if (!empty($documentos)): ?>
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light">
+            <div class="card-header text-white">
                 <h5 class="mb-0"><i class="bi bi-paperclip me-2"></i>Documentos subidos por el estudiante</h5>
             </div>
             <div class="card-body">
@@ -244,7 +245,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- CARTA COMPROMISO -->
     <?php if (!empty($sol['carta_ruta'])): ?>
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light">
+            <div class="card-header text-white">
                 <h5 class="mb-0"><i class="bi bi-file-earmark-check me-2"></i>Carta compromiso</h5>
             </div>
             <div class="card-body">
@@ -262,7 +263,7 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- DATOS DEL ESTUDIANTE -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light"><h5 class="mb-0">Información del estudiante</h5></div>
+        <div class="card-header text-white"><h5 class="mb-0">Información del estudiante</h5></div>
         <div class="card-body">
             <div class="row">
                 <?php
@@ -288,7 +289,7 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- PROYECTO -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light"><h5 class="mb-0">Proyecto solicitado</h5></div>
+        <div class="card-header text-white"><h5 class="mb-0">Proyecto solicitado</h5></div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
@@ -323,7 +324,7 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-light"><h5 class="mb-0">Motivación</h5></div>
+                <div class="card-header text-white"><h5 class="mb-0">Motivación</h5></div>
                 <div class="card-body">
                     <?= nl2br(htmlspecialchars($sol['motivacion'] ?? 'Sin información')) ?>
                 </div>
@@ -331,7 +332,7 @@ include __DIR__ . '/../../mensaje.php';
         </div>
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-light"><h5 class="mb-0">Experiencia</h5></div>
+                <div class="card-header text-white"><h5 class="mb-0">Experiencia</h5></div>
                 <div class="card-body">
                     <?= nl2br(htmlspecialchars($sol['experiencia'] ?? 'Sin información')) ?>
                 </div>
@@ -341,7 +342,7 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- HISTORIAL DE COMENTARIOS -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light"><h5 class="mb-0">Historial de comentarios</h5></div>
+        <div class="card-header text-white"><h5 class="mb-0">Historial de comentarios</h5></div>
         <div class="card-body">
             <?php if (!empty($comentarios)): ?>
                 <?php foreach ($comentarios as $c): ?>
@@ -370,7 +371,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- ACCIONES RÁPIDAS -->
     <?php if (in_array($sol['estado'], ['pendiente', 'en_revision', 'correcciones'])): ?>
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light"><h5 class="mb-0">Acciones sobre la solicitud</h5></div>
+            <div class="card-header"><h5 class="mb-0">Acciones sobre la solicitud</h5></div>
             <div class="card-body d-flex gap-2 flex-wrap">
                 <form method="POST"
                       action="detalles_solicitud.php?id=<?= $id_solicitud ?>"

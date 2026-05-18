@@ -110,7 +110,7 @@ if (!empty($_GET['error'])) {
 
     <!-- INFORMACIÓN DEL PROYECTO -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-semibold bg-light">
+        <div class="card-header fw-semibold">
             <i class="bi bi-folder2-open me-2"></i>Información del proyecto
         </div>
         <div class="card-body">
@@ -146,7 +146,7 @@ if (!empty($_GET['error'])) {
 
     <!-- INFORMACIÓN DEL ESTUDIANTE -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-semibold bg-light">
+        <div class="card-header fw-semibold">
             <i class="bi bi-person-fill me-2"></i>Estudiante solicitante
         </div>
         <div class="card-body">
@@ -169,7 +169,7 @@ if (!empty($_GET['error'])) {
 
     <!-- DOCUMENTO SUBIDO POR EL ESTUDIANTE -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-semibold bg-light">
+        <div class="card-header fw-semibold">
             <i class="bi bi-file-earmark-text-fill me-2"></i>Carta de terminación subida
         </div>
         <div class="card-body">
@@ -203,7 +203,7 @@ if (!empty($_GET['error'])) {
             <?php if ($carta['estado_carta'] === 'rechazado' && $carta['comentarios']): ?>
                 <hr>
                 <div class="border-start border-danger border-3 ps-3 mt-2">
-                    <div class="fw-semibold text-danger"><i class="bi bi-x-octagon-fill"></i> Motivo de rechazo</div>
+                    <div class="fw-semibold"><i class="bi bi-x-octagon-fill"></i> Motivo de rechazo</div>
                     <p class="mb-0 mt-1"><?= nl2br(htmlspecialchars($carta['comentarios'])) ?></p>
                 </div>
             <?php endif; ?>
@@ -213,7 +213,7 @@ if (!empty($_GET['error'])) {
     <!-- HISTORIAL DEL PROCESO DEL ESTUDIANTE -->
     <?php if (!empty($historial)): ?>
         <div class="card mb-4 shadow-sm">
-            <div class="card-header fw-semibold bg-light">
+            <div class="card-header fw-semibold">
                 <i class="bi bi-clock-history me-2"></i>Historial del proceso
             </div>
             <div class="card-body">
@@ -233,7 +233,7 @@ if (!empty($_GET['error'])) {
                                 </span>
                             </div>
                             <!-- Contenido -->
-                            <div class="card w-100 border-0 bg-light">
+                            <div class="card w-100 border-0">
                                 <div class="card-body py-2 px-3">
                                     <div class="d-flex justify-content-between align-items-start flex-wrap">
                                         <span class="fw-semibold">
@@ -268,7 +268,7 @@ if (!empty($_GET['error'])) {
     <!-- ACCIONES DEL SUPERVISOR -->
     <?php if ($carta['estado_carta'] === 'pendiente'): ?>
         <div class="card mb-4 shadow-sm border-primary">
-            <div class="card-header fw-semibold bg-primary text-white">
+            <div class="card-header fw-semibold">
                 <i class="bi bi-shield-check me-2"></i>Acciones sobre la solicitud
             </div>
             <div class="card-body">

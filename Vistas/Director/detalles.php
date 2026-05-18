@@ -44,7 +44,7 @@ ob_start();
 
     <!-- INFORMACIÓN DEL DIRECTOR -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0">Información del Director</h5>
         </div>
         <div class="card-body">
@@ -168,7 +168,7 @@ ob_start();
 
     <!-- HISTORIAL -->
     <div class="card shadow-sm">
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0">Historial del Director</h5>
         </div>
         <div class="card-body">

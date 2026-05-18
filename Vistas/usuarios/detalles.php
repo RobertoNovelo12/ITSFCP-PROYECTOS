@@ -53,7 +53,7 @@ ob_start();
 
     <!-- INFORMACIÓN GENERAL -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0"></i>Información general</h5>
         </div>
         <div class="card-body">
@@ -147,7 +147,7 @@ ob_start();
     <!-- DATOS ESPECÍFICOS: ESTUDIANTE -->
     <?php if (!empty($usuario['matricula'])): ?>
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0">Datos de estudiante</h5>
         </div>
         <div class="card-body">
@@ -172,7 +172,7 @@ ob_start();
     <!-- DATOS ESPECÍFICOS: INVESTIGADOR -->
     <?php if (!empty($usuario['rfc'])): ?>
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Datos de investigador</h5>
         </div>
         <div class="card-body">

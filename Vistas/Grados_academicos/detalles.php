@@ -44,7 +44,7 @@ ob_start();
 
     <!-- INFORMACIÓN DE GRADO ACADÉMICO -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0">Información de Grado Académico</h5>
         </div>
         <div class="card-body">

@@ -113,54 +113,76 @@ class Proyectos
     public function obtenerProyectosDatosFiltro($id, $rol)
     {
         switch ($rol) {
+
+            //  Estudiante 
+            // Solo proyectos en los que el estudiante ya fue ACEPTADO (estado activo
+            // en proyectos_usuarios). No se cuentan membresías en baja/cancelado ni
+            // proyectos con solicitud en proceso (solo la integración confirmada).
             case 'estudiante':
-                $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Activo'      THEN 1 ELSE 0 END),0) AS Activos,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Por aprobar' THEN 1 ELSE 0 END),0) AS PorAprobar,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Cierre'      THEN 1 ELSE 0 END),0) AS Cierre,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Por cerrar'  THEN 1 ELSE 0 END),0) AS PorCerrar,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Vencido'     THEN 1 ELSE 0 END),0) AS Vencido
+                $sql = "
+                SELECT
+                    COUNT(*)                                                                    AS Total,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'      THEN 1 ELSE 0 END), 0) AS Activos,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'  THEN 1 ELSE 0 END), 0) AS PorCerrar,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'      THEN 1 ELSE 0 END), 0) AS Cierre,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'     THEN 1 ELSE 0 END), 0) AS Vencido
                 FROM proyectos AS proy
-                JOIN proyectos_usuarios AS prus ON proy.id_proyectos = prus.id_proyectos
-                JOIN estudiantes AS estu ON prus.id_usuarios = estu.id_usuarios
-                JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
-                WHERE estu.id_usuarios = ?";
+                JOIN proyectos_usuarios AS pu
+                    ON pu.id_proyectos = proy.id_proyectos
+                   AND pu.id_usuarios  = ?
+                   AND pu.estado       = 'activo'          -- solo membresías confirmadas
+                JOIN estados_proyectos AS espr
+                    ON proy.id_estadoP = espr.id_estadoP
+            ";
                 $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("i", $id);
-                break;
-            case 'investigador':
-            case 'profesor':
-                $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Activo'           THEN 1 ELSE 0 END),0) AS Activos,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Por aprobar'      THEN 1 ELSE 0 END),0) AS PorAprobar,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Cierre'           THEN 1 ELSE 0 END),0) AS Cierre,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Por cerrar'       THEN 1 ELSE 0 END),0) AS PorCerrar,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Rechazado'        THEN 1 ELSE 0 END),0) AS Rechazados,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Vencido'          THEN 1 ELSE 0 END),0) AS Vencido,
-                    COALESCE(SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END),0) AS Cierrerechazado
-                FROM proyectos AS proy
-                JOIN investigadores AS inv ON inv.id_usuarios = proy.id_investigador
-                JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
-                WHERE proy.id_investigador = ?";
-                $stmt = $this->con->prepare($sql);
+                if (!$stmt) return [];
                 $stmt->bind_param("i", $id);
                 break;
 
-            case 'supervisor':
-                $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    SUM(CASE WHEN espr.nombre='Activo'           THEN 1 ELSE 0 END) AS Activos,
-                    SUM(CASE WHEN espr.nombre='Por aprobar'      THEN 1 ELSE 0 END) AS PorAprobar,
-                    SUM(CASE WHEN espr.nombre='Cierre'           THEN 1 ELSE 0 END) AS Cierre,
-                    SUM(CASE WHEN espr.nombre='Por cerrar'       THEN 1 ELSE 0 END) AS PorCerrar,
-                    SUM(CASE WHEN espr.nombre='Rechazado'        THEN 1 ELSE 0 END) AS Rechazados,
-                    SUM(CASE WHEN espr.nombre='Vencido'          THEN 1 ELSE 0 END) AS Vencido,
-                    SUM(CASE WHEN espr.nombre='Cierre rechazado' THEN 1 ELSE 0 END) AS Cierrerechazado
+            //  Investigador / Profesor ─
+            // Excluye proyectos en estado 'Por aprobar' (id_estadoP = 3): son solicitudes
+            // de creación aún en revisión por el supervisor, no proyectos confirmados.
+            case 'investigador':
+            case 'profesor':
+                $sql = "
+                SELECT
+                    COUNT(*)                                                                             AS Total,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'           THEN 1 ELSE 0 END), 0) AS Activos,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'       THEN 1 ELSE 0 END), 0) AS PorCerrar,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'           THEN 1 ELSE 0 END), 0) AS Cierre,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Rechazado'        THEN 1 ELSE 0 END), 0) AS Rechazados,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'          THEN 1 ELSE 0 END), 0) AS Vencido
                 FROM proyectos AS proy
-                JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP";
+                JOIN estados_proyectos AS espr
+                    ON proy.id_estadoP = espr.id_estadoP
+                WHERE proy.id_investigador = ?
+                  AND proy.id_estadoP <> 3   -- excluye 'Por aprobar' (solicitud en proceso)
+            ";
                 $stmt = $this->con->prepare($sql);
+                if (!$stmt) return [];
+                $stmt->bind_param("i", $id);
+                break;
+
+            //  Supervisor 
+            // Igual que investigador: excluye 'Por aprobar' (3) y 'Rechazado' (4)
+            // porque esos estados corresponden a solicitudes de creación gestionadas
+            // en el módulo de Solicitudes, no en el módulo de Proyectos.
+            case 'supervisor':
+                $sql = "
+                SELECT
+                    COUNT(*)                                                                             AS Total,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'           THEN 1 ELSE 0 END), 0) AS Activos,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'       THEN 1 ELSE 0 END), 0) AS PorCerrar,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'           THEN 1 ELSE 0 END), 0) AS Cierre,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Rechazado'        THEN 1 ELSE 0 END), 0) AS Rechazados,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'          THEN 1 ELSE 0 END), 0) AS Vencido
+                FROM proyectos AS proy
+                JOIN estados_proyectos AS espr
+                    ON proy.id_estadoP = espr.id_estadoP
+                WHERE proy.id_estadoP NOT IN (3, 4)   -- excluye Por aprobar y Rechazado
+            ";
+                $stmt = $this->con->prepare($sql);
+                if (!$stmt) return [];
                 break;
 
             default:
@@ -193,58 +215,67 @@ class Proyectos
 
     private function obtenerProyectosTablaEstudiante($id, $filtro, $buscar)
     {
-        $por_pagina = 6;
-        $pagina     = isset($_GET['pagina']) && $_GET['pagina'] > 0 ? intval($_GET['pagina']) : 1;
-        $desde      = ($pagina - 1) * $por_pagina;
+        $por_pagina    = 6;
+        $pagina        = isset($_GET['pagina']) && $_GET['pagina'] > 0 ? intval($_GET['pagina']) : 1;
+        $desde         = ($pagina - 1) * $por_pagina;
 
-        $total       = $this->obtenerCantidadEstudiante($id, $filtro, $buscar);
+        $total         = $this->obtenerCantidadEstudiante($id, $filtro, $buscar);
         $total_paginas = ceil($total / $por_pagina);
 
-        $sql = "SELECT 
+        // Solo proyectos con membresía confirmada (estado = 'activo').
+        // Se excluye cualquier proyecto donde el estudiante solo tenga una solicitud
+        // en proceso pero aún no haya sido vinculado como integrante activo.
+        $sql = "
+        SELECT
             proy.id_proyectos,
             proy.titulo,
             proy.fecha_inicio,
             proy.fecha_fin,
-            espr.nombre AS estado_proyecto,
+            espr.nombre          AS estado_proyecto,
             peri.periodo,
-            pu.estado AS estado_estudiante,
+            pu.estado            AS estado_estudiante,
             COALESCE(tr.total, 0) AS total
         FROM proyectos proy
-        JOIN proyectos_usuarios pu ON pu.id_proyectos = proy.id_proyectos
+        JOIN proyectos_usuarios pu
+            ON  pu.id_proyectos = proy.id_proyectos
+            AND pu.id_usuarios  = ?
+            AND pu.estado       = 'activo'
         JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-        JOIN periodos peri ON proy.id_periodos = peri.id_periodos
+        JOIN periodos peri          ON proy.id_periodos = peri.id_periodos
         LEFT JOIN (
-            SELECT ts.id_proyectos, COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
+            SELECT ts.id_proyectos,
+                   COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
             FROM tbl_seguimiento ts
-            JOIN tareas t ON t.id_avances = ts.id_avances
+            JOIN tareas t            ON t.id_avances = ts.id_avances
             LEFT JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
             GROUP BY ts.id_proyectos
         ) tr ON tr.id_proyectos = proy.id_proyectos
-        WHERE pu.id_usuarios = ?";
+        WHERE 1 = 1
+    ";
 
         $params = [$id];
         $types  = "i";
 
         if ($filtro != 0) {
-            $sql    .= " AND proy.id_estadoP = ?";
+            $sql     .= " AND proy.id_estadoP = ?";
             $params[] = $filtro;
-            $types  .= "i";
+            $types   .= "i";
         }
         if (!empty($buscar)) {
-            $sql    .= " AND proy.titulo LIKE ?";
+            $sql     .= " AND proy.titulo LIKE ?";
             $params[] = "%$buscar%";
-            $types  .= "s";
+            $types   .= "s";
         }
 
-        $sql    .= " ORDER BY proy.id_proyectos DESC LIMIT ?, ?";
+        $sql     .= " ORDER BY proy.id_proyectos DESC LIMIT ?, ?";
         $params[] = $desde;
         $params[] = $por_pagina;
-        $types  .= "ii";
+        $types   .= "ii";
 
         $data = $this->ejecutar($sql, $types, $params);
         return json_encode([
             "proyectos"  => $data,
-            "paginacion" => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas]
+            "paginacion" => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas],
         ]);
     }
 
@@ -257,73 +288,81 @@ class Proyectos
         $total         = $this->obtenerCantidadInvestigador($id, $filtro, $buscar);
         $total_paginas = ceil($total / $por_pagina);
 
-        $sql = "SELECT 
+        // Excluye 'Por aprobar' (id_estadoP = 3): proyectos cuya solicitud de creación
+        // aún está pendiente de aprobación por el supervisor.
+        $sql = "
+        SELECT
             proy.id_proyectos,
             proy.titulo,
             proy.fecha_inicio,
             proy.fecha_fin,
-            espr.nombre AS estado_proyecto,
+            espr.nombre           AS estado_proyecto,
             peri.periodo,
-            COALESCE(tr.total, 0) AS total,
-            CASE 
-                WHEN COALESCE(pa.total_alumnos,0) > 0
-                AND  COALESCE(tt.total_tareas,0) >= 11
-                AND  COALESCE(tc.tareas_completadas,0) = (COALESCE(tt.total_tareas,0) * COALESCE(pa.total_alumnos,0))
-                THEN 1 ELSE 0 
+            COALESCE(tr.total, 0)  AS total,
+            CASE
+                WHEN COALESCE(pa.total_alumnos,     0) > 0
+                 AND COALESCE(tt.total_tareas,       0) >= 11
+                 AND COALESCE(tc.tareas_completadas, 0) = (COALESCE(tt.total_tareas, 0) * COALESCE(pa.total_alumnos, 0))
+                THEN 1 ELSE 0
             END AS puede_cerrar
         FROM proyectos proy
         JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-        JOIN periodos peri ON proy.id_periodos = peri.id_periodos
+        JOIN periodos peri          ON proy.id_periodos = peri.id_periodos
         LEFT JOIN (
-            SELECT ts.id_proyectos, COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
+            SELECT ts.id_proyectos,
+                   COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
             FROM tbl_seguimiento ts
-            JOIN tareas t ON t.id_avances = ts.id_avances
-            LEFT JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+            JOIN tareas t                ON t.id_avances = ts.id_avances
+            LEFT JOIN tareas_usuarios tu ON tu.id_tarea  = t.id_tarea
             GROUP BY ts.id_proyectos
         ) tr ON tr.id_proyectos = proy.id_proyectos
         LEFT JOIN (
-            SELECT id_proyectos, COUNT(*) total_alumnos
-            FROM proyectos_usuarios WHERE estado = 'activo' GROUP BY id_proyectos
+            SELECT id_proyectos, COUNT(*) AS total_alumnos
+            FROM proyectos_usuarios WHERE estado = 'activo'
+            GROUP BY id_proyectos
         ) pa ON pa.id_proyectos = proy.id_proyectos
         LEFT JOIN (
-            SELECT ts.id_proyectos, COUNT(DISTINCT t.id_tarea) total_tareas
-            FROM tbl_seguimiento ts JOIN tareas t ON t.id_avances = ts.id_avances
+            SELECT ts.id_proyectos, COUNT(DISTINCT t.id_tarea) AS total_tareas
+            FROM tbl_seguimiento ts
+            JOIN tareas t ON t.id_avances = ts.id_avances
             GROUP BY ts.id_proyectos
         ) tt ON tt.id_proyectos = proy.id_proyectos
         LEFT JOIN (
-            SELECT ts.id_proyectos, COUNT(*) tareas_completadas
+            SELECT ts.id_proyectos, COUNT(*) AS tareas_completadas
             FROM tbl_seguimiento ts
-            JOIN tareas t ON t.id_avances = ts.id_avances
-            JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
-            JOIN proyectos_usuarios pu ON pu.id_usuarios = tu.id_usuarios
+            JOIN tareas t                ON t.id_avances  = ts.id_avances
+            JOIN tareas_usuarios tu      ON tu.id_tarea   = t.id_tarea
+            JOIN proyectos_usuarios pu   ON pu.id_usuarios = tu.id_usuarios
             WHERE tu.id_estadoT = 5 AND pu.estado = 'activo'
             GROUP BY ts.id_proyectos
         ) tc ON tc.id_proyectos = proy.id_proyectos
-        WHERE proy.id_investigador = ?";
+        WHERE proy.id_investigador = ?
+          AND proy.id_estadoP     <> 3    -- excluye 'Por aprobar'
+    ";
 
         $params = [$id];
         $types  = "i";
 
         if ($filtro != 0) {
-            $sql    .= " AND proy.id_estadoP = ?";
+            $sql     .= " AND proy.id_estadoP = ?";
             $params[] = $filtro;
-            $types  .= "i";
+            $types   .= "i";
         }
         if (!empty($buscar)) {
-            $sql    .= " AND proy.titulo LIKE ?";
+            $sql     .= " AND proy.titulo LIKE ?";
             $params[] = "%$buscar%";
-            $types  .= "s";
+            $types   .= "s";
         }
 
-        $sql    .= " ORDER BY proy.id_proyectos DESC LIMIT ?, ?";
+        $sql     .= " ORDER BY proy.id_proyectos DESC LIMIT ?, ?";
         $params[] = $desde;
         $params[] = $por_pagina;
-        $types  .= "ii";
+        $types   .= "ii";
 
         $data = $this->ejecutar($sql, $types, $params);
         return json_encode([
             "proyectos"  => $data,
-            "paginacion" => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas]
+            "paginacion" => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas],
         ]);
     }
 
@@ -431,21 +470,28 @@ class Proyectos
     // Contadores internos
     private function obtenerCantidadEstudiante($id, $filtro, $buscar)
     {
-        $sql    = "SELECT COUNT(*) total FROM proyectos proy
-                   JOIN proyectos_usuarios pu ON pu.id_proyectos = proy.id_proyectos
-                   WHERE pu.id_usuarios = ?";
+        // Solo cuenta proyectos donde el estudiante tiene membresía activa confirmada
+        // (estado = 'activo' en proyectos_usuarios), no solicitudes en proceso.
+        $sql    = "
+        SELECT COUNT(*) AS total
+        FROM proyectos proy
+        JOIN proyectos_usuarios pu
+            ON pu.id_proyectos = proy.id_proyectos
+           AND pu.id_usuarios  = ?
+           AND pu.estado       = 'activo'
+    ";
         $params = [$id];
         $types  = "i";
 
         if ($filtro != 0) {
-            $sql .= " AND proy.id_estadoP = ?";
+            $sql     .= " AND proy.id_estadoP = ?";
             $params[] = $filtro;
-            $types .= "i";
+            $types   .= "i";
         }
         if (!empty($buscar)) {
-            $sql .= " AND proy.titulo LIKE ?";
+            $sql     .= " AND proy.titulo LIKE ?";
             $params[] = "%$buscar%";
-            $types .= "s";
+            $types   .= "s";
         }
 
         return $this->ejecutar($sql, $types, $params, false)['total'] ?? 0;
@@ -453,19 +499,26 @@ class Proyectos
 
     private function obtenerCantidadInvestigador($id, $filtro, $buscar)
     {
-        $sql    = "SELECT COUNT(*) total FROM proyectos WHERE id_investigador = ?";
+        // Excluye proyectos en estado 'Por aprobar' (id_estadoP = 3): son solicitudes
+        // de creación todavía en revisión. Solo cuenta proyectos ya confirmados.
+        $sql    = "
+        SELECT COUNT(*) AS total
+        FROM proyectos
+        WHERE id_investigador = ?
+          AND id_estadoP <> 3
+    ";
         $params = [$id];
         $types  = "i";
 
         if ($filtro != 0) {
-            $sql .= " AND id_estadoP = ?";
+            $sql     .= " AND id_estadoP = ?";
             $params[] = $filtro;
-            $types .= "i";
+            $types   .= "i";
         }
         if (!empty($buscar)) {
-            $sql .= " AND titulo LIKE ?";
+            $sql     .= " AND titulo LIKE ?";
             $params[] = "%$buscar%";
-            $types .= "s";
+            $types   .= "s";
         }
 
         return $this->ejecutar($sql, $types, $params, false)['total'] ?? 0;
@@ -1276,8 +1329,9 @@ LIMIT 1;";
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function obtenerTodosPeriodos(){
-                $sql = "SELECT 
+    public function obtenerTodosPeriodos()
+    {
+        $sql = "SELECT 
         id_periodos,
         periodo,
         fecha_inicio AS FechaInicio,

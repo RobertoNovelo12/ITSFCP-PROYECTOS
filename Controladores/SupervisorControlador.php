@@ -18,7 +18,7 @@ class SupervisorControlador
         $this->modelo = new SupervisorModelo($conn);
     }
 
-    // ── Guardia de acceso ────────────────────────────────────────
+    //  Guardia de acceso 
 
     private function soloSupervisor(): void
     {
@@ -30,7 +30,7 @@ class SupervisorControlador
         }
     }
 
-    // ── Leer filtros comunes desde GET ───────────────────────────
+    //  Leer filtros comunes desde GET ─
 
     private function filtrosGET(): array
     {

@@ -105,7 +105,7 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- INFORMACIÓN DEL PROYECTO -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-semibold">Información del proyecto</div>
+        <div class="card-header fw-semibold"> <i class="bi bi-info-circle me-2"></i> Información del proyecto</div>
         <div class="card-body">
 
             <h5><?= htmlspecialchars($proyecto['titulo']) ?></h5>
@@ -165,7 +165,7 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- INVESTIGADOR -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-semibold">Investigador responsable</div>
+        <div class="card-header fw-semibold"><i class="bi bi-person-badge me-2"></i> Investigador responsable</div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
@@ -199,7 +199,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- ESTUDIANTES (solo para solicitudes de cierre) -->
     <?php if ($tipo_solicitud === 'cierre' && !empty($estudiantes)): ?>
         <div class="card mb-4 shadow-sm">
-            <div class="card-header fw-semibold">Estudiantes del proyecto</div>
+            <div class="card-header fw-semibold"><i class="bi bi-people-fill"></i> Estudiantes del proyecto</div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-striped text-center mb-0">
@@ -252,7 +252,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- ACCIONES DEL SUPERVISOR -->
     <?php if ($rol === 'supervisor'): ?>
         <div class="card mb-4 shadow-sm border-primary">
-            <div class="card-header fw-semibold text-white">Acciones sobre la solicitud</div>
+            <div class="card-header fw-semibold text-white"><i class="bi bi-gear-fill"></i> Acciones sobre la solicitud</div>
             <div class="card-body">
 
                 <?php if ($tipo_solicitud === 'creacion' && $proyecto['estado_proyecto'] === 'Por aprobar'): ?>
@@ -282,14 +282,14 @@ include __DIR__ . '/../../mensaje.php';
 
                         <!-- APROBAR CIERRE -->
                         <a href="../proyectos/index.php?action=actualizarestado&id_proyectos=<?= $id_proyecto ?>&tipo=Cierre"
-                           class="btn btn-success btn-lg"
+                           class="btn btn-success btn-sm"
                            onclick="return confirm('¿Confirma que desea APROBAR el cierre de este proyecto?')">
                             <i class="bi bi-check-circle-fill"></i> Aprobar cierre
                         </a>
 
                         <!-- RECHAZAR CIERRE -->
                         <a href="../proyectos/comentarios.php?id_proyectos=<?= $id_proyecto ?>&motivo=cierre_rechazado&desde=solicitudes"
-                           class="btn btn-danger btn-lg">
+                           class="btn btn-danger btn-sm">
                             <i class="bi bi-x-circle-fill"></i> Rechazar cierre
                         </a>
 
@@ -300,14 +300,6 @@ include __DIR__ . '/../../mensaje.php';
                         Esta solicitud ya fue procesada. Estado actual:
                         <strong><?= htmlspecialchars($proyecto['estado_proyecto']) ?></strong>
                     </div>
-                <?php endif; ?>
-
-                <!-- Ver tareas (disponible siempre para supervisor en cierre) -->
-                <?php if ($tipo_solicitud === 'cierre'): ?>
-                    <hr>
-                    <a href="../Tareas/index.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-info">
-                        <i class="bi bi-list-task"></i> Ver tareas del proyecto
-                    </a>
                 <?php endif; ?>
 
             </div>

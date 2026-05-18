@@ -50,7 +50,7 @@ ob_start();
     <!-- INFORMACIÓN DEL PERIODO -->
     <div class="card shadow-sm mb-4">
 
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0">Información del periodo</h5>
         </div>
 

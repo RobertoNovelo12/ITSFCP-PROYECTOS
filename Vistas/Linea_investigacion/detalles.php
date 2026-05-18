@@ -50,7 +50,7 @@ ob_start();
     <!-- INFORMACIÓN DE LA LINEA DE INVESTIGACION -->
     <div class="card shadow-sm mb-4">
 
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0">Información de la línea de investigación</h5>
         </div>
 

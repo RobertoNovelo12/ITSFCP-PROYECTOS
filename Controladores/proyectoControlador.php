@@ -197,7 +197,6 @@ class ProyectoControlador
                 'Rechazados'      => "Rechazados ({$filtros[0]['Rechazados']})",
                 'Cierre'          => "Cierre ({$filtros[0]['Cierre']})",
                 'PorCerrar'       => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-                'Cierrerechazado' => "Cierre rechazado ({$filtros[0]['Cierrerechazado']})",
                 'Vencido'         => "Vencidos ({$filtros[0]['Vencido']})",
             ];
         }
@@ -207,7 +206,6 @@ class ProyectoControlador
             return $base + [
                 'PorCerrar'       => "Por Cerrar ({$filtros[0]['PorCerrar']})",
                 'Cierre'          => "Cierre ({$filtros[0]['Cierre']})",
-                'Cierrerechazado' => "Cierre rechazado ({$filtros[0]['Cierrerechazado']})",
                 'Vencido'         => "Vencidos ({$filtros[0]['Vencido']})",
             ];
         }
@@ -255,14 +253,14 @@ class ProyectoControlador
         switch ($tipo) {
 
             case 'Detalles':
-                $boton = '<a href="detalles.php?id_proyectos=' . $id_proyecto . '" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-title="Ver detalles del proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
+                $boton = '<a href="detalles.php?id_proyectos=' . $id_proyecto . '" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-title="Ver detalles del proyecto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
                         <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
                     </svg></a>';
                 break;
 
             case 'Tareas':
-                $boton = '<a href="../Tareas/index.php?id_proyectos=' . $id_proyecto . '" class="btn btn-info" data-bs-toggle="tooltip" data-bs-title="Tareas">
+                $boton = '<a href="../Tareas/index.php?id_proyectos=' . $id_proyecto . '" class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-title="Tareas">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-task" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
                         <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/>
@@ -271,7 +269,7 @@ class ProyectoControlador
                 break;
 
             case 'Ver Tareas Alumnos':
-                $boton = '<a href="../Tareas/tareas_estudiante.php?id_usuario=' . $id_usuario . '&id_proyectos=' . $id_proyecto . '" class="btn btn-info" data-bs-toggle="tooltip" data-bs-title="Ver Tareas">
+                $boton = '<a href="../Tareas/tareas_estudiante.php?id_usuario=' . $id_usuario . '&id_proyectos=' . $id_proyecto . '" class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-title="Ver Tareas">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-list-task" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
                         <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/>
@@ -281,7 +279,7 @@ class ProyectoControlador
 
             case 'Aprobar':
                 $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos"
-                    class="btn btn-success" data-bs-toggle="tooltip" data-bs-title="Aprobar proyecto">
+                    class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar proyecto">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
                     </svg></a>';
@@ -289,15 +287,15 @@ class ProyectoControlador
 
             case 'Solicitar cerrar':
                 $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"
-                    class="btn btn-warning" data-bs-toggle="tooltip" data-bs-title="Solicitar cierre del proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                    class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="Solicitar cierre del proyecto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
                     </svg></a>';
                 break;
 
             case 'Aprobar cierre':
                 $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"
-                    class="btn btn-success" data-bs-toggle="tooltip" data-bs-title="Aprobar cierre de proyecto">
+                    class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar cierre de proyecto">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
                     </svg></a>';
@@ -305,16 +303,16 @@ class ProyectoControlador
 
             case 'Rechazar cierre':
                 $boton = '<a href="comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=cierre_rechazado"
-                    class="btn btn-danger" data-bs-toggle="tooltip" data-bs-title="Rechazar cierre de proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                    class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-title="Rechazar cierre de proyecto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
                     </svg></a>';
                 break;
 
             case 'Volver a enviar cierre':
                 $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"
-                    class="btn btn-warning" data-bs-toggle="tooltip" data-bs-title="Volver a enviar cierre">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                    class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="Volver a enviar cierre">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
                         <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
                         <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
                     </svg></a>';
@@ -322,8 +320,8 @@ class ProyectoControlador
 
             case 'Volver a enviar proyecto':
                 $boton = '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorAprobar"
-                    class="btn btn-warning" data-bs-toggle="tooltip" data-bs-title="Volver a enviar proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                    class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="Volver a enviar proyecto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
                         <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
                         <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
                     </svg></a>';
@@ -331,8 +329,8 @@ class ProyectoControlador
 
             case 'Editar':
                 $boton = '<a href="editar.php?id_proyectos=' . $id_proyecto . '"
-                    class="btn btn-warning" data-bs-toggle="tooltip" data-bs-title="Editar proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                    class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="Editar proyecto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                         <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
                         <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
                     </svg></a>';
@@ -340,16 +338,16 @@ class ProyectoControlador
 
             case 'Rechazar creacion':
                 $boton = '<a href="comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=creacion_rechazada"
-                    class="btn btn-danger" data-bs-toggle="tooltip" data-bs-title="Rechazar creación de proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                    class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-title="Rechazar creación de proyecto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
                     </svg></a>';
                 break;
 
             case 'Comentarios':
                 $boton = '<a href="ver_comentarios.php?id_proyectos=' . $id_proyecto . '"
-                    class="btn btn-info" data-bs-toggle="tooltip" data-bs-title="Ver comentarios">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
+                    class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-title="Ver comentarios">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
                         <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
                     </svg></a>';
                 break;
@@ -485,13 +483,13 @@ class ProyectoControlador
                 $botones .= '<a href="../proyectos/index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"
                     class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar cierre"
                     onclick="return confirm(\'¿Aprobar el cierre de este proyecto?\')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
                     </svg></a>';
                 // Rechazar cierre
                 $botones .= '<a href="../proyectos/comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=cierre_rechazado&desde=solicitudes"
                     class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-title="Rechazar cierre">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
                     </svg></a>';
             }

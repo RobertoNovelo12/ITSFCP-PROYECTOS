@@ -109,7 +109,7 @@ include __DIR__ . '/../../mensaje.php';
     <?php endif; ?>
 
     <!-- CONTEXTO -->
-    <div class="card mb-4 shadow-sm border-0 bg-light">
+    <div class="card mb-4 shadow-sm border-0">
         <div class="card-body">
             <div class="text-muted small mb-1">Proyecto</div>
             <p class="fw-semibold mb-1"><?= htmlspecialchars($sol['proyecto_titulo']) ?></p>

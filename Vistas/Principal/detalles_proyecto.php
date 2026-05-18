@@ -1,8 +1,5 @@
 <?php
-// Vistas/Proyectos/detalles_proyecto.php
-// Vista: Detalles de un proyecto.
-// Responsabilidad: presentación únicamente.
-// La lógica de negocio vive en DetallesProyectoControlador y DetallesProyectoModelo.
+// Vistas/Principal/detalles_proyecto.php
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -21,7 +18,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 // Validar parámetro de ruta
 $id_proyecto = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id_proyecto <= 0) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/menu/principal.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
@@ -33,7 +30,7 @@ $datos       = $controlador->obtenerDatos($id_proyecto, $id_usuario, $rol);
 
 // Si el proyecto no existe, redirigir
 if ($datos['proyecto'] === null) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/menu/principal.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
@@ -251,8 +248,8 @@ include __DIR__ . '/../../mensaje.php';
         <div class="col-12">
             <div class="acciones-container">
 
-                <!-- Botón Regresar (visible para todos los roles) -->
-                <a href="index.php" class="home-btn">
+                <!-- Botón Regresar -->
+                <a href="index.php" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Regresar
                 </a>
 
@@ -265,8 +262,8 @@ include __DIR__ . '/../../mensaje.php';
                         </span>
 
                     <?php elseif ($puede_solicitar): ?>
-                        <!-- Ventana abierta y sin solicitud activa → puede enviar -->
-                        <a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/solicitud_integracion.php?id=<?= $id_proyecto ?>"
+                        <!-- Ventana abierta y sin solicitud activa -> puede enviar -->
+                        <a href="/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyecto=<?= $id_proyecto ?>"
                             class="btn-enviar-solicitud">
                             <i class="bi bi-send"></i> Solicitud
                         </a>

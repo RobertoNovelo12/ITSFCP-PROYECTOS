@@ -20,9 +20,9 @@ class misalumnosControlador
         $this->modelo = new misalumnos($conn);
     }
 
-    // ================================================================
+    // 
     // GUARDIA DE ACCESO
-    // ================================================================
+    // 
 
     /**
      * Verifica que el usuario en sesión tenga rol de investigador o profesor.
@@ -38,9 +38,9 @@ class misalumnosControlador
         }
     }
 
-    // ================================================================
+    // 
     // LECTURA SEGURA DE FILTROS GET
-    // ================================================================
+    // 
 
     /**
      * Lee y sanea todos los filtros del querystring.
@@ -62,9 +62,9 @@ class misalumnosControlador
         ];
     }
 
-    // ================================================================
+    // 
     // ACCIÓN PRINCIPAL — index()
-    // ================================================================
+    // 
 
     /**
      * Reúne todos los datos necesarios para la vista index.php.
@@ -110,9 +110,9 @@ class misalumnosControlador
         );
     }
 
-    // ================================================================
+    // 
     // HELPERS DE PRESENTACIÓN (usados directamente en la vista)
-    // ================================================================
+    // 
 
     /**
      * Badge Bootstrap para el estado de participación en el proyecto.

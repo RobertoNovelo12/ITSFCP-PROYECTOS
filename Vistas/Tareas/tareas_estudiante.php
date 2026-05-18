@@ -97,7 +97,7 @@ ob_start();
                 Actividades aún no disponibles (<?= count($tareasInactivas) ?>)
             </summary>
             <?php foreach ($tareasInactivas as $tarea): ?>
-                <div class="task-card bg-light mb-2 p-3 opacity-75">
+                <div class="task-card mb-2 p-3 opacity-75">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="task-tipo"><?= htmlspecialchars($tarea['tipo']) ?></span>
                         <span class="badge text-bg-dark rounded-pill task-badge-estado">Sin activar</span>

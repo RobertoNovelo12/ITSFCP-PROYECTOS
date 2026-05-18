@@ -41,13 +41,6 @@ ob_start();
     <!-- ENCABEZADO -->
     <div class="row align-items-center mb-4">
         <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="panel_supervisor.php">Panel</a></li>
-                    <li class="breadcrumb-item"><a href="panel_supervisor.php?tab=proyectos">Proyectos</a></li>
-                    <li class="breadcrumb-item active">Detalle</li>
-                </ol>
-            </nav>
             <h4 class="mb-0 fw-bold"><?= htmlspecialchars($proyecto['titulo']) ?></h4>
         </div>
         <div class="col-auto">
@@ -61,25 +54,25 @@ ob_start();
     <!-- MÉTRICAS RÁPIDAS -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light text-center py-3">
+            <div class="card border-0 text-center py-3">
                 <div class="fs-3 fw-bold text-primary"><?= count($estudiantes) ?></div>
                 <div class="small text-muted">Participantes</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light text-center py-3">
+            <div class="card border-0 text-center py-3">
                 <div class="fs-3 fw-bold text-success"><?= $aprob_tar_proy ?></div>
                 <div class="small text-muted">Tareas aprobadas</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light text-center py-3">
+            <div class="card border-0 text-center py-3">
                 <div class="fs-3 fw-bold text-warning"><?= count($solicitudes) ?></div>
                 <div class="small text-muted">Solicitudes</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light text-center py-3">
+            <div class="card border-0 text-center py-3">
                 <div class="fs-3 fw-bold text-<?= $color_pct ?>"><?= $pct_proy ?>%</div>
                 <div class="small text-muted">Avance global</div>
             </div>
@@ -106,8 +99,8 @@ ob_start();
 
             <!-- Información general -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-semibold">
-                    <i class="bi bi-info-circle me-2 text-primary"></i>Información del proyecto
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-info-circle me-2"></i>Información del proyecto
                 </div>
                 <div class="card-body">
                     <dl class="info-dl row mb-0">
@@ -156,8 +149,8 @@ ob_start();
             <!-- Investigador -->
             <?php if (!empty($proyecto['investigador_nombre'])): ?>
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-semibold">
-                    <i class="bi bi-person-badge me-2 text-success"></i>Investigador responsable
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-person-badge me-2"></i>Investigador responsable
                 </div>
                 <div class="card-body">
                     <dl class="info-dl row mb-0">
@@ -183,8 +176,8 @@ ob_start();
 
             <!-- Participantes -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-semibold">
-                    <i class="bi bi-people me-2 text-primary"></i>Participantes
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-people me-2"></i>Participantes
                     <span class="badge bg-primary float-end"><?= count($estudiantes) ?></span>
                 </div>
                 <div class="card-body">
@@ -241,8 +234,8 @@ ob_start();
 
             <!-- Secciones del documento — TABLA DESKTOP -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-semibold">
-                    <i class="bi bi-list-task me-2 text-info"></i>Secciones del documento
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-list-task me-2"></i>Secciones del documento
                 </div>
                 <div class="card-body p-0">
                     <!-- Tabla desktop -->
@@ -317,8 +310,8 @@ ob_start();
 
             <!-- Solicitudes del proyecto -->
             <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold"><i class="bi bi-envelope-paper me-2 text-warning"></i>Solicitudes de ingreso</span>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold"><i class="bi bi-envelope-paper me-2"></i>Solicitudes de ingreso</span>
                     <span class="badge bg-warning text-dark"><?= count($solicitudes) ?></span>
                 </div>
                 <div class="card-body p-0">

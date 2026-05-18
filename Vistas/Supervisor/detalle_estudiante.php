@@ -51,13 +51,6 @@ ob_start();
     <!-- ENCABEZADO -->
     <div class="row align-items-center mb-4">
         <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="panel_supervisor.php">Panel</a></li>
-                    <li class="breadcrumb-item"><a href="panel_supervisor.php?tab=usuarios">Estudiantes</a></li>
-                    <li class="breadcrumb-item active">Detalle</li>
-                </ol>
-            </nav>
             <h4 class="mb-0 fw-bold">
                 <?= htmlspecialchars($usuario['nombre'] . ' ' . $usuario['apellido_paterno'] . ' ' . $usuario['apellido_materno']) ?>
             </h4>
@@ -77,25 +70,25 @@ ob_start();
     <!-- MÉTRICAS -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light text-center py-3">
+            <div class="card border-0 text-center py-3">
                 <div class="fs-3 fw-bold text-primary"><?= count($proyectos) ?></div>
                 <div class="small text-muted">Proyectos</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light text-center py-3">
+            <div class="card border-0 text-center py-3">
                 <div class="fs-3 fw-bold text-success"><?= $tareas_aprobadas ?></div>
                 <div class="small text-muted">Tareas aprobadas</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light text-center py-3">
+            <div class="card border-0 text-center py-3">
                 <div class="fs-3 fw-bold text-danger"><?= $tareas_vencidas ?></div>
                 <div class="small text-muted">Tareas vencidas</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light text-center py-3">
+            <div class="card border-0 text-center py-3">
                 <div class="fs-3 fw-bold text-<?= $color_global ?>"><?= $pct_global ?>%</div>
                 <div class="small text-muted">Avance global</div>
             </div>
@@ -122,8 +115,8 @@ ob_start();
 
             <!-- Datos personales -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-semibold">
-                    <i class="bi bi-person-circle me-2 text-primary"></i>Datos personales
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-person-circle me-2"></i>Datos personales
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-3">
@@ -167,8 +160,8 @@ ob_start();
 
             <!-- Solicitudes del estudiante -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold"><i class="bi bi-envelope-paper me-2 text-warning"></i>Solicitudes enviadas</span>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold"><i class="bi bi-envelope-paper me-2"></i>Solicitudes enviadas</span>
                     <span class="badge bg-warning text-dark"><?= count($solicitudes) ?></span>
                 </div>
                 <div class="card-body" style="max-height:260px;overflow-y:auto">
@@ -209,8 +202,8 @@ ob_start();
 
             <!-- Proyectos del estudiante -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-semibold">
-                    <i class="bi bi-folder2-open me-2 text-success"></i>Proyectos en los que ha participado
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-folder2-open me-2"></i>Proyectos en los que ha participado
                     <span class="badge bg-success float-end"><?= count($proyectos) ?></span>
                 </div>
                 <div class="card-body">
@@ -271,8 +264,8 @@ ob_start();
 
             <!-- Historial de tareas por proyecto -->
             <div class="card shadow-sm">
-                <div class="card-header bg-white fw-semibold">
-                    <i class="bi bi-list-check me-2 text-info"></i>Historial de tareas por proyecto
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-list-check me-2"></i>Historial de tareas por proyecto
                 </div>
                 <div class="card-body p-0">
                     <?php if (!empty($tareas_por_proyecto)): ?>

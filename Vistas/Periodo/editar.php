@@ -53,7 +53,7 @@ include __DIR__ . '/../../error.php';
 
     <!-- DATOS PERIODO -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-light">
+        <div class="card-header">
             <h5 class="mb-0">Información del periodo</h5>
         </div>
         <div class="card-body">

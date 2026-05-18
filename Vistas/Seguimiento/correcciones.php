@@ -74,7 +74,7 @@ ob_start();
     </div>
 
     <!-- Info del proyecto -->
-    <div class="card border-0 bg-light mb-4 p-3">
+    <div class="card border-0 mb-4 p-3">
         <div class="row g-2">
             <div class="col-md-8">
                 <div class="fw-semibold"><?= htmlspecialchars($detalle['proyecto_titulo']) ?></div>

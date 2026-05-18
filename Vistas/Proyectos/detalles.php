@@ -56,7 +56,7 @@ ob_start();
     <div class="card mb-4 shadow-sm">
 
         <div class="card-header">
-            <b>Información del proyecto</b>
+            <i class="bi bi-info-circle me-2"></i> <b>Información del proyecto</b>
         </div>
 
         <div class="card-body">
@@ -155,7 +155,7 @@ ob_start();
     <div class="card mb-4 shadow-sm">
 
         <div class="card-header">
-            <b>Investigador</b>
+            <i class="bi bi-person-badge me-2"></i> <b>Investigador</b>
         </div>
 
         <div class="card-body">
@@ -200,7 +200,7 @@ ob_start();
 
     <?php if ($rol == "supervisor" || $rol == "profesor" || $rol == "investigador"): ?>
 
-        <h5 class="mb-3">Estudiantes involucrados</h5>
+        <h5 class="mb-3"><i class="bi bi-people-fill"></i> Estudiantes involucrados</h5>
 
         <!-- TABLA (LAPTOP) -->
         <?php if (!empty($estudiantes)) { ?>
