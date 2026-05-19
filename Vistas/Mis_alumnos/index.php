@@ -13,7 +13,7 @@ error_reporting(E_ALL);
 
 session_start();
 
-// ── Guardia de sesión ────────────────────────────────────────────────
+// index Guardia de sesión indexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindex
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
@@ -28,18 +28,18 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
-// ── Controlador ──────────────────────────────────────────────────────
+// index Controlador indexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindex
 require_once '../../Controladores/misalumnosControlador.php';
 $ctrl = new misalumnosControlador();
 $data = $ctrl->index();
 extract($data);   // $filtros, $periodos, $proyectos, $carreras,
 // $resumen, $alumnos, $paginacion
 
-// ── Buffer de salida + mensaje de sistema ────────────────────────────
+// index Buffer de salida + mensaje de sistema indexindexindexindexindexindexindexindexindexindexindexindexindexindex
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 
-// ── Opciones fijas de estado de participación ────────────────────────
+// index Opciones fijas de estado de participación indexindexindexindexindexindexindexindexindexindexindexindex
 $opEstado = [
     ''          => 'Todos los estados',
     'activo'    => 'Activo',
@@ -47,7 +47,7 @@ $opEstado = [
     'baja'      => 'Baja',
 ];
 
-// ── Opciones de estado del proceso (según tabla estados_proceso) ─────
+// index Opciones de estado del proceso (según tabla estados_proceso) indexindex─
 $opEstadoProceso = [
     ''                    => 'Todos los procesos',
     'en_proceso'          => 'En proceso',
@@ -231,7 +231,7 @@ $opEstadoProceso = [
      -->
     <?php if (!empty($alumnos)): ?>
 
-        <!-- ── TABLA DESKTOP ──────────────────────────────────── -->
+        <!-- index TABLA DESKTOP indexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindex -->
         <div class="card shadow-sm d-none d-md-block">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -323,7 +323,7 @@ $opEstadoProceso = [
             </div>
         </div>
 
-        <!-- ── TARJETAS MÓVIL ──────────────────────────────────── -->
+        <!-- index TARJETAS MÓVIL indexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindex -->
         <div class="d-block d-md-none">
             <?php foreach ($alumnos as $a): ?>
                 <div class="card shadow-sm mb-3
@@ -383,7 +383,7 @@ $opEstadoProceso = [
             <?php endforeach; ?>
         </div>
 
-        <!-- ── PAGINACIÓN ─────────────────────────────────────── -->
+        <!-- index PAGINACIÓN indexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindex─ -->
         <?= $ctrl->htmlPaginacion($paginacion, $filtros) ?>
 
     <?php else: ?>

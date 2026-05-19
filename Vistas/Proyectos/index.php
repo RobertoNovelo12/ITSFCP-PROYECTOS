@@ -222,7 +222,8 @@ include __DIR__ . '/../../mensaje.php';
 
                                 <h5>ID: <?= $proyecto['id_proyectos'] ?></h5>
                                 <p><strong>Título:</strong> <?= htmlspecialchars($proyecto['titulo']) ?></p>
-
+                                <p><strong>Fecha inicio:</strong> <?= $proyecto['fecha_inicio'] ?></p>
+                                <p><strong>Fecha final:</strong> <?= $proyecto['fecha_fin'] ?></p>
                                 <p>
                                     <strong>Estado proyecto:</strong>
                                     <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">

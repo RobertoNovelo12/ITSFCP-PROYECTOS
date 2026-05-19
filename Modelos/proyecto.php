@@ -38,133 +38,221 @@ class Proyectos
         return true;
     }
 
-    // 
-    // MANTENIMIENTO AUTOMÁTICO DE ESTADOS
-    // 
+   // 
+// MANTENIMIENTO AUTOMÁTICO DE ESTADOS
+// 
 
+    /**
+     * Paso 1 — Marcar proyectos como Vencidos.
+     *
+     * Condición: fecha_fin < hoy Y estado NO es Cierre (1) ni ya Vencido (6).
+     * NO se usa fecha del periodo; siempre se lee proyectos.fecha_fin.
+     *
+     * Estados que pueden vencer: Activo(2), Por aprobar(3), Rechazado(4),
+     *                             Por cerrar(5), Cierre rechazado(7).
+     */
     public function actualizarProyectosVencidos(): bool
     {
-        $sql = "UPDATE proyectos 
-                SET id_estadoP = 6
-                WHERE id_estadoP IN (2,3,4,5,7)
-                  AND fecha_fin < CURDATE()";
-        return $this->ejecutar($sql);
+        return $this->ejecutar("
+        UPDATE proyectos
+        SET id_estadoP = 6
+        WHERE id_estadoP IN (2, 3, 4, 5, 7)
+          AND fecha_fin < CURDATE()
+    ");
     }
 
+    /**
+     * Paso 2 — Actualizar estudiantes de proyectos vencidos.
+     *
+     * CASO 1 — Etapa 2 completa (todas las tareas aprobadas, id_estadoT = 5):
+     *   El estudiante SÍ trabajó y terminó sus actividades.
+     *   → Permanece 'activo'. Solo se registra historial con acción 'vencido'.
+     *   → Sigue pudiendo subir carta de terminación y esperar validación.
+     *   → id_estados_proceso NO se modifica (puede estar en carta_subida,
+     *     en_correccion, liberado_supervisor, etc.).
+     *
+     * CASO 2 — Etapa 2 incompleta (tiene tareas sin aprobar O sin tareas):
+     *   El estudiante NO concluyó actividades.
+     *   → Pasa a 'baja' con motivo 'Proyecto vencido sin concluir actividades'.
+     *   → Se registra historial con acción 'baja'.
+     *
+     * En ambos casos NO se toca: tbl_seguimiento, tbl_cierres, tareas_usuarios.
+     */
     public function actualizarEstadoEstudiantesVencidos(): bool
     {
-        // 1. Historial de baja por vencimiento
-        $this->ejecutar("
-            INSERT INTO historial_proyectos_usuarios 
-                (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
-            SELECT pu.id_proyectos, pu.id_usuarios, 'baja', 'Proyecto vencido', 0, NOW()
-            FROM proyectos_usuarios pu
-            JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
-            WHERE p.fecha_fin < CURDATE()
-              AND p.id_estadoP != 1
-              AND pu.estado = 'activo'
-              AND NOT EXISTS (
-                  SELECT 1 FROM historial_proyectos_usuarios h
-                  WHERE h.id_proyectos = pu.id_proyectos
-                    AND h.id_estudiante = pu.id_usuarios
-                    AND h.accion = 'baja'
-                    AND h.motivo = 'Proyecto vencido'
-              )");
+        //  Subquery reutilizable: identifica estudiantes con Etapa 2 completa.
+        // Etapa 2 completa = tiene al menos una tarea asignada Y todas aprobadas.
+        // Se evalúa solo dentro del proyecto correspondiente (ts.id_proyectos).
+        $etapa2_completa = "
+        EXISTS (
+            SELECT 1
+            FROM tareas_usuarios tu2
+            JOIN tareas t2           ON t2.id_tarea    = tu2.id_tarea
+            JOIN tbl_seguimiento ts2 ON ts2.id_avances = t2.id_avances
+            WHERE tu2.id_usuarios   = pu.id_usuarios
+              AND ts2.id_proyectos  = pu.id_proyectos
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM tareas_usuarios tu3
+            JOIN tareas t3           ON t3.id_tarea    = tu3.id_tarea
+            JOIN tbl_seguimiento ts3 ON ts3.id_avances = t3.id_avances
+            WHERE tu3.id_usuarios   = pu.id_usuarios
+              AND ts3.id_proyectos  = pu.id_proyectos
+              AND tu3.id_estadoT   <> 5
+        )
+    ";
 
-        // 2. Baja por vencimiento
+        // 
+        // CASO 1 — Historial 'vencido' para estudiantes que SÍ terminaron Etapa 2.
+        // Solo se inserta si no existe ya un registro 'vencido' para ese par.
+        // 
         $this->ejecutar("
-            UPDATE proyectos_usuarios pu
-            JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
-            SET pu.estado = 'baja', pu.fecha_baja = NOW(), pu.motivo_baja = 'Proyecto vencido'
-            WHERE p.fecha_fin < CURDATE()
-              AND p.id_estadoP != 1
-              AND pu.estado = 'activo'");
+        INSERT INTO historial_proyectos_usuarios
+            (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
+        SELECT
+            pu.id_proyectos,
+            pu.id_usuarios,
+            'vencido',
+            'Proyecto vencido — estudiante concluyó actividades, pendiente de carta de terminación',
+            0,
+            NOW()
+        FROM proyectos_usuarios pu
+        JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+        WHERE p.fecha_fin    < CURDATE()
+          AND p.id_estadoP   = 6          -- ya marcado como Vencido en paso 1
+          AND pu.estado       = 'activo'
+          AND {$etapa2_completa}
+          AND NOT EXISTS (
+              SELECT 1 FROM historial_proyectos_usuarios h
+              WHERE h.id_proyectos  = pu.id_proyectos
+                AND h.id_estudiante = pu.id_usuarios
+                AND h.accion        = 'vencido'
+          )
+    ");
+        // El estudiante del Caso 1 permanece 'activo' — no se hace UPDATE en
+        // proyectos_usuarios. Solo queda el registro en historial.
 
-        // 3. Historial concluido
+        // 
+        // CASO 2 — Historial 'baja' para estudiantes que NO terminaron Etapa 2.
+        // 
         $this->ejecutar("
-            INSERT INTO historial_proyectos_usuarios 
-                (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
-            SELECT pu.id_proyectos, pu.id_usuarios, 'concluido', 'Proyecto finalizado', 0, NOW()
-            FROM proyectos_usuarios pu
-            JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
-            WHERE p.id_estadoP = 1
-              AND pu.estado = 'activo'
-              AND NOT EXISTS (
-                  SELECT 1 FROM historial_proyectos_usuarios h
-                  WHERE h.id_proyectos = pu.id_proyectos
-                    AND h.id_estudiante = pu.id_usuarios
-                    AND h.accion = 'concluido'
-              )");
+        INSERT INTO historial_proyectos_usuarios
+            (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
+        SELECT
+            pu.id_proyectos,
+            pu.id_usuarios,
+            'baja',
+            'Proyecto vencido sin concluir actividades',
+            0,
+            NOW()
+        FROM proyectos_usuarios pu
+        JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+        WHERE p.fecha_fin    < CURDATE()
+          AND p.id_estadoP   = 6
+          AND pu.estado       = 'activo'
+          AND NOT ({$etapa2_completa})
+          AND NOT EXISTS (
+              SELECT 1 FROM historial_proyectos_usuarios h
+              WHERE h.id_proyectos  = pu.id_proyectos
+                AND h.id_estudiante = pu.id_usuarios
+                AND h.accion        = 'baja'
+                AND h.motivo        = 'Proyecto vencido sin concluir actividades'
+          )
+    ");
 
-        // 4. Concluir estudiantes
+        // CASO 2 — Dar de baja en proyectos_usuarios.
         return $this->ejecutar("
-            UPDATE proyectos_usuarios pu
-            JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
-            SET pu.estado = 'concluido'
-            WHERE p.id_estadoP = 1 AND pu.estado = 'activo'");
+        UPDATE proyectos_usuarios pu
+        JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
+        SET
+            pu.estado       = 'baja',
+            pu.fecha_baja   = NOW(),
+            pu.motivo_baja  = 'Proyecto vencido sin concluir actividades'
+        WHERE p.fecha_fin   < CURDATE()
+          AND p.id_estadoP  = 6
+          AND pu.estado      = 'activo'
+          AND NOT ({$etapa2_completa})
+    ");
     }
 
     // 
     // FILTROS / CONTEOS
     // 
 
-    public function obtenerProyectosDatosFiltro(int $id, string $rol): array
+    public function obtenerProyectosDatosFiltro($id, $rol)
     {
         switch ($rol) {
 
-            // Estudiante: solo proyectos con membresía activa confirmada
+            //  Estudiante 
+            // Solo proyectos en los que el estudiante ya fue ACEPTADO (estado activo
+            // en proyectos_usuarios). No se cuentan membresías en baja/cancelado ni
+            // proyectos con solicitud en proceso (solo la integración confirmada).
             case 'estudiante':
-                $sql  = "
-                    SELECT
-                        COUNT(*) AS Total,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'      THEN 1 ELSE 0 END), 0) AS Activos,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'  THEN 1 ELSE 0 END), 0) AS PorCerrar,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'      THEN 1 ELSE 0 END), 0) AS Cierre,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'     THEN 1 ELSE 0 END), 0) AS Vencido
-                    FROM proyectos AS proy
-                    JOIN proyectos_usuarios AS pu
-                        ON pu.id_proyectos = proy.id_proyectos
-                       AND pu.id_usuarios  = ?
-                       AND pu.estado       = 'activo'
-                    JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP";
+                $sql = "
+                SELECT
+                    COUNT(*)                                                                    AS Total,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'      THEN 1 ELSE 0 END), 0) AS Activos,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'  THEN 1 ELSE 0 END), 0) AS PorCerrar,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'      THEN 1 ELSE 0 END), 0) AS Cierre,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'     THEN 1 ELSE 0 END), 0) AS Vencido
+                FROM proyectos AS proy
+                JOIN proyectos_usuarios AS pu
+                    ON pu.id_proyectos = proy.id_proyectos
+                   AND pu.id_usuarios  = ?
+                   AND pu.estado       = 'activo'          -- solo membresías confirmadas
+                JOIN estados_proyectos AS espr
+                    ON proy.id_estadoP = espr.id_estadoP
+            ";
                 $stmt = $this->con->prepare($sql);
                 if (!$stmt) return [];
                 $stmt->bind_param("i", $id);
                 break;
 
-            // Investigador / Profesor: excluye 'Por aprobar' (3 — solicitudes pendientes)
+            //  Investigador / Profesor ─
+            // Excluye proyectos en estado 'Por aprobar' (id_estadoP = 3): son solicitudes
+            // de creación aún en revisión por el supervisor, no proyectos confirmados.
             case 'investigador':
             case 'profesor':
-                $sql  = "
-                    SELECT
-                        COUNT(*) AS Total,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'      THEN 1 ELSE 0 END), 0) AS Activos,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'  THEN 1 ELSE 0 END), 0) AS PorCerrar,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'      THEN 1 ELSE 0 END), 0) AS Cierre,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Rechazado'   THEN 1 ELSE 0 END), 0) AS Rechazados,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'     THEN 1 ELSE 0 END), 0) AS Vencido
-                    FROM proyectos AS proy
-                    JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
-                    WHERE proy.id_investigador = ?
-                      AND proy.id_estadoP <> 3";
+                $sql = "
+                SELECT
+                    COUNT(*)                                                                             AS Total,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'           THEN 1 ELSE 0 END), 0) AS Activos,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'       THEN 1 ELSE 0 END), 0) AS PorCerrar,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'           THEN 1 ELSE 0 END), 0) AS Cierre,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Rechazado'        THEN 1 ELSE 0 END), 0) AS Rechazados,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'          THEN 1 ELSE 0 END), 0) AS Vencido,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre rechazado' THEN 1 ELSE 0 END), 0) AS CierreRechazado
+                FROM proyectos AS proy
+                JOIN estados_proyectos AS espr
+                    ON proy.id_estadoP = espr.id_estadoP
+                WHERE proy.id_investigador = ?
+                  AND proy.id_estadoP <> 3   -- excluye 'Por aprobar' (solicitud en proceso)
+            ";
                 $stmt = $this->con->prepare($sql);
                 if (!$stmt) return [];
                 $stmt->bind_param("i", $id);
                 break;
 
-            // Supervisor: excluye Por aprobar (3) y Rechazado (4) → van al módulo Solicitudes
+            //  Supervisor 
+            // Igual que investigador: excluye 'Por aprobar' (3) y 'Rechazado' (4)
+            // porque esos estados corresponden a solicitudes de creación gestionadas
+            // en el módulo de Solicitudes, no en el módulo de Proyectos.
             case 'supervisor':
-                $sql  = "
-                    SELECT
-                        COUNT(*) AS Total,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'      THEN 1 ELSE 0 END), 0) AS Activos,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'  THEN 1 ELSE 0 END), 0) AS PorCerrar,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'      THEN 1 ELSE 0 END), 0) AS Cierre,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Rechazado'   THEN 1 ELSE 0 END), 0) AS Rechazados,
-                        COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'     THEN 1 ELSE 0 END), 0) AS Vencido
-                    FROM proyectos AS proy
-                    JOIN estados_proyectos AS espr ON proy.id_estadoP = espr.id_estadoP
-                    WHERE proy.id_estadoP NOT IN (3, 4)";
+                $sql = "
+                SELECT
+                    COUNT(*)                                                                             AS Total,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Activo'           THEN 1 ELSE 0 END), 0) AS Activos,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Por cerrar'       THEN 1 ELSE 0 END), 0) AS PorCerrar,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre'           THEN 1 ELSE 0 END), 0) AS Cierre,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Rechazado'        THEN 1 ELSE 0 END), 0) AS Rechazados,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Vencido'          THEN 1 ELSE 0 END), 0) AS Vencido,
+                    COALESCE(SUM(CASE WHEN espr.nombre = 'Cierre rechazado' THEN 1 ELSE 0 END), 0) AS CierreRechazado
+                FROM proyectos AS proy
+                JOIN estados_proyectos AS espr
+                    ON proy.id_estadoP = espr.id_estadoP
+                WHERE proy.id_estadoP NOT IN (3, 4)   -- excluye Por aprobar y Rechazado
+            ";
                 $stmt = $this->con->prepare($sql);
                 if (!$stmt) return [];
                 break;
@@ -196,45 +284,50 @@ class Proyectos
         }
     }
 
-    private function obtenerProyectosTablaEstudiante(int $id, ?int $filtro, ?string $buscar): string
+    private function obtenerProyectosTablaEstudiante($id, $filtro, $buscar)
     {
         $por_pagina    = 6;
-        $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
+        $pagina        = isset($_GET['pagina']) && $_GET['pagina'] > 0 ? intval($_GET['pagina']) : 1;
         $desde         = ($pagina - 1) * $por_pagina;
 
         $total         = $this->obtenerCantidadEstudiante($id, $filtro, $buscar);
-        $total_paginas = max(1, (int)ceil($total / $por_pagina));
+        $total_paginas = ceil($total / $por_pagina);
 
-        $sql    = "
-            SELECT
-                proy.id_proyectos,
-                proy.titulo,
-                proy.fecha_inicio,
-                proy.fecha_fin,
-                espr.nombre           AS estado_proyecto,
-                peri.periodo,
-                pu.estado             AS estado_estudiante,
-                COALESCE(tr.total, 0) AS total
-            FROM proyectos proy
-            JOIN proyectos_usuarios pu
-                ON  pu.id_proyectos = proy.id_proyectos
-                AND pu.id_usuarios  = ?
-                AND pu.estado       = 'activo'
-            JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-            JOIN periodos peri           ON proy.id_periodos = peri.id_periodos
-            LEFT JOIN (
-                SELECT ts.id_proyectos,
-                       COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
-                FROM tbl_seguimiento ts
-                JOIN tareas t            ON t.id_avances = ts.id_avances
-                LEFT JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
-                GROUP BY ts.id_proyectos
-            ) tr ON tr.id_proyectos = proy.id_proyectos
-            WHERE 1 = 1";
+        // Solo proyectos con membresía confirmada (estado = 'activo').
+        // Se excluye cualquier proyecto donde el estudiante solo tenga una solicitud
+        // en proceso pero aún no haya sido vinculado como integrante activo.
+        $sql = "
+        SELECT
+            proy.id_proyectos,
+            proy.titulo,
+            proy.fecha_inicio,
+            proy.fecha_fin,
+            espr.nombre          AS estado_proyecto,
+            peri.periodo,
+            pu.estado            AS estado_estudiante,
+            COALESCE(tr.total, 0) AS total
+        FROM proyectos proy
+        JOIN proyectos_usuarios pu
+            ON  pu.id_proyectos = proy.id_proyectos
+            AND pu.id_usuarios  = ?
+            AND pu.estado       = 'activo'
+        JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
+        JOIN periodos peri          ON proy.id_periodos = peri.id_periodos
+        LEFT JOIN (
+            SELECT ts.id_proyectos,
+                   COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
+            FROM tbl_seguimiento ts
+            JOIN tareas t            ON t.id_avances = ts.id_avances
+            LEFT JOIN tareas_usuarios tu ON tu.id_tarea = t.id_tarea
+            GROUP BY ts.id_proyectos
+        ) tr ON tr.id_proyectos = proy.id_proyectos
+        WHERE 1 = 1
+    ";
+
         $params = [$id];
         $types  = "i";
 
-        if ($filtro) {
+        if ($filtro != 0) {
             $sql     .= " AND proy.id_estadoP = ?";
             $params[] = $filtro;
             $types   .= "i";
@@ -257,78 +350,116 @@ class Proyectos
         ]);
     }
 
-    private function obtenerProyectosTablaInvestigador(int $id, ?int $filtro, ?string $buscar): string
+    private function obtenerProyectosTablaInvestigador($id, $filtro, $buscar)
     {
         $por_pagina    = 6;
-        $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
+        $pagina        = isset($_GET['pagina']) && $_GET['pagina'] > 0 ? intval($_GET['pagina']) : 1;
         $desde         = ($pagina - 1) * $por_pagina;
 
         $total         = $this->obtenerCantidadInvestigador($id, $filtro, $buscar);
-        $total_paginas = max(1, (int)ceil($total / $por_pagina));
+        $total_paginas = ceil($total / $por_pagina);
 
-        // Excluye estado 3 ('Por aprobar'): solicitudes pendientes de aprobación
-        $sql    = "
-            SELECT
-                proy.id_proyectos,
-                proy.titulo,
-                proy.fecha_inicio,
-                proy.fecha_fin,
-                espr.nombre            AS estado_proyecto,
-                peri.periodo,
-                COALESCE(tr.total, 0)  AS total,
-                CASE
-                    WHEN COALESCE(total_est.total_estudiantes, 0) = 0                THEN 0
-                    WHEN COALESCE(activos_bloqueados.total, 0) > 0                   THEN 0
-                    WHEN COALESCE(activos_completos.total, 0) > 0                    THEN 1
-                    WHEN COALESCE(total_activos.total, 0) = 0                        THEN 1
-                    ELSE 0
-                END AS puede_cerrar
-            FROM proyectos proy
-            JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-            JOIN periodos peri           ON proy.id_periodos = peri.id_periodos
-            LEFT JOIN (
-                SELECT ts.id_proyectos,
-                       COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
-                FROM tbl_seguimiento ts
-                JOIN tareas t                ON t.id_avances = ts.id_avances
-                LEFT JOIN tareas_usuarios tu ON tu.id_tarea  = t.id_tarea
-                GROUP BY ts.id_proyectos
-            ) tr ON tr.id_proyectos = proy.id_proyectos
-            LEFT JOIN (
-                SELECT id_proyectos, COUNT(*) AS total_estudiantes
-                FROM proyectos_usuarios
-                GROUP BY id_proyectos
-            ) total_est ON total_est.id_proyectos = proy.id_proyectos
-            LEFT JOIN (
-                SELECT id_proyectos, COUNT(*) AS total
-                FROM proyectos_usuarios WHERE estado = 'activo'
-                GROUP BY id_proyectos
-            ) total_activos ON total_activos.id_proyectos = proy.id_proyectos
-            LEFT JOIN (
-                SELECT pu.id_proyectos, COUNT(DISTINCT pu.id_usuarios) AS total
-                FROM proyectos_usuarios pu
-                WHERE pu.estado = 'activo'
-                  AND EXISTS     (SELECT 1 FROM tareas_usuarios tu2 WHERE tu2.id_usuarios = pu.id_usuarios)
-                  AND NOT EXISTS (SELECT 1 FROM tareas_usuarios tu3 WHERE tu3.id_usuarios = pu.id_usuarios AND tu3.id_estadoT <> 5)
-                GROUP BY pu.id_proyectos
-            ) activos_completos ON activos_completos.id_proyectos = proy.id_proyectos
-            LEFT JOIN (
-                SELECT pu.id_proyectos, COUNT(DISTINCT pu.id_usuarios) AS total
-                FROM proyectos_usuarios pu
-                WHERE pu.estado = 'activo'
-                  AND (
-                      NOT EXISTS (SELECT 1 FROM tareas_usuarios tu4 WHERE tu4.id_usuarios = pu.id_usuarios)
-                      OR EXISTS  (SELECT 1 FROM tareas_usuarios tu5 WHERE tu5.id_usuarios = pu.id_usuarios AND tu5.id_estadoT <> 5)
-                  )
-                GROUP BY pu.id_proyectos
-            ) activos_bloqueados ON activos_bloqueados.id_proyectos = proy.id_proyectos
-            WHERE proy.id_investigador = ?
-              AND proy.id_estadoP <> 3";
+        // Excluye 'Por aprobar' (id_estadoP = 3): proyectos cuya solicitud de creación
+        // aún está pendiente de aprobación por el supervisor.
+        $sql = "
+        SELECT
+            proy.id_proyectos,
+            proy.titulo,
+            proy.fecha_inicio,
+            proy.fecha_fin,
+            espr.nombre           AS estado_proyecto,
+            peri.periodo,
+            COALESCE(tr.total, 0)  AS total,
+            CASE
+                -- Sin estudiantes: no se puede cerrar
+                WHEN COALESCE(total_est.total_estudiantes, 0) = 0
+                    THEN 0
+                -- Bloqueado: existe al menos un activo con Etapa 2 incompleta
+                WHEN COALESCE(activos_bloqueados.total, 0) > 0
+                    THEN 0
+                -- Caso 1: existe al menos un activo con Etapa 2 completada
+                WHEN COALESCE(activos_completos.total, 0) > 0
+                    THEN 1
+                -- Caso 2: no hay ningún activo (todos baja/cancelado/concluido)
+                WHEN COALESCE(total_activos.total, 0) = 0
+                    THEN 1
+                ELSE 0
+            END AS puede_cerrar
+        FROM proyectos proy
+        JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
+        JOIN periodos peri           ON proy.id_periodos = peri.id_periodos
+
+        -- Conteo de tareas aprobadas del proyecto (se mantiene sin cambios)
+        LEFT JOIN (
+            SELECT ts.id_proyectos,
+                COUNT(CASE WHEN tu.id_estadoT = 2 THEN 1 END) AS total
+            FROM tbl_seguimiento ts
+            JOIN tareas t                ON t.id_avances = ts.id_avances
+            LEFT JOIN tareas_usuarios tu ON tu.id_tarea  = t.id_tarea
+            GROUP BY ts.id_proyectos
+        ) tr ON tr.id_proyectos = proy.id_proyectos
+
+        -- Total de estudiantes asignados al proyecto (cualquier estado)
+        LEFT JOIN (
+            SELECT id_proyectos, COUNT(*) AS total_estudiantes
+            FROM proyectos_usuarios
+            GROUP BY id_proyectos
+        ) total_est ON total_est.id_proyectos = proy.id_proyectos
+
+        -- Total de estudiantes con estado activo
+        LEFT JOIN (
+            SELECT id_proyectos, COUNT(*) AS total
+            FROM proyectos_usuarios
+            WHERE estado = 'activo'
+            GROUP BY id_proyectos
+        ) total_activos ON total_activos.id_proyectos = proy.id_proyectos
+
+        -- Activos con Etapa 2 COMPLETA:
+        -- tiene al menos una tarea Y todas están en id_estadoT = 5
+        LEFT JOIN (
+            SELECT pu.id_proyectos, COUNT(DISTINCT pu.id_usuarios) AS total
+            FROM proyectos_usuarios pu
+            WHERE pu.estado = 'activo'
+            AND EXISTS (
+                SELECT 1 FROM tareas_usuarios tu2
+                WHERE tu2.id_usuarios = pu.id_usuarios
+            )
+            AND NOT EXISTS (
+                SELECT 1 FROM tareas_usuarios tu3
+                WHERE tu3.id_usuarios = pu.id_usuarios
+                    AND tu3.id_estadoT <> 5
+            )
+            GROUP BY pu.id_proyectos
+        ) activos_completos ON activos_completos.id_proyectos = proy.id_proyectos
+
+        -- Activos con Etapa 2 INCOMPLETA:
+        -- no tiene tareas asignadas O tiene al menos una tarea no aprobada
+        LEFT JOIN (
+            SELECT pu.id_proyectos, COUNT(DISTINCT pu.id_usuarios) AS total
+            FROM proyectos_usuarios pu
+            WHERE pu.estado = 'activo'
+            AND (
+                NOT EXISTS (
+                    SELECT 1 FROM tareas_usuarios tu4
+                    WHERE tu4.id_usuarios = pu.id_usuarios
+                )
+                OR EXISTS (
+                    SELECT 1 FROM tareas_usuarios tu5
+                    WHERE tu5.id_usuarios = pu.id_usuarios
+                        AND tu5.id_estadoT <> 5
+                )
+            )
+            GROUP BY pu.id_proyectos
+        ) activos_bloqueados ON activos_bloqueados.id_proyectos = proy.id_proyectos
+
+        WHERE proy.id_investigador = ?
+        AND proy.id_estadoP     <> 3    -- excluye 'Por aprobar'
+    ";
 
         $params = [$id];
         $types  = "i";
 
-        if ($filtro) {
+        if ($filtro != 0) {
             $sql     .= " AND proy.id_estadoP = ?";
             $params[] = $filtro;
             $types   .= "i";
@@ -452,20 +583,23 @@ class Proyectos
 
     // --- Contadores internos ---
 
-    private function obtenerCantidadEstudiante(int $id, ?int $filtro, ?string $buscar): int
+
+    private function obtenerCantidadEstudiante($id, $filtro, $buscar)
     {
+        // Solo cuenta proyectos donde el estudiante tiene membresía activa confirmada
+        // (estado = 'activo' en proyectos_usuarios), no solicitudes en proceso.
         $sql    = "
-            SELECT COUNT(*) AS total
-            FROM proyectos proy
-            JOIN proyectos_usuarios pu
-                ON pu.id_proyectos = proy.id_proyectos
-               AND pu.id_usuarios  = ?
-               AND pu.estado       = 'activo'
-            WHERE 1 = 1";
+        SELECT COUNT(*) AS total
+        FROM proyectos proy
+        JOIN proyectos_usuarios pu
+            ON pu.id_proyectos = proy.id_proyectos
+           AND pu.id_usuarios  = ?
+           AND pu.estado       = 'activo'
+    ";
         $params = [$id];
         $types  = "i";
 
-        if ($filtro) {
+        if ($filtro != 0) {
             $sql     .= " AND proy.id_estadoP = ?";
             $params[] = $filtro;
             $types   .= "i";
@@ -476,20 +610,23 @@ class Proyectos
             $types   .= "s";
         }
 
-        return (int)($this->ejecutar($sql, $types, $params, false)['total'] ?? 0);
+        return $this->ejecutar($sql, $types, $params, false)['total'] ?? 0;
     }
 
-    private function obtenerCantidadInvestigador(int $id, ?int $filtro, ?string $buscar): int
+    private function obtenerCantidadInvestigador($id, $filtro, $buscar)
     {
+        // Excluye proyectos en estado 'Por aprobar' (id_estadoP = 3): son solicitudes
+        // de creación todavía en revisión. Solo cuenta proyectos ya confirmados.
         $sql    = "
-            SELECT COUNT(*) AS total
-            FROM proyectos
-            WHERE id_investigador = ?
-              AND id_estadoP <> 3";
+        SELECT COUNT(*) AS total
+        FROM proyectos
+        WHERE id_investigador = ?
+          AND id_estadoP <> 3
+    ";
         $params = [$id];
         $types  = "i";
 
-        if ($filtro) {
+        if ($filtro != 0) {
             $sql     .= " AND id_estadoP = ?";
             $params[] = $filtro;
             $types   .= "i";
@@ -500,7 +637,7 @@ class Proyectos
             $types   .= "s";
         }
 
-        return (int)($this->ejecutar($sql, $types, $params, false)['total'] ?? 0);
+        return $this->ejecutar($sql, $types, $params, false)['total'] ?? 0;
     }
 
     // 
@@ -519,7 +656,8 @@ class Proyectos
              FROM gestion_proyectos.subtematica AS sub
              JOIN tematica AS te ON sub.id_tematica = te.id_tematica
              WHERE te.id_tematica = ? AND sub.estado = 1",
-            "i", [$id_tematica]
+            "i",
+            [$id_tematica]
         );
     }
 
@@ -549,7 +687,9 @@ class Proyectos
         return $this->ejecutar(
             "SELECT fecha_inicio_proyectos, fecha_fin_proyectos
              FROM periodos ORDER BY id_periodos DESC LIMIT 1",
-            "", [], false
+            "",
+            [],
+            false
         );
     }
 
@@ -558,10 +698,20 @@ class Proyectos
     // 
 
     public function registrarProyecto(
-        int $id_investigador, int $id_estadoP, int $id_instituto, int $id_periodos,
-        string $titulo, string $descripcion, string $objetivo,
-        string $fecha_inicio, string $fecha_final, string $presupuesto,
-        string $requisitos, string $Pre_requisitos, string $modalidad, int $AlumnosCantidad
+        int $id_investigador,
+        int $id_estadoP,
+        int $id_instituto,
+        int $id_periodos,
+        string $titulo,
+        string $descripcion,
+        string $objetivo,
+        string $fecha_inicio,
+        string $fecha_final,
+        string $presupuesto,
+        string $requisitos,
+        string $Pre_requisitos,
+        string $modalidad,
+        int $AlumnosCantidad
     ): int {
         $sql  = "INSERT INTO proyectos
                     (id_investigador, id_estadoP, id_instituto, id_periodos, titulo, descripcion, objetivo,
@@ -572,10 +722,20 @@ class Proyectos
 
         $stmt->bind_param(
             "iiiisssssssssi",
-            $id_investigador, $id_estadoP, $id_instituto, $id_periodos,
-            $titulo, $descripcion, $objetivo,
-            $fecha_inicio, $fecha_final, $presupuesto,
-            $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad
+            $id_investigador,
+            $id_estadoP,
+            $id_instituto,
+            $id_periodos,
+            $titulo,
+            $descripcion,
+            $objetivo,
+            $fecha_inicio,
+            $fecha_final,
+            $presupuesto,
+            $requisitos,
+            $Pre_requisitos,
+            $modalidad,
+            $AlumnosCantidad
         );
 
         if (!$stmt->execute()) die("Error en execute(): " . $stmt->error);
@@ -583,10 +743,18 @@ class Proyectos
     }
 
     public function editarProyecto(
-        int $id_proyecto, int $id_investigador,
-        string $titulo, string $descripcion, string $objetivo,
-        string $fecha_inicio, string $fecha_final, string $presupuesto,
-        string $requisitos, string $Pre_requisitos, string $modalidad, int $AlumnosCantidad
+        int $id_proyecto,
+        int $id_investigador,
+        string $titulo,
+        string $descripcion,
+        string $objetivo,
+        string $fecha_inicio,
+        string $fecha_final,
+        string $presupuesto,
+        string $requisitos,
+        string $Pre_requisitos,
+        string $modalidad,
+        int $AlumnosCantidad
     ): void {
         $sql  = "UPDATE proyectos SET
                     titulo = ?, descripcion = ?, objetivo = ?, pre_requisitos = ?, requisitos = ?,
@@ -598,10 +766,18 @@ class Proyectos
 
         $stmt->bind_param(
             "sssssiisisii",
-            $titulo, $descripcion, $objetivo, $Pre_requisitos, $requisitos,
-            $AlumnosCantidad, $modalidad,
-            $presupuesto, $fecha_inicio, $fecha_final,
-            $id_proyecto, $id_investigador
+            $titulo,
+            $descripcion,
+            $objetivo,
+            $Pre_requisitos,
+            $requisitos,
+            $AlumnosCantidad,
+            $modalidad,
+            $presupuesto,
+            $fecha_inicio,
+            $fecha_final,
+            $id_proyecto,
+            $id_investigador
         );
 
         if (!$stmt->execute()) die("Error en execute(): " . $stmt->error);
@@ -612,7 +788,10 @@ class Proyectos
     // 
 
     public function actualizarEstadoProyectoRechazo(
-        int $id_usuario, int $id_proyectos, string $tipo, string $comentario
+        int $id_usuario,
+        int $id_proyectos,
+        string $tipo,
+        string $comentario
     ): void {
         $num_motivo = ($tipo === 'cierre_rechazado') ? 7 : 4;
 
@@ -689,7 +868,7 @@ class Proyectos
             $stmtTarea->close();
             $stmtTareaDoc->close();
 
-        // Estado 5 → Por cerrar: registrar solicitud de cierre
+            // Estado 5 → Por cerrar: registrar solicitud de cierre
         } elseif ($numeroEstado === 5) {
             $stmtInv = $this->con->prepare("SELECT id_investigador FROM proyectos WHERE id_proyectos = ?");
             $stmtInv->bind_param("i", $id_proyectos);
@@ -708,7 +887,7 @@ class Proyectos
                 $stmtC->close();
             }
 
-        // Estado 1 → Cierre: aprobar cierre
+            // Estado 1 → Cierre: aprobar cierre
         } elseif ($numeroEstado === 1) {
             $stmtInv = $this->con->prepare("SELECT id_investigador FROM proyectos WHERE id_proyectos = ?");
             $stmtInv->bind_param("i", $id_proyectos);
@@ -800,7 +979,9 @@ class Proyectos
              WHERE proy.id_proyectos = ?
              GROUP BY proy.id_proyectos, espr.nombre, tema.nombre_tematica
              ORDER BY proy.id_proyectos DESC",
-            "i", [$id_proyecto], false
+            "i",
+            [$id_proyecto],
+            false
         );
     }
 
@@ -815,7 +996,9 @@ class Proyectos
              JOIN grados_academicos AS grac ON grac.id_grado = inve.id_grado
              JOIN proyectos AS proy ON proy.id_investigador = inve.id_usuarios
              WHERE proy.id_proyectos = ?",
-            "i", [$id_proyecto], false
+            "i",
+            [$id_proyecto],
+            false
         );
     }
 
@@ -830,7 +1013,9 @@ class Proyectos
              JOIN areas_conocimiento AS arco ON arco.id_area = subco.id_area
              WHERE us.id_usuarios = ?
              GROUP BY us.id_usuarios, subco.id_subarea, arco.id_area",
-            "i", [$id_usuario], false
+            "i",
+            [$id_usuario],
+            false
         );
     }
 
@@ -843,7 +1028,9 @@ class Proyectos
              JOIN lineas_investigacion AS liin ON liin.id_linea = inliin.id_linea
              JOIN proyectos AS proy ON proy.id_investigador = inve.id_usuarios
              WHERE proy.id_proyectos = ?",
-            "i", [$id_proyecto], false
+            "i",
+            [$id_proyecto],
+            false
         );
     }
 
@@ -854,7 +1041,8 @@ class Proyectos
              FROM proyectos_subtematica AS sub
              JOIN subtematica AS sub2 ON sub.id_subtematica = sub2.id_subtematica
              WHERE sub.id_proyectos = ? AND sub2.estado = 1",
-            "i", [$id_proyecto]
+            "i",
+            [$id_proyecto]
         );
     }
 
@@ -869,7 +1057,8 @@ class Proyectos
              JOIN proyectos_usuarios AS prus ON prus.id_usuarios = estu.id_usuarios
              JOIN proyectos AS proy ON proy.id_proyectos = prus.id_proyectos
              WHERE proy.id_proyectos = ?",
-            "i", [$id_proyecto]
+            "i",
+            [$id_proyecto]
         );
     }
 
@@ -890,7 +1079,8 @@ class Proyectos
              JOIN usuarios AS usua ON usua.id_usuarios = prco.id_usuarios
              WHERE proy.id_proyectos = ?
              ORDER BY fecha DESC",
-            "i", [$id_proyecto]
+            "i",
+            [$id_proyecto]
         );
     }
 
@@ -951,7 +1141,8 @@ class Proyectos
                  ) h2 ON h1.id_historial = h2.max_id
              ) hpu ON hpu.id_proyectos = pu.id_proyectos AND hpu.id_estudiante = pu.id_usuarios
              WHERE pu.id_proyectos = ?",
-            "i", [$id_proyecto]
+            "i",
+            [$id_proyecto]
         );
     }
 
@@ -963,7 +1154,9 @@ class Proyectos
              JOIN proyectos_usuarios pu ON pu.id_usuarios = u.id_usuarios
              JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
              WHERE pu.id_proyectos = ? AND pu.id_usuarios = ?",
-            "ii", [$id_proyecto, $id_estudiante], false
+            "ii",
+            [$id_proyecto, $id_estudiante],
+            false
         );
     }
 
@@ -973,7 +1166,9 @@ class Proyectos
         try {
             $data = $this->ejecutar(
                 "SELECT estado FROM proyectos_usuarios WHERE id_proyectos = ? AND id_usuarios = ?",
-                "ii", [$id_proyecto, $id_estudiante], false
+                "ii",
+                [$id_proyecto, $id_estudiante],
+                false
             );
             if (($data['estado'] ?? '') !== 'activo') {
                 throw new Exception("El estudiante no está activo");
@@ -983,12 +1178,14 @@ class Proyectos
                 "UPDATE proyectos_usuarios
                  SET estado = 'baja', fecha_baja = NOW(), motivo_baja = ?, reincorporacion = 0
                  WHERE id_proyectos = ? AND id_usuarios = ?",
-                "sii", [$motivo, $id_proyecto, $id_estudiante]
+                "sii",
+                [$motivo, $id_proyecto, $id_estudiante]
             );
             $this->ejecutar(
                 "INSERT INTO historial_proyectos_usuarios (id_proyectos, id_estudiante, accion, motivo, realizado_por)
                  VALUES (?, ?, 'baja', ?, ?)",
-                "iisi", [$id_proyecto, $id_estudiante, $motivo, $usuario]
+                "iisi",
+                [$id_proyecto, $id_estudiante, $motivo, $usuario]
             );
 
             $this->con->commit();
@@ -1008,7 +1205,9 @@ class Proyectos
                  FROM proyectos_usuarios pu
                  JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
                  WHERE pu.id_proyectos = ? AND pu.id_usuarios = ?",
-                "ii", [$id_proyecto, $id_estudiante], false
+                "ii",
+                [$id_proyecto, $id_estudiante],
+                false
             );
 
             if (!$data)                              throw new Exception("Registro no encontrado");
@@ -1019,12 +1218,14 @@ class Proyectos
                 "UPDATE proyectos_usuarios
                  SET estado = 'activo', fecha_baja = NULL, motivo_baja = NULL, reincorporacion = 1
                  WHERE id_proyectos = ? AND id_usuarios = ?",
-                "ii", [$id_proyecto, $id_estudiante]
+                "ii",
+                [$id_proyecto, $id_estudiante]
             );
             $this->ejecutar(
                 "INSERT INTO historial_proyectos_usuarios (id_proyectos, id_estudiante, accion, realizado_por)
                  VALUES (?, ?, 'reactivado', ?)",
-                "iii", [$id_proyecto, $id_estudiante, $usuario]
+                "iii",
+                [$id_proyecto, $id_estudiante, $usuario]
             );
 
             $this->con->commit();
@@ -1040,7 +1241,10 @@ class Proyectos
     // 
 
     public function lineaTiempoProyectoUsuarios(
-        int $id_proyecto, int $id_usuario, int $pagina = 1, int $por_pagina = 5
+        int $id_proyecto,
+        int $id_usuario,
+        int $pagina = 1,
+        int $por_pagina = 5
     ): array {
         $pagina  = max(1, $pagina);
         $desde   = ($pagina - 1) * $por_pagina;
@@ -1049,7 +1253,9 @@ class Proyectos
             "SELECT COUNT(*) AS total
              FROM historial_proyectos_usuarios
              WHERE id_proyectos = ? AND id_estudiante = ?",
-            "ii", [$id_proyecto, $id_usuario], false
+            "ii",
+            [$id_proyecto, $id_usuario],
+            false
         )['total'] ?? 0);
 
         $total_paginas = max(1, (int)ceil($total / $por_pagina));
@@ -1062,7 +1268,8 @@ class Proyectos
              WHERE h.id_proyectos = ? AND h.id_estudiante = ?
              ORDER BY h.fecha DESC
              LIMIT ?, ?",
-            "iiii", [$id_proyecto, $id_usuario, $desde, $por_pagina]
+            "iiii",
+            [$id_proyecto, $id_usuario, $desde, $por_pagina]
         );
 
         $agrupado = [];

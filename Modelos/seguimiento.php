@@ -48,30 +48,32 @@ class SeguimientoModelo
     public function getProyectoPorId(int $id_usuario, int $id_proyecto): ?array
     {
         $sql = "
-            SELECT
-                p.*,
-                ep_proy.nombre              AS estado_nombre,
-                sp.estado                   AS estado_integracion,
-                sp.id_solicitud_proyecto    AS id_solicitud,
-                ep_proc.estado              AS estado_proceso,
-                pu.id_integrante,
-                pu.estado                   AS estado_integrante
-            FROM proyectos p
-            JOIN proyectos_usuarios pu
-                   ON pu.id_proyectos = p.id_proyectos
-                  AND pu.id_usuarios  = ?
-            JOIN estados_proyectos ep_proy
-                   ON ep_proy.id_estadoP = p.id_estadoP
-            JOIN estados_proceso ep_proc
-                   ON ep_proc.id_estados_proceso = pu.id_estados_proceso
-            LEFT JOIN solicitud_proyecto sp
-                   ON sp.id_proyectos  = p.id_proyectos
-                  AND sp.id_estudiante = ?
-            WHERE p.id_proyectos = ?
-              AND pu.estado IN ('activo','concluido')
-            ORDER BY sp.id_solicitud_proyecto DESC
-            LIMIT 1
-        ";
+        SELECT
+            p.*,
+            ep_proy.nombre              AS estado_nombre,
+            sp.estado                   AS estado_integracion,
+            sp.id_solicitud_proyecto    AS id_solicitud,
+            ep_proc.estado              AS estado_proceso,
+            pu.id_integrante,
+            pu.estado                   AS estado_integrante,
+            pu.motivo_baja,
+            pu.fecha_baja
+        FROM proyectos p
+        JOIN proyectos_usuarios pu
+               ON pu.id_proyectos = p.id_proyectos
+              AND pu.id_usuarios  = ?
+        JOIN estados_proyectos ep_proy
+               ON ep_proy.id_estadoP = p.id_estadoP
+        JOIN estados_proceso ep_proc
+               ON ep_proc.id_estados_proceso = pu.id_estados_proceso
+        LEFT JOIN solicitud_proyecto sp
+               ON sp.id_proyectos  = p.id_proyectos
+              AND sp.id_estudiante = ?
+        WHERE p.id_proyectos = ?
+          AND pu.estado IN ('activo', 'concluido', 'baja', 'cancelado')
+        ORDER BY sp.id_solicitud_proyecto DESC
+        LIMIT 1
+    ";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param("iii", $id_usuario, $id_usuario, $id_proyecto);
         $stmt->execute();
@@ -98,36 +100,66 @@ class SeguimientoModelo
      *          'finalizacion_pendiente' cuando carta subida y supervisor no responde.
      *          'rechazado' cuando supervisor rechazó → estudiante puede corregir.
      */
+    /**
+     * Construye las etapas en modo "baja/cancelado".
+     * Muestra hasta dónde llegó el estudiante con estado visual de cierre,
+     * y en cada etapa no completada indica que ya no puede continuar.
+     */
+
     public function getEtapasPorProyecto(int $id_proyecto, int $id_usuario): array
     {
+        // ── Verificar si el estudiante está dado de baja en este proyecto ──────
+        $sqlEstado = "
+        SELECT pu.estado, pu.motivo_baja, pu.fecha_baja,
+               ep.nombre AS estado_proyecto
+        FROM proyectos_usuarios pu
+        JOIN proyectos p    ON p.id_proyectos  = pu.id_proyectos
+        JOIN estados_proyectos ep ON ep.id_estadoP = p.id_estadoP
+        WHERE pu.id_proyectos = ?
+          AND pu.id_usuarios  = ?
+        LIMIT 1
+    ";
+        $stmt = $this->con->prepare($sqlEstado);
+        $stmt->bind_param("ii", $id_proyecto, $id_usuario);
+        $stmt->execute();
+        $estadoIntegrante = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        // Si está de baja o cancelado, construir etapas en modo "cerrado"
+        // mostrando hasta dónde llegó y el motivo.
+        if ($estadoIntegrante && in_array($estadoIntegrante['estado'], ['baja', 'cancelado'])) {
+            return $this->getEtapasBaja($id_proyecto, $id_usuario, $estadoIntegrante);
+        }
+
+        // ── Flujo normal ───────────────────────────────────────────────────────
         $sql = "
-            SELECT
-                e.id_etapa,
-                e.nombre,
-                e.descripcion,
-                e.orden,
-                e.requiere_subida,
-                e.plantilla_descargable     AS plantilla,
-                td.id_tipo_documento,
-                td.categoria                AS tipo_categoria,
-                pd.id_plantilla,
-                s.id_seguimiento,
-                s.estado                    AS seg_estado,
-                s.comentario_supervisor,
-                s.observaciones
-            FROM etapas_documento e
-            LEFT JOIN tipo_documento td
-                   ON td.orden = e.orden AND td.estado = 1
-            LEFT JOIN seguimiento_documento s
-                   ON s.id_tipo_documento = td.id_tipo_documento
-                  AND s.id_proyectos      = ?
-                  AND s.id_usuarios       = ?
-            LEFT JOIN plantillas_documentos pd
-                   ON pd.id_tipo_documento = td.id_tipo_documento
-                  AND pd.activo = 1
-            WHERE e.estado = 1
-            ORDER BY e.orden ASC
-        ";
+        SELECT
+            e.id_etapa,
+            e.nombre,
+            e.descripcion,
+            e.orden,
+            e.requiere_subida,
+            e.plantilla_descargable     AS plantilla,
+            td.id_tipo_documento,
+            td.categoria                AS tipo_categoria,
+            pd.id_plantilla,
+            s.id_seguimiento,
+            s.estado                    AS seg_estado,
+            s.comentario_supervisor,
+            s.observaciones
+        FROM etapas_documento e
+        LEFT JOIN tipo_documento td
+               ON td.orden = e.orden AND td.estado = 1
+        LEFT JOIN seguimiento_documento s
+               ON s.id_tipo_documento = td.id_tipo_documento
+              AND s.id_proyectos      = ?
+              AND s.id_usuarios       = ?
+        LEFT JOIN plantillas_documentos pd
+               ON pd.id_tipo_documento = td.id_tipo_documento
+              AND pd.activo = 1
+        WHERE e.estado = 1
+        ORDER BY e.orden ASC
+    ";
         $stmt = $this->con->prepare($sql);
         $stmt->bind_param("ii", $id_proyecto, $id_usuario);
         $stmt->execute();
@@ -138,66 +170,39 @@ class SeguimientoModelo
             $orden = (int)$etapa['orden'];
 
             if ($orden === 1) {
-                //  Etapa 1 
-                // El alumno llegó aquí porque fue aceptado → SIEMPRE completado.
-                $etapa['estado'] = 'completado';
-
-                // Documento subido por el estudiante (carta firmada) — solo descarga
+                $etapa['estado']           = 'completado';
                 $etapa['documento_subido'] = $this->getDocumentoEtapa1($id_proyecto, $id_usuario);
             } elseif ($orden === 2) {
-                //  Etapa 2 
                 $total     = $this->contarTareasTotales($id_proyecto, $id_usuario);
                 $aprobadas = $this->contarTareasAprobadas($id_proyecto, $id_usuario);
 
-                if ($total === 0) {
-                    $etapa['estado'] = 'proceso'; // en revisión, aún sin tareas asignadas
-                } elseif ($aprobadas >= $total) {
-                    $etapa['estado'] = 'completado';
-                } elseif ($aprobadas > 0) {
-                    $etapa['estado'] = 'proceso';
-                } else {
-                    $etapa['estado'] = 'proceso';
-                }
-
+                $etapa['estado']           = ($total === 0 || $aprobadas < $total)
+                    ? 'proceso'
+                    : 'completado';
                 $etapa['tareas_total']     = $total;
                 $etapa['tareas_aprobadas'] = $aprobadas;
                 $etapa['id_seguimiento']   = null;
                 $etapa['id_plantilla']     = null;
                 $etapa['documento_subido'] = null;
             } elseif ($orden === 3) {
-                //  Etapa 3 — Carta de Terminación
-                //
-                // Condiciones para estar accesible:
-                //   1. Etapa 2 completada (todas las tareas aprobadas).
-                //   2. El proyecto está en estado 'Por cerrar' o 'Cierre',
-                //      lo que significa que el investigador ya solicitó el cierre
-                //      institucional y el supervisor lo tiene en revisión.
-                //
-                // Si alguna condición falla → bloqueado con mensaje específico.
-
-                $cierre = $this->getCierreEstudiante($id_proyecto, $id_usuario);
+                $cierre                    = $this->getCierreEstudiante($id_proyecto, $id_usuario);
                 $etapa['documento_subido'] = null;
                 $etapa['cierre']           = $cierre;
 
-                // Verificar prerequisitos solo si aún no hay cierre iniciado
                 if (!$cierre) {
-                    $etapa2_completa       = $this->todasSeccionesAprobadas($id_proyecto, $id_usuario);
-                    $proyecto_en_cierre    = $this->proyectoPermiteCierreEstudiante($id_proyecto);
+                    $etapa2_completa    = $this->todasSeccionesAprobadas($id_proyecto, $id_usuario);
+                    $proyecto_en_cierre = $this->proyectoPermiteCierreEstudiante($id_proyecto);
 
                     if (!$etapa2_completa) {
-                        // Bloqueado: tareas pendientes
-                        $etapa['estado']   = 'bloqueado';
+                        $etapa['estado']         = 'bloqueado';
                         $etapa['motivo_bloqueo'] = 'Debes completar todas tus actividades primero.';
                     } elseif (!$proyecto_en_cierre) {
-                        // Etapa 2 lista pero el investigador aún no solicitó el cierre
-                        $etapa['estado']   = 'esperando_cierre';
+                        $etapa['estado']         = 'esperando_cierre';
                         $etapa['motivo_bloqueo'] = 'Tus actividades están completas. En espera de que el investigador inicie el cierre del proyecto.';
                     } else {
-                        // Todo listo → el estudiante puede subir su carta
-                        $etapa['estado']   = 'pendiente';
+                        $etapa['estado'] = 'pendiente';
                     }
                 } else {
-                    // Ya hay un cierre iniciado → mostrar su estado actual
                     $etapa['estado'] = match ($cierre['estado']) {
                         'pendiente'              => 'finalizacion_pendiente',
                         'finalizacion_pendiente' => 'finalizacion_pendiente',
@@ -205,13 +210,83 @@ class SeguimientoModelo
                         'rechazado'              => 'rechazado',
                         default                  => 'pendiente',
                     };
-
                     $etapa['comentario_supervisor'] = $cierre['comentarios'] ?? null;
-
                     if (!empty($cierre['id_documento'])) {
                         $etapa['documento_subido'] = $this->getDocumentoPorId((int)$cierre['id_documento']);
                     }
                 }
+            }
+        }
+        unset($etapa);
+
+        return $rows;
+    }
+    /**
+     * Construye las etapas en modo "baja/cancelado".
+     * Muestra hasta dónde llegó el estudiante con estado visual de cierre,
+     * y en cada etapa no completada indica que ya no puede continuar.
+     */
+    private function getEtapasBaja(int $id_proyecto, int $id_usuario, array $estadoIntegrante): array
+    {
+        $sql = "
+        SELECT
+            e.id_etapa, e.nombre, e.descripcion, e.orden,
+            e.requiere_subida, e.plantilla_descargable AS plantilla,
+            td.id_tipo_documento, pd.id_plantilla,
+            s.id_seguimiento, s.estado AS seg_estado
+        FROM etapas_documento e
+        LEFT JOIN tipo_documento td
+               ON td.orden = e.orden AND td.estado = 1
+        LEFT JOIN seguimiento_documento s
+               ON s.id_tipo_documento = td.id_tipo_documento
+              AND s.id_proyectos      = ?
+              AND s.id_usuarios       = ?
+        LEFT JOIN plantillas_documentos pd
+               ON pd.id_tipo_documento = td.id_tipo_documento
+              AND pd.activo = 1
+        WHERE e.estado = 1
+        ORDER BY e.orden ASC
+    ";
+        $stmt = $this->con->prepare($sql);
+        $stmt->bind_param("ii", $id_proyecto, $id_usuario);
+        $stmt->execute();
+        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        $motivo     = $estadoIntegrante['motivo_baja']     ?? 'Participación finalizada';
+        $fecha_baja = $estadoIntegrante['fecha_baja']      ?? null;
+        $es_vencido = str_contains(strtolower($motivo), 'vencido');
+
+        $total_t     = $this->contarTareasTotales($id_proyecto, $id_usuario);
+        $aprobadas_t = $this->contarTareasAprobadas($id_proyecto, $id_usuario);
+        $etapa2_ok   = $total_t > 0 && $aprobadas_t >= $total_t;
+
+        foreach ($rows as &$etapa) {
+            $orden = (int)$etapa['orden'];
+
+            // Datos comunes de baja
+            $etapa['estado_baja']  = $estadoIntegrante['estado'];  // 'baja' | 'cancelado'
+            $etapa['motivo_baja']  = $motivo;
+            $etapa['fecha_baja']   = $fecha_baja;
+            $etapa['es_vencido']   = $es_vencido;
+            $etapa['documento_subido'] = null;
+            $etapa['cierre']           = null;
+
+            if ($orden === 1) {
+                // Etapa 1 siempre completada (fue aceptado en el proyecto)
+                $etapa['estado']           = 'completado';
+                $etapa['documento_subido'] = $this->getDocumentoEtapa1($id_proyecto, $id_usuario);
+            } elseif ($orden === 2) {
+                $etapa['tareas_total']     = $total_t;
+                $etapa['tareas_aprobadas'] = $aprobadas_t;
+                $etapa['id_seguimiento']   = null;
+                $etapa['id_plantilla']     = null;
+
+                // Si completó Etapa 2 antes de vencer → mostrar como completada
+                $etapa['estado'] = $etapa2_ok ? 'completado' : 'baja_incompleta';
+            } elseif ($orden === 3) {
+                // Etapa 3 nunca alcanzada si está de baja por vencimiento sin Etapa 2
+                $etapa['estado'] = 'baja_incompleta';
             }
         }
         unset($etapa);
@@ -436,7 +511,6 @@ class SeguimientoModelo
      *
      * NOTA: usa la tabla solicitud_comentarios reutilizada para el hilo,
      * con id_referencia = id_cierre_est y tipo_referencia = 'cierre'.
-     * Si en tu proyecto existe una tabla dedicada, ajusta la consulta.
      */
     public function getComentariosCierre(int $id_cierre_est): array
     {

@@ -311,6 +311,9 @@ class ProyectoControlador
     ): string {
         $solicitar = ($estado_completados_estudiantes == 1) ? 'Solicitar cerrar' : '';
         $editar    = $estado_editar ? 'Editar' : '';
+        //Recibe el valor de la vista donde calcula a partir del rango de fecha del que el 
+        //Investigador puede registrar su proyecto y mandar correcciones
+        $volver_enviar_rechazo    = $estado_editar ? 'Volver a enviar proyecto' : '';
 
         // Estudiante dado de baja: solo detalles
         if ($rol === 'estudiante' && strtolower($estado_estudiante ?? '') === 'baja') {
@@ -329,7 +332,7 @@ class ProyectoControlador
                 'Por cerrar'       => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'           => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
-                'Rechazado'        => ['Volver a enviar proyecto', 'Detalles', $editar, 'Comentarios'],
+                'Rechazado'        => [$volver_enviar_rechazo, 'Detalles', $editar, 'Comentarios'],
                 'Vencido'          => ['Detalles', 'Tareas', 'Comentarios'],
             ],
             'profesor' => [
@@ -337,7 +340,7 @@ class ProyectoControlador
                 'Por cerrar'       => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'           => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
-                'Rechazado'        => ['Volver a enviar proyecto', 'Detalles', $editar, 'Comentarios'],
+                'Rechazado'        => [$volver_enviar_rechazo, 'Detalles', $editar, 'Comentarios'],
                 'Vencido'          => ['Detalles', 'Tareas', 'Comentarios'],
             ],
             'supervisor' => [

@@ -29,8 +29,6 @@ $tareaControlador = new TareaControlador();
 //    2. editarTareaEstudiante  → guarda contenido/archivo y cambia estado (Revisar)
 //    3. editarTareaRevisar     → investigador cambia estado (Aprobar / Corregir)
 //
-//  NOTA: id_usuario NUNCA viene del form; siempre se lee de $_SESSION.
-//        Al terminar se redirige (PRG) para evitar reenvío con F5.
 // 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 

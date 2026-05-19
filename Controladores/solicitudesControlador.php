@@ -285,7 +285,7 @@ class solicitudesControlador
         $S = new Solicitud($conn);
         $this->vencido($id_usuario, $rol);
 
-        $por_pagina = 8;
+        $por_pagina = 6;
         $pagina     = max(1, intval($_GET['pagina'] ?? 1));
         $desde      = ($pagina - 1) * $por_pagina;
 

@@ -57,7 +57,7 @@ class Tarea
         $stmtH->close();
     }
 
-    // ════════════════════════════════════════════════════════════════════════════
+    // 
 //  MODELO — método actualizarTareasConcluidas()
 //
 //  Lógica:
@@ -74,7 +74,7 @@ class Tarea
 //  Parámetro opcional $id_tarea:
 //    - Si se pasa: solo evalúa esa tarea (más eficiente al aprobar una asignación).
 //    - Si es null: evalúa todas las tareas activas (para revisiones globales).
-// ════════════════════════════════════════════════════════════════════════════
+// 
   
 public function actualizarTareasConcluidas(?int $id_tarea = null): void
 {
@@ -909,5 +909,31 @@ public function actualizarTareasConcluidas(?int $id_tarea = null): void
                 "total_paginas" => $total_paginas,
             ],
         ];
+    }
+
+    /**
+     * Obtiene datos de una plantilla por su ID para descarga segura.
+     */
+    public function obtenerPlantillaPorId(int $id_plantilla): ?array
+    {
+        $sql = "
+            SELECT
+                pd.id_plantilla,
+                pd.activo          AS plantilla_activa,
+                ds.nombre_archivo,
+                ds.ruta,
+                ds.activo          AS archivo_activo,
+                ds.tipo_mime,
+                ds.extension
+            FROM plantillas_documentos pd
+            JOIN documentos_subidos ds ON ds.id_documento = pd.id_documento
+            WHERE pd.id_plantilla = ?
+            LIMIT 1
+        ";
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error prepare (obtenerPlantillaPorId): " . $this->con->error);
+        $stmt->bind_param("i", $id_plantilla);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc() ?: null;
     }
 }
