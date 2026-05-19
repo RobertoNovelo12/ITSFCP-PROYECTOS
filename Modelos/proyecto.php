@@ -76,7 +76,6 @@ class Proyectos
      *   → Pasa a 'baja' con motivo 'Proyecto vencido sin concluir actividades'.
      *   → Se registra historial con acción 'baja'.
      *
-     * En ambos casos NO se toca: tbl_seguimiento, tbl_cierres, tareas_usuarios.
      */
     public function actualizarEstadoEstudiantesVencidos(): bool
     {
