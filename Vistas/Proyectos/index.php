@@ -1,4 +1,5 @@
 <?php
+/*Proyectos/index.php - Página principal */
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -86,7 +87,7 @@ include __DIR__ . '/../../mensaje.php';
 
             ?>
                 <?php if ($puedeCrear_Editar): ?>
-                    <a href="crear_proyecto.php" class="btn btn-primary">Crear proyecto</a>
+                    <a href="crear.php" class="btn btn-primary">Crear proyecto</a>
                 <?php else: ?>
                     <button class="btn btn-secondary" disabled title="Fuera del periodo de registro">
                         Crear proyecto

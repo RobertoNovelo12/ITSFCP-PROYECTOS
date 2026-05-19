@@ -32,7 +32,7 @@ if (!$id_solicitud || !in_array($tipo, ['correcciones', 'rechazar'], true)) {
 require_once '../../Controladores/solicitudesControlador.php';
 $ctrl = new solicitudesControlador();
 
-// ── Procesar POST ─────────────────────────────────────────────────
+//  Procesar POST ─
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $accion_post = $_POST['accion'] ?? '';
 
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── Cargar datos para el contexto del formulario ──────────────────
+//  Cargar datos para el contexto del formulario 
 $data = $ctrl->detallePagina($id_solicitud, $id_usuario, $rol);
 $sol  = $data['solicitud'];
 

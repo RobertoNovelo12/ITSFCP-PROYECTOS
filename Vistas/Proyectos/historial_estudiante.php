@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/historial_estudiante.php - Página secundaria de historial del estudiante */
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 

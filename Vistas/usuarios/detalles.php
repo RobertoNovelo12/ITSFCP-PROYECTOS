@@ -203,13 +203,13 @@ ob_start();
     <!-- ACCIONES -->
     <?php if ($usuario['estado_usuario'] === 'espera'): ?>
     <div class="card shadow-sm mb-4 border-warning">
-        <div class="card-header bg-warning bg-opacity-25">
+        <div class="card-header bg-opacity-25">
             <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Acciones de aprobación</h5>
         </div>
         <div class="card-body">
             <p class="text-muted">Este usuario está en espera de aprobación. Elige una acción:</p>
             <div class="d-flex gap-2 flex-wrap">
-                <a href="tabla.php?action=aprobar&id_usuarios=<?= $usuario['id_usuarios'] ?>"
+                <a href="index.php?action=aprobar&id_usuarios=<?= $usuario['id_usuarios'] ?>"
                    class="btn btn-success"
                    onclick="return confirm('¿Aprobar el acceso de este usuario?')">
                     <i class="bi bi-check-circle-fill me-1"></i> Aprobar

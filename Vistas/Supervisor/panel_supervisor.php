@@ -3,7 +3,6 @@
 /**
  * panel_supervisor.php
  * Dashboard de solo lectura del supervisor — responsivo con tarjetas móvil.
- * Paleta TecNM, Chart.js (MIT), tarjetas descriptivas, minimalista-académico.
  */
 
 ini_set('display_errors', 0);

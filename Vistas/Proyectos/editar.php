@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/editar.php - Página para editar proyecto */
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -23,6 +25,17 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
 require_once '../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
+
+$periodoActualProyectos = $proyectoControlador->periodoactual();
+$hoy = date('Y-m-d');
+$puedeEditar = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
+    && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
+
+if (!$puedeEditar) {
+    header('Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+    exit;
+}
+
 
 // DATOS
 $tematica = $proyectoControlador->tematica();

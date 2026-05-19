@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/descargar_plantilla.php - Página para descargar plantilla */
+
 require "../../publico/config/conexion.php";
 
 

@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/crear.php - Página secundaria para crear proyecto */
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -18,6 +20,15 @@ $action = $_POST['action'] ?? null;
 require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
+$periodoActualProyectos = $proyectoControlador->periodoactual();
+$hoy = date('Y-m-d');
+$puedeCrear = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
+    && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
+
+if (!$puedeCrear) {
+    header('Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+    exit;
+}
 
 $tematica = $proyectoControlador->tematica();
 $periodo = $proyectoControlador->obtenerperiodo();
