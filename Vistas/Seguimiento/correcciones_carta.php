@@ -9,7 +9,6 @@
  *   2. Adjuntar un archivo de apoyo opcional.
  *   3. Reenviar una carta completamente nueva en PDF/DOCX.
  *
- * Espejo de: Vistas/Solicitudes/correcciones.php
  * Usa: SeguimientoControlador::enviarCorreccionesCarta() → POST ?action=enviarCorreccionesCarta
  *      SeguimientoControlador::subirCartaTerminacion()   → POST ?action=subirCartaTerminacion
  */
@@ -27,7 +26,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'estudiante') {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

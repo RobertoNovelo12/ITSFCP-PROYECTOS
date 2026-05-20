@@ -17,8 +17,9 @@ $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? null;
 
+//Solo investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

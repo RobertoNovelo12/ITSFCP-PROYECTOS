@@ -4,7 +4,6 @@
  * Vistas/Seguimiento/seguimiento.php
  *
  * Panel de seguimiento de documentación del estudiante.
- * SIN timeline — barra de progreso general + cards por etapa.
  */
 
 ini_set('display_errors', 1);
@@ -21,8 +20,9 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $action     = $_GET['action'] ?? 'index';
 
+//Solo estudiante accede
 if ($rol !== 'estudiante') {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

@@ -13,8 +13,9 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
+//Solo supervisor accede
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
@@ -22,32 +23,32 @@ require_once '../../Controladores/solicitudactualizacionControlador.php';
 
 $controlador = new SolicitudActualizacionControlador();
 
-// ── Parámetros GET ───────────────────────────────────────────────
+//  Parámetros GET ─
 $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 $buscar = trim($_GET['buscar'] ?? '');
 $tipo   = trim($_GET['tipo']   ?? '');  // sni | grado | (vacío = todos)
 
-// ── Acción directa: aprobar ──────────────────────────────────────
+//  Acción directa: aprobar 
 if ($action === 'aprobar' && isset($_GET['id_solicitud'])) {
     $controlador->aprobar(intval($_GET['id_solicitud']), $id_usuario);
     exit;
 }
 
-// ── Validar acción ───────────────────────────────────────────────
+//  Validar acción ─
 $accionesPermitidas = ['index', 'Pendiente', 'Aprobado', 'Rechazado'];
 if (!in_array($action, $accionesPermitidas)) $action = 'index';
 
-// ── Ejecutar acción ──────────────────────────────────────────────
+//  Ejecutar acción 
 $resultado   = $controlador->$action($buscar ?: null, $tipo ?: null);
 $solicitudes = $resultado['solicitudes']  ?? [];
 $paginacion  = $resultado['paginacion']   ?? ['total' => 0, 'por_pagina' => 8, 'pagina' => 1, 'total_paginas' => 1];
 
-// ── Filtros y encabezados ────────────────────────────────────────
+//  Filtros y encabezados 
 $filtros     = $controlador->filtros();
 $opciones    = $controlador->opciones($filtros);
 $encabezados = $controlador->encabezados();
 
-// ── Mensajes ─────────────────────────────────────────────────────
+//  Mensajes ─
 $msg   = $_GET['msg']   ?? '';
 $error = $_GET['error'] ?? '';
 

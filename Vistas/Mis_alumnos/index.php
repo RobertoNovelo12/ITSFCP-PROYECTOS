@@ -13,7 +13,7 @@ error_reporting(E_ALL);
 
 session_start();
 
-// index Guardia de sesión indexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindex
+// index Guardia de sesión
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
@@ -24,7 +24,7 @@ $id_usuario = (int)$_SESSION['id_usuario'];
 
 // Solo investigador / profesor
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header("Location: ../proyectos/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

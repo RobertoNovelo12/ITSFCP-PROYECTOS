@@ -16,7 +16,7 @@ $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo supervisor e investigador acceden a solicitudes
 if (!in_array($rol, ['supervisor'])) {
-    header("Location: ../Proyectos/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

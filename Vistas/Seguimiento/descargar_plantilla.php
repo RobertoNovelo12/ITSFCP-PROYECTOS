@@ -23,10 +23,17 @@ session_start();
 
 require __DIR__ . "/../../publico/config/conexion.php";
 
+
 //  Autenticación ─
 if (!isset($_SESSION['id_usuario'])) {
     http_response_code(401);
     exit('Acceso no autorizado. Inicia sesión para descargar este archivo.');
+}
+
+//Solo estudiante accede
+if (strtolower($_SESSION['rol']) !== 'estudiante') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
 }
 
 //  Parámetro ─

@@ -16,8 +16,13 @@ $lineaControlador = new lineaControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-
 $id_linea = isset($_GET['id_linea']) ? intval($_GET['id_linea']) : 0;
+
+//Solo supervisor
+if ($rol ?? '' !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
 
 // Obtener datos
 $linea = $lineaControlador->indexDetalles($rol, $id_linea);

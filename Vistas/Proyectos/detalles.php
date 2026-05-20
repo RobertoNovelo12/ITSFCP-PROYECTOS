@@ -16,6 +16,12 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"];
 
+//Todos los roles pueden acceder
+if (!in_array($rol, ['investigador', 'profesor','estudiante', 'supervisor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();

@@ -14,6 +14,11 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
+if (strtolower($rol ?? '') !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 
 include "../../Controladores/ajustesTiposDocumentoscontrolador.php";

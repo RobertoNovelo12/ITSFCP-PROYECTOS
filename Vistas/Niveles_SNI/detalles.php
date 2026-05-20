@@ -16,8 +16,13 @@ $nivelsniControlador = new nivelsniControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-
 $id_nivel = isset($_GET['id_nivel']) ? intval($_GET['id_nivel']) : 0;
+
+//Solo supervisor
+if ($rol ?? '' !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
 
 $registro = $nivelsniControlador->indexDetalles($rol, $id_nivel);
 

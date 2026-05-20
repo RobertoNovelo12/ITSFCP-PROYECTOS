@@ -23,6 +23,13 @@ session_start();
 require_once __DIR__ . "/../../publico/config/conexion.php";
 require_once __DIR__ . "/../../Modelos/solicitudes.php";
 
+$rol        = strtolower($_SESSION['rol'] ?? '');
+// Solo la usa el estudiante
+if ($rol !== 'estudiante') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 //  Autenticación ─
 if (!isset($_SESSION['id_usuario'])) {
     http_response_code(401);

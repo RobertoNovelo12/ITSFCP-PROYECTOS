@@ -16,8 +16,13 @@ $carreraControlador = new carreraControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-
 $id_carrera = isset($_GET['id_carrera']) ? intval($_GET['id_carrera']) : 0;
+
+//Solo supervisor
+if ($rol ?? '' !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
 
 // Obtener datos
 $carrera = $carreraControlador->indexDetalles($rol, $id_carrera);

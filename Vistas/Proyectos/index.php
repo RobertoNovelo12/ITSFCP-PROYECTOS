@@ -14,6 +14,12 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
+//Todos los roles pueden acceder
+if (!in_array($rol, ['investigador', 'profesor','estudiante', 'supervisor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 $action = $_GET['action'] ?? 'index';
 $buscar = $_GET['buscar'] ?? '';
 $pagina = intval($_GET['pagina'] ?? 1);

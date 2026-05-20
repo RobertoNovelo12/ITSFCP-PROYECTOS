@@ -18,7 +18,7 @@ $id_usuario = intval($_SESSION['id_usuario']);
 
 // Esta vista solo la usa el estudiante
 if ($rol !== 'estudiante') {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

@@ -20,6 +20,12 @@ if (!$id_proyecto || !$id_usuario) {
     die("ERROR: Datos incompletos");
 }
 
+//Solo el investigador y supervisor puede acceder
+if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 require_once '../../Controladores/proyectoControlador.php';
 
 $controlador = new ProyectoControlador();

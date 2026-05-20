@@ -12,6 +12,12 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 require_once '../../Controladores/institutoControlador.php';
 
+//Solo supervisor
+if ($rol ?? '' !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 $controlador = new institutoControlador();
 
 // DATOS

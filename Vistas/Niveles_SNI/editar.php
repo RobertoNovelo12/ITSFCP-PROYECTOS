@@ -14,6 +14,12 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $id_nivel = $_GET["id_nivel"] ?? null;
 
+//Solo supervisor
+if ($rol ?? '' !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 require_once '../../Controladores/nivelsniControlador.php';
 
 $action = $_POST['action'] ?? null;

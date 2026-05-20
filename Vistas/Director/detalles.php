@@ -16,8 +16,12 @@ $directorControlador = new directorControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-
 $id_director = isset($_GET['id_director']) ? intval($_GET['id_director']) : 0;
+
+if ($rol ?? '' !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
 
 $director = $directorControlador->indexDetalles($rol, $id_director);
 

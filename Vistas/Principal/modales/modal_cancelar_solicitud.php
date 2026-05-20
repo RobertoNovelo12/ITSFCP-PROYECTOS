@@ -1,6 +1,5 @@
 <?php
 // Vistas/Proyectos/partials/modal_cancelar_solicitud.php
-// Componente reutilizable: muestra el modal de confirmación para cancelar
 // la solicitud de integración de un estudiante.
 //
 // Variables requeridas en el scope que lo incluye:
@@ -8,13 +7,11 @@
 //   $solicitud       (array) → ['id_solicitud_proyecto' => int, 'estado' => string]
 //   $id_proyecto     (int)
 //
-// Uso:
-//   include __DIR__ . '/partials/modal_cancelar_solicitud.php';
 
 if (empty($puede_cancelar) || empty($solicitud)) return;
 ?>
 
-<!-- ===== MODAL: Confirmación de cancelación de solicitud ===== -->
+<!--  MODAL: Confirmación de cancelación de solicitud  -->
 <div class="modal-overlay" id="modalCancelar" style="display:none;">
     <div class="modal-content text-center">
         <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size:2.2rem;"></i>

@@ -18,7 +18,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id  = $_SESSION['id_usuario'];
 
 if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

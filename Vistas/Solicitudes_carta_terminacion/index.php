@@ -17,11 +17,10 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo el supervisor accede a este módulo
-if ($rol !== 'supervisor') {
-    header("Location: ../proyectos/index.php");
+if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
-
 $tipo_filtro = $_GET['tipo']       ?? 'Todas';
 $buscar      = $_GET['buscar']     ?? '';
 $pagina      = intval($_GET['pagina']     ?? 1);

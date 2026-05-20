@@ -24,6 +24,12 @@ require_once '../../Controladores/principalControlador.php';
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
+//Todos los roles pueden acceder
+if (!in_array($rol, ['investigador', 'profesor','estudiante','supervisor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 $ctrl      = new principalControlador();
 $resultado = $ctrl->listarProyectos($rol, $id_usuario);
 
@@ -138,14 +144,7 @@ ob_start();
     <?php if ($rol === 'estudiante'): ?>
 
         <?php
-        /*
-     * Carga del estudiante en la vista de listado de proyectos.
-     * El controlador listarProyectos() no calcula la carga global por defecto
-     * (es un listado, no un detalle), por lo que se obtiene aquí de forma
-     * puntual usando el mismo método del modelo.
-     * En detalles_proyecto.php ya viene en $datos['carga'].
-     */
-        $carga_nota = $carga ?? null;   // en detalles ya existe como $datos['carga']
+        $carga_nota = $carga ?? null; 
 
         if ($carga_nota === null) {
             // Estamos en el listado principal: calcular sobre la marcha

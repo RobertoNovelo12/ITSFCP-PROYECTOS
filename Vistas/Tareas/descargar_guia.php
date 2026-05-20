@@ -23,6 +23,13 @@
 session_start();
 
 require_once __DIR__ . '/../../publico/config/conexion.php';
+require_once __DIR__ . "/../../Modelos/tareas.php";
+
+// Solo investigador, supervisor y estudiante pueden acceder 
+if (!in_array($_SESSION['rol'], ['investigador', 'supervisor', 'estudiante'])) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
 
 //  Autenticación 
 if (!isset($_SESSION['id_usuario'])) {
@@ -31,8 +38,8 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 //  Parámetro 
-$id_tarea = isset($_GET['id_tarea']) ? intval($_GET['id_tarea']) : 0;
-if ($id_tarea <= 0) {
+$id_documento_recurso = isset($_GET['id_documento_recurso']) ? intval($_GET['id_documento_recurso']) : 0;
+if ($id_documento_recurso <= 0) {
     http_response_code(400);
     exit('Tarea inválida.');
 }
@@ -41,38 +48,13 @@ if ($id_tarea <= 0) {
 // Obtiene el documento recurso activo vinculado a la tarea.
 // Valida en un solo JOIN que: la tarea exista, tenga recurso asignado,
 // el documento sea de tipo 'recurso' y esté activo.
-$sql = "
-    SELECT
-        ds.id_documento,
-        ds.nombre_archivo,
-        ds.nombre,
-        ds.ruta,
-        ds.tipo_mime,
-        ds.extension,
-        ds.activo
-    FROM tareas t
-    JOIN documentos_subidos ds
-           ON ds.id_documento = t.id_documento_recurso
-    WHERE t.id_tarea          = ?
-      AND ds.tipo             = 'recurso'
-      AND ds.activo           = 1
-    LIMIT 1
-";
-
-$stmt = $conn->prepare($sql);
-if (!$stmt) {
-    http_response_code(500);
-    exit('Error interno del servidor.');
-}
-
-$stmt->bind_param('i', $id_tarea);
-$stmt->execute();
-$file = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$S    = new Tarea($conn);
+$file = $S->obtenerTareaPorId($id_documento_recurso);
 
 if (!$file) {
     http_response_code(404);
-    exit('Esta tarea no tiene guía adjunta o no está disponible.');
+    exit('Esta tarea no tiene archivo adjunto o no está disponible.');
+
 }
 
 //  Resolver base segura del storage 

@@ -16,8 +16,8 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-if ($rol !== 'supervisor') {
-    header("Location: ../proyectos/index.php");
+if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

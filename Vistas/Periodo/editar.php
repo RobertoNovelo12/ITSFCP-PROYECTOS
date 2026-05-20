@@ -17,6 +17,12 @@ $rol         = strtolower($_SESSION['rol'] ?? '');
 $id_usuario  = intval($_SESSION['id_usuario']);
 $id_periodos = isset($_GET['id_periodos']) ? intval($_GET['id_periodos']) : 0;
 
+//Solo supervisor
+if (strtolower($rol ?? '') !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 /* CONTROLADOR */
 require_once '../../Controladores/periodoControlador.php';
 

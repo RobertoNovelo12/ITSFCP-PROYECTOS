@@ -15,6 +15,12 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 $action = $_POST['action'] ?? null;
 
+//Solo el investigador puede acceder
+if (!in_array($rol, ['investigador', 'profesor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 //Se llama al controlador
 
 require_once '..\..\Controladores\proyectoControlador.php';
