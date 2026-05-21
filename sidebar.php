@@ -34,7 +34,7 @@ function crearLink($nombre, $rol)
         "Grado académico" => "/ITSFCP-PROYECTOS/Vistas/Configuracion/grado_academico.php",
         "Nivel SNI" => "/ITSFCP-PROYECTOS/Vistas/Configuracion/nivel_sni.php",
         "Soporte" => "/ITSFCP-PROYECTOS/Vistas/soporte/soporte.php",
-        "Ajustes" => "/ITSFCP-PROYECTOS/Vistas/menu/ajustes.php"
+        "Ajustes" => "/ITSFCP-PROYECTOS/Vistas/Ajustes/index.php",
     ];
 
     return $links[$nombre] ?? "#";
