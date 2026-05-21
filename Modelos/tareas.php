@@ -57,64 +57,64 @@ class Tarea
         $stmtH->close();
     }
 
-    // ════════════════════════════════════════════════════════════════════════════
-//  MODELO — método actualizarTareasConcluidas()
-//
-//  Lógica:
-//    Una tarea pasa a estado 9 (Concluido) en la tabla `tareas` cuando
-//    TODOS los estudiantes ACTIVOS del proyecto (proyectos_usuarios.estado = 'activo')
-//    que tienen asignación en tareas_usuarios tienen id_estadoT = 5 (Aprobado).
-//
-//    Se ignoran estudiantes con baja/cancelado/concluido en proyectos_usuarios,
-//    ya que dejaron de ser participantes activos.
-//
-//    Se llama igual que actualizarTareasVencidos: antes de cualquier
-//    operación relevante en el controlador.
-//
-//  Parámetro opcional $id_tarea:
-//    - Si se pasa: solo evalúa esa tarea (más eficiente al aprobar una asignación).
-//    - Si es null: evalúa todas las tareas activas (para revisiones globales).
-// ════════════════════════════════════════════════════════════════════════════
-  
-public function actualizarTareasConcluidas(?int $id_tarea = null): void
-{
-    // ── 1. Obtener tareas candidatas ─────────────────────────────────────
-    //    Candidatas: tareas con id_estadoT IN (1,2,3) — activas pero no
-    //    concluidas ni vencidas ni sin activar.
-    //    Si se pasa $id_tarea solo evaluamos esa.
- 
-    if ($id_tarea !== null) {
-        $sqlTareas = "
+    // 
+    //  MODELO — método actualizarTareasConcluidas()
+    //
+    //  Lógica:
+    //    Una tarea pasa a estado 9 (Concluido) en la tabla `tareas` cuando
+    //    TODOS los estudiantes ACTIVOS del proyecto (proyectos_usuarios.estado = 'activo')
+    //    que tienen asignación en tareas_usuarios tienen id_estadoT = 5 (Aprobado).
+    //
+    //    Se ignoran estudiantes con baja/cancelado/concluido en proyectos_usuarios,
+    //    ya que dejaron de ser participantes activos.
+    //
+    //    Se llama igual que actualizarTareasVencidos: antes de cualquier
+    //    operación relevante en el controlador.
+    //
+    //  Parámetro opcional $id_tarea:
+    //    - Si se pasa: solo evalúa esa tarea (más eficiente al aprobar una asignación).
+    //    - Si es null: evalúa todas las tareas activas (para revisiones globales).
+    // 
+
+    public function actualizarTareasConcluidas(?int $id_tarea = null): void
+    {
+        // ── 1. Obtener tareas candidatas ─────────────────────────────────────
+        //    Candidatas: tareas con id_estadoT IN (1,2,3) — activas pero no
+        //    concluidas ni vencidas ni sin activar.
+        //    Si se pasa $id_tarea solo evaluamos esa.
+
+        if ($id_tarea !== null) {
+            $sqlTareas = "
             SELECT t.id_tarea, tbse.id_proyectos
             FROM tareas t
             JOIN tbl_seguimiento tbse ON tbse.id_avances = t.id_avances
             WHERE t.id_tarea     = ?
               AND t.id_estadoT   IN (1, 2, 3)
         ";
-        $stmtT = $this->con->prepare($sqlTareas);
-        if (!$stmtT) return;
-        $stmtT->bind_param("i", $id_tarea);
-    } else {
-        $sqlTareas = "
+            $stmtT = $this->con->prepare($sqlTareas);
+            if (!$stmtT) return;
+            $stmtT->bind_param("i", $id_tarea);
+        } else {
+            $sqlTareas = "
             SELECT t.id_tarea, tbse.id_proyectos
             FROM tareas t
             JOIN tbl_seguimiento tbse ON tbse.id_avances = t.id_avances
             WHERE t.id_estadoT IN (1, 2, 3)
         ";
-        $stmtT = $this->con->prepare($sqlTareas);
-        if (!$stmtT) return;
-    }
- 
-    $stmtT->execute();
-    $tareas = $stmtT->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmtT->close();
- 
-    if (empty($tareas)) return;
- 
-    // ── 2. Para cada tarea verificar si TODOS los activos están aprobados ─
- 
-    // 2a. Contar estudiantes activos del proyecto que tienen asignación
-    $sqlTotalActivos = "
+            $stmtT = $this->con->prepare($sqlTareas);
+            if (!$stmtT) return;
+        }
+
+        $stmtT->execute();
+        $tareas = $stmtT->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmtT->close();
+
+        if (empty($tareas)) return;
+
+        // ── 2. Para cada tarea verificar si TODOS los activos están aprobados ─
+
+        // 2a. Contar estudiantes activos del proyecto que tienen asignación
+        $sqlTotalActivos = "
         SELECT COUNT(*) AS total
         FROM tareas_usuarios tu
         JOIN proyectos_usuarios pu
@@ -123,11 +123,11 @@ public function actualizarTareasConcluidas(?int $id_tarea = null): void
             AND pu.estado       = 'activo'
         WHERE tu.id_tarea = ?
     ";
-    $stmtTotal = $this->con->prepare($sqlTotalActivos);
-    if (!$stmtTotal) return;
- 
-    // 2b. Contar cuántos de esos activos tienen estado Aprobado (5)
-    $sqlAprobados = "
+        $stmtTotal = $this->con->prepare($sqlTotalActivos);
+        if (!$stmtTotal) return;
+
+        // 2b. Contar cuántos de esos activos tienen estado Aprobado (5)
+        $sqlAprobados = "
         SELECT COUNT(*) AS aprobados
         FROM tareas_usuarios tu
         JOIN proyectos_usuarios pu
@@ -137,21 +137,21 @@ public function actualizarTareasConcluidas(?int $id_tarea = null): void
         WHERE tu.id_tarea    = ?
           AND tu.id_estadoT  = 5
     ";
-    $stmtAprobados = $this->con->prepare($sqlAprobados);
-    if (!$stmtAprobados) return;
- 
-    // 2c. UPDATE tarea a Concluido (9)
-    $sqlConcluir = "
+        $stmtAprobados = $this->con->prepare($sqlAprobados);
+        if (!$stmtAprobados) return;
+
+        // 2c. UPDATE tarea a Concluido (9)
+        $sqlConcluir = "
         UPDATE tareas
         SET id_estadoT = 9
         WHERE id_tarea = ?
           AND id_estadoT IN (1, 2, 3)
     ";
-    $stmtConcluir = $this->con->prepare($sqlConcluir);
-    if (!$stmtConcluir) return;
- 
-    // 2d. Registrar en historial por cada asignación de la tarea
-    $sqlHistorial = "
+        $stmtConcluir = $this->con->prepare($sqlConcluir);
+        if (!$stmtConcluir) return;
+
+        // 2d. Registrar en historial por cada asignación de la tarea
+        $sqlHistorial = "
         INSERT INTO tareas_historial
             (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
         SELECT tu.id_asignacion, 9, 1,
@@ -163,44 +163,44 @@ public function actualizarTareasConcluidas(?int $id_tarea = null): void
             AND pu.estado       = 'activo'
         WHERE tu.id_tarea = ?
     ";
-    $stmtHist = $this->con->prepare($sqlHistorial);
-    if (!$stmtHist) return;
- 
-    foreach ($tareas as $tarea) {
-        $idT  = (int) $tarea['id_tarea'];
-        $idP  = (int) $tarea['id_proyectos'];
- 
-        // Contar activos con asignación
-        $stmtTotal->bind_param("ii", $idP, $idT);
-        $stmtTotal->execute();
-        $total = (int) $stmtTotal->get_result()->fetch_assoc()['total'];
- 
-        // Debe haber al menos 1 activo para poder concluir
-        if ($total === 0) continue;
- 
-        // Contar aprobados
-        $stmtAprobados->bind_param("ii", $idP, $idT);
-        $stmtAprobados->execute();
-        $aprobados = (int) $stmtAprobados->get_result()->fetch_assoc()['aprobados'];
- 
-        // Si todos los activos están aprobados → concluir
-        if ($aprobados === $total) {
-            $stmtConcluir->bind_param("i", $idT);
-            $stmtConcluir->execute();
- 
-            // Solo registrar historial si efectivamente se actualizó
-            if ($stmtConcluir->affected_rows > 0) {
-                $stmtHist->bind_param("ii", $idP, $idT);
-                $stmtHist->execute();
+        $stmtHist = $this->con->prepare($sqlHistorial);
+        if (!$stmtHist) return;
+
+        foreach ($tareas as $tarea) {
+            $idT  = (int) $tarea['id_tarea'];
+            $idP  = (int) $tarea['id_proyectos'];
+
+            // Contar activos con asignación
+            $stmtTotal->bind_param("ii", $idP, $idT);
+            $stmtTotal->execute();
+            $total = (int) $stmtTotal->get_result()->fetch_assoc()['total'];
+
+            // Debe haber al menos 1 activo para poder concluir
+            if ($total === 0) continue;
+
+            // Contar aprobados
+            $stmtAprobados->bind_param("ii", $idP, $idT);
+            $stmtAprobados->execute();
+            $aprobados = (int) $stmtAprobados->get_result()->fetch_assoc()['aprobados'];
+
+            // Si todos los activos están aprobados → concluir
+            if ($aprobados === $total) {
+                $stmtConcluir->bind_param("i", $idT);
+                $stmtConcluir->execute();
+
+                // Solo registrar historial si efectivamente se actualizó
+                if ($stmtConcluir->affected_rows > 0) {
+                    $stmtHist->bind_param("ii", $idP, $idT);
+                    $stmtHist->execute();
+                }
             }
         }
+
+        $stmtTotal->close();
+        $stmtAprobados->close();
+        $stmtConcluir->close();
+        $stmtHist->close();
     }
- 
-    $stmtTotal->close();
-    $stmtAprobados->close();
-    $stmtConcluir->close();
-    $stmtHist->close();
-}
 
     // 
     //  OBTENER TAREAS (tabla principal)
@@ -819,6 +819,75 @@ public function actualizarTareasConcluidas(?int $id_tarea = null): void
         return $stmt->get_result()->fetch_assoc();
     }
 
+    public function obtenerTareaPorId($id_asignacion)
+    {
+        $sql = "
+    SELECT
+        ds.id_documento,
+        ds.nombre_archivo,
+        ds.nombre,
+        ds.ruta,
+        ds.tipo_mime,
+        ds.extension,
+        ds.activo
+    FROM tareas_usuarios t
+    JOIN documentos_subidos ds
+           ON ds.id_documento = t.id_documento_entrega
+    WHERE t.id_asignacion          = ?
+      AND ds.tipo             = 'entrega'
+      AND ds.activo           = 1
+    LIMIT 1";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            http_response_code(500);
+            exit('Error interno del servidor.');
+        }
+
+        $stmt->bind_param('i', $id_asignacion);
+        $stmt->execute();
+        $file = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $file;
+    }
+
+    public function obtenerTareaGuiaPorId($id_documento_recurso)
+    {
+        $sql = "
+        SELECT
+            ds.id_documento,
+            ds.nombre_archivo,
+            ds.nombre,
+            ds.ruta,
+            ds.tipo_mime,
+            ds.extension,
+            ds.activo
+        FROM tareas t
+        JOIN documentos_subidos ds
+            ON ds.id_documento = t.id_documento_recurso
+        WHERE t.id_tarea          = ?
+        AND ds.tipo             = 'recurso'
+        AND ds.activo           = 1
+        LIMIT 1";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            http_response_code(500);
+            exit('Error interno del servidor.');
+        }
+
+        $stmt->bind_param('i', $id_documento_recurso);
+        $stmt->execute();
+        $file = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$file) {
+            http_response_code(404);
+            exit('Esta tarea no tiene guía adjunta o no está disponible.');
+        }
+        return $file;
+    }
+
     // 
     //  EDICIONES RECIENTES
     // 
@@ -909,5 +978,31 @@ public function actualizarTareasConcluidas(?int $id_tarea = null): void
                 "total_paginas" => $total_paginas,
             ],
         ];
+    }
+
+    /**
+     * Obtiene datos de una plantilla por su ID para descarga segura.
+     */
+    public function obtenerPlantillaPorId(int $id_plantilla): ?array
+    {
+        $sql = "
+            SELECT
+                pd.id_plantilla,
+                pd.activo          AS plantilla_activa,
+                ds.nombre_archivo,
+                ds.ruta,
+                ds.activo          AS archivo_activo,
+                ds.tipo_mime,
+                ds.extension
+            FROM plantillas_documentos pd
+            JOIN documentos_subidos ds ON ds.id_documento = pd.id_documento
+            WHERE pd.id_plantilla = ?
+            LIMIT 1
+        ";
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error prepare (obtenerPlantillaPorId): " . $this->con->error);
+        $stmt->bind_param("i", $id_plantilla);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc() ?: null;
     }
 }

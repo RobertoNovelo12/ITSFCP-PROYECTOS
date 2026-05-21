@@ -1,4 +1,4 @@
-<!--detalles.php - > Página para ver detalles de cada solicitud.-->
+<!--Solicitudes_proyecto/detalles.php - Página para ver detalles de cada solicitud.-->
 
 <?php
 ini_set('display_errors', 1);
@@ -16,10 +16,11 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo supervisor
-if (!in_array($rol, ['supervisor'])) {
-    header("Location: ../proyectos/tabla.php");
+if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
+
 
 $id_proyecto = intval($_GET['id_proyectos'] ?? 0);
 if (!$id_proyecto) {
@@ -27,14 +28,14 @@ if (!$id_proyecto) {
     exit;
 }
 
-require_once '../../Controladores/proyectoControlador.php';
-$proyectoControlador = new ProyectoControlador();
+require_once '../../Controladores/solicitudes_proyectoControlador.php';
+$SolicitudesProyectoControlador = new SolicitudesProyectoControlador();
 
-$proyecto       = $proyectoControlador->datosproyecto($id_proyecto);
-$investigador   = $proyectoControlador->datosinvestigador($id_proyecto);
-$subtematicas   = $proyectoControlador->subtematicasProyecto($id_proyecto);
-$comentarios    = $proyectoControlador->comentarios($id_proyecto);
-$estudiantes    = $proyectoControlador->estudiantes($id_proyecto);
+$proyecto       = $SolicitudesProyectoControlador->datosproyecto($id_proyecto);
+$investigador   = $SolicitudesProyectoControlador->datosinvestigador($id_proyecto);
+$subtematicas   = $SolicitudesProyectoControlador->subtematicasProyecto($id_proyecto);
+$comentarios    = $SolicitudesProyectoControlador->comentarios($id_proyecto);
+$estudiantes    = $SolicitudesProyectoControlador->estudiantes($id_proyecto);
 
 $dat_inv         = $investigador['investigador'] ?? [];
 $dat_area_inv    = $investigador['area']         ?? [];
@@ -42,8 +43,17 @@ $datos_linea_inv = $investigador['lineas']       ?? [];
 
 // Determinar tipo de solicitud según estado
 $tipo_solicitud = 'creacion';
-if (in_array($proyecto['estado_proyecto'], ['Por cerrar', 'Cierre rechazado'])) {
+if (in_array($proyecto['estado_proyecto'] ?? '', ['Por cerrar', 'Cierre rechazado'])) {
     $tipo_solicitud = 'cierre';
+}
+
+// Procesar aprobación via GET cuando viene desde los botones de esta misma vista
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'actualizarestado') {
+    $error = $SolicitudesProyectoControlador->actualizarestado(
+        $id_proyecto,
+        $rol,
+        $_GET['tipo'] ?? ''
+    );
 }
 
 ob_start();
@@ -84,8 +94,8 @@ include __DIR__ . '/../../mensaje.php';
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small mb-1">Estado actual</div>
-                    <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?> fs-6">
-                        <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
+                    <span class="badge text-bg-<?= $SolicitudesProyectoControlador->EstiloEstado($proyecto['estado_proyecto'] ?? '') ?> fs-6">
+                        <?= htmlspecialchars($proyecto['estado_proyecto'] ?? '') ?>
                     </span>
                 </div>
             </div>
@@ -94,9 +104,9 @@ include __DIR__ . '/../../mensaje.php';
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="text-muted small mb-1">Periodo</div>
-                    <strong><?= htmlspecialchars($proyecto['periodo']) ?></strong>
+                    <strong><?= htmlspecialchars($proyecto['periodo'] ?? '') ?></strong>
                     <span class="badge text-bg-<?= ($proyecto['estado_periodo'] === 'Activo') ? 'success' : 'secondary' ?> ms-2">
-                        <?= htmlspecialchars($proyecto['estado_periodo']) ?>
+                        <?= htmlspecialchars($proyecto['estado_periodo'] ?? '') ?>
                     </span>
                 </div>
             </div>
@@ -105,11 +115,11 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- INFORMACIÓN DEL PROYECTO -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-semibold"> <i class="bi bi-info-circle me-2"></i> Información del proyecto</div>
+        <div class="card-header fw-semibold"><i class="bi bi-info-circle me-2"></i> Información del proyecto</div>
         <div class="card-body">
 
-            <h5><?= htmlspecialchars($proyecto['titulo']) ?></h5>
-            <p class="text-muted"><?= nl2br(htmlspecialchars($proyecto['descripcion'])) ?></p>
+            <h5><?= htmlspecialchars($proyecto['titulo'] ?? '') ?></h5>
+            <p class="text-muted"><?= nl2br(htmlspecialchars($proyecto['descripcion'] ?? '')) ?></p>
 
             <hr>
 
@@ -117,37 +127,37 @@ include __DIR__ . '/../../mensaje.php';
                 <div class="col-md-6">
                     <dl>
                         <dt>Objetivos</dt>
-                        <dd><?= nl2br(htmlspecialchars($proyecto['objetivo'])) ?></dd>
+                        <dd><?= nl2br(htmlspecialchars($proyecto['objetivo'] ?? '')) ?></dd>
 
                         <dt>Pre-requisitos</dt>
-                        <dd><?= nl2br(htmlspecialchars($proyecto['pre_requisitos'])) ?></dd>
+                        <dd><?= nl2br(htmlspecialchars($proyecto['pre_requisitos'] ?? '')) ?></dd>
 
                         <dt>Requisitos</dt>
-                        <dd><?= nl2br(htmlspecialchars($proyecto['requisitos'])) ?></dd>
+                        <dd><?= nl2br(htmlspecialchars($proyecto['requisitos'] ?? '')) ?></dd>
                     </dl>
                 </div>
                 <div class="col-md-6">
                     <dl>
                         <dt>Cantidad alumnos</dt>
-                        <dd><?= $proyecto['cantidad_estudiante'] ?></dd>
+                        <dd><?= $proyecto['cantidad_estudiante'] ?? '' ?></dd>
 
                         <dt>Temática</dt>
-                        <dd><?= htmlspecialchars($proyecto['tematica']) ?></dd>
+                        <dd><?= htmlspecialchars($proyecto['tematica'] ?? '') ?></dd>
 
                         <dt>Modalidad</dt>
-                        <dd><?= htmlspecialchars($proyecto['modalidad']) ?></dd>
+                        <dd><?= htmlspecialchars($proyecto['modalidad'] ?? '') ?></dd>
 
                         <dt>Presupuesto</dt>
-                        <dd>$<?= number_format($proyecto['presupuesto'], 2) ?></dd>
+                        <dd>$<?= number_format($proyecto['presupuesto'] ?? 0, 2) ?></dd>
 
                         <dt>Fecha inicio</dt>
-                        <dd><?= $proyecto['fecha_inicio'] ?></dd>
+                        <dd><?= $proyecto['fecha_inicio'] ?? '' ?></dd>
 
                         <dt>Fecha final</dt>
-                        <dd><?= $proyecto['fecha_fin'] ?></dd>
+                        <dd><?= $proyecto['fecha_fin'] ?? '' ?></dd>
 
                         <dt>Fecha creación</dt>
-                        <dd><?= $proyecto['creado_en'] ?></dd>
+                        <dd><?= $proyecto['creado_en'] ?? '' ?></dd>
                     </dl>
                 </div>
             </div>
@@ -171,13 +181,13 @@ include __DIR__ . '/../../mensaje.php';
                 <div class="col-md-6">
                     <dl>
                         <dt>Nombre completo</dt>
-                        <dd><?= htmlspecialchars($dat_inv['nombre'] . ' ' . $dat_inv['apellido_paterno'] . ' ' . $dat_inv['apellido_materno']) ?></dd>
+                        <dd><?= htmlspecialchars(($dat_inv['nombre'] ?? '') . ' ' . ($dat_inv['apellido_paterno'] ?? '') . ' ' . ($dat_inv['apellido_materno'] ?? '')) ?></dd>
 
                         <dt>Área de conocimiento</dt>
-                        <dd><?= $dat_area_inv['area_conocimiento'] ?: 'No tiene área asignada' ?></dd>
+                        <dd><?= $dat_area_inv['area_conocimiento'] ?? 'No tiene área asignada' ?></dd>
 
                         <dt>Subárea</dt>
-                        <dd><?= $dat_area_inv['subarea'] ?: 'No tiene subárea asignada' ?></dd>
+                        <dd><?= $dat_area_inv['subarea'] ?? 'No tiene subárea asignada' ?></dd>
                     </dl>
                 </div>
                 <div class="col-md-6">
@@ -215,11 +225,11 @@ include __DIR__ . '/../../mensaje.php';
                             <?php foreach ($estudiantes as $alumno): ?>
                                 <tr>
                                     <td><?= $alumno['id_usuarios'] ?></td>
-                                    <td><?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['apellido_paterno'] . ' ' . $alumno['apellido_materno']) ?></td>
-                                    <td><?= htmlspecialchars($alumno['carrera']) ?></td>
+                                    <td><?= htmlspecialchars(($alumno['nombre'] ?? '') . ' ' . ($alumno['apellido_paterno'] ?? '') . ' ' . ($alumno['apellido_materno'] ?? '')) ?></td>
+                                    <td><?= htmlspecialchars($alumno['carrera'] ?? '') ?></td>
                                     <td>
                                         <?php
-                                        $estEst  = $alumno['estado'] ?? 'activo';
+                                        $estEst   = $alumno['estado'] ?? 'activo';
                                         $claseEst = ($estEst === 'baja') ? 'danger' : (($estEst === 'concluido') ? 'success' : 'primary');
                                         ?>
                                         <span class="badge text-bg-<?= $claseEst ?>"><?= strtoupper($estEst) ?></span>
@@ -252,43 +262,41 @@ include __DIR__ . '/../../mensaje.php';
     <!-- ACCIONES DEL SUPERVISOR -->
     <?php if ($rol === 'supervisor'): ?>
         <div class="card mb-4 shadow-sm border-primary">
-            <div class="card-header fw-semibold text-white"><i class="bi bi-gear-fill"></i> Acciones sobre la solicitud</div>
+            <div class="card-header fw-semibold"><i class="bi bi-gear-fill"></i> Acciones sobre la solicitud</div>
             <div class="card-body">
 
-                <?php if ($tipo_solicitud === 'creacion' && $proyecto['estado_proyecto'] === 'Por aprobar'): ?>
-                    <!-- ACCIONES: SOLICITUD DE CREACIÓN -->
+                <?php if ($tipo_solicitud === 'creacion' && ($proyecto['estado_proyecto'] ?? '') === 'Por aprobar'): ?>
                     <p class="mb-3">Esta es una solicitud de <strong>creación de proyecto</strong>. Revise la información y decida:</p>
                     <div class="d-flex gap-3 flex-wrap">
 
-                        <!-- APROBAR CREACIÓN -->
-                        <a href="../proyectos/index.php?action=actualizarestado&id_proyectos=<?= $id_proyecto ?>&tipo=Activos"
+                        <!-- APROBAR CREACIÓN — apunta a index.php del mismo módulo -->
+                        <a href="index.php?action=actualizarestado&id_proyectos=<?= $id_proyecto ?>&tipo=Activos"
                            class="btn btn-success btn-lg"
                            onclick="return confirm('¿Confirma que desea APROBAR este proyecto?')">
                             <i class="bi bi-check-circle-fill"></i> Aprobar proyecto
                         </a>
 
                         <!-- RECHAZAR CREACIÓN -->
-                        <a href="../proyectos/comentarios.php?id_proyectos=<?= $id_proyecto ?>&motivo=creacion_rechazada&desde=solicitudes"
+                        <a href="comentarios.php?id_proyectos=<?= $id_proyecto ?>&motivo=creacion_rechazada&desde=solicitudes"
                            class="btn btn-danger btn-lg">
                             <i class="bi bi-x-circle-fill"></i> Rechazar proyecto
                         </a>
 
                     </div>
 
-                <?php elseif ($tipo_solicitud === 'cierre' && $proyecto['estado_proyecto'] === 'Por cerrar'): ?>
-                    <!-- ACCIONES: SOLICITUD DE CIERRE -->
+                <?php elseif ($tipo_solicitud === 'cierre' && ($proyecto['estado_proyecto'] ?? '') === 'Por cerrar'): ?>
                     <p class="mb-3">Esta es una solicitud de <strong>cierre de proyecto</strong>. Revise el avance y decida:</p>
                     <div class="d-flex gap-3 flex-wrap">
 
-                        <!-- APROBAR CIERRE -->
-                        <a href="../proyectos/index.php?action=actualizarestado&id_proyectos=<?= $id_proyecto ?>&tipo=Cierre"
+                        <!-- APROBAR CIERRE — apunta a index.php del mismo módulo -->
+                        <a href="index.php?action=actualizarestado&id_proyectos=<?= $id_proyecto ?>&tipo=Cierre"
                            class="btn btn-success btn-sm"
                            onclick="return confirm('¿Confirma que desea APROBAR el cierre de este proyecto?')">
                             <i class="bi bi-check-circle-fill"></i> Aprobar cierre
                         </a>
 
                         <!-- RECHAZAR CIERRE -->
-                        <a href="../proyectos/comentarios.php?id_proyectos=<?= $id_proyecto ?>&motivo=cierre_rechazado&desde=solicitudes"
+                        <a href="comentarios.php?id_proyectos=<?= $id_proyecto ?>&motivo=cierre_rechazado&desde=solicitudes"
                            class="btn btn-danger btn-sm">
                             <i class="bi bi-x-circle-fill"></i> Rechazar cierre
                         </a>
@@ -298,42 +306,10 @@ include __DIR__ . '/../../mensaje.php';
                 <?php else: ?>
                     <div class="alert alert-secondary mb-0">
                         Esta solicitud ya fue procesada. Estado actual:
-                        <strong><?= htmlspecialchars($proyecto['estado_proyecto']) ?></strong>
+                        <strong><?= htmlspecialchars($proyecto['estado_proyecto'] ?? '') ?></strong>
                     </div>
                 <?php endif; ?>
 
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <!-- ACCIONES DEL INVESTIGADOR (historial propio) -->
-    <?php if (in_array($rol, ['investigador', 'profesor'])): ?>
-        <div class="card mb-4 shadow-sm">
-            <div class="card-header fw-semibold">Estado de tu solicitud</div>
-            <div class="card-body">
-                <?php if ($proyecto['estado_proyecto'] === 'Por aprobar'): ?>
-                    <div class="alert alert-warning mb-0">
-                        <i class="bi bi-hourglass-split"></i> Solicitud <strong>en revisión</strong>. Espera la respuesta del supervisor.
-                    </div>
-                <?php elseif ($proyecto['estado_proyecto'] === 'Activo'): ?>
-                    <div class="alert alert-success mb-0">
-                        <i class="bi bi-check-circle"></i> Solicitud <strong>aprobada</strong>. Proyecto activo.
-                    </div>
-                <?php elseif ($proyecto['estado_proyecto'] === 'Rechazado'): ?>
-                    <div class="alert alert-danger mb-0">
-                        <i class="bi bi-x-circle"></i> Solicitud <strong>rechazada</strong>. Revisa los comentarios del supervisor.
-                    </div>
-                <?php elseif ($proyecto['estado_proyecto'] === 'Por cerrar'): ?>
-                    <div class="alert alert-warning mb-0">
-                        <i class="bi bi-hourglass-split"></i> Solicitud de cierre <strong>en revisión</strong>.
-                    </div>
-                <?php elseif ($proyecto['estado_proyecto'] === 'Cierre rechazado'): ?>
-                    <div class="alert alert-danger mb-0">
-                        <i class="bi bi-x-circle"></i> Solicitud de cierre <strong>rechazada</strong>. Revisa los comentarios.
-                    </div>
-                <?php else: ?>
-                    <p class="mb-0">Estado: <strong><?= htmlspecialchars($proyecto['estado_proyecto']) ?></strong></p>
-                <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>

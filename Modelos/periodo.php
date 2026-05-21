@@ -1,4 +1,6 @@
 <?php
+// Modelos/periodo.php
+
 require_once __DIR__ . '/../publico/config/conexion.php';
 
 class Periodo
@@ -9,8 +11,22 @@ class Periodo
     {
         $this->con = $conn;
     }
+
+    // 
+    //  FILTROS / CONTEOS
+    // 
+
+// 
+// obtenerPeriodoDatosFiltro() —
+// Se agrega comentario explicativo de por qué usa estado=1.
+// Si los conteos no coincidían era por este mismo malentendido.
+// 
+
     /**
-     * Obtiene datos para filtros (totales, activos, terminados)
+     * Obtiene datos para filtros (totales, activos, terminados).
+     * Solo cuenta periodos con estado = 1 (activos lógicamente).
+     * Los desactivados administrativamente (estado=0) no se cuentan.
+     * Se añade el conteo de Desactivados (estado = 0).
      */
     public function obtenerPeriodoDatosFiltro($rol): array
     {
@@ -18,12 +34,29 @@ class Periodo
             return [];
         }
 
-        $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    COALESCE(SUM(CASE WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 1 ELSE 0 END), 0) AS Activo,
-                    COALESCE(SUM(CASE WHEN CURDATE() > fecha_final THEN 1 ELSE 0 END), 0) AS Terminado
-                FROM periodos 
-                WHERE estado = 1";
+        $sql = "SELECT
+                -- Total de periodos activos lógicamente
+                SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END) AS Total,
+ 
+                -- Activos: estado=1 y hoy está dentro del rango
+                COALESCE(SUM(CASE
+                    WHEN estado = 1 AND CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 1
+                    ELSE 0
+                END), 0) AS Activo,
+ 
+                -- Terminados: estado=1 y el rango ya pasó
+                COALESCE(SUM(CASE
+                    WHEN estado = 1 AND CURDATE() > fecha_final THEN 1
+                    ELSE 0
+                END), 0) AS Terminado,
+ 
+                -- Desactivados administrativamente: estado=0
+                COALESCE(SUM(CASE
+                    WHEN estado = 0 THEN 1
+                    ELSE 0
+                END), 0) AS Desactivado
+ 
+            FROM periodos";
 
         $stmt = $this->con->prepare($sql);
 
@@ -36,76 +69,103 @@ class Periodo
         }
 
         $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close(); // liberar recurso
+        $stmt->close();
 
         return $resultado;
     }
-
     /**
-     * Método base para construir WHERE dinámico (REUTILIZABLE)
+     * Método base para construir WHERE dinámico.
+     *
+     * Filtros:
+     *   2 = Total    → todos con estado = 1 (activos lógicos: tanto en curso como terminados)
+     *   1 = Activo   → estado = 1 Y CURDATE() BETWEEN fecha_inicio AND fecha_final
+     *   0 = Terminado→ estado = 1 Y CURDATE() > fecha_final
+     *
+     * Los registros con estado = 0 son "desactivados administrativamente"
+     * y NUNCA aparecen en la tabla principal.
+
+     * NUEVO filtro: $filtro === 3 → Desactivados administrativamente
+     *   (estado = 0, independientemente de las fechas)
+     * El resto de filtros siguen usando estado = 1.
      */
     private function construirWhere(&$params, &$types, $buscar, $filtro): string
     {
-        $where = ["estado = 1"];
+        if ($filtro === 3) {
+            // Desactivados administrativamente: estado = 0
+            $where = ["estado = 0"];
+        } else {
+            // Todos los demás filtros operan sobre estado = 1
+            $where = ["estado = 1"];
 
-        // Filtro lógico
-        if ($filtro === 0) {
-            $where[] = "CURDATE() > fecha_final";
-        } elseif ($filtro === 1) {
-            $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
+            if ($filtro === 0) {
+                $where[] = "CURDATE() > fecha_final";
+            } elseif ($filtro === 1) {
+                $where[] = "CURDATE() BETWEEN fecha_inicio AND fecha_final";
+            }
+            // filtro === 2 → Total (estado=1 sin restricción de fecha)
         }
 
-        // Búsqueda
         if (!empty($buscar)) {
             $where[] = "(fecha_inicio LIKE ? OR fecha_final LIKE ? OR periodo LIKE ?)";
             $params[] = "%$buscar%";
             $params[] = "%$buscar%";
             $params[] = "%$buscar%";
-            $types .= "sss";
+            $types   .= "sss";
         }
 
         return " WHERE " . implode(" AND ", $where);
     }
 
+    // 
+    //  TABLA PRINCIPAL CON PAGINACIÓN
+    // 
+
     /**
-     * Obtiene tabla principal con paginación
+     * Obtiene tabla principal con paginación y las nuevas fechas.
      */
+    // El CASE de estados ahora incluye la rama para estado = 0.
+    // También se expone si el desactivado es "vigente" (puede
+    // reactivarse) o "pasado" (no puede), para que la vista
+    // pueda decidir qué botón mostrar.
     public function obtenerPeriodoTablaFiltro($buscar, $filtro): array
     {
-        /**
-         * Evitamos dependencia directa de $_GET
-         */
-        $pagina = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
+        $pagina     = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
         $por_pagina = 6;
-        $desde = ($pagina - 1) * $por_pagina;
+        $desde      = ($pagina - 1) * $por_pagina;
 
         $params = [];
-        $types = "";
+        $types  = "";
 
-        // Total optimizado
-        $total = $this->obtenerCantidadPeriodo($buscar, $filtro);
+        $total        = $this->obtenerCantidadPeriodo($buscar, $filtro);
         $total_paginas = ($total > 0) ? ceil($total / $por_pagina) : 1;
 
-        $sql = "SELECT 
-                    id_periodos,
-                    periodo,
-                    fecha_inicio AS inicio,
-                    fecha_final AS final,
-                    fecha_creacion AS crear,
-                    CASE 
-                        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'        
-                        WHEN CURDATE() > fecha_final THEN 'Terminado'
-                        ELSE 'Desconocido'
-                    END AS estados
-                FROM periodos";
+        $sql = "SELECT
+                id_periodos,
+                periodo,
+                fecha_inicio                AS inicio,
+                fecha_final                 AS final,
+                fecha_inicio_proyectos,
+                fecha_fin_proyectos,
+                fecha_inicio_solicitud,
+                fecha_fin_solicitud,
+                fecha_creacion              AS crear,
+                fecha_modificacion,
+                estado,
+                CASE
+                    WHEN estado = 0 THEN 'Desactivado'
+                    WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+                    WHEN CURDATE() > fecha_final THEN 'Terminado'
+                    ELSE 'Desconocido'
+                END AS estados,
+                -- ¿Puede reactivarse? Solo si está desactivado y el semestre aún no terminó
+                CASE
+                    WHEN estado = 0 AND fecha_final >= CURDATE() THEN 1
+                    ELSE 0
+                END AS puede_reactivar
+            FROM periodos";
 
         $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
-
-        /**
-         * - Evitar inyección (LIMIT seguro con enteros)
-         */
-        $sql .= " ORDER BY id_periodos ASC LIMIT ?, ?";
+        $sql .= " ORDER BY id_periodos DESC LIMIT ?, ?";
 
         $stmt = $this->con->prepare($sql);
 
@@ -113,10 +173,9 @@ class Periodo
             throw new Exception("Error en prepare (obtenerPeriodoTablaFiltro): " . $this->con->error);
         }
 
-        // Agregar paginación como enteros
         $params[] = $desde;
         $params[] = $por_pagina;
-        $types .= "ii";
+        $types   .= "ii";
 
         $stmt->bind_param($types, ...$params);
 
@@ -125,29 +184,28 @@ class Periodo
         }
 
         $data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close(); // liberar recurso
+        $stmt->close();
 
         return [
-            "periodo" => $data,
+            "periodo"    => $data,
             "paginacion" => [
-                "total" => $total,
-                "por_pagina" => $por_pagina,
-                "pagina" => $pagina,
+                "total"         => $total,
+                "por_pagina"    => $por_pagina,
+                "pagina"        => $pagina,
                 "total_paginas" => $total_paginas
             ]
         ];
     }
 
     /**
-     * Obtiene total de registros con filtros
+     * Total de registros con filtros.
      */
     public function obtenerCantidadPeriodo($buscar = null, $filtro = 2): int
     {
         $params = [];
-        $types = "";
+        $types  = "";
 
-        $sql = "SELECT COUNT(*) AS total FROM periodos";
+        $sql  = "SELECT COUNT(*) AS total FROM periodos";
         $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
 
         $stmt = $this->con->prepare($sql);
@@ -165,22 +223,29 @@ class Periodo
         }
 
         $resultado = $stmt->get_result()->fetch_assoc();
-
         $stmt->close();
 
         return (int)($resultado['total'] ?? 0);
     }
 
+    // 
+    //  EDITAR / DETALLES
+    // 
+
     /**
-     * Obtiene datos para edición
+     * Obtiene datos para edición (incluye nuevas fechas).
      */
     public function obtenerPeriodoEditar($id_periodos): array
     {
         $sql = "SELECT 
-                    id_periodos, 
-                    periodo AS nombre, 
-                    fecha_inicio AS inicio, 
-                    fecha_final AS fin,
+                    id_periodos,
+                    periodo                     AS nombre,
+                    fecha_inicio                AS inicio,
+                    fecha_final                 AS fin,
+                    fecha_inicio_proyectos,
+                    fecha_fin_proyectos,
+                    fecha_inicio_solicitud,
+                    fecha_fin_solicitud,
                     CASE 
                         WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
                         WHEN CURDATE() > fecha_final THEN 'Terminado'
@@ -202,7 +267,6 @@ class Periodo
         }
 
         $periodo = $stmt->get_result()->fetch_assoc();
-
         $stmt->close();
 
         if (!$periodo) {
@@ -213,16 +277,20 @@ class Periodo
     }
 
     /**
-     * Obtiene datos para vista de detalles
+     * Obtiene datos para vista de detalles (incluye nuevas fechas).
      */
     public function obtenerPeriodoDetalles($id_periodos): array
     {
         $sql = "SELECT 
-                    id_periodos, 
-                    periodo, 
-                    fecha_inicio, 
-                    fecha_final, 
-                    fecha_creacion, 
+                    id_periodos,
+                    periodo,
+                    fecha_inicio,
+                    fecha_final,
+                    fecha_inicio_proyectos,
+                    fecha_fin_proyectos,
+                    fecha_inicio_solicitud,
+                    fecha_fin_solicitud,
+                    fecha_creacion,
                     fecha_modificacion,
                     CASE 
                         WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
@@ -245,7 +313,6 @@ class Periodo
         }
 
         $periodo = $stmt->get_result()->fetch_assoc();
-
         $stmt->close();
 
         if (!$periodo) {
@@ -255,26 +322,34 @@ class Periodo
         return $periodo;
     }
 
-    //Crea Periodo
+    // 
+    //  CREAR / REACTIVAR
+    // 
+
     /**
-     * Registra un nuevo periodo.
-     * 
-     * REGLAS:
-     * - Se crea siempre como activo
-     * - No debe solaparse con otro activo
-     * - No debe duplicar nombre activo
-     * 
-     * IMPORTANTE:
-     * Este método DEBE ejecutarse dentro de una transacción desde el controlador.
+     * Registra un nuevo periodo con las fechas de proyectos e integración.
      *
-     * @param string $periodo
-     * @param string $fecha_inicio
-     * @param string $fecha_final
+     * IMPORTANTE: Ejecutar dentro de una transacción desde el controlador.
+     *
+     * @param string      $periodo
+     * @param string      $fecha_inicio
+     * @param string      $fecha_final
+     * @param string|null $fecha_inicio_proyectos
+     * @param string|null $fecha_fin_proyectos
+     * @param string|null $fecha_inicio_solicitud
+     * @param string|null $fecha_fin_solicitud
      * @return int ID insertado
      * @throws Exception
      */
-    public function registrarPeriodo(string $periodo, string $fecha_inicio, string $fecha_final): int
-    {
+    public function registrarPeriodo(
+        string  $periodo,
+        string  $fecha_inicio,
+        string  $fecha_final,
+        ?string $fecha_inicio_proyectos    = null,
+        ?string $fecha_fin_proyectos       = null,
+        ?string $fecha_inicio_solicitud  = null,
+        ?string $fecha_fin_solicitud     = null
+    ): int {
 
         $validacion = $this->verificarPeriodo($periodo, $fecha_inicio, $fecha_final);
 
@@ -282,10 +357,12 @@ class Periodo
             throw new Exception("Conflicto: ya existe un periodo activo con ese nombre o fechas.");
         }
 
-
         $sql = "INSERT INTO periodos 
-            (periodo, fecha_inicio, fecha_final, estado, fecha_creacion) 
-            VALUES (?, ?, ?, 1, NOW())";
+                    (periodo, fecha_inicio, fecha_final,
+                     fecha_inicio_proyectos, fecha_fin_proyectos,
+                     fecha_inicio_solicitud, fecha_fin_solicitud,
+                     estado, fecha_creacion) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW())";
 
         $stmt = $this->con->prepare($sql);
 
@@ -293,52 +370,99 @@ class Periodo
             throw new Exception("Error en prepare (registrarPeriodo): " . $this->con->error);
         }
 
-        $stmt->bind_param("sss", $periodo, $fecha_inicio, $fecha_final);
+        $stmt->bind_param(
+            "sssssss",
+            $periodo,
+            $fecha_inicio,
+            $fecha_final,
+            $fecha_inicio_proyectos,
+            $fecha_fin_proyectos,
+            $fecha_inicio_solicitud,
+            $fecha_fin_solicitud
+        );
 
         if (!$stmt->execute()) {
             throw new Exception("Error en execute (registrarPeriodo): " . $stmt->error);
         }
 
         $id = $stmt->insert_id;
-
-        $stmt->close(); // liberar recurso
+        $stmt->close();
 
         return $id;
     }
 
+    /**
+     * Actualiza únicamente las fechas de proyectos e integración de un periodo.
+     *
+     * IMPORTANTE: Ejecutar dentro de una transacción desde el controlador.
+     *
+     * @param int         $id_periodos
+     * @param string|null $fecha_inicio_proyectos
+     * @param string|null $fecha_fin_proyectos
+     * @param string|null $fecha_inicio_solicitud
+     * @param string|null $fecha_fin_solicitud
+     * @return int Filas afectadas
+     * @throws Exception
+     */
+    public function actualizarFechasSubperiodos(
+        int     $id_periodos,
+        ?string $fecha_inicio_proyectos,
+        ?string $fecha_fin_proyectos,
+        ?string $fecha_inicio_solicitud,
+        ?string $fecha_fin_solicitud
+    ): int {
+
+        $sql = "UPDATE periodos
+                SET fecha_inicio_proyectos   = ?,
+                    fecha_fin_proyectos       = ?,
+                    fecha_inicio_solicitud  = ?,
+                    fecha_fin_solicitud     = ?,
+                    fecha_modificacion        = NOW()
+                WHERE id_periodos = ?
+                  AND estado <> 0";
+
+        $stmt = $this->con->prepare($sql);
+
+        if (!$stmt) {
+            throw new Exception("Error en prepare (actualizarFechasSubperiodos): " . $this->con->error);
+        }
+
+        $stmt->bind_param(
+            "ssssi",
+            $fecha_inicio_proyectos,
+            $fecha_fin_proyectos,
+            $fecha_inicio_solicitud,
+            $fecha_fin_solicitud,
+            $id_periodos
+        );
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute (actualizarFechasSubperiodos): " . $stmt->error);
+        }
+
+        $filas = $stmt->affected_rows;
+        $stmt->close();
+
+        return $filas;
+    }
+
+    // 
+    //  REACTIVAR
+    // 
 
     /**
      * Reactiva un periodo previamente desactivado.
-     * 
-     * REGLAS:
-     * - No debe existir otro periodo activo solapado
-     * - No debe duplicar nombre activo
-     * 
-     * IMPORTANTE:
      * Ejecutar dentro de transacción.
-     *
-     * @param int $id
-     * @return void
-     * @throws Exception
      */
     public function reactivarPeriodo(int $id): void
     {
-        /**
-         * 1. Obtener el periodo con bloqueo (evita concurrencia)
-         */
         $periodo = $this->obtenerPorId($id, true);
 
         if (!$periodo) {
             throw new Exception("Periodo no encontrado.");
         }
 
-        /**
-         * 2. Obtener datos completos del periodo (necesarios para validar)
-         */
-        $sqlDatos = "SELECT periodo, fecha_inicio, fecha_final 
-                 FROM periodos 
-                 WHERE id_periodos = ?";
-
+        $sqlDatos = "SELECT periodo, fecha_inicio, fecha_final FROM periodos WHERE id_periodos = ?";
         $stmtDatos = $this->con->prepare($sqlDatos);
 
         if (!$stmtDatos) {
@@ -354,9 +478,6 @@ class Periodo
             throw new Exception("No se pudieron obtener datos del periodo.");
         }
 
-        /**
-         * 3. Validar conflictos antes de reactivar
-         */
         $validacion = $this->verificarPeriodo(
             $datos['periodo'],
             $datos['fecha_inicio'],
@@ -367,15 +488,11 @@ class Periodo
             throw new Exception("Conflicto: ya existe un periodo activo con mismo nombre o fechas.");
         }
 
-        /**
-         * 4. Reactivar
-         * - Solo si está desactivado
-         */
         $sql = "UPDATE periodos 
-            SET estado = 1, 
-                fecha_modificacion = NOW() 
-            WHERE id_periodos = ? 
-              AND estado = 0";
+                SET estado = 1, 
+                    fecha_modificacion = NOW() 
+                WHERE id_periodos = ? 
+                  AND estado = 0";
 
         $stmt = $this->con->prepare($sql);
 
@@ -395,20 +512,14 @@ class Periodo
 
         $stmt->close();
     }
-    /**
-     * Obtiene un periodo por nombre (búsqueda exacta).
-     * Previene duplicados lógicos.
-     *
-     * @param string $nombre
-     * @return array|null
-     * @throws Exception
-     */
+
+    // 
+    //  AUXILIARES
+    // 
+
     public function obtenerPorNombre(string $nombre): ?array
     {
-        $sql = "SELECT id_periodos 
-                FROM periodos 
-                WHERE periodo = ? 
-                LIMIT 1";
+        $sql = "SELECT id_periodos FROM periodos WHERE periodo = ? LIMIT 1";
 
         $stmt = $this->con->prepare($sql);
 
@@ -423,29 +534,14 @@ class Periodo
         }
 
         $resultado = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
+        $stmt->close();
 
         return $resultado ?: null;
     }
 
-    /**
-     * Bloquea únicamente los registros activos.
-     * IMPORTANTE: Debe ejecutarse dentro de una transacción.
-     *
-     * REQUIERE:
-     * - Motor InnoDB
-     * - Transacción activa
-     * @return void
-     * @throws Exception
-     */
-
     public function bloquear_tabla(): void
     {
-        $sql = "SELECT id_periodos 
-                FROM periodos 
-                WHERE estado = 1 
-                FOR UPDATE";
+        $sql = "SELECT id_periodos FROM periodos WHERE estado = 1 FOR UPDATE";
 
         $stmt = $this->con->prepare($sql);
 
@@ -457,21 +553,12 @@ class Periodo
             throw new Exception("Error en execute (bloquear_tabla): " . $stmt->error);
         }
 
-        // No necesitamos el resultado → solo provocar el bloqueo
         $stmt->free_result();
         $stmt->close();
     }
 
-    /**
-     * Eliminación lógica (soft delete) de un periodo.
-     *
-     * @param int $id_periodo
-     * @return int Número de filas afectadas
-     * @throws Exception
-     */
     public function eliminar_periodo(int $id_periodo): int
     {
-
         $sql = "UPDATE periodos 
                 SET estado = 0, 
                     fecha_modificacion = NOW() 
@@ -491,16 +578,16 @@ class Periodo
         }
 
         $filas = $stmt->affected_rows;
-
-        $stmt->close(); // liberar recurso SIEMPRE
+        $stmt->close();
 
         return $filas;
     }
+
     public function desactivarActivos(): void
     {
         $sql = "UPDATE periodos 
-            SET estado = 0, fecha_modificacion = NOW() 
-            WHERE estado = 1";
+                SET estado = 0, fecha_modificacion = NOW() 
+                WHERE estado = 1";
 
         $stmt = $this->con->prepare($sql);
 
@@ -514,47 +601,63 @@ class Periodo
 
         $stmt->close();
     }
-    //Busca duplicidad de periodos
+
+
     /**
-     * Verifica duplicidad de periodos por:
-     * - Solapamiento de fechas
-     * - Nombre duplicado
+     * Verifica duplicidad de periodos por solapamiento de fechas y nombre.
      *
-     * IMPORTANTE:
-     * Este método DEBE ejecutarse dentro de una transacción si se usa para inserción/actualización crítica.
-     *
-     * @param string $nombre
-     * @param string $fecha_inicio (Y-m-d)
-     * @param string $fecha_fin (Y-m-d)
-     * @return array
-     * @throws Exception
+     * Retorna:
+     *   activo            → existe un periodo con estado=1 que solapa o tiene el mismo nombre
+     *   desactivado       → existe un periodo con estado=0 que solapa o tiene el mismo nombre
+     *                       Y cuyo semestre NO ha terminado aún (fecha_final >= CURDATE())
+     *   desactivado_pasado→ existe un periodo con estado=0 que solapa o tiene el mismo nombre
+     *                       PERO ya terminó (fecha_final < CURDATE()) — no se puede reactivar
      */
     public function verificarPeriodo(string $nombre, string $fecha_inicio, string $fecha_fin): array
     {
-
         $sql = "SELECT
+                -- ¿Existe periodo activo que solapa fechas?
                 EXISTS(
                     SELECT 1 FROM periodos
                     WHERE estado = 1
                       AND (? <= fecha_final AND ? >= fecha_inicio)
-                ) AS activo,
-
-                EXISTS(
-                    SELECT 1 FROM periodos
-                    WHERE estado = 0
-                      AND (? <= fecha_final AND ? >= fecha_inicio)
-                ) AS desactivado,
-
+                ) AS activo_fecha,
+ 
+                -- ¿Existe periodo activo con el mismo nombre?
                 EXISTS(
                     SELECT 1 FROM periodos
                     WHERE estado = 1 AND periodo = ?
                 ) AS activo_nombre,
-
+ 
+                -- ¿Existe periodo desactivado que solapa fechas y aún NO terminó?
+                EXISTS(
+                    SELECT 1 FROM periodos
+                    WHERE estado = 0
+                      AND (? <= fecha_final AND ? >= fecha_inicio)
+                      AND fecha_final >= CURDATE()
+                ) AS desactivado_vigente_fecha,
+ 
+                -- ¿Existe periodo desactivado con el mismo nombre y aún NO terminó?
                 EXISTS(
                     SELECT 1 FROM periodos
                     WHERE estado = 0 AND periodo = ?
-                ) AS desactivado_nombre
-        ";
+                      AND fecha_final >= CURDATE()
+                ) AS desactivado_vigente_nombre,
+ 
+                -- ¿Existe periodo desactivado que solapa fechas PERO ya terminó?
+                EXISTS(
+                    SELECT 1 FROM periodos
+                    WHERE estado = 0
+                      AND (? <= fecha_final AND ? >= fecha_inicio)
+                      AND fecha_final < CURDATE()
+                ) AS desactivado_pasado_fecha,
+ 
+                -- ¿Existe periodo desactivado con el mismo nombre PERO ya terminó?
+                EXISTS(
+                    SELECT 1 FROM periodos
+                    WHERE estado = 0 AND periodo = ?
+                      AND fecha_final < CURDATE()
+                ) AS desactivado_pasado_nombre";
 
         $stmt = $this->con->prepare($sql);
 
@@ -563,13 +666,16 @@ class Periodo
         }
 
         $stmt->bind_param(
-            "ssssss",
-            $fecha_inicio,
-            $fecha_fin,
-            $fecha_inicio,
-            $fecha_fin,
-            $nombre,
-            $nombre
+            "sssssssss",
+            $fecha_inicio,   // activo_fecha   (<=fecha_final)
+            $fecha_fin,      // activo_fecha   (>=fecha_inicio)
+            $nombre,         // activo_nombre
+            $fecha_inicio,   // desactivado_vigente_fecha
+            $fecha_fin,      // desactivado_vigente_fecha
+            $nombre,         // desactivado_vigente_nombre
+            $fecha_inicio,   // desactivado_pasado_fecha
+            $fecha_fin,      // desactivado_pasado_fecha
+            $nombre          // desactivado_pasado_nombre
         );
 
         if (!$stmt->execute()) {
@@ -577,30 +683,21 @@ class Periodo
         }
 
         $res = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
+        $stmt->close();
 
         return [
-            "activo" => (int)($res['activo'] || $res['activo_nombre']),
-            "desactivado" => (int)($res['desactivado'] || $res['desactivado_nombre'])
+            // Hay un periodo activo (por fecha o nombre) → bloquear creación
+            "activo"             => (int)(($res['activo_fecha'] ?? 0) || ($res['activo_nombre'] ?? 0)),
+            // Hay un periodo desactivado vigente (semestre actual) → ofrecer reactivar
+            "desactivado"        => (int)(($res['desactivado_vigente_fecha'] ?? 0) || ($res['desactivado_vigente_nombre'] ?? 0)),
+            // Hay un periodo desactivado pero ya pasó → NO ofrecer reactivar, permitir crear
+            "desactivado_pasado" => (int)(($res['desactivado_pasado_fecha'] ?? 0) || ($res['desactivado_pasado_nombre'] ?? 0)),
         ];
     }
 
-    /**
-     * Obtiene un periodo por ID.
-     * OPCIONAL: Permite bloqueo de fila para concurrencia.
-     *
-     * @param int $id
-     * @param bool $forUpdate
-     * @return array|null
-     * @throws Exception
-     */
     public function obtenerPorId(int $id, bool $forUpdate = false): ?array
     {
-
-        $sql = "SELECT estado 
-                FROM periodos 
-                WHERE id_periodos = ?";
+        $sql = "SELECT estado FROM periodos WHERE id_periodos = ?";
 
         if ($forUpdate) {
             $sql .= " FOR UPDATE";
@@ -619,8 +716,7 @@ class Periodo
         }
 
         $res = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
+        $stmt->close();
 
         return $res ?: null;
     }

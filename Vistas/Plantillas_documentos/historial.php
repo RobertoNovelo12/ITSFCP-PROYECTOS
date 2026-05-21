@@ -13,6 +13,13 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 $id_tipo_documento = $_GET['id_tipo_documento'] ?? null;
 
+//Solo supervisor
+if (strtolower($rol ?? '') !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
+
 if ($id_tipo_documento == null) {
     die("ERROR: No se recibió id_tipo_documento");
 }

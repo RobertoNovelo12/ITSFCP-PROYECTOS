@@ -17,11 +17,10 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo el supervisor accede a este módulo
-if ($rol !== 'supervisor') {
-    header("Location: ../proyectos/index.php");
+if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
-
 $tipo_filtro = $_GET['tipo']       ?? 'Todas';
 $buscar      = $_GET['buscar']     ?? '';
 $pagina      = intval($_GET['pagina']     ?? 1);
@@ -73,7 +72,7 @@ if (isset($_GET['error']) && $_GET['error']) {
         </div>
         <div class="col-md-6 text-md-end">
             <!-- Filtro por Periodo -->
-            <form class="d-inline-flex align-items-center gap-2" method="GET">
+            <form class="d-flex align-items-center gap-2 flex-wrap" method="GET">
                 <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">
                 <input type="hidden" name="buscar" value="<?= htmlspecialchars($buscar) ?>">
                 <label class="mb-0 text-nowrap fw-semibold">Periodo:</label>

@@ -13,15 +13,16 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
+//Solo investigador o profesor pueden acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
 require_once '../../Controladores/solicitudesControlador.php';
 $ctrl = new solicitudesControlador();
 
-// ── Procesar acciones POST directas desde tabla ───────────────────
+//  Procesar acciones POST directas desde index ─
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $accion       = $_POST['accion']       ?? '';
     $id_solicitud = intval($_POST['id_solicitud'] ?? 0);
@@ -45,25 +46,25 @@ include __DIR__ . '/../../mensaje.php';
 ?>
 <div class="container-fluid py-4">
 
-    <div class="row mb-3 align-items-center">
-        <div class="col">
-            <h2 class="mb-0 fw-semibold">Solicitudes de integración</h2>
-            <p class="text-muted small mb-0">Gestiona las solicitudes de estudiantes para tus proyectos.</p>
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="mb-0 fw-semibold" style="color: var(--color-primario); font-size: 1.6rem; letter-spacing: -.3px;">
+                Solicitudes de integración
+            </h2>
+            <p class="mb-0 small" style="color: var(--color-texto-secundario); margin-top: 2px;">
+                Gestiona las solicitudes de estudiantes para tus proyectos.
+            </p>
         </div>
-    </div>
-
-    <!-- FILTRO GLOBAL POR PERIODO -->
-    <div class="row mb-4">
-        <div class="col-12 col-md-auto">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <label class="fw-semibold small mb-0 text-nowrap">Periodo:</label>
+        <div class="col-md-6 text-md-end">
+            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-md-end">
+                <label class="fw-semibold small mb-0 text-nowrap" style="color: var(--color-texto-principal);">Periodo:</label>
                 <form method="GET" action="" id="formPeriodo" class="d-flex align-items-center gap-2 flex-wrap">
                     <?php foreach (['estado', 'buscar', 'proyecto', 'fecha_desde', 'fecha_hasta'] as $f): ?>
                         <?php if (!empty($filtros[$f])): ?>
                             <input type="hidden" name="<?= $f ?>" value="<?= htmlspecialchars($filtros[$f]) ?>">
                         <?php endif; ?>
                     <?php endforeach; ?>
-                    <select name="periodo" class="form-select form-select-sm" style="min-width:180px"
+                    <select name="periodo" class="form-select form-select-sm" style="min-width: 180px; border-color: var(--borde-menu); color: var(--color-texto-principal); border-radius: 6px;"
                         onchange="document.getElementById('formPeriodo').submit()">
                         <option value="">Todos los periodos</option>
                         <?php foreach ($periodos as $p): ?>
@@ -77,12 +78,17 @@ include __DIR__ . '/../../mensaje.php';
                         <?php endforeach; ?>
                     </select>
                     <?php if (!empty($filtros['periodo'])): ?>
-                        <a href="tabla.php" class="btn btn-outline-secondary btn-sm text-nowrap">Limpiar</a>
+                        <a href="index.php" class="btn btn-sm text-nowrap"
+                            style="border: 1px solid var(--borde-menu); color: var(--color-texto-secundario); border-radius: 6px; background: var(--fondo-inputs);">
+                            Limpiar
+                        </a>
                     <?php endif; ?>
                 </form>
             </div>
         </div>
     </div>
+
+
 
     <!-- RESUMEN -->
     <div class="row g-3 mb-4">
@@ -120,13 +126,15 @@ include __DIR__ . '/../../mensaje.php';
             <label class="form-label small fw-medium mb-1">Estado</label>
             <select name="estado" class="form-select form-select-sm">
                 <option value="">Todos</option>
-                <?php foreach ([
-                    'pendiente'    => 'Pendiente',
-                    'en_revision'  => 'En revisión',
-                    'correcciones' => 'Correcciones',
-                    'aceptado'     => 'Aceptado',
-                    'rechazado'    => 'Rechazado',
-                ] as $val => $lbl): ?>
+                <?php foreach (
+                    [
+                        'pendiente'    => 'Pendiente',
+                        'en_revision'  => 'En revisión',
+                        'correcciones' => 'Correcciones',
+                        'aceptado'     => 'Aceptado',
+                        'rechazado'    => 'Rechazado',
+                    ] as $val => $lbl
+                ): ?>
                     <option value="<?= $val ?>" <?= ($filtros['estado'] ?? '') === $val ? 'selected' : '' ?>>
                         <?= $lbl ?>
                     </option>
@@ -159,7 +167,7 @@ include __DIR__ . '/../../mensaje.php';
             <button type="submit" class="btn btn-primary btn-sm">
                 <i class="bi bi-search"></i> Filtrar
             </button>
-            <a href="tabla.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
+            <a href="index.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
                 class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-x-circle"></i> Limpiar
             </a>
@@ -242,9 +250,13 @@ include __DIR__ . '/../../mensaje.php';
 
         <!-- PAGINACIÓN -->
         <?php if ($paginacion['total_paginas'] > 1): ?>
-            <nav class="mt-3">
-                <ul class="pagination justify-content-center pagination-sm">
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+
                     <?php
+                    $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
+                    $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
+
                     $qBase = http_build_query(array_filter([
                         'periodo'     => $filtros['periodo'],
                         'buscar'      => $filtros['buscar'],
@@ -255,17 +267,27 @@ include __DIR__ . '/../../mensaje.php';
                     ]));
                     $pag = $paginacion;
                     ?>
-                    <li class="page-item <?= $pag['pagina'] <= 1 ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] - 1 ?>">‹</a>
+
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $pag['total'] ?> entradas
+                        </span>
                     </li>
+
+                    <li class="page-item <?= $pag['pagina'] <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] - 1 ?>">&laquo;</a>
+                    </li>
+
                     <?php for ($i = 1; $i <= $pag['total_paginas']; $i++): ?>
                         <li class="page-item <?= $i === $pag['pagina'] ? 'active' : '' ?>">
                             <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $i ?>"><?= $i ?></a>
                         </li>
                     <?php endfor; ?>
+
                     <li class="page-item <?= $pag['pagina'] >= $pag['total_paginas'] ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] + 1 ?>">›</a>
+                        <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] + 1 ?>">&raquo;</a>
                     </li>
+
                 </ul>
             </nav>
         <?php endif; ?>

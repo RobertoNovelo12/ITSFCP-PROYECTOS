@@ -525,4 +525,36 @@ GROUP BY t.id_tipo_documento;";
             ]
         ];
     }
+
+    public function obtenerPlantillaPorId($id_plantilla)
+    {
+        $sql = "
+    SELECT
+        ds.id_documento,
+        ds.nombre_archivo,
+        ds.nombre,
+        ds.ruta,
+        ds.tipo_mime,
+        ds.extension,
+        ds.activo
+    FROM plantillas_documentos pd
+    JOIN documentos_subidos ds
+           ON ds.id_documento = t.id_documento
+    WHERE pd.id_plantilla          = ?
+      AND ds.tipo             = 'plantilla'
+      AND ds.activo           = 1
+    LIMIT 1";
+
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            http_response_code(500);
+            exit('Error interno del servidor.');
+        }
+
+        $stmt->bind_param('i', $id_plantilla);
+        $stmt->execute();
+        $file = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $file;
+    }
 }

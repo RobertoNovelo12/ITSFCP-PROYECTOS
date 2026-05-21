@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/historial_estudiante.php - Página secundaria de historial del estudiante */
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -16,6 +18,12 @@ $id_usuario = $_GET['id_usuario'] ?? null;
 
 if (!$id_proyecto || !$id_usuario) {
     die("ERROR: Datos incompletos");
+}
+
+//Solo el investigador y supervisor puede acceder
+if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
 }
 
 require_once '../../Controladores/proyectoControlador.php';
@@ -61,7 +69,7 @@ ob_start();
 
     <!-- RESUMEN -->
     <div class="card shadow-sm p-3 mb-4">
-        <h5 class="mb-3">Resumen</h5>
+        <h5 class="mb-3"><b>Resumen</b></h5>
 
         <div class="row">
             <div class="col-md-4">

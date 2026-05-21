@@ -15,7 +15,7 @@ $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo supervisores
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
@@ -23,25 +23,25 @@ require_once '../../Controladores/usuarioControlador.php';
 
 $controlador = new UsuariosControlador();
 
-// ── Parámetros GET ───────────────────────────────────────────────
+//  Parámetros GET ─
 $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 $buscar = trim($_GET['buscar'] ?? '');
 $tipo   = trim($_GET['tipo']   ?? '');  // estudiante | investigador | supervisor | (vacío = todos)
 $pagina = max(1, intval($_GET['pagina'] ?? 1));
 
-// ── Acciones directas (aprobar desde tabla) ──────────────────────
+//  Acciones directas (aprobar desde tabla) 
 if ($action === 'aprobar' && isset($_GET['id_usuarios'])) {
     $controlador->aprobar(intval($_GET['id_usuarios']), $rol);
     exit; // aprobar() redirige
 }
 
-// ── Validar que la acción exista en el controlador ───────────────
+//  Validar que la acción exista en el controlador ─
 $accionesPermitidas = ['index', 'Espera', 'Aprobado', 'Activo', 'Cancelado'];
 if (!in_array($action, $accionesPermitidas)) {
     $action = 'index';
 }
 
-// ── Ejecutar acción ──────────────────────────────────────────────
+//  Ejecutar acción 
 $resultado = $controlador->$action($rol, $buscar ?: null, $tipo ?: null);
 
 if (is_string($resultado)) {
@@ -56,12 +56,12 @@ $paginacion = $resultado['paginacion'] ?? [
     'total_paginas' => 1
 ];
 
-// ── Datos para filtros y tabla ───────────────────────────────────
+//  Datos para filtros y tabla ─
 $filtros     = $controlador->filtros($rol);
 $encabezados = $controlador->encabezados($rol);
 $opciones    = $controlador->opciones($rol, $filtros);
 
-// ── Mensaje de éxito/error ───────────────────────────────────────
+//  Mensaje de éxito/error ─
 $msg = $_GET['msg'] ?? '';
 
 ob_start();

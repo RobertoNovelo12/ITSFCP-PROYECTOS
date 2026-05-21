@@ -3,7 +3,6 @@
 /**
  * panel_supervisor.php
  * Dashboard de solo lectura del supervisor — responsivo con tarjetas móvil.
- * Paleta TecNM, Chart.js (MIT), tarjetas descriptivas, minimalista-académico.
  */
 
 ini_set('display_errors', 0);
@@ -19,7 +18,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id  = $_SESSION['id_usuario'];
 
 if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../publico/config/conexion.php';
 
 /**
- * Modelo Solicitud
+ * Modelo Solicitud de integración a proyecto
  *
  * 
  *  SECCIÓN A  │  Módulo del INVESTIGADOR
@@ -79,9 +79,9 @@ class Solicitud
 
         $visibilidad = strtolower(trim($_POST['visibilidad'] ?? ''));
 
-if (!in_array($visibilidad, ['publico', 'privado'])) {
-    throw new Exception("Visibilidad inválida");
-}
+        if (!in_array($visibilidad, ['publico', 'privado'])) {
+            throw new Exception("Visibilidad inválida");
+        }
         $sql = "
             INSERT INTO documentos_subidos
                 (nombre, nombre_archivo, ruta, tipo_mime, extension, tamano_bytes,
@@ -852,43 +852,43 @@ if (!in_array($visibilidad, ['publico', 'privado'])) {
      * Devuelve el id_solicitud_proyecto creado.
      */
     public function crearSolicitud(
-    int     $id_proyecto,
-    int     $id_estudiante,
-    int     $id_periodo,
-    ?float  $promedio,
-    string  $motivacion,
-    string  $experiencia,
-    ?int    $semestre,
-    ?int    $id_doc_cv = null
-): int {
-    $sql = "
+        int     $id_proyecto,
+        int     $id_estudiante,
+        int     $id_periodo,
+        ?float  $promedio,
+        string  $motivacion,
+        string  $experiencia,
+        ?int    $semestre,
+        ?int    $id_doc_cv = null
+    ): int {
+        $sql = "
         INSERT INTO solicitud_proyecto
             (id_proyectos, id_estudiante, id_periodos, id_documento,
              promedio, motivacion, experiencia, semestre,
              estado, fecha_envio)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', CURDATE())
     ";
-    $stmt = $this->con->prepare($sql);
-    if (!$stmt) throw new Exception("Error prepare (crearSolicitud): " . $this->con->error);
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) throw new Exception("Error prepare (crearSolicitud): " . $this->con->error);
 
-    // Usar 's' para promedio y semestre permite pasar NULL sin error en mysqli
-    $stmt->bind_param(
-        "iiiisssi",  
-        $id_proyecto,
-        $id_estudiante,
-        $id_periodo,
-        $id_doc_cv,
-        $promedio,
-        $motivacion,
-        $experiencia,
-        $semestre
-    );
+        // Usar 's' para promedio y semestre permite pasar NULL sin error en mysqli
+        $stmt->bind_param(
+            "iiiisssi",
+            $id_proyecto,
+            $id_estudiante,
+            $id_periodo,
+            $id_doc_cv,
+            $promedio,
+            $motivacion,
+            $experiencia,
+            $semestre
+        );
 
-    if (!$stmt->execute()) throw new Exception("Error execute (crearSolicitud): " . $stmt->error);
-    $id_solicitud = $stmt->insert_id;
-    $stmt->close();
-    return $id_solicitud;
-}
+        if (!$stmt->execute()) throw new Exception("Error execute (crearSolicitud): " . $stmt->error);
+        $id_solicitud = $stmt->insert_id;
+        $stmt->close();
+        return $id_solicitud;
+    }
 
     /**
      * Crea el registro en seguimiento_documento para la etapa 1 (carta compromiso).
@@ -1188,5 +1188,15 @@ if (!in_array($visibilidad, ['publico', 'privado'])) {
         $stmt->bind_param("isss", $id_usuario, $titulo, $contenido, $enlace);
         $stmt->execute();
         $stmt->close();
+    }
+
+    public function periodoactualSolicitud(): ?array
+    {
+        $sql = "SELECT fecha_inicio_solicitud, fecha_fin_solicitud
+             FROM periodos ORDER BY id_periodos DESC LIMIT 1";
+        $stmt = $this->con->prepare($sql);
+        $stmt->execute();
+        $stmt->close();
+        return $stmt->get_result()->fetch_assoc();
     }
 }

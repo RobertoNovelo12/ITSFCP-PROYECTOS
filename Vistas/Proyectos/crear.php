@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/crear.php - Página secundaria para crear proyecto */
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -13,11 +15,26 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 $action = $_POST['action'] ?? null;
 
+//Solo el investigador puede acceder
+if (!in_array($rol, ['investigador', 'profesor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 //Se llama al controlador
 
 require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
+$periodoActualProyectos = $proyectoControlador->periodoactual();
+$hoy = date('Y-m-d');
+$puedeCrear = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
+    && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
+
+if (!$puedeCrear) {
+    header('Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+    exit;
+}
 
 $tematica = $proyectoControlador->tematica();
 $periodo = $proyectoControlador->obtenerperiodo();

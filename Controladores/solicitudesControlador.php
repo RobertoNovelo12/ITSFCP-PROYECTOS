@@ -259,7 +259,7 @@ class solicitudesControlador
         return ['#', 'Estudiante', 'Matrícula', 'Carrera', 'Proyecto', 'Semestre', 'Promedio', 'Fecha', 'Estado', 'Acciones'];
     }
 
-    
+
 
     public function badgeEstado(string $estado): string
     {
@@ -285,7 +285,7 @@ class solicitudesControlador
         $S = new Solicitud($conn);
         $this->vencido($id_usuario, $rol);
 
-        $por_pagina = 8;
+        $por_pagina = 6;
         $pagina     = max(1, intval($_GET['pagina'] ?? 1));
         $desde      = ($pagina - 1) * $por_pagina;
 
@@ -600,7 +600,7 @@ class solicitudesControlador
     //  SECCIÓN B — ESTUDIANTE
     // 
 
-    
+
 
     /**
      * Cancela la solicitud del estudiante (PRG).
@@ -612,7 +612,7 @@ class solicitudesControlador
 
         $S  = new Solicitud($conn);
         $ok = $S->cancelarSolicitud($id_solicitud, $id_usuario);
-        
+
         if ($ok) {
             $this->redirigir(
                 "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php"
@@ -779,6 +779,7 @@ class solicitudesControlador
         exit;
     }
 
+
     /*Solicitud_integracion.php */
 
     // 
@@ -831,139 +832,139 @@ class solicitudesControlador
      * Lee datos de $_POST y $_FILES. Parámetros de identidad son explícitos.
      */
 
-public function enviarSolicitud(int $id_proyecto, int $id_usuario, string $rol): void
-{
-    $this->soloEstudiante($rol);
-    global $conn;
- 
-    $S = new Solicitud($conn);
- 
-    // 1. Validar ventana de solicitud del periodo activo
-    $periodo = $S->obtenerPeriodoActivoParaProyecto($id_proyecto);
-    if (!$periodo) {
-        $this->redirigir(
-            "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
-            null,
-            'La ventana de solicitudes no está activa para este proyecto.'
-        );
-    }
-    $id_periodo = (int)$periodo['id_periodos'];
- 
-    // 2. Recoger y sanitizar datos del formulario
-    $promedio    = isset($_POST['promedio'])    && $_POST['promedio']    !== '' ? (float)$_POST['promedio']   : null;
-    $motivacion  = trim($_POST['motivacion']    ?? '');
-    $experiencia = trim($_POST['experiencia']   ?? '');
-    $semestre    = isset($_POST['semestre'])    && $_POST['semestre']    !== '' ? (int)$_POST['semestre']     : null;
- 
-    if ($motivacion === '' || $experiencia === '') {
-        $this->redirigir(
-            "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
-            null,
-            'Motivación y experiencia son campos obligatorios.'
-        );
-    }
- 
-    // 3. Carta compromiso obligatoria
-    if (empty($_FILES['carta_compromiso']) || $_FILES['carta_compromiso']['error'] !== UPLOAD_ERR_OK) {
-        $this->redirigir(
-            "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
-            null,
-            'Debes adjuntar la carta compromiso firmada para enviar la solicitud.'
-        );
-    }
- 
-    // 4. Plantilla vigente para vincular al documento
-    $plantilla    = $S->obtenerPlantillaCartaCompromiso();
-    $id_plantilla = $plantilla ? (int)$plantilla['id_plantilla'] : 0;
- 
-    $conn->begin_transaction();
-    try {
-        // 5. Crear la solicitud en BD
-        $id_solicitud = $S->crearSolicitud(
-            id_proyecto:   $id_proyecto,
-            id_estudiante: $id_usuario,
-            id_periodo:    $id_periodo,
-            promedio:      $promedio,
-            motivacion:    $motivacion,
-            experiencia:   $experiencia,
-            semestre:      $semestre
-        );
- 
-        // 6. CV opcional
-        $id_doc_cv = $this->procesarCvEstudiante($id_solicitud, $id_usuario);
-        if ($id_doc_cv) {
-            $S->actualizarDocumentoSolicitud($id_solicitud, $id_doc_cv);
-        }
- 
-        // 7. Seguimiento etapa 1 (carta compromiso)
-        $id_seguimiento = $S->crearSeguimientoCartaCompromiso(
-            id_proyecto:   $id_proyecto,
-            id_estudiante: $id_usuario,
-            estado:        'proceso'
-        );
- 
-        // 8. Guardar carta compromiso firmada
-        $id_doc_carta = $this->procesarCartaCompromiso(
-            campo_file:     'carta_compromiso',
-            id_proyecto:    $id_proyecto,
-            id_estudiante:  $id_usuario,
-            id_seguimiento: $id_seguimiento,
-            id_plantilla:   $id_plantilla
-        );
- 
-        if (!$id_doc_carta) {
-            throw new Exception("No se pudo guardar la carta compromiso.");
-        }
- 
-        $S->marcarSeguimientoEnProceso($id_seguimiento);
- 
-        // 
-        // Se ejecutan dentro de la transacción para que todo se revierta
-        // si algo falla. Si tu tabla notificaciones está en otra BD o
-        // prefieres que las notificaciones no bloqueen el proceso, muévelas
-        // fuera del try (después del commit) y envuélvelas en su propio try.
-        $titulo_proyecto = $S->obtenerTituloProyecto($id_proyecto);
- 
-        $enlace = "/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id={$id_proyecto}";
- 
-        // Notificación al estudiante
-        $S->insertarNotificacion(
-            id_usuario: $id_usuario,
-            titulo:     'Solicitud enviada',
-            contenido:  "Has enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>. En espera de revisión.",
-            enlace:     $enlace
-        );
- 
-        // Notificación a todos los supervisores activos
-        $supervisores = $S->obtenerSupervisoresActivos();
-        foreach ($supervisores as $sup) {
-            $S->insertarNotificacion(
-                id_usuario: (int)$sup['id_usuarios'],
-                titulo:     'Nueva solicitud de integración',
-                contenido:  "Un estudiante ha enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>.",
-                enlace:     $enlace
+    public function enviarSolicitud(int $id_proyecto, int $id_usuario, string $rol): void
+    {
+        $this->soloEstudiante($rol);
+        global $conn;
+
+        $S = new Solicitud($conn);
+
+        // 1. Validar ventana de solicitud del periodo activo
+        $periodo = $S->obtenerPeriodoActivoParaProyecto($id_proyecto);
+        if (!$periodo) {
+            $this->redirigir(
+                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
+                null,
+                'La ventana de solicitudes no está activa para este proyecto.'
             );
         }
-        // 
- 
-        $conn->commit();
- 
-        $this->redirigir(
-            "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
-            'Tu solicitud ha sido enviada correctamente. El investigador la revisará pronto.'
-        );
-    } catch (Exception $e) {
-        $conn->rollback();
-        error_log("[enviarSolicitud] " . $e->getMessage());
-        $this->redirigir(
-            "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
-            null,
-            'Error al procesar la solicitud: ' . htmlspecialchars($e->getMessage())
-        );
-    }
-}
+        $id_periodo = (int)$periodo['id_periodos'];
 
-public function botonesAccion(int $id_solicitud, string $estado, int $id_proyecto, array $filtros = []): string
+        // 2. Recoger y sanitizar datos del formulario
+        $promedio    = isset($_POST['promedio'])    && $_POST['promedio']    !== '' ? (float)$_POST['promedio']   : null;
+        $motivacion  = trim($_POST['motivacion']    ?? '');
+        $experiencia = trim($_POST['experiencia']   ?? '');
+        $semestre    = isset($_POST['semestre'])    && $_POST['semestre']    !== '' ? (int)$_POST['semestre']     : null;
+
+        if ($motivacion === '' || $experiencia === '') {
+            $this->redirigir(
+                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
+                null,
+                'Motivación y experiencia son campos obligatorios.'
+            );
+        }
+
+        // 3. Carta compromiso obligatoria
+        if (empty($_FILES['carta_compromiso']) || $_FILES['carta_compromiso']['error'] !== UPLOAD_ERR_OK) {
+            $this->redirigir(
+                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
+                null,
+                'Debes adjuntar la carta compromiso firmada para enviar la solicitud.'
+            );
+        }
+
+        // 4. Plantilla vigente para vincular al documento
+        $plantilla    = $S->obtenerPlantillaCartaCompromiso();
+        $id_plantilla = $plantilla ? (int)$plantilla['id_plantilla'] : 0;
+
+        $conn->begin_transaction();
+        try {
+            // 5. Crear la solicitud en BD
+            $id_solicitud = $S->crearSolicitud(
+                id_proyecto: $id_proyecto,
+                id_estudiante: $id_usuario,
+                id_periodo: $id_periodo,
+                promedio: $promedio,
+                motivacion: $motivacion,
+                experiencia: $experiencia,
+                semestre: $semestre
+            );
+
+            // 6. CV opcional
+            $id_doc_cv = $this->procesarCvEstudiante($id_solicitud, $id_usuario);
+            if ($id_doc_cv) {
+                $S->actualizarDocumentoSolicitud($id_solicitud, $id_doc_cv);
+            }
+
+            // 7. Seguimiento etapa 1 (carta compromiso)
+            $id_seguimiento = $S->crearSeguimientoCartaCompromiso(
+                id_proyecto: $id_proyecto,
+                id_estudiante: $id_usuario,
+                estado: 'proceso'
+            );
+
+            // 8. Guardar carta compromiso firmada
+            $id_doc_carta = $this->procesarCartaCompromiso(
+                campo_file: 'carta_compromiso',
+                id_proyecto: $id_proyecto,
+                id_estudiante: $id_usuario,
+                id_seguimiento: $id_seguimiento,
+                id_plantilla: $id_plantilla
+            );
+
+            if (!$id_doc_carta) {
+                throw new Exception("No se pudo guardar la carta compromiso.");
+            }
+
+            $S->marcarSeguimientoEnProceso($id_seguimiento);
+
+            // 
+            // Se ejecutan dentro de la transacción para que todo se revierta
+            // si algo falla. Si tu tabla notificaciones está en otra BD o
+            // prefieres que las notificaciones no bloqueen el proceso, muévelas
+            // fuera del try (después del commit) y envuélvelas en su propio try.
+            $titulo_proyecto = $S->obtenerTituloProyecto($id_proyecto);
+
+            $enlace = "/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id={$id_proyecto}";
+
+            // Notificación al estudiante
+            $S->insertarNotificacion(
+                id_usuario: $id_usuario,
+                titulo: 'Solicitud enviada',
+                contenido: "Has enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>. En espera de revisión.",
+                enlace: $enlace
+            );
+
+            // Notificación a todos los supervisores activos
+            $supervisores = $S->obtenerSupervisoresActivos();
+            foreach ($supervisores as $sup) {
+                $S->insertarNotificacion(
+                    id_usuario: (int)$sup['id_usuarios'],
+                    titulo: 'Nueva solicitud de integración',
+                    contenido: "Un estudiante ha enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>.",
+                    enlace: $enlace
+                );
+            }
+            // 
+
+            $conn->commit();
+
+            $this->redirigir(
+                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
+                'Tu solicitud ha sido enviada correctamente. El investigador la revisará pronto.'
+            );
+        } catch (Exception $e) {
+            $conn->rollback();
+            error_log("[enviarSolicitud] " . $e->getMessage());
+            $this->redirigir(
+                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}",
+                null,
+                'Error al procesar la solicitud: ' . htmlspecialchars($e->getMessage())
+            );
+        }
+    }
+
+    public function botonesAccion(int $id_solicitud, string $estado, int $id_proyecto, array $filtros = []): string
     {
         $estado = strtolower(trim($estado));
 
@@ -997,4 +998,19 @@ public function botonesAccion(int $id_solicitud, string $estado, int $id_proyect
         return $btns;
     }
 
+    //Periodo Actuar para mandar solicitud de integración a proyecto - Solicitudes estudiante -> sinvestigador
+
+    public function periodoactualSolicitud(): ?array
+    {
+        global $conn;
+        try {
+            $S = new Solicitud($conn);
+
+            return ($S->periodoactualSolicitud());
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            header("Location: index.php?error=1");
+            exit;
+        }
+    }
 }

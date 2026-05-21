@@ -13,11 +13,11 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
+//Solo supervisor accede
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
-
 require_once '../../Controladores/solicitudActualizacionControlador.php';
 
 $controlador  = new SolicitudActualizacionControlador();

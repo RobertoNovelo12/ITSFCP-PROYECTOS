@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/baja_estudiante.php - Página secundaria para dar de baja a un estudiante por el investigador */
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -14,6 +16,13 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"];
 $id_estudiante = $_GET["id_usuarios"];
+
+//Solo el investigador puede acceder
+if (!in_array($rol, ['investigador', 'profesor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();

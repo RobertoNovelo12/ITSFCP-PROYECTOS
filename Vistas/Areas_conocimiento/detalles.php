@@ -15,8 +15,13 @@ $areaControlador = new AreaConocimientoControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-
 $id_area = isset($_GET['id_area']) ? intval($_GET['id_area']) : 0;
+
+//Solo supervisor
+if ($rol ?? '' !== 'supervisor') {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
 
 $datos = $areaControlador->indexDetalles($rol, $id_area);
 

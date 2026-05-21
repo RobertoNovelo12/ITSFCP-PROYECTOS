@@ -14,10 +14,17 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $rol           = strtolower($_SESSION['rol'] ?? '');
-$id            = (int) $_SESSION['id_usuario'];      // siempre int, nunca viaja en form
+$id            = (int) $_SESSION['id_usuario'];      
 $id_proyecto   = $_GET['id_proyectos']  ?? null;
 $id_asignacion = $_GET['id_asignacion'] ?? null;
 $id_tarea      = $_GET['id_tarea']      ?? null;
+
+// Solo investigador y estudiante pueden acceder 
+if (!in_array($rol, ['investigador', 'estudiante'])) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 
 require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
@@ -29,8 +36,6 @@ $tareaControlador = new TareaControlador();
 //    2. editarTareaEstudiante  → guarda contenido/archivo y cambia estado (Revisar)
 //    3. editarTareaRevisar     → investigador cambia estado (Aprobar / Corregir)
 //
-//  NOTA: id_usuario NUNCA viene del form; siempre se lee de $_SESSION.
-//        Al terminar se redirige (PRG) para evitar reenvío con F5.
 // 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 

@@ -1,4 +1,5 @@
 <?php
+/*Proyectos/index.php - Página principal */
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -12,6 +13,12 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
+
+//Todos los roles pueden acceder
+if (!in_array($rol, ['investigador', 'profesor','estudiante', 'supervisor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
 
 $action = $_GET['action'] ?? 'index';
 $buscar = $_GET['buscar'] ?? '';
@@ -86,7 +93,7 @@ include __DIR__ . '/../../mensaje.php';
 
             ?>
                 <?php if ($puedeCrear_Editar): ?>
-                    <a href="crear_proyecto.php" class="btn btn-primary">Crear proyecto</a>
+                    <a href="crear.php" class="btn btn-primary">Crear proyecto</a>
                 <?php else: ?>
                     <button class="btn btn-secondary" disabled title="Fuera del periodo de registro">
                         Crear proyecto
@@ -221,7 +228,8 @@ include __DIR__ . '/../../mensaje.php';
 
                                 <h5>ID: <?= $proyecto['id_proyectos'] ?></h5>
                                 <p><strong>Título:</strong> <?= htmlspecialchars($proyecto['titulo']) ?></p>
-
+                                <p><strong>Fecha inicio:</strong> <?= $proyecto['fecha_inicio'] ?></p>
+                                <p><strong>Fecha final:</strong> <?= $proyecto['fecha_fin'] ?></p>
                                 <p>
                                     <strong>Estado proyecto:</strong>
                                     <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">

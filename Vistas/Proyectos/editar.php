@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/editar.php - Página para editar proyecto */
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -15,14 +17,26 @@ $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"] ?? null;
 $action = $_POST['action'] ?? null;
 
+//Solo investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
 require_once '../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
+
+$periodoActualProyectos = $proyectoControlador->periodoactual();
+$hoy = date('Y-m-d');
+$puedeEditar = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
+    && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
+
+if (!$puedeEditar) {
+    header('Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+    exit;
+}
+
 
 // DATOS
 $tematica = $proyectoControlador->tematica();

@@ -1,4 +1,4 @@
-<!--index.php - > Tabla principal con filtros y acciones.-->
+<!--Solicitudes_proyecto/index.php - > Tabla principal con filtros y acciones.-->
 <?php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -16,7 +16,7 @@ $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo supervisor e investigador acceden a solicitudes
 if (!in_array($rol, ['supervisor'])) {
-    header("Location: ../proyectos/tabla.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
@@ -25,17 +25,17 @@ $buscar       = $_GET['buscar'] ?? '';
 $pagina       = intval($_GET['pagina'] ?? 1);
 $id_periodo   = intval($_GET['id_periodo'] ?? 0); // 0 = todos los periodos
 
-require_once "../../Controladores/proyectoControlador.php";
-$proyectoControlador = new ProyectoControlador();
+require_once "../../Controladores/solicitudes_proyectoControlador.php";
+$SolicitudesProyectoControlador = new SolicitudesProyectoControlador();
 
 // Obtener todos los periodos para el filtro
-$periodos = $proyectoControlador->obtenerTodosPeriodos();
+$periodos = $SolicitudesProyectoControlador->obtenerTodosPeriodos();
 
 // Resumen de conteos para el supervisor
-$resumen = $proyectoControlador->resumenSolicitudes($rol, $id_usuario, $id_periodo);
+$resumen = $SolicitudesProyectoControlador->resumenSolicitudes($rol, $id_usuario, $id_periodo);
 
 // Listado de solicitudes paginado
-$resultado = $proyectoControlador->listarSolicitudes($rol, $id_usuario, $tipo_filtro, $buscar, $pagina, $id_periodo);
+$resultado = $SolicitudesProyectoControlador->listarSolicitudes($rol, $id_usuario, $tipo_filtro, $buscar, $pagina, $id_periodo);
 
 if (is_string($resultado)) {
     $resultado = json_decode($resultado, true);
@@ -49,6 +49,19 @@ $paginacion  = $resultado['paginacion']  ?? [
     'total_paginas' => max(1, ceil(count($solicitudes) / 6))
 ];
 
+// Procesar el aprobar cuando se envía el formulario
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'actualizarestado') {
+    $id_proyectos   = intval($_GET['id_proyectos'] ?? 0); // 0 = todos los periodos
+
+    $error = $SolicitudesProyectoControlador->actualizarestado(
+        $id_proyectos,
+        $rol,
+        $_GET['tipo'] ?? ''
+    );
+    // Si actualizarestado tuvo éxito hace exit() internamente;
+    // si retorna algo es un mensaje de error.
+}
+
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
@@ -57,6 +70,7 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
+
         <div class="col-md-6">
             <h2 class="mb-0 fw-bold">Solicitudes de Proyectos</h2>
         </div>
@@ -78,7 +92,15 @@ include __DIR__ . '/../../mensaje.php';
             </form>
         </div>
     </div>
+    <?php if (!empty($error)): ?>
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-12">
 
+                <div class="alert alert-danger mt-2"><?= htmlspecialchars($error) ?></div>
+
+            </div>
+        </div>
+    <?php endif; ?>
     <!-- TARJETAS RESUMEN (solo supervisor) -->
     <?php if ($rol === 'supervisor'): ?>
         <div class="row mb-4 g-3">
@@ -214,13 +236,13 @@ include __DIR__ . '/../../mensaje.php';
                                             <td><?= $sol['fecha_solicitud'] ?></td>
 
                                             <td>
-                                                <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($sol['estado_proyecto']) ?>">
+                                                <span class="badge text-bg-<?= $SolicitudesProyectoControlador->EstiloEstado($sol['estado_proyecto']) ?>">
                                                     <?= htmlspecialchars($sol['estado_proyecto']) ?>
                                                 </span>
                                             </td>
 
                                             <td>
-                                                <?= $proyectoControlador->botonesAccionSolicitud(
+                                                <?= $SolicitudesProyectoControlador->botonesAccionSolicitud(
                                                     $sol['id_proyectos'],
                                                     $rol,
                                                     $sol['tipo_solicitud'],
@@ -253,12 +275,12 @@ include __DIR__ . '/../../mensaje.php';
                                 <p><strong>Fecha:</strong> <?= $sol['fecha_solicitud'] ?></p>
                                 <p>
                                     <strong>Estado:</strong>
-                                    <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($sol['estado_proyecto']) ?>">
+                                    <span class="badge text-bg-<?= $SolicitudesProyectoControlador->EstiloEstado($sol['estado_proyecto']) ?>">
                                         <?= htmlspecialchars($sol['estado_proyecto']) ?>
                                     </span>
                                 </p>
                                 <div class="d-flex gap-2 flex-wrap">
-                                    <?= $proyectoControlador->botonesAccionSolicitud(
+                                    <?= $SolicitudesProyectoControlador->botonesAccionSolicitud(
                                         $sol['id_proyectos'],
                                         $rol,
                                         $sol['tipo_solicitud'],

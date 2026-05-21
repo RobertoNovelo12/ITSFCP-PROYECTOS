@@ -1,12 +1,21 @@
 <?php
+/*Proyectos/ver_comentario.php - Página secundaria para ver comentarios del supervisor */
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
+$rol = strtolower($_SESSION['rol'] ?? '');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
+    exit;
+}
+
+//Solo investigador puede acceder
+if (!in_array($rol, ['investigador', 'profesor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

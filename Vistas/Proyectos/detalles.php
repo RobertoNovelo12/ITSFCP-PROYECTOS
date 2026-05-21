@@ -1,4 +1,6 @@
 <?php
+/*Proyectos/detalles.php - Página secundaria para ver detalles del proyecto */
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -13,6 +15,12 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"];
+
+//Todos los roles pueden acceder
+if (!in_array($rol, ['investigador', 'profesor','estudiante', 'supervisor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
 
 require_once '..\..\Controladores\proyectoControlador.php';
 
@@ -199,12 +207,13 @@ ob_start();
 
 
     <?php if ($rol == "supervisor" || $rol == "profesor" || $rol == "investigador"): ?>
+        <div class="card-header">
+            <i class="bi bi-people-fill"></i> <b>Estudiantes involucrados</b>
+        </div>
 
-        <h5 class="mb-3"><i class="bi bi-people-fill"></i> Estudiantes involucrados</h5>
+        <?php if (!empty($estudiantes)): ?>
 
-        <!-- TABLA (LAPTOP) -->
-        <?php if (!empty($estudiantes)) { ?>
-
+            <!-- TABLA (DESKTOP) -->
             <div class="card shadow-sm d-none d-md-block">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -214,82 +223,75 @@ ob_start();
                                     <th>ID</th>
                                     <th>Nombre</th>
                                     <th>Carrera</th>
+                                    <th>Área</th>
+                                    <th>Subárea</th>
                                     <th>Estado Proceso</th>
                                     <th>Historial</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($estudiantes as $alumno):
-                                    $estado_proceso = "";
-                                    $clase =  $proyectoControlador->EstiloEstado($alumno['estado_proceso']);
-                                    switch ($alumno['estado_proceso']) {
-                                        case 'en_proceso':
-                                            $estado_proceso = "En proceso";
-                                            break;
-                                        case 'carta_subida':
-                                            $estado_proceso = "Carta subida";
-                                            break;
-                                        case 'en_correccion':
-                                            $estado_proceso = "En corrección";
-                                            break;
-                                        case 'liberado_supervisor':
-                                            $estado_proceso = "Liberado por supervisor";
-                                            break;
-                                        default:
-                                            $estado_proceso = "Sin estado";
-                                    }
+                                    $clase = $proyectoControlador->EstiloEstado($alumno['estado_proceso']);
+                                    $estado_proceso = match ($alumno['estado_proceso']) {
+                                        'en_proceso'          => 'En proceso',
+                                        'carta_subida'        => 'Carta subida',
+                                        'en_correccion'       => 'En corrección',
+                                        'liberado_supervisor' => 'Liberado por supervisor',
+                                        default               => 'Sin estado',
+                                    };
                                 ?>
                                     <tr>
                                         <td><?= $alumno['id_usuarios'] ?></td>
-                                        <td>
-                                            <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] . " " . $alumno['apellido_materno'] ?>
-                                        </td>
+                                        <td><?= $alumno['nombre'] . ' ' . $alumno['apellido_paterno'] . ' ' . $alumno['apellido_materno'] ?></td>
                                         <td><?= $alumno['carrera'] ?></td>
-                                        <td><span class='badge text-bg-<?= $clase ?>'><?= htmlspecialchars($estado_proceso) ?></span></td>
-                                        <td> <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
+                                        <td><?= $alumno['area']['area']       ?? 'Sin área' ?></td>
+                                        <td><?= $alumno['area']['subarea']    ?? 'Sin subárea' ?></td>
+                                        <td>
+                                            <span class="badge text-bg-<?= $clase ?>">
+                                                <?= htmlspecialchars($estado_proceso) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
                                                 class="btn btn-info btn-sm">
                                                 Historial
-                                            </a></td>
+                                            </a>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
-
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-
             <!-- TARJETAS (MÓVIL) -->
-
             <div class="d-md-none">
-
-                <?php foreach ($estudiantes as $alumno): ?>
-
+                <?php foreach ($estudiantes as $alumno):
+                    $clase = $proyectoControlador->EstiloEstado($alumno['estado_proceso']);
+                    $estado_proceso = match ($alumno['estado_proceso']) {
+                        'en_proceso'          => 'En proceso',
+                        'carta_subida'        => 'Carta subida',
+                        'en_correccion'       => 'En corrección',
+                        'liberado_supervisor' => 'Liberado por supervisor',
+                        default               => 'Sin estado',
+                    };
+                ?>
                     <div class="card mb-3">
-
                         <div class="card-body">
-
                             <h5 class="card-title">
-                                <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] ?>
+                                <?= $alumno['nombre'] . ' ' . $alumno['apellido_paterno'] ?>
                             </h5>
-
                             <ul class="list-group list-group-flush">
-
+                                <li class="list-group-item"><b>ID:</b> <?= $alumno['id_usuarios'] ?></li>
+                                <li class="list-group-item"><b>Carrera:</b> <?= $alumno['carrera'] ?></li>
+                                <li class="list-group-item"><b>Área:</b> <?= $alumno['area']['area']    ?? 'Sin área' ?></li>
+                                <li class="list-group-item"><b>Subárea:</b> <?= $alumno['area']['subarea'] ?? 'Sin subárea' ?></li>
                                 <li class="list-group-item">
-                                    <b>ID:</b> <?= $alumno['id_usuarios'] ?>
-                                </li>
-
-                                <li class="list-group-item">
-                                    <b>Carrera:</b> <?= $alumno['carrera'] ?>
-                                </li>
-
-                                <li class="list-group-item">
-                                    <b>Área:</b> <?= $estudiantes['area']['area'] ?? "No tiene área" ?>
-                                </li>
-
-                                <li class="list-group-item">
-                                    <b>Subárea:</b> <?= $estudiantes['area']['subarea'] ?? "No tiene subárea" ?>
+                                    <b>Estado proceso:</b>
+                                    <span class="badge text-bg-<?= $clase ?>">
+                                        <?= htmlspecialchars($estado_proceso) ?>
+                                    </span>
                                 </li>
                                 <li class="list-group-item">
                                     <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
@@ -297,21 +299,18 @@ ob_start();
                                         Historial
                                     </a>
                                 </li>
-
                             </ul>
-
                         </div>
-
                     </div>
-
                 <?php endforeach; ?>
-
             </div>
-        <?php } else { ?>
+
+        <?php else: ?>
             <div class="alert alert-info text-center">
                 No hay estudiantes para mostrar
             </div>
-        <?php } ?>
+        <?php endif; ?>
+
     <?php endif; ?>
 
 

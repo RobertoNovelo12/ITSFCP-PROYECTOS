@@ -16,7 +16,7 @@ $id  = $_SESSION['id_usuario'];
 
 // Solo investigador/profesor puede editar
 if (!in_array($rol, ['investigador', 'profesor'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 

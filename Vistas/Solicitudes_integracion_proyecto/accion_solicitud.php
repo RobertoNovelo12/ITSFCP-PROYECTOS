@@ -1,7 +1,6 @@
 <?php
 // Vistas/solicitudes/accion_solicitud.php
 // Formulario dedicado para solicitar correcciones o rechazar una solicitud de integración.
-// Equivalente al patrón de motivo_rechazo.php en cartas de terminación.
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -16,8 +15,9 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
+//Solo el investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
@@ -32,7 +32,7 @@ if (!$id_solicitud || !in_array($tipo, ['correcciones', 'rechazar'], true)) {
 require_once '../../Controladores/solicitudesControlador.php';
 $ctrl = new solicitudesControlador();
 
-// ── Procesar POST ─────────────────────────────────────────────────
+//  Procesar POST ─
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $accion_post = $_POST['accion'] ?? '';
 
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── Cargar datos para el contexto del formulario ──────────────────
+//  Cargar datos para el contexto del formulario 
 $data = $ctrl->detallePagina($id_solicitud, $id_usuario, $rol);
 $sol  = $data['solicitud'];
 

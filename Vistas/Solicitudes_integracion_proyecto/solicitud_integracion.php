@@ -33,6 +33,17 @@ if ($id_proyecto <= 0) {
 require_once __DIR__ . '/../../Controladores/solicitudesControlador.php';
 
 $ctrl  = new solicitudesControlador();
+
+$periodoActualProyectos = $ctrl->periodoactualSolicitud();
+$hoy = date('Y-m-d');
+$puedeSolicitar = ($hoy >= $periodoActualProyectos['fecha_inicio_pfecha_ifecha_inicio_solicitudnicio_solicitudroyectos']
+    && $hoy <= $periodoActualProyectos['fecha_fin_solicitud']);
+
+if (!$puedeSolicitar) {
+    header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
+    exit;
+}
+
 $datos = $ctrl->obtenerDatosFormulario($id_proyecto, $id_usuario);
 
 // Redirigir si el proyecto o el estudiante no se encontraron

@@ -14,11 +14,12 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-// Solo investigador y supervisor pueden ver detalles de la plantilla
+// Solo investigador, supervisor y estudiante pueden acceder 
 if (!in_array($rol, ['investigador', 'supervisor', 'estudiante'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
+
 
 $id_tarea    = $_GET["id_tarea"] ?? null;
 $id_proyectos = $_GET["id_proyectos"] ?? null;

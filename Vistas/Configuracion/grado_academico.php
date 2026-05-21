@@ -5,6 +5,12 @@ session_start();
 $id_usuario = $_SESSION['id_usuario'] ?? 0;
 if (!$id_usuario) { header("Location: login.php"); exit; }
 
+//Solo investigador puede acceder
+if (!in_array(strtolower($_SESSION['rol']), ['investigador', 'profesor', 'supervisor'], true)) {
+    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
 $ctrl = new SolicitudGradoControlador();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'crear_grado') {
