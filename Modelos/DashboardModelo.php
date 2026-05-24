@@ -14,20 +14,28 @@ class DashboardModelo
             $sql = "SELECT p.id_proyectos, p.titulo, ep.nombre AS estado, p.descripcion
                     FROM proyectos p
                     INNER JOIN estados_proyectos ep ON p.id_estadoP = ep.id_estadoP
-                    ORDER BY p.creado_en DESC";
+                    WHERE p.id_estadoP = 2
+                    ORDER BY p.creado_en DESC
+                    LIMIT 3";
+
         } elseif ($rol === 'investigador' || $rol === 'profesor') {
             $sql = "SELECT p.id_proyectos, p.titulo, ep.nombre AS estado, p.descripcion
                     FROM proyectos p
                     INNER JOIN estados_proyectos ep ON p.id_estadoP = ep.id_estadoP
                     WHERE p.id_investigador = $id_usuario
-                    ORDER BY p.creado_en DESC";
+                    AND p.id_estadoP = 2
+                    ORDER BY p.creado_en DESC
+                    LIMIT 3";
+
         } else {
             $sql = "SELECT p.id_proyectos, p.titulo, ep.nombre AS estado, p.descripcion
                     FROM proyectos p
                     INNER JOIN proyectos_usuarios pu ON p.id_proyectos = pu.id_proyectos
                     INNER JOIN estados_proyectos ep ON p.id_estadoP = ep.id_estadoP
                     WHERE pu.id_usuarios = $id_usuario
-                    ORDER BY p.creado_en DESC";
+                    AND p.id_estadoP = 2
+                    ORDER BY p.creado_en DESC
+                    LIMIT 3";
         }
 
         $result = $this->conn->query($sql);
