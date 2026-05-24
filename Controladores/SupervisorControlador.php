@@ -51,9 +51,9 @@ class SupervisorControlador
         ];
     }
 
-    // ================================================================
+    // 
     // index — pantalla principal del dashboard
-    // ================================================================
+    // 
 
     public function index(): array
     {
@@ -108,9 +108,9 @@ class SupervisorControlador
         ];
     }
 
-    // ================================================================
+    // 
     // detalleProyecto
-    // ================================================================
+    // 
 
     public function detalleProyecto(): array
     {
@@ -123,9 +123,9 @@ class SupervisorControlador
         return $this->modelo->detalleProyecto($id);
     }
 
-    // ================================================================
+    // 
     // detalleEstudiante
-    // ================================================================
+    // 
 
     public function detalleEstudiante(): array
     {
@@ -138,9 +138,9 @@ class SupervisorControlador
         return $this->modelo->detalleEstudiante($id);
     }
 
-    // ================================================================
+    // 
     // Helper paginación
-    // ================================================================
+    // 
 
     private function paginacion(int $total, int $pp, int $pagina): array
     {
@@ -152,9 +152,9 @@ class SupervisorControlador
         ];
     }
 
-    // ================================================================
+    // 
     // Helpers de badge para vistas
-    // ================================================================
+    // 
 
     public function badgeEstadoSolicitud(string $estado): string
     {

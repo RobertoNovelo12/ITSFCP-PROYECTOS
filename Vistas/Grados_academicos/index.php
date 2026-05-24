@@ -208,29 +208,12 @@ include __DIR__ . '/../../mensaje.php';
         <?php endforeach; ?>
     </div>
 
-    <!-- PAGINACION -->
-    <?php if ($paginacion['total_paginas'] > 1): ?>
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center">
-                <?php
-                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
-                ?>
-                <li class="page-item disabled">
-                    <span class="page-link">
-                        Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total'] ?> entradas
-                    </span>
-                </li>
-                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                        <a class="page-link"
-                            href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>">
-                            <?= $i ?>
-                        </a>
-                    </li>
-                <?php endfor; ?>
-            </ul>
-        </nav>
+    <?php if ($paginacion['total_paginas'] > 1):
+        $qBase = 'action=' . urlencode($action)
+            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
+            . (!empty($tipo) ? '&tipo=' . urlencode($tipo) : '');
+        $entidad = 'entradas';
+        include __DIR__ . '/../../../publico/incluido/_paginacion.php';?>
     <?php endif; ?>
 </div>
 <?php

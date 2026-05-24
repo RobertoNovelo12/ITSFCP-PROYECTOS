@@ -15,9 +15,9 @@ class misalumnos
         $this->con = $conn;
     }
 
-    // ================================================================
+    // 
     // HELPER INTERNO — ejecuta un SELECT preparado y devuelve filas
-    // ================================================================
+    // 
 
     /**
      * Prepara, ejecuta y retorna resultados de una consulta SELECT.
@@ -47,9 +47,9 @@ class misalumnos
         return $single ? ($res->fetch_assoc() ?? []) : ($res->fetch_all(MYSQLI_ASSOC) ?? []);
     }
 
-    // ================================================================
+    // 
     // CATÁLOGOS — selects de filtro
-    // ================================================================
+    // 
 
     /**
      * Todos los periodos ordenados de más reciente a más antiguo.
@@ -101,9 +101,9 @@ class misalumnos
         ");
     }
 
-    // ================================================================
+    // 
     // RESUMEN — tarjetas superiores del dashboard
-    // ================================================================
+    // 
 
     /**
      * Conteos globales de alumnos del investigador según filtros activos.
@@ -140,9 +140,9 @@ class misalumnos
         ];
     }
 
-    // ================================================================
+    // 
     // LISTADO PAGINADO
-    // ================================================================
+    // 
 
     /**
      * Cuenta total de filas (sin LIMIT) para la paginación.
@@ -255,9 +255,9 @@ class misalumnos
         ", $types, $params);
     }
 
-    // ================================================================
+    // 
     // CONSTRUCTOR DE CLÁUSULAS WHERE (reutilizable)
-    // ================================================================
+    // 
 
     /**
      * Construye la cláusula WHERE, los params y los tipos para los filtros.

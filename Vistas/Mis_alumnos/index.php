@@ -383,7 +383,7 @@ $opEstadoProceso = [
             <?php endforeach; ?>
         </div>
 
-        <!-- index PAGINACIÓN indexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindexindex─ -->
+        <!-- index PAGINACIÓN  -->
         <?= $ctrl->htmlPaginacion($paginacion, $filtros) ?>
 
     <?php else: ?>

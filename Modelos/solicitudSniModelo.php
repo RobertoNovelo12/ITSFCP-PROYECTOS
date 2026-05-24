@@ -10,9 +10,9 @@ class SolicitudSni
         $this->con = $conn;
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  CATÁLOGO
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function obtenerNivelesSni()
     {
@@ -23,9 +23,9 @@ class SolicitudSni
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  DATOS ACTUALES DEL INVESTIGADOR
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function obtenerDatosInvestigador($id_usuario)
     {
@@ -47,9 +47,9 @@ class SolicitudSni
         return $stmt->get_result()->fetch_assoc();
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  VERIFICAR SOLICITUD PENDIENTE ACTIVA
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function tieneSolicitudPendiente($id_usuario)
     {
@@ -65,9 +65,9 @@ class SolicitudSni
         return !empty($row);
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  CREAR SOLICITUD SNI (investigador)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function crearSolicitud($id_usuario, $valor_actual_id, $valor_nuevo_id, $archivo)
     {
@@ -136,9 +136,9 @@ class SolicitudSni
         return ['ok' => true, 'msg' => 'Solicitud de nivel SNI enviada correctamente. Queda pendiente de revisión.'];
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  HISTORIAL DEL INVESTIGADOR (línea de tiempo)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function historialInvestigador($id_usuario, $pagina = 1, $por_pagina = 8)
     {
@@ -199,9 +199,9 @@ class SolicitudSni
         ];
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  SOLICITUDES PARA SUPERVISOR
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function conteosFiltros()
     {
@@ -312,9 +312,9 @@ class SolicitudSni
         ]);
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  DETALLE DE UNA SOLICITUD (supervisor)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function obtenerDetalle($id_solicitud)
     {
@@ -342,9 +342,9 @@ class SolicitudSni
         return $stmt->get_result()->fetch_assoc();
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  HISTORIAL DE UNA SOLICITUD (supervisor)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function historialDeSolicitud($id_solicitud)
     {
@@ -365,9 +365,9 @@ class SolicitudSni
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  APROBAR SOLICITUD (supervisor) — TRANSACCIONAL
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function aprobarSolicitud($id_solicitud, $id_supervisor)
     {
@@ -407,9 +407,9 @@ class SolicitudSni
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  RECHAZAR SOLICITUD (supervisor)
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function rechazarSolicitud($id_solicitud, $id_supervisor, $comentario)
     {
@@ -444,9 +444,9 @@ class SolicitudSni
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  DATOS DE CORREO
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     public function obtenerCorreoInvestigador($id_usuario)
     {
@@ -457,9 +457,9 @@ class SolicitudSni
         return $stmt->get_result()->fetch_assoc();
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // 
     //  HELPER: INSERTAR EN HISTORIAL
-    // ══════════════════════════════════════════════════════════════
+    // 
 
     private function insertarHistorial($id_solicitud, $id_usuario_accion, $estado_anterior, $estado_nuevo, $comentario)
     {

@@ -475,13 +475,13 @@ class periodoControlador
         }
     }
 
-    // ---------------------------------------------------------------
+    // 
     // Desactivado() — nuevo método de filtro de vista
     //
     // Equivalente a Total(), Activo(), Terminado().
     // Necesario porque index.php llama $periodoControlador->$action()
     // dinámicamente.
-    // ---------------------------------------------------------------
+    // 
 
     public function Desactivado($rol, $buscar = null): array
     {
@@ -551,7 +551,7 @@ class periodoControlador
      *   "reactivar"  → hay uno desactivado del semestre actual, se debe reactivar
      *   "crear"      → no hay conflicto vigente, se puede crear
      *
-     * Nota: si solo existe un periodo PASADO desactivado (año anterior),
+     * si solo existe un periodo PASADO desactivado (año anterior),
      * se permite crear el nuevo semestre directamente sin reactivar,
      * porque reactivar un periodo que ya terminó no tiene sentido.
      */

@@ -160,7 +160,7 @@ ob_start();
 
         <?php if ($ventanaAbierta ?? $ventana_abierta ?? false): ?>
 
-            <div class="nota-convocatoria">
+            <div class="nota-explicacion">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
                     <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
                     <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -200,7 +200,7 @@ ob_start();
 
         <?php else: ?>
 
-            <div class="nota-convocatoria" style="border-left-color:var(--color-boton-modificar);background:rgba(212,160,23,.08);">
+            <div class="nota-explicacion" style="border-left-color:var(--color-boton-modificar);background:rgba(212,160,23,.08);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20" style="color:#a87a10">
                     <path d="M9.13 3.4L2.2 15.1A1 1 0 0 0 3.07 16.6h13.86a1 1 0 0 0 .87-1.5L10.87 3.4a1 1 0 0 0-1.74 0z"
                         stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />

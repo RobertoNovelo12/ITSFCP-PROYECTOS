@@ -82,7 +82,7 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row g-2 mb-4">
         <div class="col-12 col-md-4">
             <select class="form-select"
-                    onchange="location.href='index.php?action=' + this.value;">
+                onchange="location.href='index.php?action=' + this.value;">
                 <?php foreach ($opciones as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"
                         <?= ($action === $key) ? 'selected' : '' ?>>
@@ -95,10 +95,10 @@ include __DIR__ . '/../../mensaje.php';
             <form class="d-flex gap-2" method="GET" action="index.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                 <input type="text"
-                       name="buscar"
-                       class="form-control"
-                       placeholder="Buscar..."
-                       value="<?= htmlspecialchars($buscar) ?>">
+                    name="buscar"
+                    class="form-control"
+                    placeholder="Buscar..."
+                    value="<?= htmlspecialchars($buscar) ?>">
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
@@ -247,28 +247,11 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 
     <!-- PAGINACIÓN -->
-    <?php if ($paginacion['total_paginas'] > 1): ?>
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center">
-                <?php
-                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
-                ?>
-                <li class="page-item disabled">
-                    <span class="page-link">
-                        Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total'] ?> entradas
-                    </span>
-                </li>
-                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                        <a class="page-link"
-                           href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>">
-                            <?= $i ?>
-                        </a>
-                    </li>
-                <?php endfor; ?>
-            </ul>
-        </nav>
+    <?php if ($paginacion['total_paginas'] > 1):
+        $qBase = 'action=' . urlencode($action)
+            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+        $entidad = 'periodos';
+        include __DIR__ . '/../../../publico/incluido/_paginacion.php';?>
     <?php endif; ?>
 
 </div>

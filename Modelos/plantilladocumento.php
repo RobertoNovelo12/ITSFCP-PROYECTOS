@@ -1,215 +1,307 @@
 <?php
+/**
+ * Modelo: plantilladocumento.php
+ *
+ * Acceso a datos para el módulo de Plantillas de Documentos.
+ * Todas las consultas pasan por ejecutar() para evitar duplicación
+ * de lógica de prepare/bind/execute y centralizar el manejo de errores.
+ */
+
 require_once __DIR__ . '/../publico/config/conexion.php';
 
 class plantilladocumento
 {
-    private $con;
+    private mysqli $con;
 
-    public function __construct($conn)
+    public function __construct(mysqli $conn)
     {
         $this->con = $conn;
     }
 
+    // 
+    //  MÉTODO BASE REUTILIZABLE
+    // 
+
     /**
-     * Método base para construir WHERE dinámico (REUTILIZABLE)
+     * Prepara, enlaza parámetros y ejecuta cualquier sentencia SQL.
+     *
+     * Para SELECT devuelve array de filas (fetchAll=true) o una sola fila.
+     * Para INSERT devuelve el último insert_id como int.
+     * Para UPDATE/DELETE devuelve affected_rows como int.
+     *
+     * @throws Exception si prepare o execute fallan.
      */
-    private function construirWhere(&$params, &$types, $buscar, $filtro): string
+    private function ejecutar(
+        string $sql,
+        string $types  = '',
+        array  $params = [],
+        bool   $fetchAll = true
+    ): mixed {
+        $stmt = $this->con->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Error en prepare(): " . $this->con->error);
+        }
+
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error en execute(): " . $stmt->error);
+        }
+
+        $tipo = strtoupper(substr(ltrim($sql), 0, 6));
+
+        if ($tipo === 'SELECT') {
+            $result = $stmt->get_result();
+            $data   = $fetchAll
+                ? $result->fetch_all(MYSQLI_ASSOC)
+                : $result->fetch_assoc();
+            $stmt->close();
+            return $data;
+        }
+
+        if ($tipo === 'INSERT') {
+            $id = $stmt->insert_id;
+            $stmt->close();
+            return $id;
+        }
+
+        // UPDATE / DELETE
+        $affected = $stmt->affected_rows;
+        $stmt->close();
+        return $affected;
+    }
+
+    // 
+    //  WHERE DINÁMICO
+    // 
+
+    /**
+     * Construye la cláusula WHERE según filtro (0=desactivado, 1=activo, 2=todos)
+     * y término de búsqueda opcional.
+     */
+    private function construirWhere(array &$params, string &$types, ?string $buscar, int $filtro): string
     {
         $where = [];
 
-        if ($filtro == 0) $where[] = "activo = 0";
-        if ($filtro == 1) $where[] = "activo = 1";
-        elseif ($filtro == 2) $where[] = "activo IN (0,1)";
+        if ($filtro === 0) {
+            $where[] = "pd.activo = 0";
+        } elseif ($filtro === 1) {
+            $where[] = "pd.activo = 1";
+        }
+        // filtro === 2 → sin restricción de activo
 
         if (!empty($buscar)) {
-            $where[] = "(nombre LIKE ?)";
-            $params[] = "%$buscar%";
-            $types .= "s";
+            $where[] = "pd.nombre LIKE ?";
+            $params[] = "%{$buscar}%";
+            $types   .= 's';
         }
 
-        return " WHERE " . implode(" AND ", $where);
+        return $where ? ' WHERE ' . implode(' AND ', $where) : '';
     }
 
+    // 
+    //  CONSULTAS PRINCIPALES
+    // 
+
     /**
-     * Obtiene tabla principal con paginación
+     * Listado paginado de plantillas con datos del archivo asociado.
+     *
+     * Une plantillas_documentos con documentos_subidos para obtener
+     * nombre_archivo, ruta y mime en una sola consulta.
      */
-    public function obtenerTablaFiltro($buscar, $filtro): array
+    public function obtenerTablaFiltro(?string $buscar, int $filtro): array
     {
-        $pagina = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
-        $por_pagina = 6;
-        $desde = ($pagina - 1) * $por_pagina;
+        $pagina    = max(1, (int) ($_GET['pagina'] ?? 1));
+        $porPagina = 6;
+        $desde     = ($pagina - 1) * $porPagina;
 
         $params = [];
-        $types = "";
+        $types  = '';
+        $where  = $this->construirWhere($params, $types, $buscar, $filtro);
 
-        $total = $this->obtenerCantidad($buscar, $filtro);
-        $total_paginas = ($total > 0) ? ceil($total / $por_pagina) : 1;
+        // Total de registros
+        $total = (int) ($this->ejecutar(
+            "SELECT COUNT(*) AS total FROM plantillas_documentos pd" . $where,
+            $types,
+            $params,
+            false          // fetch_assoc
+        )['total'] ?? 0);
 
-        $sql = "SELECT 
-                    d.id_plantilla,
-                    d.id_tipo_documento,
-                    d.nombre,
-                    d.version,
-                    d.nombre_archivo,
-                    d.fecha_modificacion AS modificar,
-                    d.fecha_creacion AS crear,
-                    CASE 
-                        WHEN d.activo = 1 THEN 'Activo'        
-                        WHEN d.activo = 0 THEN 'Desactivado'
-                        ELSE 'Desconocido'
-                    END AS activo
-                FROM plantillas_documentos AS d";
+        $totalPaginas = $total > 0 ? (int) ceil($total / $porPagina) : 1;
 
-        $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
-        $sql .= " ORDER BY id_plantilla ASC LIMIT ?, ?";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerTablaFiltro): " . $this->con->error);
-
+        // Datos de la página
         $params[] = $desde;
-        $params[] = $por_pagina;
-        $types .= "ii";
+        $params[] = $porPagina;
+        $types   .= 'ii';
 
-        $stmt->bind_param($types, ...$params);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerTablaFiltro): " . $stmt->error);
+        $sql = "
+            SELECT
+                pd.id_plantilla,
+                pd.id_tipo_documento,
+                pd.nombre,
+                pd.version,
+                pd.fecha_creacion   AS crear,
+                pd.fecha_modificacion AS modificar,
+                pd.activo,
+                CASE
+                    WHEN pd.activo = 1 THEN 'Activo'
+                    WHEN pd.activo = 0 THEN 'Desactivado'
+                    ELSE 'Desconocido'
+                END AS estado_texto,
+                -- Datos del archivo en documentos_subidos
+                ds.nombre_archivo,
+                ds.ruta,
+                ds.tipo_mime,
+                ds.extension
+            FROM plantillas_documentos pd
+            LEFT JOIN documentos_subidos ds
+                ON ds.id_documento = pd.id_documento
+                AND ds.activo = 1
+            {$where}
+            ORDER BY pd.id_plantilla ASC
+            LIMIT ?, ?
+        ";
 
-        $data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
+        $filas = $this->ejecutar($sql, $types, $params);
 
         return [
-            "plantillas" => $data,
-            "paginacion" => [
-                "total" => $total,
-                "por_pagina" => $por_pagina,
-                "pagina" => $pagina,
-                "total_paginas" => $total_paginas
-            ]
+            'plantillas' => $filas,
+            'paginacion' => [
+                'total'        => $total,
+                'por_pagina'   => $porPagina,
+                'pagina'       => $pagina,
+                'total_paginas'=> $totalPaginas,
+            ],
         ];
     }
 
     /**
-     * Obtiene datos para filtros (totales, activos, desactivados)
+     * Totales para los filtros de estado (Total / Activo / Desactivado).
      */
-    public function obtenerDatosFiltro($rol): array
+    public function obtenerDatosFiltro(): array
     {
-        if ($rol !== 'supervisor') {
-            return [];
+        $sql = "
+            SELECT
+                COUNT(*)                                           AS Total,
+                COALESCE(SUM(activo = 1), 0)                      AS Activo,
+                COALESCE(SUM(activo = 0), 0)                      AS Desactivado
+            FROM plantillas_documentos
+        ";
+
+        return $this->ejecutar($sql, '', [], false) ?? [];
+    }
+
+    /**
+     * Tipos de documento activos para el select del formulario de creación.
+     */
+    public function obtenerTipos_documentos(): array
+    {
+        $sql = "
+            SELECT id_tipo_documento, nombre, categoria
+            FROM tipo_documento
+            WHERE estado = 1
+            ORDER BY orden ASC
+        ";
+
+        return $this->ejecutar($sql);
+    }
+
+    /**
+     * Versión máxima y nombre del tipo de documento para calcular la siguiente versión.
+     */
+    public function obtenerInfoTipos(int $id_tipo_documento): array
+    {
+        $sql = "
+            SELECT
+                t.nombre,
+                MAX(p.version) AS ultima_version
+            FROM tipo_documento t
+            LEFT JOIN plantillas_documentos p
+                ON t.id_tipo_documento = p.id_tipo_documento
+            WHERE t.id_tipo_documento = ?
+            GROUP BY t.id_tipo_documento
+        ";
+
+        $resultado = $this->ejecutar($sql, 'i', [$id_tipo_documento], false);
+
+        if (!$resultado) {
+            throw new Exception("Tipo de documento no encontrado (ID: {$id_tipo_documento})");
         }
 
-        $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    COALESCE(SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END), 0) AS Activo,
-                    COALESCE(SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
-                FROM plantillas_documentos";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerDatosFiltro): " . $this->con->error);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerDatosFiltro): " . $stmt->error);
-        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
         return $resultado;
     }
 
     /**
-     * Obtiene total de registros con filtros
+     * Datos de la plantilla + su tipo para operaciones de desactivar/reactivar.
      */
-    public function obtenerCantidad($buscar = null, $filtro = 2): int
+    public function obtenerInfoPlantilla(int $id_plantilla): array
     {
-        $params = [];
-        $types = "";
-
-        $sql = "SELECT COUNT(*) AS total FROM plantillas_documentos";
-        $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerCantidad): " . $this->con->error);
-
-        if (!empty($params)) $stmt->bind_param($types, ...$params);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerCantidad): " . $stmt->error);
-
-        $resultado = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        return (int)($resultado['total'] ?? 0);
-    }
-
-
-    /**
-     * Obtiene datos para vista de detalles de tipos de documentos
-     */
-    public function obtenerTipos_documentos(): array
-    {
-        $sql = "SELECT 
-                    id_tipo_documento, 
-                    nombre,
-                    categoria
-                FROM tipo_documento
-                WHERE estado = 1";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerTipos_documentos): " . $this->con->error);
-
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerTipos_documentos): " . $stmt->error);
-
-        $registro = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-
-        if (!$registro) throw new Exception("Tipo de documento no encontrado");
-
-        return $registro;
-    }
-
-    /**
-     * Obtiene datos para vista de detalles
-     */
-    public function obtenerInfoTipos($id_tipo_documento): array
-    {
-        $sql = "SELECT 
-    MAX(p.version) AS ultima_version,
-    t.nombre
-FROM tipo_documento t
-LEFT JOIN plantillas_documentos p 
-    ON t.id_tipo_documento = p.id_tipo_documento
-WHERE t.id_tipo_documento = ?
-GROUP BY t.id_tipo_documento;";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerInfoTipos): " . $this->con->error);
-
-        $stmt->bind_param("i", $id_tipo_documento);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerInfoTipos): " . $stmt->error);
-
-        $registro = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if (!$registro) throw new Exception("Plantillas de documentos no encontrado");
-
-        return $registro;
-    }
-
-    public function obtenerInfoPlantilla($id_plantilla)
-    {
-        $sql = "SELECT p.version, t.nombre, t.id_tipo_documento
+        $sql = "
+            SELECT
+                p.id_plantilla,
+                p.version,
+                p.activo,
+                p.id_tipo_documento,
+                t.nombre
             FROM plantillas_documentos p
-            INNER JOIN tipo_documento t 
+            INNER JOIN tipo_documento t
                 ON p.id_tipo_documento = t.id_tipo_documento
-            WHERE p.id_plantilla = ?";
+            WHERE p.id_plantilla = ?
+        ";
 
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare: " . $this->con->error);
+        $resultado = $this->ejecutar($sql, 'i', [$id_plantilla], false);
 
-        $stmt->bind_param("i", $id_plantilla);
-        if (!$stmt->execute()) throw new Exception("Error en execute: " . $stmt->error);
+        if (!$resultado) {
+            throw new Exception("Plantilla no encontrada (ID: {$id_plantilla})");
+        }
 
-        $registro = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if (!$registro) throw new Exception("Plantilla no encontrada");
-
-        return $registro;
+        return $resultado;
     }
+
     /**
-     * Inserta el archivo físico en documentos_subidos.
+     * Sólo el campo activo de una plantilla (para validar antes de cambiar estado).
+     */
+    public function obtenerPorId(int $id_plantilla): ?array
+    {
+        $sql = "SELECT activo FROM plantillas_documentos WHERE id_plantilla = ?";
+        return $this->ejecutar($sql, 'i', [$id_plantilla], false) ?: null;
+    }
+
+    /**
+     * Datos del archivo para descarga segura.
+     * Une plantilla → documento para obtener la ruta física y validar activos.
+     */
+    public function obtenerPlantillaPorId(int $id_plantilla): ?array
+    {
+        $sql = "
+            SELECT
+                ds.id_documento,
+                ds.nombre_archivo,
+                ds.nombre,
+                ds.ruta,
+                ds.tipo_mime,
+                ds.extension,
+                pd.activo  AS plantilla_activa,
+                ds.activo  AS archivo_activo
+            FROM plantillas_documentos pd
+            INNER JOIN documentos_subidos ds
+                ON ds.id_documento = pd.id_documento
+                AND ds.tipo        = 'plantilla'
+            WHERE pd.id_plantilla = ?
+            LIMIT 1
+        ";
+
+        return $this->ejecutar($sql, 'i', [$id_plantilla], false) ?: null;
+    }
+
+    // 
+    //  OPERACIONES DE ESCRITURA
+    // 
+
+    /**
+     * Registra el archivo físico en documentos_subidos.
      * Devuelve el id_documento generado.
      */
     public function registrarDocumento(
@@ -219,45 +311,35 @@ GROUP BY t.id_tipo_documento;";
         string $tipo_mime,
         string $extension,
         int    $tamano_bytes,
-        string $tipo,          // 'plantilla'
-        string $visibilidad,   // 'privado' | 'publico'
+        string $tipo,
+        string $visibilidad,
         int    $id_usuario,
         int    $version
     ): int {
         $sql = "
-        INSERT INTO documentos_subidos
-            (nombre, nombre_archivo, ruta, tipo_mime, extension, tamano_bytes,
-             tipo, visibilidad, id_usuario, version, activo, fecha_subida)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
-    ";
+            INSERT INTO documentos_subidos
+                (nombre, nombre_archivo, ruta, tipo_mime, extension,
+                 tamano_bytes, tipo, visibilidad, id_usuarios, version, activo, fecha_subida)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
+        ";
 
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error prepare (registrarDocumento): " . $this->con->error);
-
-        $stmt->bind_param(
-            "sssssissii",
-            $nombre,
-            $nombre_archivo,
-            $ruta,
-            $tipo_mime,
-            $extension,
-            $tamano_bytes,
-            $tipo,
-            $visibilidad,
-            $id_usuario,
-            $version
+        $id = (int) $this->ejecutar(
+            $sql,
+            'sssssissii',
+            [$nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
+             $tamano_bytes, $tipo, $visibilidad, $id_usuario, $version]
         );
 
-        if (!$stmt->execute()) throw new Exception("Error execute (registrarDocumento): " . $stmt->error);
+        if ($id === 0) {
+            throw new Exception("No se pudo registrar el documento en documentos_subidos");
+        }
 
-        $id = $stmt->insert_id;
-        $stmt->close();
         return $id;
     }
 
     /**
      * Registra la plantilla con referencia al documento centralizado.
-     * nombre_archivo y ruta ya NO van aquí.
+     * Devuelve el id_plantilla generado.
      */
     public function registrar(
         int    $id_tipo_documento,
@@ -266,295 +348,194 @@ GROUP BY t.id_tipo_documento;";
         int    $id_documento
     ): int {
         $sql = "
-        INSERT INTO plantillas_documentos
-            (id_tipo_documento, nombre, version, id_documento, activo, fecha_creacion)
-        VALUES (?, ?, ?, ?, 1, NOW())
-    ";
+            INSERT INTO plantillas_documentos
+                (id_tipo_documento, nombre, version, id_documento, activo, fecha_creacion)
+            VALUES (?, ?, ?, ?, 1, NOW())
+        ";
 
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error prepare (registrar): " . $this->con->error);
+        $id = (int) $this->ejecutar(
+            $sql,
+            'isii',
+            [$id_tipo_documento, $nombre, $version, $id_documento]
+        );
 
-        $stmt->bind_param("isii", $id_tipo_documento, $nombre, $version, $id_documento);
-        if (!$stmt->execute()) throw new Exception("Error execute (registrar): " . $stmt->error);
+        if ($id === 0) {
+            throw new Exception("No se pudo registrar la plantilla");
+        }
 
-        $id = $stmt->insert_id;
-        $stmt->close();
         return $id;
     }
 
     /**
-     * Sin cambios de firma — solo se mantiene igual.
-     */
-    public function registrarHistorial(
-        int    $id_plantilla,
-        int    $id_usuarios,
-        string $accion,
-        string $descripcion
-    ): bool {
-        $sql = "
-        INSERT INTO historial_plantillas
-            (id_plantilla, id_usuarios, accion, descripcion, fecha)
-        VALUES (?, ?, ?, ?, NOW())
-    ";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error prepare (registrarHistorial): " . $this->con->error);
-
-        $stmt->bind_param("iiss", $id_plantilla, $id_usuarios, $accion, $descripcion);
-        if (!$stmt->execute()) throw new Exception("Error execute (registrarHistorial): " . $stmt->error);
-
-        $stmt->close();
-        return true;
-    }
-
-
-
-    /**
-     * Bloquea registros.
-     * IMPORTANTE: Debe ejecutarse dentro de una transacción.
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function bloquear_tabla($id_tipo_documento): void
-    {
-        $sql = "SELECT id_plantilla FROM plantillas_documentos WHERE id_tipo_documento = ? FOR UPDATE";
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (bloquear_tabla): " . $this->con->error);
-        $stmt->bind_param("i", $id_tipo_documento);
-        if (!$stmt->execute()) throw new Exception("Error en execute (bloquear_tabla): " . $stmt->error);
-        $stmt->close();
-    }
-
-    /**
-     * Obtiene una Plantilla de documentos por ID.
-     *
-     * @param int $id_grado
-     * @param bool $forUpdate
-     * @return array|null
-     * @throws Exception
-     */
-    public function obtenerPorId(int $id_plantilla, bool $forUpdate = false): ?array
-    {
-        $sql = "SELECT activo FROM plantillas_documentos WHERE id_plantilla = ?";
-
-        if ($forUpdate) {
-            $sql .= " FOR UPDATE";
-        }
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerPorId): " . $this->con->error);
-
-        $stmt->bind_param("i", $id_plantilla);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerPorId): " . $stmt->error);
-
-        $res = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        return $res ?: null;
-    }
-
-    /**
-     * Eliminación lógica (soft delete) de plantilla de documentos.
-     *
-     * @param int $id_grado
-     * @return int Número de filas afectadas
-     * @throws Exception
+     * Desactiva (soft delete) todas las plantillas activas de un tipo.
+     * Devuelve filas afectadas.
      */
     public function desactivarPorTipo(int $id_tipo_documento): int
     {
-        $sql = "UPDATE plantillas_documentos SET activo = 0, fecha_modificacion = NOW() WHERE id_tipo_documento = ? AND activo = 1";
+        $sql = "
+            UPDATE plantillas_documentos
+            SET activo = 0, fecha_modificacion = NOW()
+            WHERE id_tipo_documento = ? AND activo = 1
+        ";
 
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (desactivarPorTipo): " . $this->con->error);
-
-        $stmt->bind_param("i", $id_tipo_documento);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (desactivarPorTipo): " . $stmt->error);
-        }
-
-        $filas = $stmt->affected_rows;
-        $stmt->close();
-
-        return $filas;
+        return (int) $this->ejecutar($sql, 'i', [$id_tipo_documento]);
     }
 
     /**
-     * Reactiva una Plantilla de documento previamente desactivado.
-     * IMPORTANTE: Ejecutar dentro de transacción.
-     *
-     * @param int $id_plantilla
-     * @return void
-     * @throws Exception
+     * Reactiva una versión específica desactivando el resto del mismo tipo.
+     * Debe ejecutarse dentro de una transacción.
      */
     public function activarVersion(int $id_plantilla): void
     {
-        // 1. Obtener tipo
-        $sql = "SELECT id_tipo_documento 
-            FROM plantillas_documentos 
-            WHERE id_plantilla = ? FOR UPDATE";
+        // 1. Obtener el tipo al que pertenece (con bloqueo pesimista)
+        $row = $this->ejecutar(
+            "SELECT id_tipo_documento FROM plantillas_documentos WHERE id_plantilla = ? FOR UPDATE",
+            'i',
+            [$id_plantilla],
+            false
+        );
 
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error prepare");
-
-        $stmt->bind_param("i", $id_plantilla);
-        $stmt->execute();
-        $res = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if (!$res) throw new Exception("No existe");
-
-        $id_tipo = $res['id_tipo_documento'];
-
-        // 2. Bloquear registros del tipo
-        $sql = "SELECT id_plantilla 
-            FROM plantillas_documentos 
-            WHERE id_tipo_documento = ? 
-            FOR UPDATE";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_tipo);
-        $stmt->execute();
-        $stmt->close();
-
-        // 3. Desactivar todas
-        $sql = "UPDATE plantillas_documentos 
-            SET activo = 0 
-            WHERE id_tipo_documento = ?";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_tipo);
-        $stmt->execute();
-        $stmt->close();
-
-        // 4. Activar seleccionada
-        $sql = "UPDATE plantillas_documentos 
-            SET activo = 1, fecha_modificacion = NOW()
-            WHERE id_plantilla = ?";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_plantilla);
-        $stmt->execute();
-
-        if ($stmt->affected_rows === 0) {
-            throw new Exception("No se pudo activar");
+        if (!$row) {
+            throw new Exception("Plantilla no existe (ID: {$id_plantilla})");
         }
 
-        $stmt->close();
+        $id_tipo = (int) $row['id_tipo_documento'];
+
+        // 2. Bloquear todos los del tipo
+        $this->ejecutar(
+            "SELECT id_plantilla FROM plantillas_documentos WHERE id_tipo_documento = ? FOR UPDATE",
+            'i',
+            [$id_tipo]
+        );
+
+        // 3. Desactivar todos del tipo
+        $this->ejecutar(
+            "UPDATE plantillas_documentos SET activo = 0 WHERE id_tipo_documento = ?",
+            'i',
+            [$id_tipo]
+        );
+
+        // 4. Activar la versión seleccionada
+        $afectadas = (int) $this->ejecutar(
+            "UPDATE plantillas_documentos SET activo = 1, fecha_modificacion = NOW() WHERE id_plantilla = ?",
+            'i',
+            [$id_plantilla]
+        );
+
+        if ($afectadas === 0) {
+            throw new Exception("No se pudo activar la plantilla (ID: {$id_plantilla})");
+        }
     }
 
-    public function obtenerSiguienteVersion($id_tipo_documento): int
+    /**
+     * Bloqueo pesimista de registros de un tipo (dentro de transacción).
+     */
+    public function bloquear_tabla(int $id_tipo_documento): void
     {
-        $sql = "SELECT COALESCE(MAX(version), 0) + 1 AS version 
-            FROM plantillas_documentos 
-            WHERE id_tipo_documento = ?";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare: " . $this->con->error);
-
-        $stmt->bind_param("i", $id_tipo_documento);
-        if (!$stmt->execute()) throw new Exception("Error en execute: " . $stmt->error);
-
-        $resultado = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        return (int)$resultado['version']; // Devueve el número
+        $this->ejecutar(
+            "SELECT id_plantilla FROM plantillas_documentos WHERE id_tipo_documento = ? FOR UPDATE",
+            'i',
+            [$id_tipo_documento]
+        );
     }
 
-    //OBTENR INFORMACIÓN DEL HISTORIAL DE PLANTILLAS DE DOCUMENTOS PARA EL TIMELINE
-    public function linea_tiempo($id_tipo_documento, $pagina = 1, $por_pagina = 5)
+    /**
+     * Calcula la siguiente versión para un tipo de documento.
+     */
+    public function obtenerSiguienteVersion(int $id_tipo_documento): int
     {
-        $pagina = max(1, (int)$pagina);
-        $desde = ($pagina - 1) * $por_pagina;
+        $resultado = $this->ejecutar(
+            "SELECT COALESCE(MAX(version), 0) + 1 AS version
+             FROM plantillas_documentos
+             WHERE id_tipo_documento = ?",
+            'i',
+            [$id_tipo_documento],
+            false
+        );
 
-        // TOTAL
-        $sqlTotal = "SELECT COUNT(*) as total
-                 FROM historial_plantillas h
-                 INNER JOIN plantillas_documentos p 
-                 ON h.id_plantilla = p.id_plantilla
-                 WHERE p.id_tipo_documento = ?";
+        return (int) ($resultado['version'] ?? 1);
+    }
 
-        $stmt = $this->con->prepare($sqlTotal);
-        $stmt->bind_param("i", $id_tipo_documento);
-        $stmt->execute();
-        $total = $stmt->get_result()->fetch_assoc()['total'];
-        $stmt->close();
+    /**
+     * Registra un evento en el historial de la plantilla.
+     */
+    public function registrarHistorial(
+        int    $id_plantilla,
+        int    $id_usuario,
+        string $accion,
+        string $descripcion
+    ): void {
+        $this->ejecutar(
+            "INSERT INTO historial_plantillas (id_plantilla, id_usuarios, accion, descripcion, fecha)
+             VALUES (?, ?, ?, ?, NOW())",
+            'iiss',
+            [$id_plantilla, $id_usuario, $accion, $descripcion]
+        );
+    }
 
-        $total_paginas = ceil($total / $por_pagina);
+    // 
+    //  LÍNEA DE TIEMPO / HISTORIAL
+    // 
 
-        // DATOS
-        $sql = "SELECT 
+    /**
+     * Historial paginado de eventos de un tipo de documento, agrupado por versión.
+     */
+    public function linea_tiempo(int $id_tipo_documento, int $pagina = 1, int $porPagina = 5): array
+    {
+        $pagina = max(1, $pagina);
+        $desde  = ($pagina - 1) * $porPagina;
+
+        // Total de eventos
+        $total = (int) ($this->ejecutar(
+            "SELECT COUNT(*) AS total
+             FROM historial_plantillas h
+             INNER JOIN plantillas_documentos p ON h.id_plantilla = p.id_plantilla
+             WHERE p.id_tipo_documento = ?",
+            'i',
+            [$id_tipo_documento],
+            false
+        )['total'] ?? 0);
+
+        $totalPaginas = $total > 0 ? (int) ceil($total / $porPagina) : 1;
+
+        // Datos paginados
+        $historial = $this->ejecutar(
+            "SELECT
                 h.id_plantilla,
                 p.version,
-                p.nombre_archivo,
-                h.accion AS tipo_evento,
+                ds.nombre_archivo,
+                h.accion          AS tipo_evento,
                 h.descripcion,
                 h.fecha,
-                u.nombre AS usuario
-            FROM historial_plantillas h
-            INNER JOIN plantillas_documentos p 
-                ON h.id_plantilla = p.id_plantilla
-            LEFT JOIN usuarios u 
-                ON h.id_usuarios = u.id_usuarios
-            WHERE p.id_tipo_documento = ?
-            ORDER BY p.version DESC, h.fecha DESC
-            LIMIT ?, ?";
+                u.nombre          AS usuario
+             FROM historial_plantillas h
+             INNER JOIN plantillas_documentos p
+                 ON h.id_plantilla = p.id_plantilla
+             LEFT JOIN documentos_subidos ds
+                 ON ds.id_documento = p.id_documento AND ds.activo = 1
+             LEFT JOIN usuarios u
+                 ON h.id_usuarios = u.id_usuarios
+             WHERE p.id_tipo_documento = ?
+             ORDER BY p.version DESC, h.fecha DESC
+             LIMIT ?, ?",
+            'iii',
+            [$id_tipo_documento, $desde, $porPagina]
+        );
 
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("iii", $id_tipo_documento, $desde, $por_pagina);
-        $stmt->execute();
-
-        $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-
-        // AGRUPAR POR VERSION
+        // Agrupar por versión
         $agrupado = [];
         foreach ($historial as $item) {
-            $version = "Versión " . $item['version'];
-            $agrupado[$version][] = $item;
+            $agrupado['Versión ' . $item['version']][] = $item;
         }
 
         return [
-            "datos" => $agrupado,
-            "paginacion" => [
-                "total" => $total,
-                "por_pagina" => $por_pagina,
-                "pagina" => $pagina,
-                "total_paginas" => $total_paginas
-            ]
+            'datos'      => $agrupado,
+            'paginacion' => [
+                'total'        => $total,
+                'por_pagina'   => $porPagina,
+                'pagina'       => $pagina,
+                'total_paginas'=> $totalPaginas,
+            ],
         ];
-    }
-
-    public function obtenerPlantillaPorId($id_plantilla)
-    {
-        $sql = "
-    SELECT
-        ds.id_documento,
-        ds.nombre_archivo,
-        ds.nombre,
-        ds.ruta,
-        ds.tipo_mime,
-        ds.extension,
-        ds.activo
-    FROM plantillas_documentos pd
-    JOIN documentos_subidos ds
-           ON ds.id_documento = t.id_documento
-    WHERE pd.id_plantilla          = ?
-      AND ds.tipo             = 'plantilla'
-      AND ds.activo           = 1
-    LIMIT 1";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) {
-            http_response_code(500);
-            exit('Error interno del servidor.');
-        }
-
-        $stmt->bind_param('i', $id_plantilla);
-        $stmt->execute();
-        $file = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        return $file;
     }
 }

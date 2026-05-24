@@ -15,7 +15,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 //Todos los roles pueden acceder
-if (!in_array($rol, ['investigador', 'profesor','estudiante', 'supervisor'], true)) {
+if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
@@ -88,10 +88,7 @@ include __DIR__ . '/../../mensaje.php';
             </h2>
         </div>
         <div class="col-md-6 text-md-end">
-            <?php if ($rol === 'investigador' || $rol === 'profesor'):
-
-
-            ?>
+            <?php if ($rol === 'investigador' || $rol === 'profesor'):  ?>
                 <?php if ($puedeCrear_Editar): ?>
                     <a href="crear.php" class="btn btn-primary">Crear proyecto</a>
                 <?php else: ?>
@@ -271,47 +268,13 @@ include __DIR__ . '/../../mensaje.php';
                     <?php endforeach; ?>
                 </div>
 
-                <!-- PAGINACIÓN -->
-                <?php if ($paginacion['total_paginas'] > 1): ?>
-                    <nav class="mt-4">
-                        <ul class="pagination justify-content-center">
+                    <!-- PAGINACIÓN -->
+    <?php if ($paginacion['total_paginas'] > 1):
+        $qBase = 'action=' . urlencode($action)
+            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+        $entidad = 'proyectos';
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';?>
 
-                            <?php
-                            $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                            $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
-                            ?>
-
-                            <li class="page-item disabled">
-                                <span class="page-link">
-                                    Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total'] ?> entradas
-                                </span>
-                            </li>
-
-                            <li class="page-item <?= ($paginacion['pagina'] <= 1) ? 'disabled' : '' ?>">
-                                <a class="page-link"
-                                    href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $paginacion['pagina'] - 1 ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>">
-                                    &laquo;
-                                </a>
-                            </li>
-
-                            <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                                <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                                    <a class="page-link"
-                                        href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $i ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>">
-                                        <?= $i ?>
-                                    </a>
-                                </li>
-                            <?php endfor; ?>
-
-                            <li class="page-item <?= ($paginacion['pagina'] >= $paginacion['total_paginas']) ? 'disabled' : '' ?>">
-                                <a class="page-link"
-                                    href="?action=<?= htmlspecialchars($action) ?>&pagina=<?= $paginacion['pagina'] + 1 ?><?= !empty($buscar) ? '&buscar=' . urlencode($buscar) : '' ?>">
-                                    &raquo;
-                                </a>
-                            </li>
-
-                        </ul>
-                    </nav>
                 <?php endif; ?>
 
             <?php else: ?>

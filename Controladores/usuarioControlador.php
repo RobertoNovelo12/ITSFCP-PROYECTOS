@@ -228,11 +228,27 @@ class UsuariosControlador
     public function EstiloEstado($estado)
     {
         switch (strtolower($estado)) {
-            case 'espera':    return 'warning';
-            case 'activo':    return 'success';
-            case 'cancelado': return 'danger';
-            default:          return 'secondary';
+            case 'espera':
+                return 'warning';
+            case 'activo':
+                return 'success';
+            case 'cancelado':
+                return 'danger';
+            default:
+                return 'secondary';
         }
+    }
+
+    // Helper: badge por estado de usuario
+    function badgeEstadoUsuario(string $estado): string
+    {
+        $e = strtolower(trim($estado));
+        return match ($e) {
+            'activo'    => '<span class="badge-inst badge-activo">Activo</span>',
+            'espera'    => '<span class="badge-inst badge-warning-i">En espera</span>',
+            'cancelado' => '<span class="badge-inst badge-danger-i">Cancelado</span>',
+            default     => '<span class="badge-inst badge-secondary-i">' . htmlspecialchars(ucfirst($estado)) . '</span>',
+        };
     }
 
     // 

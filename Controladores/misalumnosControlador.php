@@ -76,19 +76,19 @@ class misalumnosControlador
 
         $id_investigador = (int)$_SESSION['id_usuario'];
         $filtros         = $this->filtrosGET();
-        $por_pagina      = 10;
+        $por_pagina      = 6;
         $desde           = ($filtros['pagina'] - 1) * $por_pagina;
 
-        // ── Catálogos para los selects ────────────────────────────
+        //  Catálogos para los selects 
         $periodos   = $this->modelo->obtenerPeriodos();
         // El select de proyectos se restringe por periodo activo
         $proyectos  = $this->modelo->obtenerProyectosInvestigador($id_investigador, $filtros['periodo']);
         $carreras   = $this->modelo->obtenerCarreras();
 
-        // ── Tarjetas resumen ──────────────────────────────────────
+        //  Tarjetas resumen 
         $resumen = $this->modelo->resumenAlumnos($id_investigador, $filtros);
 
-        // ── Listado paginado ──────────────────────────────────────
+        //  Listado paginado 
         $total   = $this->modelo->contarAlumnos($id_investigador, $filtros);
         $alumnos = $this->modelo->obtenerAlumnos($id_investigador, $filtros, $desde, $por_pagina);
 
@@ -163,68 +163,70 @@ class misalumnosControlador
         ";
     }
 
-    /**
-     * Genera el HTML de paginación reutilizando los filtros activos.
-     */
-    public function htmlPaginacion(array $pag, array $filtros): string
-    {
-        if ($pag['total_paginas'] <= 1) {
-            return '';
-        }
-
-        // Reconstruye los parámetros sin 'pagina' para no duplicarlo
-        $base = array_filter([
-            'periodo'        => $filtros['periodo']        ?: '',
-            'id_proyecto'    => $filtros['id_proyecto']    ?: '',
-            'carrera'        => $filtros['carrera']        ?: '',
-            'estado'         => $filtros['estado']         ?: '',
-            'estado_proceso' => $filtros['estado_proceso'] ?: '',
-            'buscar'         => $filtros['buscar']         ?: '',
-        ]);
-        $q  = http_build_query($base);
-        $p  = $pag['pagina'];
-        $tp = $pag['total_paginas'];
-
-        $html  = '<nav class="mt-3" aria-label="Paginación alumnos">';
-        $html .= '<ul class="pagination justify-content-center pagination-sm flex-wrap">';
-
-        // Anterior
-        $html .= '<li class="page-item ' . ($p <= 1 ? 'disabled' : '') . '">';
-        $html .= '<a class="page-link" href="?' . $q . '&pagina=' . ($p - 1) . '">&laquo;</a></li>';
-
-        // Páginas con ventana ±2
-        $ini = max(1, $p - 2);
-        $fin = min($tp, $p + 2);
-        if ($ini > 1) {
-            $html .= '<li class="page-item"><a class="page-link" href="?' . $q . '&pagina=1">1</a></li>';
-            if ($ini > 2) {
-                $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>';
-            }
-        }
-        for ($i = $ini; $i <= $fin; $i++) {
-            $html .= '<li class="page-item ' . ($i === $p ? 'active' : '') . '">';
-            $html .= '<a class="page-link" href="?' . $q . '&pagina=' . $i . '">' . $i . '</a></li>';
-        }
-        if ($fin < $tp) {
-            if ($fin < $tp - 1) {
-                $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>';
-            }
-            $html .= '<li class="page-item"><a class="page-link" href="?' . $q . '&pagina=' . $tp . '">' . $tp . '</a></li>';
-        }
-
-        // Siguiente
-        $html .= '<li class="page-item ' . ($p >= $tp ? 'disabled' : '') . '">';
-        $html .= '<a class="page-link" href="?' . $q . '&pagina=' . ($p + 1) . '">&raquo;</a></li>';
-
-        $html .= '</ul>';
-
-        // Contador de registros
-        $desde = ($p - 1) * $pag['por_pagina'] + 1;
-        $hasta = min($p * $pag['por_pagina'], $pag['total']);
-        $html .= '<p class="text-center text-muted small mb-0">';
-        $html .= "Mostrando {$desde}–{$hasta} de {$pag['total']} participaciones</p>";
-        $html .= '</nav>';
-
-        return $html;
+   /**
+ * Genera el HTML de paginación reutilizando los filtros activos.
+ */
+public function htmlPaginacion(array $pag, array $filtros): string
+{
+    if ($pag['total_paginas'] <= 1) {
+        return '';
     }
+
+    // Reconstruye los parámetros sin 'pagina' para no duplicarlo
+    $base = array_filter([
+        'periodo'        => $filtros['periodo']        ?: '',
+        'id_proyecto'    => $filtros['id_proyecto']    ?: '',
+        'carrera'        => $filtros['carrera']        ?: '',
+        'estado'         => $filtros['estado']         ?: '',
+        'estado_proceso' => $filtros['estado_proceso'] ?: '',
+        'buscar'         => $filtros['buscar']         ?: '',
+    ]);
+    $q  = http_build_query($base);
+    $p  = $pag['pagina'];
+    $tp = $pag['total_paginas'];
+
+    $html  = '<nav class="mt-3" aria-label="Paginación alumnos">';
+    $html .= '<div class="paginacion-wrap">';
+    $html .= '<ul class="pagination justify-content-center mb-1">';
+
+    // Anterior
+    $html .= '<li class="page-item ' . ($p <= 1 ? 'disabled' : '') . '">';
+    $html .= '<a class="page-link" href="?' . $q . '&pagina=' . ($p - 1) . '">&laquo;</a></li>';
+
+    // Construir ventana de páginas: siempre primera, última y ±2 alrededor de la actual
+    $rango          = 2;
+    $paginas_mostrar = [];
+    for ($i = 1; $i <= $tp; $i++) {
+        if ($i === 1 || $i === $tp || ($i >= $p - $rango && $i <= $p + $rango)) {
+            $paginas_mostrar[] = $i;
+        }
+    }
+
+    $prev = null;
+    foreach ($paginas_mostrar as $i) {
+        if ($prev !== null && $i - $prev > 1) {
+            $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>';
+        }
+        $html .= '<li class="page-item ' . ($i === $p ? 'active' : '') . '">';
+        $html .= '<a class="page-link" href="?' . $q . '&pagina=' . $i . '">' . $i . '</a></li>';
+        $prev = $i;
+    }
+
+    // Siguiente
+    $html .= '<li class="page-item ' . ($p >= $tp ? 'disabled' : '') . '">';
+    $html .= '<a class="page-link" href="?' . $q . '&pagina=' . ($p + 1) . '">&raquo;</a></li>';
+
+    $html .= '</ul>';
+
+    // Contador de registros
+    $desde = ($p - 1) * $pag['por_pagina'] + 1;
+    $hasta = min($p * $pag['por_pagina'], $pag['total']);
+    $html .= '<p class="paginacion-info">';
+    $html .= 'Mostrando ' . $desde . '–' . $hasta . ' de ' . number_format($pag['total']) . ' participaciones</p>';
+
+    $html .= '</div>';
+    $html .= '</nav>';
+
+    return $html;
+}
 }

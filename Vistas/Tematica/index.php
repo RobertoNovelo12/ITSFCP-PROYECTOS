@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_tematica') {
     $tematicaControlador->eliminar_tematica($id_tematica, $rol);
 
     // Redirigir para evitar doble ejecución
-    header("Location: tabla.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -86,7 +86,7 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row g-2 mb-4">
         <div class="col-12 col-md-4">
             <select class="form-select"
-                onchange="location.href='tabla.php?action=' + this.value;">
+                onchange="location.href='index.php?action=' + this.value;">
                 <?php foreach ($opciones as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"
                         <?= ($action === $key) ? 'selected' : '' ?>>
@@ -96,7 +96,7 @@ include __DIR__ . '/../../mensaje.php';
             </select>
         </div>
         <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="tabla.php">
+            <form class="d-flex gap-2" method="GET" action="index.php">
                 <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                 <input type="text"
                     name="buscar"

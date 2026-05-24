@@ -14,9 +14,9 @@ class SupervisorModelo
         $this->con = $conn;
     }
 
-    // ================================================================
+    // 
     // AUXILIARES PARA FILTROS (selects)
-    // ================================================================
+    // 
 
     public function obtenerPeriodos(): array
     {
@@ -55,9 +55,9 @@ class SupervisorModelo
         return $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
     }
 
-    // ================================================================
+    // 
     // RESUMEN GLOBAL — tarjetas principales del dashboard
-    // ================================================================
+    // 
 
     public function resumenGlobal(array $f): array
     {
@@ -155,9 +155,9 @@ class SupervisorModelo
         return compact('proyectos', 'estudiantes', 'solicitudes', 'tareas');
     }
 
-    // ================================================================
+    // 
     // PROYECTOS — tabla paginada con filtros
-    // ================================================================
+    // 
 
     private function wheresProyectos(array $f): array
     {
@@ -248,9 +248,9 @@ class SupervisorModelo
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // ================================================================
+    // 
     // DETALLE PROYECTO (vista completa para supervisor)
-    // ================================================================
+    // 
 
     public function detalleProyecto(int $id_proyecto): array
     {
@@ -369,9 +369,9 @@ class SupervisorModelo
         return compact('proyecto', 'estudiantes', 'solicitudes', 'tareas', 'historial');
     }
 
-    // ================================================================
+    // 
     // SOLICITUDES — tabla paginada con filtros
-    // ================================================================
+    // 
 
     private function wheresSolicitudes(array $f): array
     {
@@ -477,9 +477,9 @@ class SupervisorModelo
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // ================================================================
+    // 
     // ETAPAS — resumen de alumnos por etapa (tipo_documento)
-    // ================================================================
+    // 
 
     public function resumenEtapas(array $f): array
     {
@@ -542,9 +542,9 @@ class SupervisorModelo
         return ['etapas' => $etapas, 'secciones' => $secciones];
     }
 
-    // ================================================================
+    // 
     // USUARIOS — estudiantes paginados con filtros
-    // ================================================================
+    // 
 
     private function wheresEstudiantes(array $f): array
     {
@@ -633,9 +633,9 @@ class SupervisorModelo
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // ================================================================
+    // 
     // DETALLE ESTUDIANTE (vista completa para supervisor)
-    // ================================================================
+    // 
 
     public function detalleEstudiante(int $id_usuario): array
     {
@@ -717,9 +717,9 @@ class SupervisorModelo
         return compact('usuario', 'proyectos', 'tareas', 'solicitudes');
     }
 
-    // ================================================================
+    // 
     // RESUMEN POR INVESTIGADOR
-    // ================================================================
+    // 
 
     public function resumenInvestigadores(array $f): array
     {
