@@ -30,7 +30,7 @@ if (!$id_solicitud) {
 require_once __DIR__ . '/../../Controladores/misSolicitudesControlador.php';
 $ctrl = new MisSolicitudesControlador();
 
-// ── POST: responder correcciones ──────────────────────────────────────────────
+//  POST: responder correcciones 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'responder') {
     $resultado = $ctrl->procesarRespuesta($_POST, $_FILES, $id_usuario);
     if ($resultado['ok']) {
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'respo
     exit;
 }
 
-// ── Datos ─────────────────────────────────────────────────────────────────────
+//  Datos ─
 $data      = $ctrl->detallePagina($id_solicitud, $id_usuario);
 $sol       = $data['solicitud'];
 $hilo      = $data['hilo'];
@@ -352,5 +352,6 @@ include __DIR__ . '/../../mensaje.php';
 
 <?php
 $contenido = ob_get_clean();
+$titulo    = "Detalles de la solicitud";
 include __DIR__ . '/../../layout.php';
 ?>

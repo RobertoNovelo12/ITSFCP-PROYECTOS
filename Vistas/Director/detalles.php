@@ -233,37 +233,10 @@ ob_start();
             </ul>
 
             <!-- PAGINACIÓN -->
-            <?php if ($paginacion['total_paginas'] > 1): ?>
-
-                <nav class="mt-4">
-                    <ul class="pagination justify-content-center">
-
-                        <?php
-                        $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                        $fin = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
-                        ?>
-
-                        <li class="page-item disabled">
-                            <span class="page-link">
-                                Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $paginacion['total'] ?>
-                            </span>
-                        </li>
-
-                        <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-
-                            <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                                <a class="page-link"
-                                    href="?id_director=<?= $id_director ?>&pagina=<?= $i ?>">
-                                    <?= $i ?>
-                                </a>
-                            </li>
-
-                        <?php endfor; ?>
-
-                    </ul>
-                </nav>
-
-            <?php endif; ?>
+            <?php
+            $qBase = 'id_director=' . urlencode($id_director);
+            include __DIR__ . '../../../publico/incluido/_paginacion.php';
+            ?>
 
         </div>
     </div>

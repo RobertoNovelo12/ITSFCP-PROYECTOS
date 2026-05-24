@@ -766,5 +766,6 @@ include __DIR__ . '/../../mensaje.php';
 
 <?php
 $contenido = ob_get_clean();
+$titulo    = "Mis solicitudes";
 include __DIR__ . '/../../layout.php';
 ?>

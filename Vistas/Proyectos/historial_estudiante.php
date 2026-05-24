@@ -149,22 +149,11 @@ ob_start();
     <?php endif; ?>
 
     <!-- PAGINACIÓN -->
-    <?php if (!empty($paginacion) && $paginacion['total_paginas'] > 1): ?>
-        <nav>
-            <ul class="pagination justify-content-center">
-
-                <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                    <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                        <a class="page-link"
-                            href="?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $id_usuario ?>&pagina=<?= $i ?>">
-                            <?= $i ?>
-                        </a>
-                    </li>
-                <?php endfor; ?>
-
-            </ul>
-        </nav>
-    <?php endif; ?>
+    <?php
+    $qBase    = 'id_proyecto=' . urlencode($id_proyecto) . '&id_usuario=' . urlencode($id_usuario);
+    $entidad  = 'registros'; 
+    include __DIR__ . '../../../publico/incluido/_paginacion.php';
+    ?>
 
 </div>
 

@@ -71,8 +71,7 @@ if (isset($_GET['error']) && $_GET['error']) {
             <p class="text-muted small mb-0">Solicitudes de cierre individual de estudiantes</p>
         </div>
         <div class="col-md-6 text-md-end">
-            <!-- Filtro por Periodo -->
-            <form class="d-flex align-items-center gap-2 flex-wrap" method="GET">
+            <form class="d-inline-flex align-items-center gap-2" method="GET">
                 <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">
                 <input type="hidden" name="buscar" value="<?= htmlspecialchars($buscar) ?>">
                 <label class="mb-0 text-nowrap fw-semibold">Periodo:</label>

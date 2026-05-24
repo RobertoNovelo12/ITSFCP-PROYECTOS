@@ -25,7 +25,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 //Todos los roles pueden acceder
-if (!in_array($rol, ['investigador', 'profesor','estudiante','supervisor'], true)) {
+if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
@@ -144,7 +144,7 @@ ob_start();
     <?php if ($rol === 'estudiante'): ?>
 
         <?php
-        $carga_nota = $carga ?? null; 
+        $carga_nota = $carga ?? null;
 
         if ($carga_nota === null) {
             // Estamos en el listado principal: calcular sobre la marcha
@@ -343,64 +343,10 @@ ob_start();
         </div>
 
         <!--  PAGINACIÓN  -->
-        <?php if ($paginacion['total_paginas'] > 1): ?>
-            <div class="paginacion-wrap">
-                <ul class="pagination justify-content-center mb-1">
-
-                    <!-- Anterior -->
-                    <li class="page-item <?= $paginacion['pagina'] <= 1 ? 'disabled' : '' ?>">
-                        <a class="page-link"
-                            href="?<?= $qBase ?>&pagina=<?= $paginacion['pagina'] - 1 ?>">
-                            &laquo;
-                        </a>
-                    </li>
-
-                    <?php
-                    // Mostrar máximo 7 botones con elipsis para no desbordar en mobile
-                    $total_pag = $paginacion['total_paginas'];
-                    $pag_actual = $paginacion['pagina'];
-                    $rango = 2; // páginas a cada lado de la actual
-                    $paginas_mostrar = [];
-
-                    for ($i = 1; $i <= $total_pag; $i++) {
-                        if (
-                            $i === 1 || $i === $total_pag
-                            || ($i >= $pag_actual - $rango && $i <= $pag_actual + $rango)
-                        ) {
-                            $paginas_mostrar[] = $i;
-                        }
-                    }
-
-                    $prev = null;
-                    foreach ($paginas_mostrar as $i):
-                        if ($prev !== null && $i - $prev > 1): ?>
-                            <li class="page-item disabled"><span class="page-link">…</span></li>
-                        <?php endif; ?>
-                        <li class="page-item <?= $i === $pag_actual ? 'active' : '' ?>">
-                            <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $i ?>"><?= $i ?></a>
-                        </li>
-                    <?php $prev = $i;
-                    endforeach; ?>
-
-                    <!-- Siguiente -->
-                    <li class="page-item <?= $paginacion['pagina'] >= $total_pag ? 'disabled' : '' ?>">
-                        <a class="page-link"
-                            href="?<?= $qBase ?>&pagina=<?= $paginacion['pagina'] + 1 ?>">
-                            &raquo;
-                        </a>
-                    </li>
-
-                </ul>
-
-                <?php
-                $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
-                ?>
-                <p class="paginacion-info">
-                    Mostrando <?= $inicio ?>–<?= $fin ?> de <?= number_format($paginacion['total']) ?> proyectos
-                </p>
-            </div>
-        <?php endif; ?>
+        <?php
+        $entidad = 'proyectos';
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';
+        ?>
 
     <?php else: ?>
         <!-- Estado vacío -->

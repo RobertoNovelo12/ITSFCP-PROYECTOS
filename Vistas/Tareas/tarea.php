@@ -511,7 +511,7 @@ ob_start();
                         'id_proyectos'  => (int) $id_proyecto,
                     ]);
                     // No necesita $entidad si no muestra contador (este módulo no lo tenía)
-                    include __DIR__ . '/../../Vistas/Parciales/_paginacion.php'; ?>
+                    include __DIR__ . '../../publico/incluido/_paginacion.php'; ?>
 
                 <?php endif; ?>
             <?php endif; ?>
