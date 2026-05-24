@@ -15,7 +15,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 //Solo supervisor
-if ($rol ?? '' !== 'supervisor') {
+if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
@@ -72,11 +72,11 @@ include __DIR__ . '/../../mensaje.php';
     <!-- TITULO -->
     <div class="row mb-4 align-items-center">
 
-        <div class="col-12 col-md-6">
+        <div class="col-6 col-md-6">
             <h3 class="fw-bold mb-2 mb-md-0">Áreas de conocimientos</h3>
         </div>
 
-        <div class="col-12 col-md-6 text-md-end">
+        <div class="col-6 col-md-6 text-md-end">
             <?php if ($rol == "supervisor"): ?>
                 <a href="crear.php" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Crear área de conocimiento
@@ -87,34 +87,30 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- FILTROS Y BUSQUEDA -->
 
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="row justify-content-end">
-                <div class="col-md-6 mb-3">
-                    <select class="form-select"
-                        onchange="location.href='index.php?action=' + this.value;">
-                        <?php foreach ($opciones as $key => $label): ?>
-                            <option value="<?= htmlspecialchars($key) ?>"
-                                <?= ($action === $key) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($label) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-6 col-md-8">
-                    <form class="d-flex gap-2" method="GET" action="index.php">
-                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                        <input type="text"
-                            name="buscar"
-                            class="form-control"
-                            placeholder="Buscar Área..."
-                            value="<?= htmlspecialchars($buscar) ?>">
-                        <button type="submit" class="btn btn-primary">
-                            Buscar
-                        </button>
-                    </form>
-                </div>
-            </div>
+    <div class="row g-2 mb-4">
+        <div class="col-12 col-md-4">
+            <select class="form-select"
+                onchange="location.href='index.php?action=' + this.value;">
+                <?php foreach ($opciones as $key => $label): ?>
+                    <option value="<?= htmlspecialchars($key) ?>"
+                        <?= ($action === $key) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-12 col-md-8">
+            <form class="d-flex gap-2" method="GET" action="index.php">
+                <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                <input type="text"
+                    name="buscar"
+                    class="form-control"
+                    placeholder="Buscar Área..."
+                    value="<?= htmlspecialchars($buscar) ?>">
+                <button type="submit" class="btn btn-primary">
+                    Buscar
+                </button>
+            </form>
         </div>
     </div>
     <!-- TABLA LAPTOP -->
@@ -259,7 +255,7 @@ include __DIR__ . '/../../mensaje.php';
                     . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
                     . (!empty($tipo) ? '&tipo=' . urlencode($tipo) : '');
                 $entidad = 'entradas';
-                include __DIR__ . '/../../../publico/incluido/_paginacion.php'; ?>
+                include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
             <?php endif; ?>
         </div>
     </div>

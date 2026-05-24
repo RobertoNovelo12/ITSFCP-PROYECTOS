@@ -21,7 +21,7 @@ $id_usuario  = intval($_SESSION['id_usuario']);
 $id_periodo  = isset($_GET['id_periodos']) ? intval($_GET['id_periodos']) : 0;
 
 //Solo supervisor
-if (strtolower($rol ?? '') !== 'supervisor') {
+if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }

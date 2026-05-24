@@ -1,7 +1,7 @@
 <?php
 /**
  * _paginacion.php — Partial universal de paginación
- * ─────────────────────────────────────────────────
+ * 
  * Variables requeridas:
  *   array  $paginacion     → claves: pagina, total_paginas, por_pagina, total
  *   string $qBase          → query string base SIN 'pagina' (ej: "action=lista&buscar=foo")
@@ -12,14 +12,14 @@
  *   bool   $sm             → true para pagination-sm. Default: false
  *
  * Uso mínimo:
- *   <?php include __DIR__ . '/../../Vistas/Parciales/_paginacion.php'; ?>
+ *   <?php include __DIR__ . '../../../publico/incluido/_paginacion.php'?>
  *
  * Uso con opciones:
  *   <?php
  *   $entidad      = 'proyectos';
  *   $clave_pagina = 'pagina_proy';
  *   $sm           = true;
- *   include __DIR__ . '/../../Vistas/Parciales/_paginacion.php';
+ *   include __DIR__ . '../../../publico/incluido/_paginacion.php';
  *   ?>
  */
 

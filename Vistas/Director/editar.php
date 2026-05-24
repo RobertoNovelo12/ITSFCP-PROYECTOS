@@ -14,7 +14,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $id_director = $_GET["id_director"] ?? null;
 
-if ($rol ?? '' !== 'supervisor') {
+if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }

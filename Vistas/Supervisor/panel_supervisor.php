@@ -1,5 +1,4 @@
 <?php
-
 /**
  * panel_supervisor.php
  * Dashboard de solo lectura del supervisor — responsivo con tarjetas móvil.
@@ -42,10 +41,9 @@ function barraProgreso(int $aprobadas, int $total): string
 ob_start();
 ?>
 
-
 <div class="container-fluid py-4 sup-page" style="max-width:95%;">
 
-    <!--  ENCABEZADO ═ -->
+    <!--  ENCABEZADO -->
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
             <h4><i class="bi bi-speedometer2 me-2"></i>Panel del Supervisor</h4>
@@ -53,14 +51,15 @@ ob_start();
         </div>
         <span class="badge-modo"><i class="bi bi-eye me-1"></i>Modo visualización</span>
     </div>
-<br><br>
-    <!--  FILTRO GLOBAL: PERIODO  -->
+    <br><br>
+
+    <!--  FILTRO GLOBAL: PERIODO -->
     <div class="filter-periodo">
         <label><i class="bi bi-calendar3 me-1"></i>Filtrar por periodo académico:</label>
         <form method="GET" class="d-flex align-items-center gap-2 flex-wrap mb-0">
             <input type="hidden" name="tab" value="<?= htmlspecialchars($filtros['tab']) ?>">
             <select name="periodo" class="form-select form-select-sm" style="min-width:200px"
-                    onchange="this.form.submit()">
+                onchange="this.form.submit()">
                 <option value="">Todos los periodos</option>
                 <?php foreach ($periodos as $per): ?>
                     <option value="<?= $per['id_periodos'] ?>"
@@ -78,7 +77,7 @@ ob_start();
         </form>
     </div>
 
-    <!--  TARJETAS KPI PRINCIPALES ═ -->
+    <!--  TARJETAS KPI PRINCIPALES -->
     <div class="row g-3 mb-4">
 
         <!-- Proyectos -->
@@ -151,7 +150,7 @@ ob_start();
 
     </div>
 
-    <!--  MINI TARJETAS SOLICITUDES  -->
+    <!--  MINI TARJETAS SOLICITUDES -->
     <div class="row g-2 mb-4">
         <?php
         $tabs_cards = [
@@ -169,29 +168,48 @@ ob_start();
                 <div class="mini-stat-card">
                     <div class="val <?= $tc['text_color'] ?>"><?= $tc['val'] ?></div>
                     <div class="lbl"><?= $tc['label'] ?></div>
-                    <div class="barra" style="background:<?= $tc['color'] ?>;width:<?= max(4,$pct) ?>%"></div>
+                    <div class="barra" style="background:<?= $tc['color'] ?>;width:<?= max(4, $pct) ?>%"></div>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
 
-    <!--  TABS DE NAVEGACIÓN ═ -->
+    <!--  TABS DE NAVEGACIÓN -->
     <div class="nav-tabs-custom">
         <?php
         $tabs_nav = [
-            'resumen'    => ['icon' => 'bi-grid-1x2-fill',    'label' => 'Resumen'],
-            'proyectos'  => ['icon' => 'bi-folder2-open',     'label' => 'Proyectos'],
-            'solicitudes'=> ['icon' => 'bi-envelope-paper',   'label' => 'Solicitudes'],
-            'etapas'     => ['icon' => 'bi-layers-fill',      'label' => 'Etapas & Secciones'],
-            'usuarios'   => ['icon' => 'bi-people-fill',      'label' => 'Estudiantes'],
+            'resumen'     => ['icon' => 'bi-grid-1x2-fill',  'label' => 'Resumen'],
+            'proyectos'   => ['icon' => 'bi-folder2-open',   'label' => 'Proyectos'],
+            'solicitudes' => ['icon' => 'bi-envelope-paper', 'label' => 'Solicitudes'],
+            'etapas'      => ['icon' => 'bi-layers-fill',    'label' => 'Etapas & Secciones'],
+            'usuarios'    => ['icon' => 'bi-people-fill',    'label' => 'Estudiantes'],
         ];
         foreach ($tabs_nav as $key => $tab): ?>
             <a href="?<?= http_build_query(array_merge($_GET, ['tab' => $key])) ?>"
-               class="<?= $filtros['tab'] == $key ? 'active' : '' ?>">
+                class="<?= $filtros['tab'] == $key ? 'active' : '' ?>">
                 <i class="<?= $tab['icon'] ?>"></i><?= $tab['label'] ?>
             </a>
         <?php endforeach; ?>
     </div>
+
+    <?php
+    // Helper: $qBase compartido para los tres tabs con paginación
+    $qBase_filtros = http_build_query(array_filter([
+        'tab'             => $filtros['tab'],
+        'periodo'         => $filtros['periodo']         ?? '',
+        'investigador'    => $filtros['investigador']    ?? '',
+        'modalidad'       => $filtros['modalidad']       ?? '',
+        'carrera'         => $filtros['carrera']         ?? '',
+        'estado_proyecto' => $filtros['estado_proyecto'] ?? '',
+        'estado_sol'      => $filtros['estado_sol']      ?? '',
+        'estado_usuario'  => $filtros['estado_usuario']  ?? '',
+        'buscar_proy'     => $filtros['buscar_proy']     ?? '',
+        'buscar_sol'      => $filtros['buscar_sol']      ?? '',
+        'buscar_usr'      => $filtros['buscar_usr']      ?? '',
+        'fecha_desde'     => $filtros['fecha_desde']     ?? '',
+        'fecha_hasta'     => $filtros['fecha_hasta']     ?? '',
+    ]));
+    ?>
 
     <!-- 
          TAB: RESUMEN
@@ -209,12 +227,12 @@ ob_start();
                     <div class="p-3">
                         <?php
                         $estados_proy = [
-                            'activos'     => ['Activos (en ejecución)',            'success'],
-                            'por_aprobar' => ['Por aprobar (solicitud creación)',  'warning'],
-                            'por_cerrar'  => ['Por cerrar (solicitud cierre)',     'info'],
-                            'rechazados'  => ['Rechazados por el supervisor',      'danger'],
-                            'vencidos'    => ['Vencidos (fecha fin superada)',      'secondary'],
-                            'cerrados'    => ['Cerrados oficialmente',              'dark'],
+                            'activos'     => ['Activos (en ejecución)',           'success'],
+                            'por_aprobar' => ['Por aprobar (solicitud creación)', 'warning'],
+                            'por_cerrar'  => ['Por cerrar (solicitud cierre)',    'info'],
+                            'rechazados'  => ['Rechazados por el supervisor',     'danger'],
+                            'vencidos'    => ['Vencidos (fecha fin superada)',     'secondary'],
+                            'cerrados'    => ['Cerrados oficialmente',             'dark'],
                         ];
                         $total_p = max(1, $resumen['proyectos']['total_proyectos']);
                         foreach ($estados_proy as $key => [$lbl, $color]):
@@ -276,12 +294,12 @@ ob_start();
                     <div class="p-3">
                         <?php
                         $estados_tareas_res = [
-                            'aprobadas'  => ['Aprobadas',    'success', $resumen['tareas']['aprobadas']  ?? 0],
-                            'entregadas' => ['Entregadas',   'primary', $resumen['tareas']['entregadas'] ?? 0],
-                            'en_revision'=> ['En revisión',  'info',    $resumen['tareas']['en_revision']?? 0],
-                            'corregir'   => ['A corregir',   'warning', $resumen['tareas']['corregir']   ?? 0],
-                            'pendientes' => ['Pendientes',   'secondary',$resumen['tareas']['pendientes']?? 0],
-                            'vencidas'   => ['Vencidas',     'danger',  $resumen['tareas']['vencidas']   ?? 0],
+                            'aprobadas'   => ['Aprobadas',    'success',   $resumen['tareas']['aprobadas']   ?? 0],
+                            'entregadas'  => ['Entregadas',   'primary',   $resumen['tareas']['entregadas']  ?? 0],
+                            'en_revision' => ['En revisión',  'info',      $resumen['tareas']['en_revision'] ?? 0],
+                            'corregir'    => ['A corregir',   'warning',   $resumen['tareas']['corregir']    ?? 0],
+                            'pendientes'  => ['Pendientes',   'secondary', $resumen['tareas']['pendientes']  ?? 0],
+                            'vencidas'    => ['Vencidas',     'danger',    $resumen['tareas']['vencidas']    ?? 0],
                         ];
                         $total_t = max(1, $resumen['tareas']['total_tareas'] ?? 0);
                         foreach ($estados_tareas_res as [$lbl, $color, $val]):
@@ -293,7 +311,7 @@ ob_start();
                                     <span style="font-size:.8rem; font-weight:700; color:var(--tecnm-navy)"><?= $val ?> <span class="fw-normal text-muted">(<?= $pct ?>%)</span></span>
                                 </div>
                                 <div class="etapa-prog">
-                                    <div class="etapa-prog-inner bg-<?= $color ?>" style="width:<?= max(0,$pct) ?>%"></div>
+                                    <div class="etapa-prog-inner bg-<?= $color ?>" style="width:<?= max(0, $pct) ?>%"></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -397,7 +415,7 @@ ob_start();
                 <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo']) ?>">
                 <div class="col-12 col-md-3">
                     <input type="text" name="buscar_proy" value="<?= htmlspecialchars($filtros['buscar_proy']) ?>"
-                           class="form-control form-control-sm" placeholder="Buscar título o investigador…">
+                        class="form-control form-control-sm" placeholder="Buscar título o investigador…">
                 </div>
                 <div class="col-6 col-md-2">
                     <select name="estado_proyecto" class="form-select form-select-sm">
@@ -486,14 +504,16 @@ ob_start();
                                 </td>
                                 <td>
                                     <a href="detalle_proyecto.php?id=<?= $p['id_proyectos'] ?>"
-                                       class="btn btn-sm btn-primary" style="font-size:.75rem">
+                                        class="btn btn-sm btn-primary" style="font-size:.75rem">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                         <?php if (empty($proyectos)): ?>
-                            <tr><td colspan="9" class="text-center text-muted py-4 small">No se encontraron proyectos.</td></tr>
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4 small">No se encontraron proyectos.</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -530,7 +550,15 @@ ob_start();
             <?php endif; ?>
         </div>
 
-        <?= $ctrl->htmlPaginacion($pag_proy, 'pag_proy', 'proyectos', $filtros) ?>
+        <?php
+        // PAGINACIÓN proyectos — FIX: sin <?= y con barra en include
+        $qBase        = $qBase_filtros;
+        $clave_pagina = 'pag_proy';
+        $entidad      = 'proyectos';
+        $sm           = true;
+        $paginacion   = $pag_proy;
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';
+        ?>
 
     <!-- 
          TAB: SOLICITUDES
@@ -543,7 +571,7 @@ ob_start();
                 <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo']) ?>">
                 <div class="col-12 col-md-3">
                     <input type="text" name="buscar_sol" value="<?= htmlspecialchars($filtros['buscar_sol']) ?>"
-                           class="form-control form-control-sm" placeholder="Nombre, matrícula o proyecto…">
+                        class="form-control form-control-sm" placeholder="Nombre, matrícula o proyecto…">
                 </div>
                 <div class="col-6 col-md-2">
                     <select name="estado_sol" class="form-select form-select-sm">
@@ -612,7 +640,9 @@ ob_start();
                             </tr>
                         <?php endforeach; ?>
                         <?php if (empty($solicitudes)): ?>
-                            <tr><td colspan="9" class="text-center text-muted py-4 small">No se encontraron solicitudes.</td></tr>
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4 small">No se encontraron solicitudes.</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -642,7 +672,15 @@ ob_start();
             <?php endif; ?>
         </div>
 
-        <?= $ctrl->htmlPaginacion($pag_sol, 'pag_sol', 'solicitudes', $filtros) ?>
+        <?php
+        // PAGINACIÓN solicitudes
+        $qBase        = $qBase_filtros;
+        $clave_pagina = 'pag_sol';
+        $entidad      = 'solicitudes';
+        $sm           = true;
+        $paginacion   = $pag_sol;
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';
+        ?>
 
     <!-- 
          TAB: ETAPAS & SECCIONES
@@ -699,7 +737,9 @@ ob_start();
                 </div>
             <?php endforeach; ?>
             <?php if (empty($etapas_data['etapas'])): ?>
-                <div class="col-12"><p class="text-muted text-center small">Sin etapas configuradas.</p></div>
+                <div class="col-12">
+                    <p class="text-muted text-center small">Sin etapas configuradas.</p>
+                </div>
             <?php endif; ?>
         </div>
 
@@ -749,7 +789,9 @@ ob_start();
                             </tr>
                         <?php endforeach; ?>
                         <?php if (empty($etapas_data['secciones'])): ?>
-                            <tr><td colspan="10" class="text-center text-muted py-3 small">Sin datos de secciones.</td></tr>
+                            <tr>
+                                <td colspan="10" class="text-center text-muted py-3 small">Sin datos de secciones.</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -764,10 +806,12 @@ ob_start();
                     <div class="card mb-2 border shadow-sm">
                         <div class="card-body py-2 px-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span style="font-size:.8rem; font-weight:600"><?= $i+1 ?>. <?= htmlspecialchars($sec['seccion']) ?></span>
+                                <span style="font-size:.8rem; font-weight:600"><?= $i + 1 ?>. <?= htmlspecialchars($sec['seccion']) ?></span>
                                 <span style="font-size:.75rem; color:var(--tecnm-muted)"><?= $pct_s ?>%</span>
                             </div>
-                            <div class="etapa-prog mb-2"><div class="etapa-prog-inner bg-<?= $col_s ?>" style="width:<?= $pct_s ?>%"></div></div>
+                            <div class="etapa-prog mb-2">
+                                <div class="etapa-prog-inner bg-<?= $col_s ?>" style="width:<?= $pct_s ?>%"></div>
+                            </div>
                             <div class="row text-center g-0" style="font-size:.72rem">
                                 <div class="col"><span class="text-success fw-bold"><?= $sec['aprobadas'] ?></span><br>Aprob.</div>
                                 <div class="col"><span style="color:#2563EB"><?= $sec['entregadas'] ?? 0 ?></span><br>Entregadas</div>
@@ -793,7 +837,7 @@ ob_start();
                 <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo']) ?>">
                 <div class="col-12 col-md-3">
                     <input type="text" name="buscar_usr" value="<?= htmlspecialchars($filtros['buscar_usr']) ?>"
-                           class="form-control form-control-sm" placeholder="Nombre, matrícula o correo…">
+                        class="form-control form-control-sm" placeholder="Nombre, matrícula o correo…">
                 </div>
                 <div class="col-6 col-md-3">
                     <select name="carrera" class="form-select form-select-sm">
@@ -856,14 +900,16 @@ ob_start();
                                 </td>
                                 <td>
                                     <a href="detalle_estudiante.php?id=<?= $est['id_usuarios'] ?>"
-                                       class="btn btn-sm btn-primary" style="font-size:.75rem">
+                                        class="btn btn-sm btn-primary" style="font-size:.75rem">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                         <?php if (empty($estudiantes)): ?>
-                            <tr><td colspan="8" class="text-center text-muted py-4 small">No se encontraron estudiantes.</td></tr>
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4 small">No se encontraron estudiantes.</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -897,16 +943,23 @@ ob_start();
             <?php endif; ?>
         </div>
 
-        <?= $ctrl->htmlPaginacion($pag_usr, 'pag_usr', 'usuarios', $filtros) ?>
+        <?php
+        // PAGINACIÓN usuarios
+        $qBase        = $qBase_filtros;
+        $clave_pagina = 'pag_usr';
+        $entidad      = 'registros';
+        $sm           = true;
+        $paginacion   = $pag_usr;
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';
+        ?>
 
     <?php endif; ?>
 
 </div>
 
-
 <?php
-$contenido  = ob_get_clean();
-$titulo     = "Panel Supervisor";
-$bodyClass  = "supervisor-page";
+$contenido = ob_get_clean();
+$titulo    = "Panel Supervisor";
+$bodyClass = "supervisor-page";
 include __DIR__ . '/../../layout.php';
 ?>

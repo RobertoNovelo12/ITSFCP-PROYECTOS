@@ -249,48 +249,18 @@ include __DIR__ . '/../../mensaje.php';
         </div>
 
         <!-- PAGINACIÓN -->
-        <?php if ($paginacion['total_paginas'] > 1): ?>
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-
-                    <?php
-                    $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                    $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
-
-                    $qBase = http_build_query(array_filter([
-                        'periodo'     => $filtros['periodo'],
-                        'buscar'      => $filtros['buscar'],
-                        'estado'      => $filtros['estado'],
-                        'proyecto'    => $filtros['proyecto'],
-                        'fecha_desde' => $filtros['fecha_desde'],
-                        'fecha_hasta' => $filtros['fecha_hasta'],
-                    ]));
-                    $pag = $paginacion;
-                    ?>
-
-                    <li class="page-item disabled">
-                        <span class="page-link">
-                            Mostrando <?= $inicio ?> a <?= $fin ?> de <?= $pag['total'] ?> entradas
-                        </span>
-                    </li>
-
-                    <li class="page-item <?= $pag['pagina'] <= 1 ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] - 1 ?>">&laquo;</a>
-                    </li>
-
-                    <?php for ($i = 1; $i <= $pag['total_paginas']; $i++): ?>
-                        <li class="page-item <?= $i === $pag['pagina'] ? 'active' : '' ?>">
-                            <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $i ?>"><?= $i ?></a>
-                        </li>
-                    <?php endfor; ?>
-
-                    <li class="page-item <?= $pag['pagina'] >= $pag['total_paginas'] ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] + 1 ?>">&raquo;</a>
-                    </li>
-
-                </ul>
-            </nav>
-        <?php endif; ?>
+        <?php if ($paginacion['total_paginas'] > 1):
+            $qBase = http_build_query(array_filter([
+                'periodo'     => $filtros['periodo'],
+                'buscar'      => $filtros['buscar'],
+                'estado'      => $filtros['estado'],
+                'proyecto'    => $filtros['proyecto'],
+                'fecha_desde' => $filtros['fecha_desde'],
+                'fecha_hasta' => $filtros['fecha_hasta'],
+            ]));
+            $entidad = 'solicitudes';
+            include __DIR__ . '../../../publico/incluido/_paginacion.php';
+        endif; ?>
 
     <?php else: ?>
         <div class="alert alert-info text-center">

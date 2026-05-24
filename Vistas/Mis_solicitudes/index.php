@@ -54,228 +54,434 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<!-- ═══════════════════════════════════════════════════════════════
+<!-- ═
      ESTILOS LOCALES — Mis Solicitudes (Estudiante)
-════════════════════════════════════════════════════════════════ -->
+ -->
 <style>
-/* ── Layout ──────────────────────────────────────────────────── */
-.ms-page { padding: 1.75rem 1.5rem; max-width: 1400px; margin: 0 auto; }
+    /* ── Layout ──────────────────────────────────────────────────── */
+    .ms-page {
+        padding: 1.75rem 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
 
 
 
-/* colores por tipo — ya no se usan, Bootstrap los cubre */
+    /* colores por tipo — ya no se usan, Bootstrap los cubre */
 
 
 
-/* ── Tabla ─────────────────────────────────────────────────── */
-.ms-tabla-wrap {
-    background: #fff;
-    border: 1px solid var(--borde-menu);
-    border-radius: var(--card-radius);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-}
-.ms-tabla {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: .855rem;
-}
-.ms-tabla thead th {
-    background: #f8f9fb;
-    color: var(--color-texto-secundario);
-    font-size: .72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .4px;
-    padding: .75rem 1rem;
-    border-bottom: 1px solid var(--borde-menu);
-    white-space: nowrap;
-}
-.ms-tabla tbody tr {
-    border-bottom: 1px solid #f1f3f7;
-    transition: background .12s;
-}
-.ms-tabla tbody tr:last-child { border-bottom: none; }
-.ms-tabla tbody tr:hover { background: #f9fbff; }
-.ms-tabla td { padding: .7rem 1rem; vertical-align: middle; }
-.ms-tabla .td-proyecto { max-width: 220px; }
-.ms-tabla .td-proyecto strong { display: block; color: var(--color-texto-principal); font-size: .875rem; }
-.ms-tabla .td-proyecto span  { color: var(--color-texto-secundario); font-size: .78rem; }
+    /* ── Tabla ─────────────────────────────────────────────────── */
+    .ms-tabla-wrap {
+        background: #fff;
+        border: 1px solid var(--borde-menu);
+        border-radius: var(--card-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
 
-/* ── Badges ─────────────────────────────────────────────────── */
-.badge {
-    display: inline-flex;
-    align-items: center;
-    gap: .28rem;
-    padding: .28rem .65rem;
-    border-radius: 20px;
-    font-size: .72rem;
-    font-weight: 600;
-    letter-spacing: .2px;
-    border: 1px solid transparent;
-    white-space: nowrap;
-}
-.badge-pendiente    { background: var(--badge-cierre-bg);    color: var(--badge-cierre-color);    border-color: var(--badge-cierre-border); }
-.badge-en_revision  { background: var(--badge-poraprobar-bg); color: var(--badge-poraprobar-color); border-color: var(--badge-poraprobar-border); }
-.badge-correcciones { background: var(--badge-porcerrar-bg); color: var(--badge-porcerrar-color); border-color: var(--badge-porcerrar-border); }
-.badge-aceptado     { background: var(--badge-activo-bg);    color: var(--badge-activo-color);    border-color: var(--badge-activo-border); }
-.badge-rechazado    { background: rgba(196,18,48,.09);       color: var(--color-rojo-institucional); border-color: var(--color-rojo-institucional); }
-.badge-vencido      { background: var(--badge-vencido-bg);   color: var(--badge-vencido-color);   border-color: var(--badge-vencido-border); }
-.badge-cancelado    { background: #f1f3f7;                   color: #8a96a3;                      border-color: #cbd0d8; }
+    .ms-tabla {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: .855rem;
+    }
 
-/* ── Botones de acción ──────────────────────────────────────── */
-.ms-btn-accion {
-    display: inline-flex;
-    align-items: center;
-    gap: .3rem;
-    padding: .32rem .6rem;
-    border-radius: 6px;
-    font-size: .78rem;
-    font-weight: 600;
-    border: 1px solid transparent;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background .14s, transform .1s;
-    white-space: nowrap;
-}
-.ms-btn-accion:hover { transform: translateY(-1px); }
-.ms-btn-ver     { background: var(--badge-poraprobar-bg); color: var(--hover-boton); border-color: var(--hover-boton); }
-.ms-btn-ver:hover { background: var(--hover-boton); color: #fff; }
-.ms-btn-resp    { background: var(--badge-porcerrar-bg); color: #a87a10; border-color: #d4a017; }
-.ms-btn-resp:hover { background: #d4a017; color: #fff; }
-.ms-btn-cancel  { background: rgba(196,18,48,.07); color: var(--color-rojo-institucional); border-color: var(--color-rojo-institucional); }
-.ms-btn-cancel:hover { background: var(--color-rojo-institucional); color: #fff; }
+    .ms-tabla thead th {
+        background: #f8f9fb;
+        color: var(--color-texto-secundario);
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        padding: .75rem 1rem;
+        border-bottom: 1px solid var(--borde-menu);
+        white-space: nowrap;
+    }
 
-/* ── Estado vacío ───────────────────────────────────────────── */
-.ms-empty {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--color-texto-secundario);
-}
-.ms-empty i { font-size: 3rem; opacity: .25; display: block; margin-bottom: 1rem; }
-.ms-empty p { font-size: .9rem; margin-bottom: 1.25rem; }
+    .ms-tabla tbody tr {
+        border-bottom: 1px solid #f1f3f7;
+        transition: background .12s;
+    }
 
-/* ── Cards móvil ────────────────────────────────────────────── */
-.ms-card-movil {
-    background: #fff;
-    border: 1px solid var(--borde-menu);
-    border-radius: var(--card-radius);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: .85rem;
-    overflow: hidden;
-}
-.ms-card-movil-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: .85rem 1rem .6rem;
-    border-bottom: 1px solid #f1f3f7;
-    gap: .5rem;
-}
-.ms-card-movil-titulo { font-weight: 600; font-size: .875rem; color: var(--color-texto-principal); flex: 1; }
-.ms-card-movil-body { padding: .7rem 1rem; }
-.ms-card-movil-fila { display: flex; justify-content: space-between; font-size: .81rem; margin-bottom: .35rem; }
-.ms-card-movil-fila dt { color: var(--color-texto-secundario); font-weight: 600; }
-.ms-card-movil-fila dd { color: var(--color-texto-principal); margin: 0; }
-.ms-card-movil-acciones { display: flex; gap: .5rem; flex-wrap: wrap; padding: .6rem 1rem .85rem; }
+    .ms-tabla tbody tr:last-child {
+        border-bottom: none;
+    }
 
-/* ── Paginación ─────────────────────────────────────────────── */
-.ms-paginacion { display: flex; justify-content: center; align-items: center; gap: .35rem; margin-top: 1.25rem; flex-wrap: wrap; }
-.ms-page-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 32px;
-    height: 32px;
-    padding: 0 .55rem;
-    border-radius: 7px;
-    font-size: .82rem;
-    font-weight: 600;
-    border: 1px solid var(--borde-menu);
-    color: var(--color-texto-secundario);
-    text-decoration: none;
-    background: #fff;
-    transition: all .14s;
-}
-.ms-page-btn:hover { background: var(--badge-poraprobar-bg); color: var(--hover-boton); border-color: var(--hover-boton); }
-.ms-page-btn.activo { background: var(--color-primario); color: #fff; border-color: var(--color-primario); }
-.ms-page-btn.disabled { opacity: .4; pointer-events: none; }
+    .ms-tabla tbody tr:hover {
+        background: #f9fbff;
+    }
 
-/* ── Modal de cancelar ──────────────────────────────────────── */
-.ms-modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.45);
-    backdrop-filter: blur(3px);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-}
-.ms-modal-overlay.abierto { display: flex; }
-.ms-modal {
-    background: #fff;
-    border-radius: 14px;
-    padding: 2rem;
-    max-width: 420px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,.18);
-    animation: modalIn .2s ease;
-}
-@keyframes modalIn {
-    from { opacity: 0; transform: scale(.92) translateY(8px); }
-    to   { opacity: 1; transform: scale(1)  translateY(0); }
-}
-.ms-modal i { font-size: 2.5rem; color: var(--color-rojo-institucional); }
-.ms-modal h4 { font-size: 1.1rem; font-weight: 700; color: var(--color-primario); margin: .85rem 0 .5rem; }
-.ms-modal p  { font-size: .875rem; color: var(--color-texto-secundario); margin-bottom: 1.5rem; }
-.ms-modal-btns { display: flex; gap: .75rem; justify-content: center; }
-.ms-btn-confirmar {
-    background: var(--color-rojo-institucional);
-    color: #fff;
-    border: none;
-    border-radius: 7px;
-    padding: .5rem 1.25rem;
-    font-size: .875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
-}
-.ms-btn-confirmar:hover { background: var(--color-rojo-institucional-dk); }
-.ms-btn-cerrar {
-    background: var(--color-boton-secundario);
-    color: var(--color-texto-principal);
-    border: 1px solid var(--borde-menu);
-    border-radius: 7px;
-    padding: .5rem 1.25rem;
-    font-size: .875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
-}
-.ms-btn-cerrar:hover { background: #d1d5db; }
+    .ms-tabla td {
+        padding: .7rem 1rem;
+        vertical-align: middle;
+    }
 
-/* ── Nota corrección en tabla ───────────────────────────────── */
-.ms-nota-corr {
-    display: inline-flex;
-    align-items: center;
-    gap: .3rem;
-    font-size: .75rem;
-    color: #a87a10;
-    background: var(--badge-porcerrar-bg);
-    border-radius: 4px;
-    padding: .15rem .45rem;
-    margin-top: .25rem;
-}
+    .ms-tabla .td-proyecto {
+        max-width: 220px;
+    }
 
-/* ── Responsive tabla ───────────────────────────────────────── */
-@media (max-width: 767px) { .ms-tabla-wrap { display: none; } }
-@media (min-width: 768px) { .ms-cards-movil-wrap { display: none; } }
+    .ms-tabla .td-proyecto strong {
+        display: block;
+        color: var(--color-texto-principal);
+        font-size: .875rem;
+    }
+
+    .ms-tabla .td-proyecto span {
+        color: var(--color-texto-secundario);
+        font-size: .78rem;
+    }
+
+    /* ── Badges ─────────────────────────────────────────────────── */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .28rem;
+        padding: .28rem .65rem;
+        border-radius: 20px;
+        font-size: .72rem;
+        font-weight: 600;
+        letter-spacing: .2px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .badge-pendiente {
+        background: var(--badge-cierre-bg);
+        color: var(--badge-cierre-color);
+        border-color: var(--badge-cierre-border);
+    }
+
+    .badge-en_revision {
+        background: var(--badge-poraprobar-bg);
+        color: var(--badge-poraprobar-color);
+        border-color: var(--badge-poraprobar-border);
+    }
+
+    .badge-correcciones {
+        background: var(--badge-porcerrar-bg);
+        color: var(--badge-porcerrar-color);
+        border-color: var(--badge-porcerrar-border);
+    }
+
+    .badge-aceptado {
+        background: var(--badge-activo-bg);
+        color: var(--badge-activo-color);
+        border-color: var(--badge-activo-border);
+    }
+
+    .badge-rechazado {
+        background: rgba(196, 18, 48, .09);
+        color: var(--color-rojo-institucional);
+        border-color: var(--color-rojo-institucional);
+    }
+
+    .badge-vencido {
+        background: var(--badge-vencido-bg);
+        color: var(--badge-vencido-color);
+        border-color: var(--badge-vencido-border);
+    }
+
+    .badge-cancelado {
+        background: #f1f3f7;
+        color: #8a96a3;
+        border-color: #cbd0d8;
+    }
+
+    /* ── Botones de acción ──────────────────────────────────────── */
+    .ms-btn-accion {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        padding: .32rem .6rem;
+        border-radius: 6px;
+        font-size: .78rem;
+        font-weight: 600;
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .14s, transform .1s;
+        white-space: nowrap;
+    }
+
+    .ms-btn-accion:hover {
+        transform: translateY(-1px);
+    }
+
+    .ms-btn-ver {
+        background: var(--badge-poraprobar-bg);
+        color: var(--hover-boton);
+        border-color: var(--hover-boton);
+    }
+
+    .ms-btn-ver:hover {
+        background: var(--hover-boton);
+        color: #fff;
+    }
+
+    .ms-btn-resp {
+        background: var(--badge-porcerrar-bg);
+        color: #a87a10;
+        border-color: #d4a017;
+    }
+
+    .ms-btn-resp:hover {
+        background: #d4a017;
+        color: #fff;
+    }
+
+    .ms-btn-cancel {
+        background: rgba(196, 18, 48, .07);
+        color: var(--color-rojo-institucional);
+        border-color: var(--color-rojo-institucional);
+    }
+
+    .ms-btn-cancel:hover {
+        background: var(--color-rojo-institucional);
+        color: #fff;
+    }
+
+    /* ── Estado vacío ───────────────────────────────────────────── */
+    .ms-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--color-texto-secundario);
+    }
+
+    .ms-empty i {
+        font-size: 3rem;
+        opacity: .25;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .ms-empty p {
+        font-size: .9rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* ── Cards móvil ────────────────────────────────────────────── */
+    .ms-card-movil {
+        background: #fff;
+        border: 1px solid var(--borde-menu);
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: .85rem;
+        overflow: hidden;
+    }
+
+    .ms-card-movil-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: .85rem 1rem .6rem;
+        border-bottom: 1px solid #f1f3f7;
+        gap: .5rem;
+    }
+
+    .ms-card-movil-titulo {
+        font-weight: 600;
+        font-size: .875rem;
+        color: var(--color-texto-principal);
+        flex: 1;
+    }
+
+    .ms-card-movil-body {
+        padding: .7rem 1rem;
+    }
+
+    .ms-card-movil-fila {
+        display: flex;
+        justify-content: space-between;
+        font-size: .81rem;
+        margin-bottom: .35rem;
+    }
+
+    .ms-card-movil-fila dt {
+        color: var(--color-texto-secundario);
+        font-weight: 600;
+    }
+
+    .ms-card-movil-fila dd {
+        color: var(--color-texto-principal);
+        margin: 0;
+    }
+
+    .ms-card-movil-acciones {
+        display: flex;
+        gap: .5rem;
+        flex-wrap: wrap;
+        padding: .6rem 1rem .85rem;
+    }
+
+    /* ── Paginación ─────────────────────────────────────────────── */
+    .ms-paginacion {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: .35rem;
+        margin-top: 1.25rem;
+        flex-wrap: wrap;
+    }
+
+    .ms-page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 .55rem;
+        border-radius: 7px;
+        font-size: .82rem;
+        font-weight: 600;
+        border: 1px solid var(--borde-menu);
+        color: var(--color-texto-secundario);
+        text-decoration: none;
+        background: #fff;
+        transition: all .14s;
+    }
+
+    .ms-page-btn:hover {
+        background: var(--badge-poraprobar-bg);
+        color: var(--hover-boton);
+        border-color: var(--hover-boton);
+    }
+
+    .ms-page-btn.activo {
+        background: var(--color-primario);
+        color: #fff;
+        border-color: var(--color-primario);
+    }
+
+    .ms-page-btn.disabled {
+        opacity: .4;
+        pointer-events: none;
+    }
+
+    /* ── Modal de cancelar ──────────────────────────────────────── */
+    .ms-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .45);
+        backdrop-filter: blur(3px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ms-modal-overlay.abierto {
+        display: flex;
+    }
+
+    .ms-modal {
+        background: #fff;
+        border-radius: 14px;
+        padding: 2rem;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+        animation: modalIn .2s ease;
+    }
+
+    @keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(.92) translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .ms-modal i {
+        font-size: 2.5rem;
+        color: var(--color-rojo-institucional);
+    }
+
+    .ms-modal h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-primario);
+        margin: .85rem 0 .5rem;
+    }
+
+    .ms-modal p {
+        font-size: .875rem;
+        color: var(--color-texto-secundario);
+        margin-bottom: 1.5rem;
+    }
+
+    .ms-modal-btns {
+        display: flex;
+        gap: .75rem;
+        justify-content: center;
+    }
+
+    .ms-btn-confirmar {
+        background: var(--color-rojo-institucional);
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        padding: .5rem 1.25rem;
+        font-size: .875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+    .ms-btn-confirmar:hover {
+        background: var(--color-rojo-institucional-dk);
+    }
+
+    .ms-btn-cerrar {
+        background: var(--color-boton-secundario);
+        color: var(--color-texto-principal);
+        border: 1px solid var(--borde-menu);
+        border-radius: 7px;
+        padding: .5rem 1.25rem;
+        font-size: .875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+    .ms-btn-cerrar:hover {
+        background: #d1d5db;
+    }
+
+    /* ── Nota corrección en tabla ───────────────────────────────── */
+    .ms-nota-corr {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: .75rem;
+        color: #a87a10;
+        background: var(--badge-porcerrar-bg);
+        border-radius: 4px;
+        padding: .15rem .45rem;
+        margin-top: .25rem;
+    }
+
+    /* ── Responsive tabla ───────────────────────────────────────── */
+    @media (max-width: 767px) {
+        .ms-tabla-wrap {
+            display: none;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .ms-cards-movil-wrap {
+            display: none;
+        }
+    }
 </style>
 
-<!-- ═══════════════════════════════════════════════════════════════
+<!-- ═
      CONTENIDO
-════════════════════════════════════════════════════════════════ -->
+ -->
 <div class="ms-page">
 
     <!-- ENCABEZADO + FILTRO PERIODO -->
@@ -362,14 +568,16 @@ include __DIR__ . '/../../mensaje.php';
                     <label class="form-label mb-1 small fw-semibold">Estado</label>
                     <select name="estado" class="form-select form-select-sm">
                         <option value="">Todos</option>
-                        <?php foreach ([
-                            'pendiente'    => 'Pendiente',
-                            'en_revision'  => 'En revisión',
-                            'correcciones' => 'Correcciones',
-                            'aceptado'     => 'Aceptado',
-                            'rechazado'    => 'Rechazado',
-                            'cancelado'    => 'Cancelado',
-                        ] as $val => $lbl): ?>
+                        <?php foreach (
+                            [
+                                'pendiente'    => 'Pendiente',
+                                'en_revision'  => 'En revisión',
+                                'correcciones' => 'Correcciones',
+                                'aceptado'     => 'Aceptado',
+                                'rechazado'    => 'Rechazado',
+                                'cancelado'    => 'Cancelado',
+                            ] as $val => $lbl
+                        ): ?>
                             <option value="<?= $val ?>" <?= ($filtros['estado'] ?? '') === $val ? 'selected' : '' ?>>
                                 <?= $lbl ?>
                             </option>
@@ -382,8 +590,8 @@ include __DIR__ . '/../../mensaje.php';
                     <button type="submit" class="btn btn-primary btn-sm">
                         <i class="bi bi-funnel-fill me-1"></i>Filtrar
                     </button>
-                    <a href="index.php<?= !empty($filtros['periodo']) ? '?periodo='.urlencode($filtros['periodo']) : '' ?>"
-                       class="btn btn-secondary btn-sm">
+                    <a href="index.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
+                        class="btn btn-secondary btn-sm">
                         <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
                     </a>
                 </div>
@@ -391,7 +599,7 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
-    <!-- ══ TABLA ESCRITORIO ════════════════════════════════════════ -->
+    <!--  TABLA ESCRITORIO  -->
     <?php if (!empty($solicitudes)): ?>
 
         <div class="ms-tabla-wrap">
@@ -425,7 +633,7 @@ include __DIR__ . '/../../mensaje.php';
                                 </td>
                                 <td style="font-size:.845rem;"><?= htmlspecialchars($sol['investigador']) ?></td>
                                 <td style="font-size:.82rem; white-space:nowrap;"><?= htmlspecialchars($sol['periodo']) ?></td>
-                                <td style="text-align:center;"><?= $sol['semestre'] ? $sol['semestre'].'°' : '—' ?></td>
+                                <td style="text-align:center;"><?= $sol['semestre'] ? $sol['semestre'] . '°' : '—' ?></td>
                                 <td style="text-align:center;"><?= $sol['promedio'] ?? '—' ?></td>
                                 <td style="font-size:.82rem; white-space:nowrap;"><?= $sol['fecha_envio'] ?></td>
                                 <td><?= $ctrl->badgeEstado($sol['estado']) ?></td>
@@ -441,7 +649,7 @@ include __DIR__ . '/../../mensaje.php';
             </div>
         </div>
 
-        <!-- ══ CARDS MÓVIL ═════════════════════════════════════════ -->
+        <!--  CARDS MÓVIL ═ -->
         <div class="ms-cards-movil-wrap">
             <?php foreach ($solicitudes as $sol): ?>
                 <div class="ms-card-movil">
@@ -466,10 +674,10 @@ include __DIR__ . '/../../mensaje.php';
                                 <dd><?= $sol['fecha_envio'] ?></dd>
                             </div>
                             <?php if ($sol['promedio']): ?>
-                            <div class="ms-card-movil-fila">
-                                <dt>Promedio</dt>
-                                <dd><?= $sol['promedio'] ?></dd>
-                            </div>
+                                <div class="ms-card-movil-fila">
+                                    <dt>Promedio</dt>
+                                    <dd><?= $sol['promedio'] ?></dd>
+                                </div>
                             <?php endif; ?>
                         </dl>
                         <?php if ($sol['estado'] === 'correcciones' && $sol['ultimo_comentario_inv']): ?>
@@ -486,39 +694,16 @@ include __DIR__ . '/../../mensaje.php';
             <?php endforeach; ?>
         </div>
 
-        <!-- ══ PAGINACIÓN ══════════════════════════════════════════ -->
-        <?php if ($paginacion['total_paginas'] > 1): ?>
-            <?php
+        <!--  PAGINACIÓN  -->
+        <?php if ($paginacion['total_paginas'] > 1):
             $qBase = http_build_query(array_filter([
                 'periodo' => $filtros['periodo'] ?? '',
                 'buscar'  => $filtros['buscar']  ?? '',
                 'estado'  => $filtros['estado']  ?? '',
             ]));
-            $pag = $paginacion;
-            ?>
-            <nav class="ms-paginacion">
-                <a href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] - 1 ?>"
-                   class="ms-page-btn <?= $pag['pagina'] <= 1 ? 'disabled' : '' ?>">
-                    <i class="bi bi-chevron-left"></i>
-                </a>
-
-                <?php for ($i = 1; $i <= $pag['total_paginas']; $i++): ?>
-                    <a href="?<?= $qBase ?>&pagina=<?= $i ?>"
-                       class="ms-page-btn <?= $i === $pag['pagina'] ? 'activo' : '' ?>">
-                        <?= $i ?>
-                    </a>
-                <?php endfor; ?>
-
-                <a href="?<?= $qBase ?>&pagina=<?= $pag['pagina'] + 1 ?>"
-                   class="ms-page-btn <?= $pag['pagina'] >= $pag['total_paginas'] ? 'disabled' : '' ?>">
-                    <i class="bi bi-chevron-right"></i>
-                </a>
-
-                <span style="font-size:.78rem; color:var(--color-texto-secundario); margin-left:.5rem;">
-                    <?= $pag['total'] ?> resultado<?= $pag['total'] !== 1 ? 's' : '' ?>
-                </span>
-            </nav>
-        <?php endif; ?>
+            $entidad = 'resultados';
+            include __DIR__ . '../../../publico/incluido/_paginacion.php';
+        endif; ?>
 
     <?php else: ?>
         <!-- ESTADO VACÍO -->
@@ -533,7 +718,7 @@ include __DIR__ . '/../../mensaje.php';
                     <?php endif; ?>
                 </p>
                 <a href="/ITSFCP-PROYECTOS/Vistas/menu/principal.php"
-                   class="ms-btn-filtrar" style="display:inline-flex;">
+                    class="ms-btn-filtrar" style="display:inline-flex;">
                     <i class="bi bi-search"></i> Explorar proyectos
                 </a>
             </div>
@@ -542,14 +727,14 @@ include __DIR__ . '/../../mensaje.php';
 
 </div>
 
-<!-- ══ MODAL CANCELAR ═════════════════════════════════════════════ -->
+<!--  MODAL CANCELAR ═ -->
 <div class="ms-modal-overlay" id="modalCancelar">
     <div class="ms-modal">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <h4>Cancelar solicitud</h4>
         <p id="modalCancelarTexto">¿Estás seguro de que deseas cancelar esta solicitud?</p>
         <form method="POST" action="index.php">
-            <input type="hidden" name="accion"       value="cancelar">
+            <input type="hidden" name="accion" value="cancelar">
             <input type="hidden" name="id_solicitud" id="modalCancelarId">
             <div class="ms-modal-btns">
                 <button type="submit" class="ms-btn-confirmar">
@@ -564,18 +749,19 @@ include __DIR__ . '/../../mensaje.php';
 </div>
 
 <script>
-function abrirModalCancelar(id, titulo) {
-    document.getElementById('modalCancelarId').value = id;
-    document.getElementById('modalCancelarTexto').textContent =
-        '¿Cancelar la solicitud para "' + titulo + '"? Esta acción no se puede deshacer.';
-    document.getElementById('modalCancelar').classList.add('abierto');
-}
-function cerrarModal() {
-    document.getElementById('modalCancelar').classList.remove('abierto');
-}
-document.getElementById('modalCancelar').addEventListener('click', function(e) {
-    if (e.target === this) cerrarModal();
-});
+    function abrirModalCancelar(id, titulo) {
+        document.getElementById('modalCancelarId').value = id;
+        document.getElementById('modalCancelarTexto').textContent =
+            '¿Cancelar la solicitud para "' + titulo + '"? Esta acción no se puede deshacer.';
+        document.getElementById('modalCancelar').classList.add('abierto');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalCancelar').classList.remove('abierto');
+    }
+    document.getElementById('modalCancelar').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModal();
+    });
 </script>
 
 <?php

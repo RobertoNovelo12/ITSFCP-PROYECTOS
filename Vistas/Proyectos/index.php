@@ -268,12 +268,12 @@ include __DIR__ . '/../../mensaje.php';
                     <?php endforeach; ?>
                 </div>
 
-                    <!-- PAGINACIÓN -->
-    <?php if ($paginacion['total_paginas'] > 1):
-        $qBase = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-        $entidad = 'proyectos';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php';?>
+                <!-- PAGINACIÓN -->
+                <?php if ($paginacion['total_paginas'] > 1):
+                    $qBase = 'action=' . urlencode($action)
+                        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+                    $entidad = 'proyectos';
+                    include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
 
                 <?php endif; ?>
 

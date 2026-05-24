@@ -383,9 +383,19 @@ $opEstadoProceso = [
             <?php endforeach; ?>
         </div>
 
-        <!-- index PAGINACIÓN  -->
-        <?= $ctrl->htmlPaginacion($paginacion, $filtros) ?>
-
+        <!-- PAGINACIÓN  -->
+        <?php
+        $qBase = http_build_query(array_filter([
+            'periodo'        => $filtros['periodo']        ?: '',
+            'id_proyecto'    => $filtros['id_proyecto']    ?: '',
+            'carrera'        => $filtros['carrera']        ?: '',
+            'estado'         => $filtros['estado']         ?: '',
+            'estado_proceso' => $filtros['estado_proceso'] ?: '',
+            'buscar'         => $filtros['buscar']         ?: '',
+        ]));
+        $entidad = 'participaciones';
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';
+        ?>
     <?php else: ?>
 
         <div class="alert alert-info text-center mt-3">

@@ -19,7 +19,7 @@ $id_proyectos = $_GET['id_proyectos'] ?? null;
 $motivo       = $_GET['motivo']       ?? null;
 
 // Solo supervisor
-if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
+if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }

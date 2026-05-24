@@ -17,7 +17,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo el supervisor accede a este módulo
-if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
+if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
@@ -318,36 +318,13 @@ if (isset($_GET['error']) && $_GET['error']) {
                 </div>
 
                 <!-- PAGINACIÓN -->
-                <?php if ($paginacion['total_paginas'] > 1): ?>
-                    <nav class="mt-4">
-                        <ul class="pagination justify-content-center flex-wrap">
-                            <?php
-                            $inicio = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'] + 1;
-                            $fin    = min($inicio + $paginacion['por_pagina'] - 1, $paginacion['total']);
-                            $base   = '?tipo=' . urlencode($tipo_filtro)
-                                . '&id_periodo=' . $id_periodo
-                                . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-                            ?>
-                            <li class="page-item disabled">
-                                <span class="page-link small">
-                                    Mostrando <?= $inicio ?>&ndash;<?= $fin ?> de <?= $paginacion['total'] ?>
-                                </span>
-                            </li>
-                            <li class="page-item <?= ($paginacion['pagina'] <= 1) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= $base ?>&pagina=<?= $paginacion['pagina'] - 1 ?>">&laquo;</a>
-                            </li>
-                            <?php for ($i = 1; $i <= $paginacion['total_paginas']; $i++): ?>
-                                <li class="page-item <?= ($i == $paginacion['pagina']) ? 'active' : '' ?>">
-                                    <a class="page-link" href="<?= $base ?>&pagina=<?= $i ?>"><?= $i ?></a>
-                                </li>
-                            <?php endfor; ?>
-                            <li class="page-item <?= ($paginacion['pagina'] >= $paginacion['total_paginas']) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= $base ?>&pagina=<?= $paginacion['pagina'] + 1 ?>">&raquo;</a>
-                            </li>
-                        </ul>
-                    </nav>
-                <?php endif; ?>
-
+                <?php if ($paginacion['total_paginas'] > 1):
+                    $qBase = 'tipo='      . urlencode($tipo_filtro)
+                        . '&id_periodo=' . urlencode($id_periodo)
+                        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+                    $entidad = 'solicitudes';
+                    include __DIR__ . '../../../publico/incluido/_paginacion.php';
+                endif; ?>
             <?php else: ?>
                 <div class="alert alert-info text-center">
                     <i class="bi bi-inbox"></i>

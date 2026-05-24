@@ -15,7 +15,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 //Solo supervisor
-if ($rol ?? '' !== 'supervisor') {
+if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
@@ -213,7 +213,7 @@ include __DIR__ . '/../../mensaje.php';
             . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
             . (!empty($tipo) ? '&tipo=' . urlencode($tipo) : '');
         $entidad = 'entradas';
-        include __DIR__ . '/../../../publico/incluido/_paginacion.php';?>
+        include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
     <?php endif; ?>
 </div>
 <?php

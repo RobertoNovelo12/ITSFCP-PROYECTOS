@@ -240,54 +240,5 @@ class SupervisorControlador
             'cancelado' => "<span class='badge bg-secondary'>Cancelado</span>",
             default     => "<span class='badge bg-light text-dark border'>" . htmlspecialchars($estado) . "</span>",
         };
-    }
-
-    /** Genera HTML de paginación para las vistas */
-    public function htmlPaginacion(array $pag, string $key, string $tab, array $filtros): string
-    {
-        if ($pag['total_paginas'] <= 1) return '';
-
-        $base = array_filter([
-            'tab'             => $tab,
-            'periodo'         => $filtros['periodo']         ?? '',
-            'investigador'    => $filtros['investigador']    ?? '',
-            'modalidad'       => $filtros['modalidad']       ?? '',
-            'carrera'         => $filtros['carrera']         ?? '',
-            'estado_proyecto' => $filtros['estado_proyecto'] ?? '',
-            'estado_sol'      => $filtros['estado_sol']      ?? '',
-            'estado_usuario'  => $filtros['estado_usuario']  ?? '',
-            'buscar_proy'     => $filtros['buscar_proy']     ?? '',
-            'buscar_sol'      => $filtros['buscar_sol']      ?? '',
-            'buscar_usr'      => $filtros['buscar_usr']      ?? '',
-            'fecha_desde'     => $filtros['fecha_desde']     ?? '',
-            'fecha_hasta'     => $filtros['fecha_hasta']     ?? '',
-        ]);
-
-        $q  = http_build_query($base);
-        $p  = $pag['pagina'];
-        $tp = $pag['total_paginas'];
-
-        $html  = '<nav class="mt-3"><ul class="pagination justify-content-center pagination-sm">';
-        $html .= '<li class="page-item ' . ($p <= 1 ? 'disabled' : '') . '">';
-        $html .= '<a class="page-link" href="?' . $q . '&' . $key . '=' . ($p - 1) . '">‹</a></li>';
-
-        $inicio = max(1, $p - 2);
-        $fin    = min($tp, $p + 2);
-        if ($inicio > 1) $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>';
-        for ($i = $inicio; $i <= $fin; $i++) {
-            $html .= '<li class="page-item ' . ($i === $p ? 'active' : '') . '">';
-            $html .= '<a class="page-link" href="?' . $q . '&' . $key . '=' . $i . '">' . $i . '</a></li>';
-        }
-        if ($fin < $tp) $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>';
-
-        $html .= '<li class="page-item ' . ($p >= $tp ? 'disabled' : '') . '">';
-        $html .= '<a class="page-link" href="?' . $q . '&' . $key . '=' . ($p + 1) . '">›</a></li>';
-        $html .= '</ul>';
-
-        $desde = ($p - 1) * $pag['por_pagina'] + 1;
-        $hasta = min($p * $pag['por_pagina'], $pag['total']);
-        $html .= '<p class="text-center text-muted small mb-0">Mostrando ' . $desde . '–' . $hasta . ' de ' . $pag['total'] . ' registros</p>';
-        $html .= '</nav>';
-        return $html;
-    }
+    }    
 }

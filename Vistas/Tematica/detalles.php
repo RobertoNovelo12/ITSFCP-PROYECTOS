@@ -18,7 +18,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $id_tematica = isset($_GET['id_tematica']) ? intval($_GET['id_tematica']) : 0;
 
-if (strtolower($_SESSION['rol'] ?? '') !== 'supervisor') {
+if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }

@@ -37,7 +37,7 @@ require_once '../../Controladores/plantilladocumentoControlador.php';
 $ctrl   = new plantilladocumentoControlador();
 $action = $_POST['action'] ?? null;
 
-// ─── PROCESAMIENTO DEL FORMULARIO ────────────────────────────────────────────
+//  PROCESAMIENTO DEL FORMULARIO ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
 
     $id_tipo_documento = (int) ($_POST['id_tipo_documento'] ?? 0);
@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
     }
 }
 
-// ─── DATOS PARA LA VISTA ─────────────────────────────────────────────────────
+//  DATOS PARA LA VISTA ──
 $tipos = $ctrl->indexCrear($rol);
 
 // Alertas de error del formulario

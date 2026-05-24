@@ -7075,7 +7075,6 @@ summary::-webkit-details-marker {
 }
 
 .paginacion-wrap .page-link {
-  font-size: 13px;
   color: var(--color-primario);
   border-color: var(--borde-menu);
   border-radius: 6px !important;
@@ -7101,7 +7100,6 @@ summary::-webkit-details-marker {
 }
 
 .paginacion-info {
-  font-size: 12.5px;
   color: var(--color-texto-secundario);
   text-align: center;
   margin-top: 0.5rem;
@@ -7132,8 +7130,6 @@ summary::-webkit-details-marker {
 
 /* 
      CSS ESPECÍFICO DE SOLICITUD DE INTEGRACIÓN
-     Se agregan únicamente los
-     estilos nuevos para plantilla/carta-compromiso y la nota informativa.
       */
 /*  Estructura de tarjeta (original conservado)  */
 .card-evento {
@@ -8602,7 +8598,7 @@ summary::-webkit-details-marker {
 .pagination .page-item.active .page-link {
   background: var(--color-primario);
   border-color: var(--color-primario);
-  color: #fff;
+  color: var(--fondo-inputs);
 }
 
 .pagination .page-link {
