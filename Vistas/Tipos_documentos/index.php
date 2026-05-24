@@ -53,6 +53,7 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 
     <!-- FILTROS -->
+    <div class="row mb-3">
 
     <div class="col-12 col-md-4">
         <select class="form-select"
@@ -64,6 +65,7 @@ include __DIR__ . '/../../mensaje.php';
                 </option>
             <?php endforeach; ?>
         </select>
+    </div>
     </div>
     <!-- TABLA LAPTOP -->
     <div class="card shadow-sm d-none d-md-block">

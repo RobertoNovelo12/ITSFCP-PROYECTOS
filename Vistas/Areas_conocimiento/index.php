@@ -87,174 +87,182 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- FILTROS Y BUSQUEDA -->
 
-    <div class="row g-2 mb-4">
-        <div class="col-12 col-md-4">
-            <select class="form-select"
-                onchange="location.href='index.php?action=' + this.value;">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="index.php">
-                <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                <input type="text"
-                    name="buscar"
-                    class="form-control"
-                    placeholder="Buscar Área..."
-                    value="<?= htmlspecialchars($buscar) ?>">
-                <button type="submit" class="btn btn-primary">
-                    Buscar
-                </button>
-            </form>
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="row justify-content-end">
+                <div class="col-md-6 mb-3">
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=' + this.value;">
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-6 col-md-8">
+                    <form class="d-flex gap-2" method="GET" action="index.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Buscar Área..."
+                            value="<?= htmlspecialchars($buscar) ?>">
+                        <button type="submit" class="btn btn-primary">
+                            Buscar
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     <!-- TABLA LAPTOP -->
-    <div class="card shadow-sm d-none d-md-block">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <?php
-                            foreach ($encabezados as $encabezado) {
-                                echo "<th>{$encabezado}</th>";
-                            }
-                            ?>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($rol == "supervisor"): ?>
-                            <?php foreach ($area as $ar): ?>
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm d-none d-md-block">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <td><?= $ar['nombre'] ?></td>
-                                    <td title="<?= htmlspecialchars($ar['descripcion']) ?>">
-                                        <?= strlen($ar['descripcion']) > 60
-                                            ? substr($ar['descripcion'], 0, 60) . '...'
-                                            : $ar['descripcion']; ?>
-                                    </td>
-                                    <td><?= $ar['total'] ?></td>
-                                    <td>
-                                        <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar['estado']); ?>">
-                                            <?= htmlspecialchars($ar['estado']) ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <?= date("d/m/Y", strtotime($ar['creacion'])) ?>
-                                        <br>
-                                        <?= date("H:i", strtotime($ar['creacion'])) ?>
-                                    </td>
-                                    <td>
-                                        <?php
-                                        if (!empty($ar['modificacion'])) {
-                                            echo date("d/m/Y", strtotime($ar['modificacion'])) . "<br>";
-                                            echo date("H:i", strtotime($ar['modificacion']));
-                                        } else {
-                                            echo "No modificado";
-                                        }
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <?= $areaControlador->botonesAccionPrincipal($ar['id_area'], $rol, $ar['estado']) ?>
-                                    </td>
+                                    <?php
+                                    foreach ($encabezados as $encabezado) {
+                                        echo "<th>{$encabezado}</th>";
+                                    }
+                                    ?>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7">
-                                    <div class="alert alert-danger">
-                                        No tiene permiso para editar el área y subarea de
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- TARJETAS MOVIL -->
-
-    <div class="d-block d-md-none">
-        <?php foreach ($area as $ar_item): ?>
-            <div class="card shadow-sm mb-3">
-                <div class="card-body text-center">
-                    <h5 class="fw-bold">
-                        <?= $ar_item['tematica'] ?>
-                    </h5>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <strong>Descripción</strong>
-                        <p class="mb-0" title="<?= htmlspecialchars($ar_item['descripcion']) ?>">
-                            <?= strlen($ar_item['descripcion']) > 60
-                                ? substr($ar_item['descripcion'], 0, 60) . '...'
-                                : $ar_item['descripcion']; ?>
-                        </p>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Creación</strong>
-                                <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($ar_item['creacion'])) ?>
-                                    <br>
-                                    <?= date("H:i", strtotime($ar_item['creacion'])) ?>
-                                </p>
-                            </div>
-                            <div class="col-6">
-                                <strong>Modificación</strong>
-                                <br>
-                                <?php if (!empty($ar_item['modificacion'])) {
-                                    echo date("d/m/Y", strtotime($ar_item['modificacion'])) . "<br>";
-                                    echo date("H:i", strtotime($ar_item['modificacion']));
-                                } else {
-                                    echo "No modificado";
-                                } ?>
-                            </div>
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Subtemáticas</strong>
-                                <p class="mb-0">
-                                    <?= $ar_item['total'] ?>
-                                </p>
-                            </div>
-                            <div class="col-6">
-                                <strong>Estado</strong>
-                                <br>
-                                <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar_item['estado']); ?>">
-                                    <?= htmlspecialchars($ar_item['estado']) ?>
-                                </span>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-                <div class="card-body">
-                    <div class="d-flex justify-content-center gap-2">
-                        <?php echo $areaControlador->botonesAccionPrincipal($ar_item['id_area'], $rol, $ar_item['estado']); ?>
+                            </thead>
+                            <tbody>
+                                <?php if ($rol == "supervisor"): ?>
+                                    <?php foreach ($area as $ar): ?>
+                                        <tr>
+                                            <td><?= $ar['nombre'] ?></td>
+                                            <td title="<?= htmlspecialchars($ar['descripcion']) ?>">
+                                                <?= strlen($ar['descripcion']) > 60
+                                                    ? substr($ar['descripcion'], 0, 60) . '...'
+                                                    : $ar['descripcion']; ?>
+                                            </td>
+                                            <td><?= $ar['total'] ?></td>
+                                            <td>
+                                                <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar['estado']); ?>">
+                                                    <?= htmlspecialchars($ar['estado']) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?= date("d/m/Y", strtotime($ar['creacion'])) ?>
+                                                <br>
+                                                <?= date("H:i", strtotime($ar['creacion'])) ?>
+                                            </td>
+                                            <td>
+                                                <?php
+                                                if (!empty($ar['modificacion'])) {
+                                                    echo date("d/m/Y", strtotime($ar['modificacion'])) . "<br>";
+                                                    echo date("H:i", strtotime($ar['modificacion']));
+                                                } else {
+                                                    echo "No modificado";
+                                                }
+                                                ?>
+                                            </td>
+                                            <td>
+                                                <?= $areaControlador->botonesAccionPrincipal($ar['id_area'], $rol, $ar['estado']) ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="alert alert-danger">
+                                                No tiene permiso para editar el área y subarea de
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        <?php endforeach; ?>
+
+            <!-- TARJETAS MOVIL -->
+
+            <div class="d-block d-md-none">
+                <?php foreach ($area as $ar_item): ?>
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body text-center">
+                            <h5 class="fw-bold">
+                                <?= $ar_item['tematica'] ?>
+                            </h5>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <strong>Descripción</strong>
+                                <p class="mb-0" title="<?= htmlspecialchars($ar_item['descripcion']) ?>">
+                                    <?= strlen($ar_item['descripcion']) > 60
+                                        ? substr($ar_item['descripcion'], 0, 60) . '...'
+                                        : $ar_item['descripcion']; ?>
+                                </p>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <strong>Creación</strong>
+                                        <p class="mb-0">
+                                            <?= date("d/m/Y", strtotime($ar_item['creacion'])) ?>
+                                            <br>
+                                            <?= date("H:i", strtotime($ar_item['creacion'])) ?>
+                                        </p>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Modificación</strong>
+                                        <br>
+                                        <?php if (!empty($ar_item['modificacion'])) {
+                                            echo date("d/m/Y", strtotime($ar_item['modificacion'])) . "<br>";
+                                            echo date("H:i", strtotime($ar_item['modificacion']));
+                                        } else {
+                                            echo "No modificado";
+                                        } ?>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <strong>Subtemáticas</strong>
+                                        <p class="mb-0">
+                                            <?= $ar_item['total'] ?>
+                                        </p>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Estado</strong>
+                                        <br>
+                                        <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar_item['estado']); ?>">
+                                            <?= htmlspecialchars($ar_item['estado']) ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center gap-2">
+                                <?php echo $areaControlador->botonesAccionPrincipal($ar_item['id_area'], $rol, $ar_item['estado']); ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- PAGINACION -->
+
+            <?php if ($paginacion['total_paginas'] > 1):
+                $qBase = 'action=' . urlencode($action)
+                    . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
+                    . (!empty($tipo) ? '&tipo=' . urlencode($tipo) : '');
+                $entidad = 'entradas';
+                include __DIR__ . '/../../../publico/incluido/_paginacion.php'; ?>
+            <?php endif; ?>
+        </div>
     </div>
-
-    <!-- PAGINACION -->
-
-    <?php if ($paginacion['total_paginas'] > 1):
-        $qBase = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
-            . (!empty($tipo) ? '&tipo=' . urlencode($tipo) : '');
-        $entidad = 'entradas';
-        include __DIR__ . '/../../../publico/incluido/_paginacion.php';?>
-    <?php endif; ?>
 </div>
 <?php
 
