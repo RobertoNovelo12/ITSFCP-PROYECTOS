@@ -66,13 +66,15 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
-        <div class="col-md-6">
-            <h2 class="mb-0 fw-bold">Solicitudes de Proyectos</h2>
-        </div>
+        <?php
+        $titulo      = 'Solicitudes de Proyecto';
+        $descripcion = 'Solicitudes de registro de nuevos proyectos';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-md-6 text-md-end">
             <!-- Filtro por Periodo -->
             <form class="d-inline-flex align-items-center gap-2" method="GET">

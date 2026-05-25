@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plantillas_documentos/index.php
  * Listado principal de plantillas de documentos — solo supervisor.
@@ -59,7 +60,7 @@ $paginacion  = $resultado['paginacion']  ?? [
     'total'        => 0,
     'por_pagina'   => 6,
     'pagina'       => $pagina,
-    'total_paginas'=> 1,
+    'total_paginas' => 1,
 ];
 
 $filtros     = $ctrl->filtros($rol);       // array asociativo Total/Activo/Desactivado
@@ -70,13 +71,15 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- TÍTULO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-12 col-md-6">
-            <h3 class="fw-bold mb-2 mb-md-0">Plantillas de documentos</h3>
-        </div>
+        <?php
+        $titulo      = 'Plantillas de Documentos';
+        $descripcion = 'Gestión de plantillas para generación de documentos';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-12 col-md-6 text-md-end">
             <a href="crear.php" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i> Crear Plantilla
@@ -137,7 +140,7 @@ include __DIR__ . '/../../mensaje.php';
                                     <td>
                                         <?= !empty($reg['crear'])
                                             ? date('d/m/Y', strtotime($reg['crear'])) . '<br>'
-                                              . '<small class="text-muted">' . date('H:i', strtotime($reg['crear'])) . '</small>'
+                                            . '<small class="text-muted">' . date('H:i', strtotime($reg['crear'])) . '</small>'
                                             : '—' ?>
                                     </td>
 
@@ -145,7 +148,7 @@ include __DIR__ . '/../../mensaje.php';
                                     <td>
                                         <?= !empty($reg['modificar'])
                                             ? date('d/m/Y', strtotime($reg['modificar'])) . '<br>'
-                                              . '<small class="text-muted">' . date('H:i', strtotime($reg['modificar'])) . '</small>'
+                                            . '<small class="text-muted">' . date('H:i', strtotime($reg['modificar'])) . '</small>'
                                             : '—' ?>
                                     </td>
 
@@ -153,8 +156,8 @@ include __DIR__ . '/../../mensaje.php';
                                     <td>
                                         <?php if (!empty($reg['nombre_archivo'])): ?>
                                             <a href="descargar_plantilla.php?id_plantilla=<?= (int) $reg['id_plantilla'] ?>"
-                                               data-bs-toggle="tooltip"
-                                               data-bs-title="<?= htmlspecialchars($reg['nombre_archivo']) ?>">
+                                                data-bs-toggle="tooltip"
+                                                data-bs-title="<?= htmlspecialchars($reg['nombre_archivo']) ?>">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                                                     fill="red" class="bi bi-file-earmark-word-fill" viewBox="0 0 16 16">
                                                     <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0
@@ -162,7 +165,7 @@ include __DIR__ . '/../../mensaje.php';
                                                              0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M5.485 6.879l1.036
                                                              4.144.997-3.655a.5.5 0 0 1 .964 0l.997 3.655 1.036-4.144a.5.5
                                                              0 0 1 .97.242l-1.5 6a.5.5 0 0 1-.967.01L8
-                                                             9.402l-1.018 3.73a.5.5 0 0 1-.967-.01l-1.5-6a.5.5 0 1 1 .97-.242z"/>
+                                                             9.402l-1.018 3.73a.5.5 0 0 1-.967-.01l-1.5-6a.5.5 0 1 1 .97-.242z" />
                                                 </svg>
                                             </a>
                                         <?php else: ?>
@@ -259,9 +262,9 @@ include __DIR__ . '/../../mensaje.php';
         <!-- PAGINACIÓN -->
         <?php
         $qBase   = 'action=' . urlencode($action)
-                 . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
         $entidad = 'plantillas';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php';?>
+        include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
 
     <?php else: ?>
         <div class="alert alert-info text-center">

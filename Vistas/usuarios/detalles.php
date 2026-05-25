@@ -37,17 +37,22 @@ if (empty($usuario)) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Detalles del usuario</h3>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <a href="index.php" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Regresar
-            </a>
+
+        <?php
+        $titulo      = 'Detalle de Usuario';
+        $descripcion = 'Información del usuario seleccionado';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+
+        <div class="col-6 col-md-6 text-md-end">
+            <?php if ($rol == "supervisor"): ?>
+                <a href="index.php" class="btn btn-secondary btn-sm px-4">
+                    <i class="bi bi-arrow-left"></i> Regresar</a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -63,8 +68,8 @@ ob_start();
                         <dt>Nombre completo</dt>
                         <dd><?= htmlspecialchars(
                                 $usuario['nombre'] . ' ' .
-                                $usuario['apellido_paterno'] . ' ' .
-                                $usuario['apellido_materno']
+                                    $usuario['apellido_paterno'] . ' ' .
+                                    $usuario['apellido_materno']
                             ) ?>
                         </dd>
                     </dl>
@@ -146,81 +151,81 @@ ob_start();
 
     <!-- DATOS ESPECÍFICOS: ESTUDIANTE -->
     <?php if (!empty($usuario['matricula'])): ?>
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Datos de estudiante</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <dl>
-                        <dt>Matrícula</dt>
-                        <dd><?= htmlspecialchars($usuario['matricula']) ?></dd>
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <dl>
-                        <dt>Carrera</dt>
-                        <dd><?= htmlspecialchars($usuario['nombre_carrera'] ?? '—') ?></dd>
-                    </dl>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Datos de estudiante</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl>
+                            <dt>Matrícula</dt>
+                            <dd><?= htmlspecialchars($usuario['matricula']) ?></dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl>
+                            <dt>Carrera</dt>
+                            <dd><?= htmlspecialchars($usuario['nombre_carrera'] ?? '—') ?></dd>
+                        </dl>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     <?php endif; ?>
 
     <!-- DATOS ESPECÍFICOS: INVESTIGADOR -->
     <?php if (!empty($usuario['rfc'])): ?>
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Datos de investigador</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <dl>
-                        <dt>RFC</dt>
-                        <dd><?= htmlspecialchars($usuario['rfc']) ?></dd>
-                    </dl>
-                </div>
-                <div class="col-md-4">
-                    <dl>
-                        <dt>Grado académico</dt>
-                        <dd><?= htmlspecialchars($usuario['grado_academico'] ?? '—') ?></dd>
-                    </dl>
-                </div>
-                <div class="col-md-4">
-                    <dl>
-                        <dt>Nivel SNI</dt>
-                        <dd><?= htmlspecialchars($usuario['nivel_sni'] ?? '—') ?></dd>
-                    </dl>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Datos de investigador</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <dl>
+                            <dt>RFC</dt>
+                            <dd><?= htmlspecialchars($usuario['rfc']) ?></dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-4">
+                        <dl>
+                            <dt>Grado académico</dt>
+                            <dd><?= htmlspecialchars($usuario['grado_academico'] ?? '—') ?></dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-4">
+                        <dl>
+                            <dt>Nivel SNI</dt>
+                            <dd><?= htmlspecialchars($usuario['nivel_sni'] ?? '—') ?></dd>
+                        </dl>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     <?php endif; ?>
 
     <!-- ACCIONES -->
     <?php if ($usuario['estado_usuario'] === 'espera'): ?>
-    <div class="card shadow-sm mb-4 border-warning">
-        <div class="card-header bg-opacity-25">
-            <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Acciones de aprobación</h5>
-        </div>
-        <div class="card-body">
-            <p class="text-muted">Este usuario está en espera de aprobación. Elige una acción:</p>
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="index.php?action=aprobar&id_usuarios=<?= $usuario['id_usuarios'] ?>"
-                   class="btn btn-success"
-                   onclick="return confirm('¿Aprobar el acceso de este usuario?')">
-                    <i class="bi bi-check-circle-fill me-1"></i> Aprobar
-                </a>
-                <a href="respuesta.php?id_usuarios=<?= $usuario['id_usuarios'] ?>"
-                   class="btn btn-danger">
-                    <i class="bi bi-x-circle-fill me-1"></i> Rechazar
-                </a>
+        <div class="card shadow-sm mb-4 border-warning">
+            <div class="card-header bg-opacity-25">
+                <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Acciones de aprobación</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Este usuario está en espera de aprobación. Elige una acción:</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="index.php?action=aprobar&id_usuarios=<?= $usuario['id_usuarios'] ?>"
+                        class="btn btn-success"
+                        onclick="return confirm('¿Aprobar el acceso de este usuario?')">
+                        <i class="bi bi-check-circle-fill me-1"></i> Aprobar
+                    </a>
+                    <a href="respuesta.php?id_usuarios=<?= $usuario['id_usuarios'] ?>"
+                        class="btn btn-danger">
+                        <i class="bi bi-x-circle-fill me-1"></i> Rechazar
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
     <?php endif; ?>
 
 </div>

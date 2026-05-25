@@ -42,25 +42,28 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
+<div class="container-fluid py-4 ancho_container">
 
-<form method="POST" action="" id="formCrearArea">
+    <!-- ENCABEZADO -->
+    <div class="row mb-4 align-items-center">
 
-    <input type="hidden" name="action" value="registrarArea">
+        <?php
+        $titulo      = 'Nueva Área de Conocimiento';
+        $descripcion = 'Registro de una nueva área';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
-    <div class="container-fluid py-4">
-
-        <!-- ENCABEZADO -->
-        <div class="row mb-3">
-
-            <div class="col-6">
-                <h3>Crear Área de conocimiento</h3>
-            </div>
-
-            <div class="col-6 text-end">
-                <a href="index.php" class="btn btn-danger">Regresar</a>
-            </div>
-
+        <div class="col-md-6 text-md-end">
+            <a href="index.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar
+            </a>
         </div>
+
+    </div>
+    <form method="POST" action="" id="formCrearArea">
+
+        <input type="hidden" name="action" value="registrarArea">
+
 
         <!-- DATOS ÁREA -->
         <h5>Información del área</h5>
@@ -110,10 +113,9 @@ include __DIR__ . '/../../error.php';
             Crear área
         </button>
 
-    </div>
 
-</form>
-
+    </form>
+</div>
 <script src="../../publico/js/subareas.js"></script>
 
 <?php

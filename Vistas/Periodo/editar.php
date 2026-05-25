@@ -53,13 +53,16 @@ include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Editar periodo</h3>
-        </div>
+        <?php
+        $titulo      = 'Editar Periodo';
+        $descripcion = 'Modificar datos del periodo';
+
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
@@ -132,22 +135,22 @@ include __DIR__ . '/../../error.php';
                     <div class="col-md-6">
                         <label for="fecha_inicio_proyectos" class="form-label">Fecha inicio de proyectos</label>
                         <input type="date"
-                               id="fecha_inicio_proyectos"
-                               name="fecha_inicio_proyectos"
-                               class="form-control"
-                               value="<?= htmlspecialchars($datos['fecha_inicio_proyectos'] ?? '') ?>"
-                               min="<?= htmlspecialchars($datos['inicio']) ?>"
-                               max="<?= htmlspecialchars($datos['fin']) ?>">
+                            id="fecha_inicio_proyectos"
+                            name="fecha_inicio_proyectos"
+                            class="form-control"
+                            value="<?= htmlspecialchars($datos['fecha_inicio_proyectos'] ?? '') ?>"
+                            min="<?= htmlspecialchars($datos['inicio']) ?>"
+                            max="<?= htmlspecialchars($datos['fin']) ?>">
                     </div>
                     <div class="col-md-6">
                         <label for="fecha_fin_proyectos" class="form-label">Fecha fin de proyectos</label>
                         <input type="date"
-                               id="fecha_fin_proyectos"
-                               name="fecha_fin_proyectos"
-                               class="form-control"
-                               value="<?= htmlspecialchars($datos['fecha_fin_proyectos'] ?? '') ?>"
-                               min="<?= htmlspecialchars($datos['inicio']) ?>"
-                               max="<?= htmlspecialchars($datos['fin']) ?>">
+                            id="fecha_fin_proyectos"
+                            name="fecha_fin_proyectos"
+                            class="form-control"
+                            value="<?= htmlspecialchars($datos['fecha_fin_proyectos'] ?? '') ?>"
+                            min="<?= htmlspecialchars($datos['inicio']) ?>"
+                            max="<?= htmlspecialchars($datos['fin']) ?>">
                     </div>
                 </div>
 
@@ -157,22 +160,22 @@ include __DIR__ . '/../../error.php';
                     <div class="col-md-6">
                         <label for="fecha_inicio_solicitud" class="form-label">Fecha inicio de integración</label>
                         <input type="date"
-                               id="fecha_inicio_solicitud"
-                               name="fecha_inicio_solicitud"
-                               class="form-control"
-                               value="<?= htmlspecialchars($datos['fecha_inicio_solicitud'] ?? '') ?>"
-                               min="<?= htmlspecialchars($datos['inicio']) ?>"
-                               max="<?= htmlspecialchars($datos['fin']) ?>">
+                            id="fecha_inicio_solicitud"
+                            name="fecha_inicio_solicitud"
+                            class="form-control"
+                            value="<?= htmlspecialchars($datos['fecha_inicio_solicitud'] ?? '') ?>"
+                            min="<?= htmlspecialchars($datos['inicio']) ?>"
+                            max="<?= htmlspecialchars($datos['fin']) ?>">
                     </div>
                     <div class="col-md-6">
                         <label for="fecha_fin_solicitud" class="form-label">Fecha fin de integración</label>
                         <input type="date"
-                               id="fecha_fin_solicitud"
-                               name="fecha_fin_solicitud"
-                               class="form-control"
-                               value="<?= htmlspecialchars($datos['fecha_fin_solicitud'] ?? '') ?>"
-                               min="<?= htmlspecialchars($datos['inicio']) ?>"
-                               max="<?= htmlspecialchars($datos['fin']) ?>">
+                            id="fecha_fin_solicitud"
+                            name="fecha_fin_solicitud"
+                            class="form-control"
+                            value="<?= htmlspecialchars($datos['fecha_fin_solicitud'] ?? '') ?>"
+                            min="<?= htmlspecialchars($datos['inicio']) ?>"
+                            max="<?= htmlspecialchars($datos['fin']) ?>">
                     </div>
                 </div>
 
@@ -199,7 +202,7 @@ include __DIR__ . '/../../error.php';
                 Esta acción se puede revertir desde la vista de crear periodo.
             </p>
             <form method="POST" action="editar.php?id_periodos=<?= $id_periodos ?>"
-                  onsubmit="return confirm('¿Está seguro de que desea desactivar este periodo?');">
+                onsubmit="return confirm('¿Está seguro de que desea desactivar este periodo?');">
                 <input type="hidden" name="action" value="desactivar">
                 <button type="submit" class="btn btn-danger">
                     <i class="bi bi-x-circle-fill me-1"></i> Desactivar Periodo
@@ -211,15 +214,15 @@ include __DIR__ . '/../../error.php';
 </div>
 
 <script>
-    (function () {
+    (function() {
         const pares = [
-            ['fecha_inicio_proyectos',   'fecha_fin_proyectos'],
+            ['fecha_inicio_proyectos', 'fecha_fin_proyectos'],
             ['fecha_inicio_solicitud', 'fecha_fin_solicitud'],
         ];
 
         pares.forEach(([inicioId, finId]) => {
             const inputInicio = document.getElementById(inicioId);
-            const inputFin    = document.getElementById(finId);
+            const inputFin = document.getElementById(finId);
 
             if (!inputInicio || !inputFin) return;
 

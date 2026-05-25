@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plantillas_documentos/historial.php
  * Línea de tiempo de eventos de un tipo de documento — solo supervisor.
@@ -50,15 +51,17 @@ if (!empty($historialAgrupado)) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <?php include __DIR__ . '/../../mensaje.php'; ?>
 
     <!-- CABECERA -->
     <div class="row mb-3">
-        <div class="col-md-6">
-            <h3 class="fw-bold">Historial de plantilla de documento</h3>
-        </div>
+        <?php
+        $titulo      = 'Historial de Plantilla';
+        $descripcion = 'Versiones anteriores de la plantilla';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
@@ -142,8 +145,8 @@ ob_start();
                                 <?php if (!empty($item['nombre_archivo'])): ?>
                                     <small class="descargar ms-2">
                                         <a href="descargar_plantilla.php?id_plantilla=<?= (int) $item['id_plantilla'] ?>"
-                                           data-bs-toggle="tooltip"
-                                           data-bs-title="Descargar <?= htmlspecialchars($item['nombre_archivo']) ?>">
+                                            data-bs-toggle="tooltip"
+                                            data-bs-title="Descargar <?= htmlspecialchars($item['nombre_archivo']) ?>">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                                 fill="red" class="bi bi-file-earmark-word-fill" viewBox="0 0 16 16">
                                                 <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0
@@ -151,7 +154,7 @@ ob_start();
                                                          0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M5.485 6.879l1.036
                                                          4.144.997-3.655a.5.5 0 0 1 .964 0l.997 3.655 1.036-4.144a.5.5
                                                          0 0 1 .97.242l-1.5 6a.5.5 0 0 1-.967.01L8
-                                                         9.402l-1.018 3.73a.5.5 0 0 1-.967-.01l-1.5-6a.5.5 0 1 1 .97-.242z"/>
+                                                         9.402l-1.018 3.73a.5.5 0 0 1-.967-.01l-1.5-6a.5.5 0 1 1 .97-.242z" />
                                             </svg>
                                         </a>
                                     </small>

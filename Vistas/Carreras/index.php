@@ -63,16 +63,18 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- TITULO -->
     <div class="row mb-4 align-items-center">
 
-        <div class="col-12 col-md-6">
-            <h3 class="fw-bold mb-2 mb-md-0">Carreras</h3>
-        </div>
+        <?php
+        $titulo      = 'Carreras';
+        $descripcion = 'Gestión de carreras registradas';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
-        <div class="col-12 col-md-6 text-md-end">
+        <div class="col-6 col-md-6 text-md-end">
             <?php if ($rol == "supervisor"): ?>
                 <a href="crear.php" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Crear Carrera

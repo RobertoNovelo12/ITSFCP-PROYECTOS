@@ -23,13 +23,13 @@ require_once '../../Controladores/solicitudActualizacionControlador.php';
 
 $controlador = new SolicitudActualizacionControlador();
 
-// ── POST: confirmar rechazo ──────────────────────────────────────
+//  POST: confirmar rechazo 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $controlador->rechazar($_POST, $id_usuario);
     exit;
 }
 
-// ── GET: mostrar formulario ──────────────────────────────────────
+//  GET: mostrar formulario 
 $id_solicitud = intval($_GET['id_solicitud'] ?? 0);
 if ($id_solicitud <= 0) die("ID de solicitud no válido.");
 
@@ -49,18 +49,16 @@ $error = $_GET['error'] ?? '';
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-12 col-md-8">
-            <h3 class="fw-bold mb-0">Rechazar solicitud académica</h3>
-            <p class="text-muted mb-0 small">
-                ID #<?= $id_solicitud ?> &bull;
-                <?= $controlador->etiquetaTipo($solicitud['tipo']) ?>
-            </p>
-        </div>
-        <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
+        <?php
+        $titulo      = 'Rechazar solicitud académica';
+        $descripcion = 'ID #<?= $id_solicitud ?>&bull <?= $controlador->etiquetaTipo($solicitud["tipo"]) ?>';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-6 col-md-4 text-md-end mt-2 mt-md-0">
             <a href="detalles.php?id_solicitud=<?= $id_solicitud ?>" class="btn btn-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Regresar
             </a>
@@ -84,7 +82,7 @@ ob_start();
             <div class="card border-0 shadow-sm mb-4 border-danger border-start border-4">
                 <div class="card-body d-flex align-items-center gap-3 py-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center bg-danger bg-opacity-10"
-                         style="width:52px;height:52px;flex-shrink:0;">
+                        style="width:52px;height:52px;flex-shrink:0;">
                         <i class="bi bi-x-circle-fill text-danger fs-3"></i>
                     </div>
                     <div>
@@ -144,8 +142,8 @@ ob_start();
                     <hr>
                     <?php if (!empty($solicitud['nombre_archivo'])): ?>
                         <a href="<?= htmlspecialchars($solicitud['ruta']) ?>"
-                           target="_blank"
-                           class="btn btn-sm btn-outline-danger w-100">
+                            target="_blank"
+                            class="btn btn-sm btn-outline-danger w-100">
                             <i class="bi bi-file-earmark-pdf-fill me-1"></i> Ver documento adjunto
                         </a>
                     <?php else: ?>
@@ -194,12 +192,12 @@ ob_start();
 
                         <div class="d-flex justify-content-between flex-wrap gap-2">
                             <a href="detalles.php?id_solicitud=<?= $id_solicitud ?>"
-                               class="btn btn-secondary">
+                                class="btn btn-secondary">
                                 <i class="bi bi-arrow-left me-1"></i> Cancelar
                             </a>
                             <button type="submit"
-                                    class="btn btn-danger"
-                                    onclick="return confirmarRechazo()">
+                                class="btn btn-danger"
+                                onclick="return confirmarRechazo()">
                                 <i class="bi bi-x-circle-fill me-1"></i> Confirmar rechazo
                             </button>
                         </div>
@@ -214,26 +212,26 @@ ob_start();
 </div>
 
 <script>
-// Contador de caracteres
-const textarea = document.getElementById('comentario');
-const counter  = document.getElementById('char-count');
-textarea.addEventListener('input', () => {
-    counter.textContent = textarea.value.length + ' caracteres';
-});
+    // Contador de caracteres
+    const textarea = document.getElementById('comentario');
+    const counter = document.getElementById('char-count');
+    textarea.addEventListener('input', () => {
+        counter.textContent = textarea.value.length + ' caracteres';
+    });
 
-function confirmarRechazo() {
-    const form = document.getElementById('form-rechazo');
-    if (!form.checkValidity()) {
-        form.classList.add('was-validated');
-        return false;
+    function confirmarRechazo() {
+        const form = document.getElementById('form-rechazo');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return false;
+        }
+        const comentario = textarea.value.trim();
+        if (comentario.length < 10) {
+            alert('El comentario debe tener al menos 10 caracteres.');
+            return false;
+        }
+        return confirm('¿Confirmar el rechazo de esta solicitud? Se enviará una notificación por correo al investigador.');
     }
-    const comentario = textarea.value.trim();
-    if (comentario.length < 10) {
-        alert('El comentario debe tener al menos 10 caracteres.');
-        return false;
-    }
-    return confirm('¿Confirmar el rechazo de esta solicitud? Se enviará una notificación por correo al investigador.');
-}
 </script>
 
 <?php

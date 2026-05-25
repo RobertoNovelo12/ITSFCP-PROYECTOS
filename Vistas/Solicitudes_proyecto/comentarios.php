@@ -50,51 +50,54 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
     <div class="row mb-3 align-items-center">
         <div class="row mb-1">
 
-            <div class="col-6">
-                <h3>Comentario</h3>
-            </div>
+            <?php
+            $titulo      = 'Comentarios del Supervisor';
+            $descripcion = 'Observaciones del supervisor al investigador';
+            include __DIR__ . '../../../publico/incluido/_encabezado.php';
+            ?>
 
             <div class="col-6 text-end">
                 <a href="index.php" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Regresar
                 </a>
             </div>
+        </div>
 
-            <?php if (!empty($error)): ?>
-                <div class="alert alert-danger mt-2"><?= htmlspecialchars($error) ?></div>
-            <?php endif; ?>
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-danger mt-2"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
 
-            <form method="POST" action="comentarios.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>&motivo=<?= htmlspecialchars($motivo) ?>">
+        <form method="POST" action="comentarios.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>&motivo=<?= htmlspecialchars($motivo) ?>">
 
-                <div class="row mb-1">
-                    <div class="mb-3">
-                        <label class="form-label">Motivo</label>
-                        <input type="text" class="form-control"
-                               value="<?= htmlspecialchars($texto_motivo) ?>" disabled>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Comentario</label>
-                        <textarea class="form-control" name="comentario" rows="3" required></textarea>
-                    </div>
-
-                    <input type="hidden" name="tipo"         value="<?= htmlspecialchars($motivo) ?>">
-                    <input type="hidden" name="action"       value="actualizarestadoRechazo">
-                    <input type="hidden" name="id_proyectos" value="<?= htmlspecialchars($id_proyectos) ?>">
-                    <input type="hidden" name="desde"        value="solicitudes">
-
-                    <div class="col-12 text-center">
-                        <button type="submit" class="btn btn-danger">Confirmar</button>
-                    </div>
+            <div class="row mb-1">
+                <div class="mb-3">
+                    <label class="form-label">Motivo</label>
+                    <input type="text" class="form-control"
+                        value="<?= htmlspecialchars($texto_motivo) ?>" disabled>
                 </div>
 
-            </form>
-        </div>
+                <div class="mb-3">
+                    <label class="form-label">Comentario</label>
+                    <textarea class="form-control" name="comentario" rows="3" required></textarea>
+                </div>
+
+                <input type="hidden" name="tipo" value="<?= htmlspecialchars($motivo) ?>">
+                <input type="hidden" name="action" value="actualizarestadoRechazo">
+                <input type="hidden" name="id_proyectos" value="<?= htmlspecialchars($id_proyectos) ?>">
+                <input type="hidden" name="desde" value="solicitudes">
+
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-danger">Confirmar</button>
+                </div>
+            </div>
+
+        </form>
     </div>
+</div>
 </div>
 
 <?php

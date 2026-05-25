@@ -61,13 +61,15 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
-        <div class="col-8">
-            <h3 class="mb-0 fw-bold">Rechazar carta de terminación</h3>
-        </div>
+<?php
+$titulo      = 'Rechazo de Carta de Terminación';
+$descripcion = 'Etapa 3 · Carta de terminación — motivo de rechazo al estudiante';
+include __DIR__ . '../../../publico/incluido/_encabezado.php';
+?>
         <div class="col-4 text-end">
             <a href="detalles.php?id=<?= $id_cierre_est ?>" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar

@@ -67,16 +67,16 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:900px;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
-        <div class="col">
-            <h3 class="mb-0 fw-bold">
-                <?= $es_correcciones ? 'Solicitar correcciones' : 'Rechazar solicitud de integración' ?>
-            </h3>
-        </div>
-        <div class="col-auto">
+        <?php
+        $titulo      = "<?= $es_correcciones ? 'Solicitar correcciones' : 'Rechazar solicitud de integración' ?>";
+        $descripcion = 'Resolución del supervisor al investigador';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-md-6 text-md-end">
             <a href="detalles_solicitud.php?id=<?= $id_solicitud ?>" class="btn btn-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
@@ -114,8 +114,8 @@ include __DIR__ . '/../../mensaje.php';
                     <?php if (!empty($sol['carta_ruta'])): ?>
                         <div class="mt-2">
                             <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($sol['carta_ruta']) ?>"
-                               target="_blank"
-                               class="btn btn-outline-primary btn-sm">
+                                target="_blank"
+                                class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-eye"></i> Ver carta compromiso
                             </a>
                         </div>
@@ -152,11 +152,11 @@ include __DIR__ . '/../../mensaje.php';
             <?php endif; ?>
 
             <form method="POST"
-                  action="accion_solicitud.php?id=<?= $id_solicitud ?>&tipo=<?= $tipo ?>"
-                  enctype="multipart/form-data"
-                  onsubmit="return confirm('<?= $es_correcciones
-                      ? '¿Enviar solicitud de correcciones a ' . htmlspecialchars(addslashes($sol['estudiante_nombre'])) . '?'
-                      : '¿Confirmar el rechazo de la solicitud de ' . htmlspecialchars(addslashes($sol['estudiante_nombre'])) . '? Esta acción no se puede deshacer.' ?>
+                action="accion_solicitud.php?id=<?= $id_solicitud ?>&tipo=<?= $tipo ?>"
+                enctype="multipart/form-data"
+                onsubmit="return confirm('<?= $es_correcciones
+                                                ? '¿Enviar solicitud de correcciones a ' . htmlspecialchars(addslashes($sol['estudiante_nombre'])) . '?'
+                                                : '¿Confirmar el rechazo de la solicitud de ' . htmlspecialchars(addslashes($sol['estudiante_nombre'])) . '? Esta acción no se puede deshacer.' ?>
                   )">
 
                 <div class="mb-3">
@@ -165,14 +165,14 @@ include __DIR__ . '/../../mensaje.php';
                         <span class="text-danger">*</span>
                     </label>
                     <textarea class="form-control"
-                              name="comentario"
-                              id="comentario"
-                              rows="5"
-                              maxlength="1000"
-                              placeholder="<?= $es_correcciones
-                                  ? 'Describe qué debe corregir, mejorar o agregar el estudiante en su solicitud…'
-                                  : 'Describe el motivo por el cual se rechaza esta solicitud (perfil no compatible, cupo lleno, requisitos incompletos, etc.)…' ?>"
-                              required></textarea>
+                        name="comentario"
+                        id="comentario"
+                        rows="5"
+                        maxlength="1000"
+                        placeholder="<?= $es_correcciones
+                                            ? 'Describe qué debe corregir, mejorar o agregar el estudiante en su solicitud…'
+                                            : 'Describe el motivo por el cual se rechaza esta solicitud (perfil no compatible, cupo lleno, requisitos incompletos, etc.)…' ?>"
+                        required></textarea>
                     <div class="form-text text-muted">
                         Máximo 1 000 caracteres. Este mensaje será visible para el estudiante.
                     </div>
@@ -184,25 +184,25 @@ include __DIR__ . '/../../mensaje.php';
                         <span class="text-muted fw-normal small">(opcional — PDF, DOCX, PNG o JPG, máx. 8 MB)</span>
                     </label>
                     <input type="file"
-                           class="form-control"
-                           name="archivo"
-                           id="archivo"
-                           accept=".pdf,.docx,.png,.jpg">
+                        class="form-control"
+                        name="archivo"
+                        id="archivo"
+                        accept=".pdf,.docx,.png,.jpg">
                 </div>
 
                 <!-- Campos ocultos -->
-                <input type="hidden" name="accion"       value="<?= $tipo ?>">
+                <input type="hidden" name="accion" value="<?= $tipo ?>">
                 <input type="hidden" name="id_solicitud" value="<?= $id_solicitud ?>">
 
                 <hr>
 
                 <div class="d-flex gap-3 justify-content-end flex-wrap">
                     <a href="detalles_solicitud.php?id=<?= $id_solicitud ?>"
-                       class="btn btn-secondary">
+                        class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Cancelar
                     </a>
                     <button type="submit"
-                            class="btn <?= $es_correcciones ? 'btn-warning' : 'btn-danger' ?>">
+                        class="btn <?= $es_correcciones ? 'btn-warning' : 'btn-danger' ?>">
                         <i class="bi <?= $es_correcciones ? 'bi-send-fill' : 'bi-x-circle-fill' ?> me-1"></i>
                         <?= $es_correcciones ? 'Enviar correcciones' : 'Confirmar rechazo' ?>
                     </button>

@@ -41,17 +41,21 @@ include __DIR__ . '/../../error.php';
 ?>
 
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
-    <div class="row mb-3">
+    <div class="row mb-4 align-items-center">
 
-        <div class="col-6">
-            <h3>Crear Temática</h3>
-        </div>
+        <?php
+        $titulo      = 'Nueva Temática';
+        $descripcion = 'Registro de una nueva temática';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
-        <div class="col-6 text-end">
-            <a href="index.php" class="btn btn-danger">Regresar</a>
+        <div class="col-md-6 text-md-end">
+            <a href="index.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar
+            </a>
         </div>
 
     </div>

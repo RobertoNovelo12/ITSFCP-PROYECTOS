@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plantillas_documentos/crear.php
  * Registro de nuevas plantillas de documentos — solo supervisor.
@@ -147,7 +148,7 @@ $errorMsgs = [
     'upload_2'         => 'El archivo supera el tamaño permitido por el formulario.',
     'upload_4'         => 'No se seleccionó ningún archivo.',
     'tamano_excedido'  => 'El archivo supera el límite de 10 MB.',
-    'extension_invalida'=> 'Solo se permiten archivos .doc y .docx.',
+    'extension_invalida' => 'Solo se permiten archivos .doc y .docx.',
     'mime_invalido'    => 'El tipo de archivo no es válido (se esperaba un documento Word).',
     'dir_fallo'        => 'No se pudo crear el directorio de almacenamiento.',
     'move_fallo'       => 'Error al guardar el archivo en el servidor.',
@@ -159,13 +160,16 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-3">
-        <div class="col-6">
-            <h3 class="fw-bold">Crear Plantilla de documento</h3>
-        </div>
+        <?php
+$titulo      = 'Nueva Plantilla';
+$descripcion = 'Registro de una nueva plantilla de documento';
+
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-6 text-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
@@ -209,7 +213,7 @@ include __DIR__ . '/../../mensaje.php';
                 <div class="mb-3">
                     <label for="nombre" class="form-label tarea-seccion-label">Nombre</label>
                     <input type="text" class="form-control" name="nombre" id="nombre"
-                           readonly required placeholder="Se calcula automáticamente">
+                        readonly required placeholder="Se calcula automáticamente">
                     <div class="form-text">
                         <i class="bi bi-info-circle"></i>
                         El nombre incluye la versión y se genera al seleccionar el tipo.
@@ -220,7 +224,7 @@ include __DIR__ . '/../../mensaje.php';
                 <div class="mb-3">
                     <label for="version" class="form-label tarea-seccion-label">Versión</label>
                     <input type="number" class="form-control" name="version" id="version"
-                           readonly required>
+                        readonly required>
                 </div>
 
                 <!-- Archivo -->
@@ -229,8 +233,8 @@ include __DIR__ . '/../../mensaje.php';
                         Plantilla de documento
                     </label>
                     <input type="file" name="archivo" id="archivo" class="form-control"
-                           accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                           required>
+                        accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        required>
                     <div class="form-text">
                         <i class="bi bi-info-circle"></i>
                         Solo se aceptan archivos <strong>.doc y .docx</strong> (máx. 10 MB).
@@ -254,54 +258,54 @@ include __DIR__ . '/../../layout.php';
 ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
 
-    const selectTipo = document.getElementById('select-tipo');
-    const inputNombre  = document.getElementById('nombre');
-    const inputVersion = document.getElementById('version');
-    const btnGuardar   = document.getElementById('btn-guardar');
+        const selectTipo = document.getElementById('select-tipo');
+        const inputNombre = document.getElementById('nombre');
+        const inputVersion = document.getElementById('version');
+        const btnGuardar = document.getElementById('btn-guardar');
 
-    function cargarDatos() {
-        const idTipo = selectTipo.value;
-        if (!idTipo) {
-            inputNombre.value  = '';
-            inputVersion.value = '';
-            return;
+        function cargarDatos() {
+            const idTipo = selectTipo.value;
+            if (!idTipo) {
+                inputNombre.value = '';
+                inputVersion.value = '';
+                return;
+            }
+
+            btnGuardar.disabled = true;
+            btnGuardar.textContent = 'Cargando…';
+
+            fetch('/ITSFCP-PROYECTOS/Ajax/plantilla_documento.php?tipo_documento=' + encodeURIComponent(idTipo))
+                .then(r => {
+                    if (!r.ok) throw new Error('Error de red: ' + r.status);
+                    return r.json();
+                })
+                .then(data => {
+                    if (data.nombre && data.version) {
+                        inputNombre.value = data.nombre;
+                        inputVersion.value = data.version;
+                    } else {
+                        throw new Error('Respuesta incompleta del servidor');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    inputNombre.value = '';
+                    inputVersion.value = '';
+                    alert('No se pudo obtener la información del tipo seleccionado. Intenta de nuevo.');
+                })
+                .finally(() => {
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = '<i class="bi bi-floppy"></i> Guardar plantilla';
+                });
         }
 
-        btnGuardar.disabled = true;
-        btnGuardar.textContent = 'Cargando…';
+        selectTipo.addEventListener('change', cargarDatos);
 
-        fetch('/ITSFCP-PROYECTOS/Ajax/plantilla_documento.php?tipo_documento=' + encodeURIComponent(idTipo))
-            .then(r => {
-                if (!r.ok) throw new Error('Error de red: ' + r.status);
-                return r.json();
-            })
-            .then(data => {
-                if (data.nombre && data.version) {
-                    inputNombre.value  = data.nombre;
-                    inputVersion.value = data.version;
-                } else {
-                    throw new Error('Respuesta incompleta del servidor');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                inputNombre.value  = '';
-                inputVersion.value = '';
-                alert('No se pudo obtener la información del tipo seleccionado. Intenta de nuevo.');
-            })
-            .finally(() => {
-                btnGuardar.disabled = false;
-                btnGuardar.innerHTML = '<i class="bi bi-floppy"></i> Guardar plantilla';
-            });
-    }
-
-    selectTipo.addEventListener('change', cargarDatos);
-
-    // Cargar al abrir si ya hay selección
-    if (selectTipo.value) {
-        cargarDatos();
-    }
-});
+        // Cargar al abrir si ya hay selección
+        if (selectTipo.value) {
+            cargarDatos();
+        }
+    });
 </script>

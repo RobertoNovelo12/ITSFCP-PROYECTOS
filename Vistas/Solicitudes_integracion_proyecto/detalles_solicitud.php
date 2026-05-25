@@ -28,7 +28,7 @@ if (!$id_solicitud) {
     exit;
 }
 
-// ── Acción directa: aceptar desde esta página ─────────────────────
+//  Acción directa: aceptar desde esta página ─
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'aceptar') {
     $ctrl->aceptar($id_solicitud, $id_usuario, $rol);
     // aceptar() redirige internamente
@@ -73,14 +73,16 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-        <div class="col">
-            <h3 class="fw-bold mb-0">Detalle de solicitud #<?= $id_solicitud ?></h3>
-        </div>
-        <div class="col-auto">
+        <?php
+        $titulo      = 'Detalles de la solicitud de Integración a Proyecto';
+        $descripcion = 'Información de la solicitud seleccionada';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
@@ -120,8 +122,8 @@ include __DIR__ . '/../../mensaje.php';
                         <div class="d-flex gap-1 flex-wrap mt-2">
                             <!-- Aceptar: POST directo con confirmación JS mínima -->
                             <form method="POST"
-                                  action="detalles_solicitud.php?id=<?= $id_solicitud ?>"
-                                  onsubmit="return confirm('¿Confirmar aceptación? El estudiante quedará integrado al proyecto.')">
+                                action="detalles_solicitud.php?id=<?= $id_solicitud ?>"
+                                onsubmit="return confirm('¿Confirmar aceptación? El estudiante quedará integrado al proyecto.')">
                                 <input type="hidden" name="accion" value="aceptar">
                                 <button type="submit" class="btn btn-success btn-sm">
                                     <i class="bi bi-check-lg"></i> Aceptar
@@ -129,11 +131,11 @@ include __DIR__ . '/../../mensaje.php';
                             </form>
                             <!-- Correcciones / Rechazar: van a página dedicada -->
                             <a href="accion_solicitud.php?id=<?= $id_solicitud ?>&tipo=correcciones"
-                               class="btn btn-warning btn-sm">
+                                class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil"></i> Correcciones
                             </a>
                             <a href="accion_solicitud.php?id=<?= $id_solicitud ?>&tipo=rechazar"
-                               class="btn btn-danger btn-sm">
+                                class="btn btn-danger btn-sm">
                                 <i class="bi bi-x-lg"></i> Rechazar
                             </a>
                         </div>
@@ -192,15 +194,15 @@ include __DIR__ . '/../../mensaje.php';
                     <?php if ($fase2_ok && $id_seg_cierre && in_array($e3_estado, ['pendiente', 'proceso', 'correcciones'])): ?>
                         <div class="d-flex gap-1 flex-wrap mt-2">
                             <a href="accion_cierre.php?id_seg=<?= $id_seg_cierre ?>&id_sol=<?= $id_solicitud ?>&estado=completado"
-                               class="btn btn-success btn-sm">
+                                class="btn btn-success btn-sm">
                                 <i class="bi bi-check-lg"></i> Aprobar
                             </a>
                             <a href="accion_cierre.php?id_seg=<?= $id_seg_cierre ?>&id_sol=<?= $id_solicitud ?>&estado=correcciones"
-                               class="btn btn-warning btn-sm">
+                                class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil"></i> Correcciones
                             </a>
                             <a href="accion_cierre.php?id_seg=<?= $id_seg_cierre ?>&id_sol=<?= $id_solicitud ?>&estado=rechazado"
-                               class="btn btn-danger btn-sm">
+                                class="btn btn-danger btn-sm">
                                 <i class="bi bi-x-lg"></i> Rechazar
                             </a>
                         </div>
@@ -229,8 +231,8 @@ include __DIR__ . '/../../mensaje.php';
                 <div class="d-flex flex-wrap gap-2">
                     <?php foreach ($documentos as $doc): ?>
                         <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($doc['ruta']) ?>"
-                           target="_blank"
-                           class="btn btn-sm btn-outline-primary">
+                            target="_blank"
+                            class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-file-earmark-text me-1"></i>
                             <?= htmlspecialchars($doc['nombre']) ?>
                             <?php if (!empty($doc['tipo_nombre'])): ?>
@@ -251,7 +253,7 @@ include __DIR__ . '/../../mensaje.php';
             </div>
             <div class="card-body">
                 <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($sol['carta_ruta']) ?>"
-                   target="_blank" class="btn btn-outline-primary">
+                    target="_blank" class="btn btn-outline-primary">
                     <i class="bi bi-download me-1"></i>
                     <?= htmlspecialchars($sol['carta_nombre'] ?? 'Descargar carta') ?>
                     <?php if (!empty($sol['carta_extension'])): ?>
@@ -264,7 +266,9 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- DATOS DEL ESTUDIANTE -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header text-white"><h5 class="mb-0">Información del estudiante</h5></div>
+        <div class="card-header text-white">
+            <h5 class="mb-0">Información del estudiante</h5>
+        </div>
         <div class="card-body">
             <div class="row">
                 <?php
@@ -290,7 +294,9 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- PROYECTO -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header text-white"><h5 class="mb-0">Proyecto solicitado</h5></div>
+        <div class="card-header text-white">
+            <h5 class="mb-0">Proyecto solicitado</h5>
+        </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
@@ -325,7 +331,9 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header text-white"><h5 class="mb-0">Motivación</h5></div>
+                <div class="card-header text-white">
+                    <h5 class="mb-0">Motivación</h5>
+                </div>
                 <div class="card-body">
                     <?= nl2br(htmlspecialchars($sol['motivacion'] ?? 'Sin información')) ?>
                 </div>
@@ -333,7 +341,9 @@ include __DIR__ . '/../../mensaje.php';
         </div>
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header text-white"><h5 class="mb-0">Experiencia</h5></div>
+                <div class="card-header text-white">
+                    <h5 class="mb-0">Experiencia</h5>
+                </div>
                 <div class="card-body">
                     <?= nl2br(htmlspecialchars($sol['experiencia'] ?? 'Sin información')) ?>
                 </div>
@@ -343,7 +353,9 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- HISTORIAL DE COMENTARIOS -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header text-white"><h5 class="mb-0">Historial de comentarios</h5></div>
+        <div class="card-header text-white">
+            <h5 class="mb-0">Historial de comentarios</h5>
+        </div>
         <div class="card-body">
             <?php if (!empty($comentarios)): ?>
                 <?php foreach ($comentarios as $c): ?>
@@ -351,7 +363,7 @@ include __DIR__ . '/../../mensaje.php';
                         <p class="mb-1"><?= nl2br(htmlspecialchars($c['comentario'])) ?></p>
                         <?php if (!empty($c['archivo_nombre'])): ?>
                             <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($c['archivo_ruta']) ?>"
-                               target="_blank" class="small text-primary">
+                                target="_blank" class="small text-primary">
                                 <i class="bi bi-paperclip"></i> <?= htmlspecialchars($c['archivo_nombre']) ?>
                             </a>
                         <?php endif; ?>
@@ -372,22 +384,24 @@ include __DIR__ . '/../../mensaje.php';
     <!-- ACCIONES RÁPIDAS -->
     <?php if (in_array($sol['estado'], ['pendiente', 'en_revision', 'correcciones'])): ?>
         <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0">Acciones sobre la solicitud</h5></div>
+            <div class="card-header">
+                <h5 class="mb-0">Acciones sobre la solicitud</h5>
+            </div>
             <div class="card-body d-flex gap-2 flex-wrap">
                 <form method="POST"
-                      action="detalles_solicitud.php?id=<?= $id_solicitud ?>"
-                      onsubmit="return confirm('¿Confirmar aceptación? El estudiante quedará integrado al proyecto.')">
+                    action="detalles_solicitud.php?id=<?= $id_solicitud ?>"
+                    onsubmit="return confirm('¿Confirmar aceptación? El estudiante quedará integrado al proyecto.')">
                     <input type="hidden" name="accion" value="aceptar">
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-check-circle-fill"></i> Aceptar
                     </button>
                 </form>
                 <a href="accion_solicitud.php?id=<?= $id_solicitud ?>&tipo=correcciones"
-                   class="btn btn-warning">
+                    class="btn btn-warning">
                     <i class="bi bi-pencil-fill"></i> Pedir correcciones
                 </a>
                 <a href="accion_solicitud.php?id=<?= $id_solicitud ?>&tipo=rechazar"
-                   class="btn btn-danger">
+                    class="btn btn-danger">
                     <i class="bi bi-ban"></i> Rechazar
                 </a>
             </div>

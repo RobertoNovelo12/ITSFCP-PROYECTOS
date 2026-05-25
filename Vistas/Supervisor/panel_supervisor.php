@@ -1,4 +1,5 @@
 <?php
+
 /**
  * panel_supervisor.php
  * Dashboard de solo lectura del supervisor — responsivo con tarjetas móvil.
@@ -41,15 +42,18 @@ function barraProgreso(int $aprobadas, int $total): string
 ob_start();
 ?>
 
-<div class="container-fluid py-4 sup-page" style="max-width:95%;">
+<div class="container-fluid py-4 sup-page ancho_container">
 
     <!--  ENCABEZADO -->
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-        <div>
-            <h4><i class="bi bi-speedometer2 me-2"></i>Panel del Supervisor</h4>
-            <span>Vista consolidada del sistema — solo lectura. Los datos se actualizan en tiempo real.</span>
+    <div class="row mb-4 align-items-center">
+        <?php
+        $titulo      = 'Panel del Supervisor';
+        $descripcion = 'Resumen general de proyectos, estudiantes y solicitudes';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-md-6 text-md-end">
+            <span class="badge-modo"><i class="bi bi-eye me-1"></i>Modo visualización</span>
         </div>
-        <span class="badge-modo"><i class="bi bi-eye me-1"></i>Modo visualización</span>
     </div>
     <br><br>
 
@@ -85,7 +89,7 @@ ob_start();
             <div class="kpi-card azul h-100">
                 <div class="kpi-icon azul"><i class="bi bi-folder2-open"></i></div>
                 <div class="kpi-num"><?= $resumen['proyectos']['total_proyectos'] ?? 0 ?></div>
-                <div class="kpi-lbl">Proyectos</div>
+                <div class="fw-bold mb-2 mb-md-0">Proyectos</div>
                 <div class="kpi-desc">Proyectos de investigación registrados en el sistema para el periodo seleccionado.</div>
                 <div class="kpi-sub">
                     <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['activos'] ?? 0 ?> activos</span>
@@ -103,7 +107,7 @@ ob_start();
             <div class="kpi-card verde h-100">
                 <div class="kpi-icon verde"><i class="bi bi-people-fill"></i></div>
                 <div class="kpi-num"><?= $resumen['estudiantes']['total_estudiantes'] ?? 0 ?></div>
-                <div class="kpi-lbl">Estudiantes</div>
+                <div class="fw-bold mb-2 mb-md-0">Estudiantes</div>
                 <div class="kpi-desc">Estudiantes integrados a algún proyecto de investigación, incluyendo activos y con proyecto concluido.</div>
                 <div class="kpi-sub">
                     <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['activos'] ?? 0 ?> activos</span>
@@ -118,7 +122,7 @@ ob_start();
             <div class="kpi-card amber h-100">
                 <div class="kpi-icon amber"><i class="bi bi-envelope-paper-fill"></i></div>
                 <div class="kpi-num"><?= $resumen['solicitudes']['total_solicitudes'] ?? 0 ?></div>
-                <div class="kpi-lbl">Solicitudes de integración</div>
+                <div class="fw-bold mb-2 mb-md-0">Solicitudes de integración</div>
                 <div class="kpi-desc">Solicitudes enviadas por estudiantes para incorporarse a un proyecto de investigación.</div>
                 <div class="kpi-sub">
                     <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['pendientes'] ?? 0 ?> pendientes</span>
@@ -135,7 +139,7 @@ ob_start();
             <div class="kpi-card rojo h-100">
                 <div class="kpi-icon rojo"><i class="bi bi-list-task"></i></div>
                 <div class="kpi-num"><?= $resumen['tareas']['total_tareas'] ?? 0 ?></div>
-                <div class="kpi-lbl">Secciones del documento</div>
+                <div class="fw-bold mb-2 mb-md-0">Secciones del documento</div>
                 <div class="kpi-desc">Instancias de secciones del documento asignadas a cada estudiante en todos los proyectos (excluye "Sin activar").</div>
                 <div class="kpi-sub">
                     <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['aprobadas'] ?? 0 ?> aprobadas</span>
@@ -404,7 +408,7 @@ ob_start();
             </div>
         </div>
 
-    <!-- 
+        <!-- 
          TAB: PROYECTOS
           -->
     <?php elseif ($filtros['tab'] === 'proyectos'): ?>
@@ -443,8 +447,8 @@ ob_start();
                     <select name="modalidad" class="form-select form-select-sm">
                         <option value="">Modalidad</option>
                         <option value="virtual" <?= $filtros['modalidad'] === 'virtual' ? 'selected' : '' ?>>Virtual</option>
-                        <option value="fisico"  <?= $filtros['modalidad'] === 'fisico'  ? 'selected' : '' ?>>Físico</option>
-                        <option value="mixto"   <?= $filtros['modalidad'] === 'mixto'   ? 'selected' : '' ?>>Mixto</option>
+                        <option value="fisico" <?= $filtros['modalidad'] === 'fisico'  ? 'selected' : '' ?>>Físico</option>
+                        <option value="mixto" <?= $filtros['modalidad'] === 'mixto'   ? 'selected' : '' ?>>Mixto</option>
                     </select>
                 </div>
                 <div class="col-auto d-flex gap-2">
@@ -560,7 +564,7 @@ ob_start();
         include __DIR__ . '../../../publico/incluido/_paginacion.php';
         ?>
 
-    <!-- 
+        <!-- 
          TAB: SOLICITUDES
           -->
     <?php elseif ($filtros['tab'] === 'solicitudes'): ?>
@@ -682,7 +686,7 @@ ob_start();
         include __DIR__ . '../../../publico/incluido/_paginacion.php';
         ?>
 
-    <!-- 
+        <!-- 
          TAB: ETAPAS & SECCIONES
           -->
     <?php elseif ($filtros['tab'] === 'etapas'): ?>
@@ -826,7 +830,7 @@ ob_start();
             </div>
         </div>
 
-    <!-- 
+        <!-- 
          TAB: ESTUDIANTES
           -->
     <?php elseif ($filtros['tab'] === 'usuarios'): ?>

@@ -35,14 +35,16 @@ if (empty($linea)) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
 
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Detalles de la línea de investigación</h3>
-        </div>
+        <?php
+        $titulo      = 'Detalle de Línea de Investigación';
+        $descripcion = 'Información de la línea seleccionada';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
         <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">

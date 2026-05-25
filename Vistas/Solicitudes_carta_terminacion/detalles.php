@@ -48,13 +48,15 @@ if (!empty($_GET['error'])) {
 }
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
-        <div class="col-8">
-            <h3 class="mb-0 fw-bold">Detalle — Carta de Terminación</h3>
-        </div>
+        <?php
+        $titulo      = 'Detalle de Carta de Terminación';
+        $descripcion = 'Información de la solicitud seleccionada';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-4 text-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
@@ -193,8 +195,8 @@ if (!empty($_GET['error'])) {
                 </div>
                 <div class="col-md-4 text-md-end mt-3 mt-md-0">
                     <a href="<?= htmlspecialchars($carta['ruta_documento']) ?>"
-                       target="_blank"
-                       class="btn btn-outline-primary">
+                        target="_blank"
+                        class="btn btn-outline-primary">
                         <i class="bi bi-download"></i> Descargar / Ver carta
                     </a>
                 </div>
@@ -225,10 +227,10 @@ if (!empty($_GET['error'])) {
                         <div class="d-flex mb-3 position-relative" style="padding-left:52px;">
                             <!-- Ícono circular -->
                             <div class="position-absolute"
-                                 style="left:8px;top:2px;width:24px;height:24px;border-radius:50%;z-index:1;"
-                                 class="bg-<?= htmlspecialchars($item['badge_color']) ?>">
+                                style="left:8px;top:2px;width:24px;height:24px;border-radius:50%;z-index:1;"
+                                class="bg-<?= htmlspecialchars($item['badge_color']) ?>">
                                 <span class="badge text-bg-<?= htmlspecialchars($item['badge_color']) ?>"
-                                      style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;">
+                                    style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;">
                                     &bull;
                                 </span>
                             </div>
@@ -280,14 +282,14 @@ if (!empty($_GET['error'])) {
 
                     <!-- APROBAR -->
                     <a href="index.php?action=aprobar&id=<?= $carta['id_cierre_est'] ?>"
-                       class="btn btn-success btn-lg"
-                       onclick="return confirm('¿Confirma que desea APROBAR la carta de terminación de <?= htmlspecialchars($carta['nombre_estudiante']) ?>? Esta acción concluirá su participación en el proyecto.')">
+                        class="btn btn-success btn-lg"
+                        onclick="return confirm('¿Confirma que desea APROBAR la carta de terminación de <?= htmlspecialchars($carta['nombre_estudiante']) ?>? Esta acción concluirá su participación en el proyecto.')">
                         <i class="bi bi-check-circle-fill me-1"></i> Aprobar carta
                     </a>
 
                     <!-- RECHAZAR -->
                     <a href="motivo_rechazo.php?id=<?= $carta['id_cierre_est'] ?>"
-                       class="btn btn-danger btn-lg">
+                        class="btn btn-danger btn-lg">
                         <i class="bi bi-x-circle-fill me-1"></i> Rechazar carta
                     </a>
 

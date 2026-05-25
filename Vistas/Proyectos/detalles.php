@@ -17,7 +17,7 @@ $id = $_SESSION['id_usuario'];
 $id_proyecto = $_GET["id_proyectos"];
 
 //Todos los roles pueden acceder
-if (!in_array($rol, ['investigador', 'profesor','estudiante', 'supervisor'], true)) {
+if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
@@ -41,13 +41,15 @@ if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
 ob_start();
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <div class="row mb-3">
 
-        <div class="col-6">
-            <h3>Detalles del Proyecto</h3>
-        </div>
+        <?php
+        $titulo      = 'Detalle de Proyecto';
+        $descripcion = 'Información completa del proyecto';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
             <a href="index.php" class="btn btn-secondary">

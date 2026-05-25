@@ -43,12 +43,14 @@ include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
     <!-- ENCABEZADO -->
     <div class="row mb-3">
-        <div class="col-6">
-            <h3>Crear Línea de investigación</h3>
-        </div>
+        <?php
+        $titulo      = 'Nueva Línea de Investigación';
+        $descripcion = 'Registro de una nueva línea de investigación';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-6 text-end">
             <a href="index.php" class="btn btn-danger">Regresar</a>
         </div>

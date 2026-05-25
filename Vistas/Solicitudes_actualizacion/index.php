@@ -55,12 +55,16 @@ $error = $_GET['error'] ?? '';
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- TÍTULO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-12 col-md-6">
-            <h3 class="fw-bold mb-2 mb-md-0">Solicitudes de actualización académica</h3>
+        <?php
+        $titulo      = 'Solicitudes de Actualización';
+        $descripcion = 'Solicitudes de actualización de grado académico o nivel SNI';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-6 col-md-6">
         </div>
     </div>
 

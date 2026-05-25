@@ -43,28 +43,30 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
+<div class="container-fluid py-4 ancho_container">
+    <!-- ENCABEZADO -->
 
-<form method="POST" action="" id="formCrearTematica">
+    <div class="row mb-3">
 
-    <input type="hidden" name="action" value="Modificar">
+        <?php
+        $titulo      = 'Editar Temática';
+        $descripcion = 'Modificar datos de la temática';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
-    <input type="hidden" name="id_tematica" value="<?= $tematica['id_tematica'] ?>">
+        <div class="col-6 col-md-6 text-md-end">
+            <?php if ($rol == "supervisor"): ?>
+                <a href="index.php" class="btn btn-secondary btn-sm px-4">
+                    <i class="bi bi-arrow-left"></i> Regresar</a>
 
-    <div class="container-fluid py-4">
-
-        <!-- ENCABEZADO -->
-
-        <div class="row mb-3">
-
-            <div class="col-6">
-                <h3>Editar Temática</h3>
-            </div>
-
-            <div class="col-6 text-end">
-                <a href="index.php" class="btn btn-danger">Regresar</a>
-            </div>
-
+            <?php endif; ?>
         </div>
+    </div>
+    <form method="POST" action="" id="formCrearTematica">
+
+        <input type="hidden" name="action" value="Modificar">
+
+        <input type="hidden" name="id_tematica" value="<?= $tematica['id_tematica'] ?>">
 
 
         <!-- DATOS TEMATICA -->
@@ -186,10 +188,8 @@ include __DIR__ . '/../../error.php';
 
         </button>
 
-    </div>
-
-</form>
-
+    </form>
+</div>
 
 <script src="../../publico/js/subtematicas.js"></script>
 

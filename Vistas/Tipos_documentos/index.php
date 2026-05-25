@@ -42,30 +42,33 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- TITULO -->
     <div class="row mb-4 align-items-center">
-
-        <div class="col-12 col-md-9">
-            <h3 class="fw-bold mb-2 mb-md-0">Ajustes de tipos de documentación</h3>
+        <?php
+        $titulo      = 'Tipos de Documentos';
+        $descripcion = 'Gestión de tipos de documentos del sistema';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-6 col-md-6">
         </div>
     </div>
 
     <!-- FILTROS -->
     <div class="row mb-3">
 
-    <div class="col-12 col-md-4">
-        <select class="form-select"
-            onchange="location.href='index.php?action=' + this.value;">
-            <?php foreach ($opciones as $key => $label): ?>
-                <option value="<?= htmlspecialchars($key) ?>"
-                    <?= ($action === $key) ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($label) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
+        <div class="col-12 col-md-4">
+            <select class="form-select"
+                onchange="location.href='index.php?action=' + this.value;">
+                <?php foreach ($opciones as $key => $label): ?>
+                    <option value="<?= htmlspecialchars($key) ?>"
+                        <?= ($action === $key) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
     </div>
     <!-- TABLA LAPTOP -->
     <div class="card shadow-sm d-none d-md-block">

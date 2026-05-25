@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Guard
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Reactivar') {
     $lineaControlador->reactivar($rol, $_POST['id_linea']);
-} elseif ( $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Desactivar') {
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Desactivar') {
     $lineaControlador->eliminar($rol, $_POST['id_linea']);
 }
 
@@ -51,14 +51,16 @@ include __DIR__ . '/../../error.php';
 ?>
 
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
 
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Editar Línea de investigación</h3>
-        </div>
+        <?php
+        $titulo      = 'Editar Línea de Investigación';
+        $descripcion = 'Modificar datos de la línea de investigación';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
         <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">

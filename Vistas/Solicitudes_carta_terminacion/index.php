@@ -62,14 +62,15 @@ if (isset($_GET['error']) && $_GET['error']) {
 }
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
-        <div class="col-md-6">
-            <h2 class="mb-0 fw-bold">Cartas de Terminación</h2>
-            <p class="text-muted small mb-0">Solicitudes de cierre individual de estudiantes</p>
-        </div>
+        <?php
+        $titulo      = 'Solicitudes de Carta de Terminación';
+        $descripcion = 'Solicitudes de cierre individual de estudiantes';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-md-6 text-md-end">
             <form class="d-inline-flex align-items-center gap-2" method="GET">
                 <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">

@@ -74,6 +74,8 @@ include __DIR__ . '/../../mensaje.php';
 <!-- 
      CONTENIDO
 ═ -->
+<div class="container-fluid py-4"  style="max-width:95%;">
+
 <div class="dms-page">
 
     <!-- NAVEGACIÓN -->
@@ -349,7 +351,7 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 
 </div>
-
+</div>
 <?php
 $contenido = ob_get_clean();
 $titulo    = "Detalles de la solicitud";

@@ -41,12 +41,24 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- Cabecera -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-        <h3 class="mb-0 fw-semibold">Seguimiento de Actividades</h3>
-        <a href="../Proyectos/index.php" class="btn btn-secondary btn-sm px-4"><i class="bi bi-arrow-left"></i> Regresar</a>
+    <div class="row mb-4 align-items-center">
+
+        <?php
+        $titulo      = 'Tareas';
+        $descripcion = 'Tareas activas y pendientes por activar';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+
+        <div class="col-6 col-md-6 text-md-end">
+            <?php if ($rol == "supervisor"): ?>
+                <a href="../Proyectos/index.php" class="btn btn-secondary btn-sm px-4">
+                    <i class="bi bi-arrow-left"></i> Regresar</a>
+
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Tabla (desktop) -->
@@ -187,7 +199,7 @@ include __DIR__ . '/../../mensaje.php';
                         <div class="d-flex gap-2">
                             <?= $tareaControlador->botonesAccionPrincipal($tar['id_tarea'], $rol, $estadoCard, $id_proyecto) ?>
                         </div>
-                        
+
                     </div>
                 </div>
 

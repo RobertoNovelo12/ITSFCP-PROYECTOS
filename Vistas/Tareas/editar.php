@@ -57,22 +57,28 @@ include __DIR__ . '/../../mensaje.php';
 ?>
 
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!--  Cabecera ─ -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-        <div>
-            <h4 class="mb-0 fw-semibold"><?= htmlspecialchars($tarea['titulo_tarea'] ?? 'Editar Actividad') ?></h4>
-            <small class="text-muted">Modificar instrucciones, descripción y archivo de guía</small>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tarea['estado'] ?? '') ?>">
-                <?= htmlspecialchars($tarea['estado'] ?? '') ?>
-            </span>
-            <a href="index.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>"
-               class="btn btn-secondary btn-sm px-3">
-                <i class="bi bi-arrow-left"></i> Regresar
-            </a>
+
+    <div class="row mb-4 align-items-center">
+
+        <?php
+        $titulo      = '<?= htmlspecialchars($tarea["titulo_tarea"] ?? "Editar Actividad") ?>';
+        $descripcion = 'Modificar instrucciones, descripción y archivo de guía';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+
+        <div class="col-6 col-md-6 text-md-end">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tarea['estado'] ?? '') ?>">
+                    <?= htmlspecialchars($tarea['estado'] ?? '') ?>
+                </span>
+                <a href="index.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>"
+                    class="btn btn-secondary btn-sm px-3">
+                    <i class="bi bi-arrow-left"></i> Regresar
+                </a>
+            </div>
         </div>
     </div>
 
@@ -88,11 +94,11 @@ include __DIR__ . '/../../mensaje.php';
         <div class="card-header"><i class="bi bi-info-circle me-2"></i> <b>Información de la tarea</b></div>
         <div class="card-body">
             <form action="editar.php?id_proyectos=<?= htmlspecialchars($id_proyectos ?? '') ?>"
-                  method="POST" enctype="multipart/form-data" id="form-editar">
-                <input type="hidden" name="action"       value="editarTarea">
-                <input type="hidden" name="id_tarea"     value="<?= $tarea['id_tarea'] ?>">
+                method="POST" enctype="multipart/form-data" id="form-editar">
+                <input type="hidden" name="action" value="editarTarea">
+                <input type="hidden" name="id_tarea" value="<?= $tarea['id_tarea'] ?>">
                 <input type="hidden" name="id_proyectos" value="<?= htmlspecialchars($id_proyectos ?? '') ?>">
-                <input type="hidden" name="id_usuario"   value="<?= $id ?>">
+                <input type="hidden" name="id_usuario" value="<?= $id ?>">
 
                 <!--  Descripción  -->
                 <div class="mb-3">
@@ -101,9 +107,9 @@ include __DIR__ . '/../../mensaje.php';
                     <!-- Nota de límite -->
                     <div class="nota-explicacion mb-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
-                            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4"/>
-                            <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="10" cy="6.5" r="0.8" fill="currentColor"/>
+                            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
+                            <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                            <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
                         </svg>
                         <span>
                             Máximo <strong><?= number_format(MAX_DESCRIPCION, 0, '.', ',') ?> caracteres</strong>
@@ -113,12 +119,11 @@ include __DIR__ . '/../../mensaje.php';
                     </div>
 
                     <textarea class="form-control editor"
-                              name="descripcion"
-                              id="editor-descripcion"
-                              rows="3"
-                              data-max="<?= MAX_DESCRIPCION ?>"
-                              data-counter="counter-descripcion"
-                    ><?= htmlspecialchars($tarea['descripcion'] ?? '') ?></textarea>
+                        name="descripcion"
+                        id="editor-descripcion"
+                        rows="3"
+                        data-max="<?= MAX_DESCRIPCION ?>"
+                        data-counter="counter-descripcion"><?= htmlspecialchars($tarea['descripcion'] ?? '') ?></textarea>
 
                     <div class="char-counter" id="counter-descripcion">
                         <span id="counter-descripcion-val"><?= $lenDescripcion ?></span> / <?= number_format(MAX_DESCRIPCION, 0, '.', ',') ?> caracteres
@@ -132,9 +137,9 @@ include __DIR__ . '/../../mensaje.php';
                     <!-- Nota de límite -->
                     <div class="nota-explicacion mb-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
-                            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4"/>
-                            <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="10" cy="6.5" r="0.8" fill="currentColor"/>
+                            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
+                            <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                            <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
                         </svg>
                         <span>
                             Máximo <strong><?= number_format(MAX_INSTRUCCIONES, 0, '.', ',') ?> caracteres</strong>
@@ -144,12 +149,11 @@ include __DIR__ . '/../../mensaje.php';
                     </div>
 
                     <textarea class="form-control editor"
-                              name="instrucciones"
-                              id="editor-instrucciones"
-                              rows="3"
-                              data-max="<?= MAX_INSTRUCCIONES ?>"
-                              data-counter="counter-instrucciones"
-                    ><?= htmlspecialchars($tarea['instrucciones'] ?? '') ?></textarea>
+                        name="instrucciones"
+                        id="editor-instrucciones"
+                        rows="3"
+                        data-max="<?= MAX_INSTRUCCIONES ?>"
+                        data-counter="counter-instrucciones"><?= htmlspecialchars($tarea['instrucciones'] ?? '') ?></textarea>
 
                     <div class="char-counter" id="counter-instrucciones">
                         <span id="counter-instrucciones-val"><?= $lenInstrucciones ?></span> / <?= number_format(MAX_INSTRUCCIONES, 0, '.', ',') ?> caracteres
@@ -161,14 +165,14 @@ include __DIR__ . '/../../mensaje.php';
                     <div class="col-md-6">
                         <label class="form-label tarea-seccion-label">Fecha de entrega</label>
                         <input type="date" name="fecha_entrega" class="form-control"
-                               value="<?= htmlspecialchars($tarea['fecha_entrega'] ?? '') ?>">
+                            value="<?= htmlspecialchars($tarea['fecha_entrega'] ?? '') ?>">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label tarea-seccion-label">Archivo de guía actual</label>
                         <?php if (!empty($tarea['archivo_nombre'])): ?>
                             <div class="mb-1">
                                 <a href="descargar_guia.php?id=<?= $tarea['id_tarea'] ?>"
-                                   class="small text-danger d-flex align-items-center gap-1">
+                                    class="small text-danger d-flex align-items-center gap-1">
                                     <i class="bi bi-file-earmark-arrow-down"></i>
                                     <?= htmlspecialchars($tarea['archivo_nombre']) ?>
                                 </a>
@@ -234,57 +238,62 @@ include __DIR__ . '/../../mensaje.php';
 <!-- TinyMCE -->
 <script src="https://cdn.tiny.cloud/1/0ro7u4jwmnmqkovrjmi7cc1w5kk7tzragurlph7foryy7xbv/tinymce/6/tinymce.min.js"></script>
 <script>
-(function () {
+    (function() {
 
-    // Límites en JS (deben coincidir con las constantes PHP)
-    const LIMITES = {
-        'editor-descripcion':   <?= MAX_DESCRIPCION ?>,
-        'editor-instrucciones': <?= MAX_INSTRUCCIONES ?>,
-    };
+        // Límites en JS (deben coincidir con las constantes PHP)
+        const LIMITES = {
+            'editor-descripcion': <?= MAX_DESCRIPCION ?>,
+            'editor-instrucciones': <?= MAX_INSTRUCCIONES ?>,
+        };
 
-    //  Actualiza el contador de un editor concreto 
-    function actualizarContador(editorId) {
-        const max     = LIMITES[editorId];
-        const counter = document.getElementById(editorId.replace('editor-', 'counter-'));
-        const valEl   = document.getElementById(editorId.replace('editor-', 'counter-') + '-val');
-        if (!counter || !valEl) return;
+        //  Actualiza el contador de un editor concreto 
+        function actualizarContador(editorId) {
+            const max = LIMITES[editorId];
+            const counter = document.getElementById(editorId.replace('editor-', 'counter-'));
+            const valEl = document.getElementById(editorId.replace('editor-', 'counter-') + '-val');
+            if (!counter || !valEl) return;
 
-        // Obtener texto plano del contenido TinyMCE
-        const editor = tinymce.get(editorId);
-        const texto  = editor ? editor.getContent({ format: 'text' }) : '';
-        const len    = [...texto].length; // cuenta correctamente UTF-8
+            // Obtener texto plano del contenido TinyMCE
+            const editor = tinymce.get(editorId);
+            const texto = editor ? editor.getContent({
+                format: 'text'
+            }) : '';
+            const len = [...texto].length; // cuenta correctamente UTF-8
 
-        valEl.textContent = len.toLocaleString('es-MX');
+            valEl.textContent = len.toLocaleString('es-MX');
 
-        counter.classList.remove('near-limit', 'over-limit');
-        if (len > max) {
-            counter.classList.add('over-limit');
-        } else if (len >= max * 0.9) {   // aviso al 90 %
-            counter.classList.add('near-limit');
-        }
-
-        return { len, max };
-    }
-
-    //  Valida todos los contadores antes del submit ─
-    function validarLimites() {
-        for (const editorId of Object.keys(LIMITES)) {
-            const result = actualizarContador(editorId);
-            if (result && result.len > result.max) {
-                return false;
+            counter.classList.remove('near-limit', 'over-limit');
+            if (len > max) {
+                counter.classList.add('over-limit');
+            } else if (len >= max * 0.9) { // aviso al 90 %
+                counter.classList.add('near-limit');
             }
+
+            return {
+                len,
+                max
+            };
         }
-        return true;
-    }
 
-    //  Inicializa TinyMCE ─
-    document.addEventListener('DOMContentLoaded', function () {
+        //  Valida todos los contadores antes del submit ─
+        function validarLimites() {
+            for (const editorId of Object.keys(LIMITES)) {
+                const result = actualizarContador(editorId);
+                if (result && result.len > result.max) {
+                    return false;
+                }
+            }
+            return true;
+        }
 
-        tinymce.init({
-            selector: '.editor',
-            height: 350,
-            plugins: 'lists link table code wordcount charmap insertdatetime',
-            toolbar: `
+        //  Inicializa TinyMCE ─
+        document.addEventListener('DOMContentLoaded', function() {
+
+            tinymce.init({
+                selector: '.editor',
+                height: 350,
+                plugins: 'lists link table code wordcount charmap insertdatetime',
+                toolbar: `
                 undo redo |
                 bold italic underline |
                 alignleft aligncenter alignright |
@@ -294,51 +303,51 @@ include __DIR__ . '/../../mensaje.php';
                 insertdatetime |
                 code
             `,
-            toolbar_mode: 'sliding',
-            branding: false,
-            statusbar: true,
+                toolbar_mode: 'sliding',
+                branding: false,
+                statusbar: true,
 
-            setup(editor) {
-                // Al cargar el editor, mostrar conteo inicial
-                editor.on('init', function () {
-                    actualizarContador(editor.id);
-                });
+                setup(editor) {
+                    // Al cargar el editor, mostrar conteo inicial
+                    editor.on('init', function() {
+                        actualizarContador(editor.id);
+                    });
 
-                // Actualizar en cada pulsación de tecla o cambio de contenido
-                editor.on('input keyup change SetContent', function () {
-                    actualizarContador(editor.id);
-                });
-            },
-        });
+                    // Actualizar en cada pulsación de tecla o cambio de contenido
+                    editor.on('input keyup change SetContent', function() {
+                        actualizarContador(editor.id);
+                    });
+                },
+            });
 
-        //  Interceptar submit ─
-        const form    = document.getElementById('form-editar');
-        const btnSave = document.getElementById('btn-guardar');
+            //  Interceptar submit ─
+            const form = document.getElementById('form-editar');
+            const btnSave = document.getElementById('btn-guardar');
 
-        form?.addEventListener('submit', function (e) {
-            if (!validarLimites()) {
-                e.preventDefault();
+            form?.addEventListener('submit', function(e) {
+                if (!validarLimites()) {
+                    e.preventDefault();
 
-                // Resaltar el campo que superó el límite
-                for (const editorId of Object.keys(LIMITES)) {
-                    const result = actualizarContador(editorId);
-                    if (result && result.len > result.max) {
-                        const campo   = editorId.replace('editor-', '');
-                        const exceso  = result.len - result.max;
-                        const nombre  = campo === 'descripcion' ? 'Descripción' : 'Instrucciones';
-                        alert(
-                            `"${nombre}" supera el límite permitido en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\n` +
-                            `Por favor reduce el contenido antes de guardar.`
-                        );
-                        tinymce.get(editorId)?.focus();
-                        break;
+                    // Resaltar el campo que superó el límite
+                    for (const editorId of Object.keys(LIMITES)) {
+                        const result = actualizarContador(editorId);
+                        if (result && result.len > result.max) {
+                            const campo = editorId.replace('editor-', '');
+                            const exceso = result.len - result.max;
+                            const nombre = campo === 'descripcion' ? 'Descripción' : 'Instrucciones';
+                            alert(
+                                `"${nombre}" supera el límite permitido en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\n` +
+                                `Por favor reduce el contenido antes de guardar.`
+                            );
+                            tinymce.get(editorId)?.focus();
+                            break;
+                        }
                     }
                 }
-            }
+            });
         });
-    });
 
-})();
+    })();
 </script>
 
 <?php

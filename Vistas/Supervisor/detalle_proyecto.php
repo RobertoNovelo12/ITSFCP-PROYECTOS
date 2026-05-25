@@ -1,4 +1,5 @@
 <?php
+
 /**
  * detalle_proyecto.php
  * Vista de detalle de un proyecto — exclusivo supervisor, solo lectura.
@@ -36,14 +37,16 @@ $color_pct      = $pct_proy >= 80 ? 'success' : ($pct_proy >= 40 ? 'warning' : '
 ob_start();
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
-    <div class="row align-items-center mb-4">
-        <div class="col">
-            <h4 class="mb-0 fw-bold"><?= htmlspecialchars($proyecto['titulo']) ?></h4>
-        </div>
-        <div class="col-auto">
+    <div class="row mb-4 align-items-center">
+        <?php
+        $titulo      = 'Detalle de Proyecto <?= htmlspecialchars($proyecto["titulo"]) ?>';
+        $descripcion = 'Información completa del proyecto seleccionado';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-md-6 text-md-end">
             <?= $ctrl->badgeEstadoProyecto($proyecto['estado']) ?>
             <a href="panel_supervisor.php?tab=proyectos" class="btn btn-secondary btn-sm ms-2">
                 <i class="bi bi-arrow-left me-1"></i>Regresar
@@ -137,10 +140,10 @@ ob_start();
                             <dd><?= nl2br(htmlspecialchars($proyecto['descripcion'] ?? '')) ?></dd>
                         </div>
                         <?php if (!empty($proyecto['objetivo'])): ?>
-                        <div class="col-12">
-                            <dt>Objetivo</dt>
-                            <dd><?= nl2br(htmlspecialchars($proyecto['objetivo'])) ?></dd>
-                        </div>
+                            <div class="col-12">
+                                <dt>Objetivo</dt>
+                                <dd><?= nl2br(htmlspecialchars($proyecto['objetivo'])) ?></dd>
+                            </div>
                         <?php endif; ?>
                     </dl>
                 </div>
@@ -148,25 +151,25 @@ ob_start();
 
             <!-- Investigador -->
             <?php if (!empty($proyecto['investigador_nombre'])): ?>
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-semibold">
-                    <i class="bi bi-person-badge me-2"></i>Investigador responsable
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header fw-semibold">
+                        <i class="bi bi-person-badge me-2"></i>Investigador responsable
+                    </div>
+                    <div class="card-body">
+                        <dl class="info-dl row mb-0">
+                            <div class="col-12">
+                                <dt>Nombre</dt>
+                                <dd><?= htmlspecialchars($proyecto['investigador_nombre']) ?></dd>
+                            </div>
+                            <?php if (!empty($proyecto['investigador_correo'])): ?>
+                                <div class="col-12">
+                                    <dt>Correo</dt>
+                                    <dd><?= htmlspecialchars($proyecto['investigador_correo']) ?></dd>
+                                </div>
+                            <?php endif; ?>
+                        </dl>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <dl class="info-dl row mb-0">
-                        <div class="col-12">
-                            <dt>Nombre</dt>
-                            <dd><?= htmlspecialchars($proyecto['investigador_nombre']) ?></dd>
-                        </div>
-                        <?php if (!empty($proyecto['investigador_correo'])): ?>
-                        <div class="col-12">
-                            <dt>Correo</dt>
-                            <dd><?= htmlspecialchars($proyecto['investigador_correo']) ?></dd>
-                        </div>
-                        <?php endif; ?>
-                    </dl>
-                </div>
-            </div>
             <?php endif; ?>
 
         </div>
@@ -186,45 +189,45 @@ ob_start();
                         $pct_e = round(($est['tareas_aprobadas'] / $tot_e) * 100);
                         $col_e = $pct_e >= 80 ? 'success' : ($pct_e >= 40 ? 'warning' : 'danger');
                     ?>
-                    <div class="alumno-card <?= $est['estado_participacion'] === 'baja' ? 'baja' : '' ?>">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="fw-semibold"><?= htmlspecialchars($est['nombre_completo']) ?></div>
-                                <div class="small text-muted">
-                                    <?= htmlspecialchars($est['matricula']) ?> &nbsp;·&nbsp;
-                                    <?= htmlspecialchars(mb_substr($est['carrera'],0,30)) ?>
+                        <div class="alumno-card <?= $est['estado_participacion'] === 'baja' ? 'baja' : '' ?>">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold"><?= htmlspecialchars($est['nombre_completo']) ?></div>
+                                    <div class="small text-muted">
+                                        <?= htmlspecialchars($est['matricula']) ?> &nbsp;·&nbsp;
+                                        <?= htmlspecialchars(mb_substr($est['carrera'], 0, 30)) ?>
+                                    </div>
+                                    <div class="small text-muted"><?= htmlspecialchars($est['correo_institucional']) ?></div>
                                 </div>
-                                <div class="small text-muted"><?= htmlspecialchars($est['correo_institucional']) ?></div>
-                            </div>
-                            <div class="text-end">
-                                <?= $ctrl->badgeParticipacion($est['estado_participacion']) ?>
-                                <div class="small text-muted mt-1">
-                                    Desde <?= date('d/m/Y', strtotime($est['fecha_asignacion'])) ?>
+                                <div class="text-end">
+                                    <?= $ctrl->badgeParticipacion($est['estado_participacion']) ?>
+                                    <div class="small text-muted mt-1">
+                                        Desde <?= date('d/m/Y', strtotime($est['fecha_asignacion'])) ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="mt-2">
-                            <div class="d-flex justify-content-between mb-1">
-                                <small>Avance</small>
-                                <small><?= $est['tareas_aprobadas'] ?>/<?= $est['tareas_totales'] ?> tareas</small>
+                            <div class="mt-2">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Avance</small>
+                                    <small><?= $est['tareas_aprobadas'] ?>/<?= $est['tareas_totales'] ?> tareas</small>
+                                </div>
+                                <div class="progress" style="height:6px">
+                                    <div class="progress-bar bg-<?= $col_e ?>" style="width:<?= $pct_e ?>%"></div>
+                                </div>
+                                <?php if (!empty($est['tarea_actual'])): ?>
+                                    <div class="small text-muted mt-1">
+                                        <i class="bi bi-arrow-right-circle me-1"></i>Trabajando en:
+                                        <span class="fw-medium"><?= htmlspecialchars($est['tarea_actual']) ?></span>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="progress" style="height:6px">
-                                <div class="progress-bar bg-<?= $col_e ?>" style="width:<?= $pct_e ?>%"></div>
+                            <div class="mt-2">
+                                <a href="detalle_estudiante.php?id=<?= $est['id_usuarios'] ?>"
+                                    class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-person-lines-fill me-1"></i>Ver historial
+                                </a>
                             </div>
-                            <?php if (!empty($est['tarea_actual'])): ?>
-                            <div class="small text-muted mt-1">
-                                <i class="bi bi-arrow-right-circle me-1"></i>Trabajando en:
-                                <span class="fw-medium"><?= htmlspecialchars($est['tarea_actual']) ?></span>
-                            </div>
-                            <?php endif; ?>
                         </div>
-                        <div class="mt-2">
-                            <a href="detalle_estudiante.php?id=<?= $est['id_usuarios'] ?>"
-                               class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-person-lines-fill me-1"></i>Ver historial
-                            </a>
-                        </div>
-                    </div>
                     <?php endforeach; ?>
                     <?php if (empty($estudiantes)): ?>
                         <p class="text-muted text-center small">Sin participantes registrados.</p>
@@ -254,21 +257,23 @@ ob_start();
                                 </thead>
                                 <tbody>
                                     <?php foreach ($tareas as $tar): ?>
-                                    <tr class="seccion-row">
-                                        <td class="fw-semibold small"><?= htmlspecialchars($tar['tipo']) ?></td>
-                                        <td class="text-center"><?= $ctrl->badgeEstadoTarea($tar['estado']) ?></td>
-                                        <td class="text-center text-success fw-bold"><?= $tar['aprobados'] ?></td>
-                                        <td class="text-center text-info"><?= $tar['en_revision'] ?></td>
-                                        <td class="text-center">
-                                            <?= $tar['vencidos']>0 ? "<span class='badge bg-danger'>{$tar['vencidos']}</span>" : '<span class="text-muted">—</span>' ?>
-                                        </td>
-                                        <td class="text-center text-muted small">
-                                            <?= $tar['fecha_entrega'] ? date('d/m/Y', strtotime($tar['fecha_entrega'])) : '—' ?>
-                                        </td>
-                                    </tr>
+                                        <tr class="seccion-row">
+                                            <td class="fw-semibold small"><?= htmlspecialchars($tar['tipo']) ?></td>
+                                            <td class="text-center"><?= $ctrl->badgeEstadoTarea($tar['estado']) ?></td>
+                                            <td class="text-center text-success fw-bold"><?= $tar['aprobados'] ?></td>
+                                            <td class="text-center text-info"><?= $tar['en_revision'] ?></td>
+                                            <td class="text-center">
+                                                <?= $tar['vencidos'] > 0 ? "<span class='badge bg-danger'>{$tar['vencidos']}</span>" : '<span class="text-muted">—</span>' ?>
+                                            </td>
+                                            <td class="text-center text-muted small">
+                                                <?= $tar['fecha_entrega'] ? date('d/m/Y', strtotime($tar['fecha_entrega'])) : '—' ?>
+                                            </td>
+                                        </tr>
                                     <?php endforeach; ?>
                                     <?php if (empty($tareas)): ?>
-                                    <tr><td colspan="6" class="text-center text-muted py-3">Sin tareas activadas.</td></tr>
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-3">Sin tareas activadas.</td>
+                                        </tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -277,29 +282,33 @@ ob_start();
                     <!-- TARJETAS MÓVIL secciones -->
                     <div class="d-block d-md-none p-2">
                         <?php foreach ($tareas as $tar): ?>
-                        <div class="card shadow-sm mb-3">
-                            <div class="card-body text-center">
-                                <h6 class="fw-bold mb-1"><?= htmlspecialchars($tar['tipo']) ?></h6>
-                                <?= $ctrl->badgeEstadoTarea($tar['estado']) ?>
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                    <div class="row text-center">
-                                        <div class="col-4"><strong class="text-success">Aprob.</strong><p class="mb-0 fw-bold text-success"><?= $tar['aprobados'] ?></p></div>
-                                        <div class="col-4"><strong class="text-info">Revisión</strong><p class="mb-0"><?= $tar['en_revision'] ?></p></div>
-                                        <div class="col-4"><strong class="text-danger">Venc.</strong>
-                                            <p class="mb-0">
-                                                <?= $tar['vencidos']>0 ? "<span class='badge bg-danger'>{$tar['vencidos']}</span>" : '—' ?>
-                                            </p>
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold mb-1"><?= htmlspecialchars($tar['tipo']) ?></h6>
+                                    <?= $ctrl->badgeEstadoTarea($tar['estado']) ?>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <div class="row text-center">
+                                            <div class="col-4"><strong class="text-success">Aprob.</strong>
+                                                <p class="mb-0 fw-bold text-success"><?= $tar['aprobados'] ?></p>
+                                            </div>
+                                            <div class="col-4"><strong class="text-info">Revisión</strong>
+                                                <p class="mb-0"><?= $tar['en_revision'] ?></p>
+                                            </div>
+                                            <div class="col-4"><strong class="text-danger">Venc.</strong>
+                                                <p class="mb-0">
+                                                    <?= $tar['vencidos'] > 0 ? "<span class='badge bg-danger'>{$tar['vencidos']}</span>" : '—' ?>
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item text-center">
-                                    <strong>Fecha entrega:</strong>
-                                    <?= $tar['fecha_entrega'] ? date('d/m/Y', strtotime($tar['fecha_entrega'])) : '—' ?>
-                                </li>
-                            </ul>
-                        </div>
+                                    </li>
+                                    <li class="list-group-item text-center">
+                                        <strong>Fecha entrega:</strong>
+                                        <?= $tar['fecha_entrega'] ? date('d/m/Y', strtotime($tar['fecha_entrega'])) : '—' ?>
+                                    </li>
+                                </ul>
+                            </div>
                         <?php endforeach; ?>
                         <?php if (empty($tareas)): ?>
                             <p class="text-muted text-center py-3">Sin tareas activadas.</p>
@@ -321,7 +330,8 @@ ob_start();
                             <table class="table table-sm align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Estudiante</th><th>Carrera</th>
+                                        <th>Estudiante</th>
+                                        <th>Carrera</th>
                                         <th class="text-center">Estado</th>
                                         <th class="text-center">Semestre</th>
                                         <th class="text-center">Promedio</th>
@@ -330,22 +340,24 @@ ob_start();
                                 </thead>
                                 <tbody>
                                     <?php foreach ($solicitudes as $sol): ?>
-                                    <tr>
-                                        <td>
-                                            <div class="fw-semibold small"><?= htmlspecialchars($sol['estudiante_nombre']) ?></div>
-                                            <div class="text-muted" style="font-size:.75rem"><?= htmlspecialchars($sol['matricula']) ?></div>
-                                        </td>
-                                        <td class="small"><?= htmlspecialchars(mb_substr($sol['carrera'],0,25)) ?></td>
-                                        <td class="text-center"><?= $ctrl->badgeEstadoSolicitud($sol['estado']) ?></td>
-                                        <td class="text-center"><?= $sol['semestre'] ?? '—' ?>°</td>
-                                        <td class="text-center"><?= $sol['promedio'] ? number_format($sol['promedio'],1) : '—' ?></td>
-                                        <td class="text-center text-muted small">
-                                            <?= date('d/m/Y', strtotime($sol['fecha_envio'])) ?>
-                                        </td>
-                                    </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold small"><?= htmlspecialchars($sol['estudiante_nombre']) ?></div>
+                                                <div class="text-muted" style="font-size:.75rem"><?= htmlspecialchars($sol['matricula']) ?></div>
+                                            </td>
+                                            <td class="small"><?= htmlspecialchars(mb_substr($sol['carrera'], 0, 25)) ?></td>
+                                            <td class="text-center"><?= $ctrl->badgeEstadoSolicitud($sol['estado']) ?></td>
+                                            <td class="text-center"><?= $sol['semestre'] ?? '—' ?>°</td>
+                                            <td class="text-center"><?= $sol['promedio'] ? number_format($sol['promedio'], 1) : '—' ?></td>
+                                            <td class="text-center text-muted small">
+                                                <?= date('d/m/Y', strtotime($sol['fecha_envio'])) ?>
+                                            </td>
+                                        </tr>
                                     <?php endforeach; ?>
                                     <?php if (empty($solicitudes)): ?>
-                                    <tr><td colspan="6" class="text-center text-muted py-3">Sin solicitudes.</td></tr>
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-3">Sin solicitudes.</td>
+                                        </tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -354,25 +366,31 @@ ob_start();
                     <!-- TARJETAS MÓVIL solicitudes -->
                     <div class="d-block d-md-none p-2">
                         <?php foreach ($solicitudes as $sol): ?>
-                        <div class="card shadow-sm mb-3">
-                            <div class="card-body text-center">
-                                <h6 class="fw-bold mb-1"><?= htmlspecialchars($sol['estudiante_nombre']) ?></h6>
-                                <p class="text-muted small mb-1"><?= htmlspecialchars($sol['matricula']) ?></p>
-                                <?= $ctrl->badgeEstadoSolicitud($sol['estado']) ?>
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold mb-1"><?= htmlspecialchars($sol['estudiante_nombre']) ?></h6>
+                                    <p class="text-muted small mb-1"><?= htmlspecialchars($sol['matricula']) ?></p>
+                                    <?= $ctrl->badgeEstadoSolicitud($sol['estado']) ?>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <strong>Carrera:</strong> <?= htmlspecialchars(mb_substr($sol['carrera'], 0, 35)) ?>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="row text-center">
+                                            <div class="col-4"><strong>Semestre</strong>
+                                                <p class="mb-0"><?= $sol['semestre'] ?? '—' ?>°</p>
+                                            </div>
+                                            <div class="col-4"><strong>Promedio</strong>
+                                                <p class="mb-0"><?= $sol['promedio'] ? number_format($sol['promedio'], 1) : '—' ?></p>
+                                            </div>
+                                            <div class="col-4"><strong>Fecha</strong>
+                                                <p class="mb-0"><?= date('d/m/Y', strtotime($sol['fecha_envio'])) ?></p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
                             </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                    <strong>Carrera:</strong> <?= htmlspecialchars(mb_substr($sol['carrera'],0,35)) ?>
-                                </li>
-                                <li class="list-group-item">
-                                    <div class="row text-center">
-                                        <div class="col-4"><strong>Semestre</strong><p class="mb-0"><?= $sol['semestre'] ?? '—' ?>°</p></div>
-                                        <div class="col-4"><strong>Promedio</strong><p class="mb-0"><?= $sol['promedio'] ? number_format($sol['promedio'],1) : '—' ?></p></div>
-                                        <div class="col-4"><strong>Fecha</strong><p class="mb-0"><?= date('d/m/Y', strtotime($sol['fecha_envio'])) ?></p></div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
                         <?php endforeach; ?>
                         <?php if (empty($solicitudes)): ?>
                             <p class="text-muted text-center py-3">Sin solicitudes.</p>

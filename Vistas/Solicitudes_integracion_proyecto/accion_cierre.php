@@ -34,13 +34,13 @@ if (!$id_seg || !$id_sol || !in_array($estado, ['completado', 'correcciones', 'r
 require_once '../../Controladores/solicitudesControlador.php';
 $ctrl = new solicitudesControlador();
 
-// ── Procesar POST ─────────────────────────────────────────────────
+//  Procesar POST ─
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ctrl->responderCierre($id_seg, $id_sol, $id_usuario, $rol);
     // responderCierre() redirige internamente
 }
 
-// ── Datos de contexto ─────────────────────────────────────────────
+//  Datos de contexto ─
 $data = $ctrl->detallePagina($id_sol, $id_usuario, $rol);
 $sol  = $data['solicitud'];
 
@@ -88,14 +88,16 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:900px;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
-        <div class="col">
-            <h3 class="mb-0 fw-bold"><?= $cfg['titulo'] ?></h3>
-        </div>
-        <div class="col-auto">
+        <?php
+        $titulo      = 'Acción de Cierre <?= $cfg["titulo"] ?>';
+        $descripcion = 'Resolución del supervisor al investigador';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-md-6 text-md-end">
             <a href="detalles_solicitud.php?id=<?= $id_sol ?>" class="btn btn-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
@@ -139,7 +141,7 @@ include __DIR__ . '/../../mensaje.php';
             <?php endif; ?>
 
             <form method="POST"
-                  action="accion_cierre.php?id_seg=<?= $id_seg ?>&id_sol=<?= $id_sol ?>&estado=<?= $estado ?>">
+                action="accion_cierre.php?id_seg=<?= $id_seg ?>&id_sol=<?= $id_sol ?>&estado=<?= $estado ?>">
 
                 <div class="mb-4">
                     <label for="comentario" class="form-label fw-semibold">
@@ -151,19 +153,19 @@ include __DIR__ . '/../../mensaje.php';
                         <?php endif; ?>
                     </label>
                     <textarea class="form-control"
-                              name="comentario"
-                              id="comentario"
-                              rows="5"
-                              maxlength="1000"
-                              placeholder="<?= $cfg['placeholder'] ?>"
-                              <?= $cfg['requerido'] ? 'required' : '' ?>></textarea>
+                        name="comentario"
+                        id="comentario"
+                        rows="5"
+                        maxlength="1000"
+                        placeholder="<?= $cfg['placeholder'] ?>"
+                        <?= $cfg['requerido'] ? 'required' : '' ?>></textarea>
                     <div class="form-text text-muted">Máximo 1 000 caracteres.</div>
                 </div>
 
                 <!-- Campos ocultos -->
                 <input type="hidden" name="id_seguimiento" value="<?= $id_seg ?>">
-                <input type="hidden" name="id_solicitud"   value="<?= $id_sol ?>">
-                <input type="hidden" name="estado"         value="<?= $estado ?>">
+                <input type="hidden" name="id_solicitud" value="<?= $id_sol ?>">
+                <input type="hidden" name="estado" value="<?= $estado ?>">
 
                 <hr>
 

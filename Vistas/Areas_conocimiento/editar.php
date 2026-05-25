@@ -44,28 +44,28 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
+<div class="container-fluid py-4 ancho_container">
+    <!-- TITULO -->
+    <div class="row mb-4 align-items-center">
 
-<form method="POST" action="" id="formCrearArea">
+        <?php
+        $titulo      = 'Editar Área de Conocimiento';
+        $descripcion = 'Modificar datos del área';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
-    <input type="hidden" name="action" value="Modificar">
-
-    <input type="hidden" name="id_area" value="<?= $area['id_area'] ?>">
-
-    <div class="container-fluid py-4">
-
-        <!-- ENCABEZADO -->
-
-        <div class="row mb-3">
-
-            <div class="col-6">
-                <h3>Editar Área de conocimiento</h3>
-            </div>
-
-            <div class="col-6 text-end">
-                <a href="index.php" class="btn btn-danger">Regresar</a>
-            </div>
-
+        <div class="col-md-6 text-md-end">
+            <a href="index.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar
+            </a>
         </div>
+
+    </div>
+    <form method="POST" action="" id="formCrearArea">
+
+        <input type="hidden" name="action" value="Modificar">
+
+        <input type="hidden" name="id_area" value="<?= $area['id_area'] ?>">
 
 
         <!-- DATOS TEMATICA -->
@@ -187,10 +187,9 @@ include __DIR__ . '/../../error.php';
 
         </button>
 
-    </div>
 
-</form>
-
+    </form>
+</div>
 
 <script src="../../publico/js/subareas.js"></script>
 

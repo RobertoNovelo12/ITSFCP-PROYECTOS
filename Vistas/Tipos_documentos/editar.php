@@ -39,21 +39,24 @@ include __DIR__ . '/../../error.php';
 ?>
 
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
 
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Editar Tipo de documento</h3>
-        </div>
+        <?php
+        $titulo      = 'Editar Tipo de Documento';
+        $descripcion = 'Modificar datos del tipo de documento';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
-        <div class="col-md-6 text-md-end">
-            <a href="index.php" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Regresar
-            </a>
+        <div class="col-6 col-md-6 text-md-end">
+            <?php if ($rol == "supervisor"): ?>
+                <a href="index.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Regresar
+                </a>
+            <?php endif; ?>
         </div>
-
     </div>
 
     <!-- DATOS TIPO DE DOCUMENTO -->

@@ -53,13 +53,15 @@ include __DIR__ . '/../../mensaje.php';
 include __DIR__ . '/../../error.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-3 align-items-center">
-        <div class="col-6">
-            <h3 class="fw-bold mb-0">Crear Periodo</h3>
-        </div>
+        <?php
+        $titulo      = 'Nuevo Periodo';
+        $descripcion = 'Registro de un nuevo periodo académico';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-6 text-end">
             <a href="index.php" class="btn btn-danger">
                 <i class="bi bi-arrow-left"></i> Regresar
@@ -136,22 +138,22 @@ include __DIR__ . '/../../error.php';
                         <div class="col-md-6">
                             <label for="fecha_inicio_proyectos" class="form-label">Fecha inicio de proyectos</label>
                             <input type="date"
-                                   id="fecha_inicio_proyectos"
-                                   name="fecha_inicio_proyectos"
-                                   class="form-control"
-                                   value="<?= htmlspecialchars($post_fip) ?>"
-                                   min="<?= htmlspecialchars($datos['inicio']) ?>"
-                                   max="<?= htmlspecialchars($datos['fin']) ?>">
+                                id="fecha_inicio_proyectos"
+                                name="fecha_inicio_proyectos"
+                                class="form-control"
+                                value="<?= htmlspecialchars($post_fip) ?>"
+                                min="<?= htmlspecialchars($datos['inicio']) ?>"
+                                max="<?= htmlspecialchars($datos['fin']) ?>">
                         </div>
                         <div class="col-md-6">
                             <label for="fecha_fin_proyectos" class="form-label">Fecha fin de proyectos</label>
                             <input type="date"
-                                   id="fecha_fin_proyectos"
-                                   name="fecha_fin_proyectos"
-                                   class="form-control"
-                                   value="<?= htmlspecialchars($post_ffp) ?>"
-                                   min="<?= htmlspecialchars($datos['inicio']) ?>"
-                                   max="<?= htmlspecialchars($datos['fin']) ?>">
+                                id="fecha_fin_proyectos"
+                                name="fecha_fin_proyectos"
+                                class="form-control"
+                                value="<?= htmlspecialchars($post_ffp) ?>"
+                                min="<?= htmlspecialchars($datos['inicio']) ?>"
+                                max="<?= htmlspecialchars($datos['fin']) ?>">
                         </div>
                     </div>
 
@@ -161,22 +163,22 @@ include __DIR__ . '/../../error.php';
                         <div class="col-md-6">
                             <label for="fecha_inicio_integracion" class="form-label">Fecha inicio de integración</label>
                             <input type="date"
-                                   id="fecha_inicio_integracion"
-                                   name="fecha_inicio_integracion"
-                                   class="form-control"
-                                   value="<?= htmlspecialchars($post_fii) ?>"
-                                   min="<?= htmlspecialchars($datos['inicio']) ?>"
-                                   max="<?= htmlspecialchars($datos['fin']) ?>">
+                                id="fecha_inicio_integracion"
+                                name="fecha_inicio_integracion"
+                                class="form-control"
+                                value="<?= htmlspecialchars($post_fii) ?>"
+                                min="<?= htmlspecialchars($datos['inicio']) ?>"
+                                max="<?= htmlspecialchars($datos['fin']) ?>">
                         </div>
                         <div class="col-md-6">
                             <label for="fecha_fin_solicitud" class="form-label">Fecha fin de integración</label>
                             <input type="date"
-                                   id="fecha_fin_solicitud"
-                                   name="fecha_fin_solicitud"
-                                   class="form-control"
-                                   value="<?= htmlspecialchars($post_ffi) ?>"
-                                   min="<?= htmlspecialchars($datos['inicio']) ?>"
-                                   max="<?= htmlspecialchars($datos['fin']) ?>">
+                                id="fecha_fin_solicitud"
+                                name="fecha_fin_solicitud"
+                                class="form-control"
+                                value="<?= htmlspecialchars($post_ffi) ?>"
+                                min="<?= htmlspecialchars($datos['inicio']) ?>"
+                                max="<?= htmlspecialchars($datos['fin']) ?>">
                         </div>
                     </div>
 
@@ -207,15 +209,15 @@ include __DIR__ . '/../../error.php';
      * Validación cliente: ajusta el min del campo "fin" al valor de "inicio"
      * para evitar seleccionar fin < inicio en proyectos e integración.
      */
-    (function () {
+    (function() {
         const pares = [
-            ['fecha_inicio_proyectos',   'fecha_fin_proyectos'],
+            ['fecha_inicio_proyectos', 'fecha_fin_proyectos'],
             ['fecha_inicio_integracion', 'fecha_fin_solicitud'],
         ];
 
         pares.forEach(([inicioId, finId]) => {
             const inputInicio = document.getElementById(inicioId);
-            const inputFin    = document.getElementById(finId);
+            const inputFin = document.getElementById(finId);
 
             if (!inputInicio || !inputFin) return;
 

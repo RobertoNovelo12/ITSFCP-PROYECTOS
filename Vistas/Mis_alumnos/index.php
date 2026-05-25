@@ -57,7 +57,7 @@ $opEstadoProceso = [
 ];
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- 
          ENCABEZADO
@@ -68,9 +68,11 @@ $opEstadoProceso = [
      -->
     <!-- CABECERA -->
     <div class="row mb-3 align-items-center">
-        <div class="col-md-6">
-            <h2 class="mb-0 fw-bold">Mis Alumnos</h2>
-        </div>
+        <?php
+        $titulo      = 'Mis Alumnos';
+        $descripcion = 'Estudiantes asignados a tus proyectos';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-md-6 text-md-end">
             <!-- Filtro independiente de periodo -->
             <form class="d-inline-flex align-items-center gap-2" method="GET">

@@ -23,11 +23,13 @@ $id_proyectos = $_GET['id_proyectos'] ?? null;
 
 ob_start();
 ?>
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
     <div class="row mb-3 align-items-center">
-        <div class="col-6">
-            <h3>Comentarios del Proyecto</h3>
-        </div>
+        <?php
+        $titulo      = 'Comentarios del Supervisor';
+        $descripcion = 'Observaciones del supervisor al investigador';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar

@@ -22,13 +22,13 @@ require_once '../../Controladores/usuarioControlador.php';
 
 $controlador = new UsuariosControlador();
 
-// ── Procesar POST (confirmar rechazo) ────────────────────────────
+//  Procesar POST (confirmar rechazo) 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $controlador->rechazar($_POST, $rol);
     exit; // rechazar() redirige
 }
 
-// ── GET: mostrar formulario ──────────────────────────────────────
+//  GET: mostrar formulario 
 $id_ver = isset($_GET['id_usuarios']) ? intval($_GET['id_usuarios']) : 0;
 
 if ($id_ver <= 0) {
@@ -50,17 +50,23 @@ if ($usuario['estado_usuario'] !== 'espera') {
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Rechazar solicitud de usuario</h3>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <a href="detalles.php?id_usuarios=<?= $id_ver ?>" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Regresar
-            </a>
+
+        <?php
+        $titulo      = 'Respuesta a Solicitud de Usuario';
+        $descripcion = 'Aprobar o rechazar el acceso al sistema';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+
+        <div class="col-6 col-md-6 text-md-end">
+            <?php if ($rol == "supervisor"): ?>
+                <a href="detalles.php?id_usuarios=<?= $id_ver ?>" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Regresar
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -78,8 +84,8 @@ ob_start();
                             <strong>Nombre completo:</strong><br>
                             <?= htmlspecialchars(
                                 $usuario['nombre'] . ' ' .
-                                $usuario['apellido_paterno'] . ' ' .
-                                $usuario['apellido_materno']
+                                    $usuario['apellido_paterno'] . ' ' .
+                                    $usuario['apellido_materno']
                             ) ?>
                         </p>
                     </div>
@@ -138,8 +144,7 @@ ob_start();
                         class="form-control"
                         rows="5"
                         required
-                        placeholder="Ejemplo: No cumple con los requisitos de ser un estudiante activo y cursando el ciclo escolar actual."
-                    ></textarea>
+                        placeholder="Ejemplo: No cumple con los requisitos de ser un estudiante activo y cursando el ciclo escolar actual."></textarea>
                     <small class="text-muted">
                         Este comentario se enviará al usuario por correo electrónico.
                     </small>
@@ -150,8 +155,8 @@ ob_start();
                         <i class="bi bi-arrow-left me-1"></i> Cancelar
                     </a>
                     <button type="submit" class="btn btn-danger"
-                            onclick="return confirm('¿Confirmar el rechazo de este usuario? Se enviará una notificación por correo.')">
-                         Confirmar rechazo
+                        onclick="return confirm('¿Confirmar el rechazo de este usuario? Se enviará una notificación por correo.')">
+                        Confirmar rechazo
                     </button>
                 </div>
 

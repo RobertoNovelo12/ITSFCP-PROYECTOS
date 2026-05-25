@@ -34,30 +34,28 @@ if (empty($solicitud)) die("No se encontró la solicitud.");
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-12 col-md-8">
-            <h3 class="fw-bold mb-0">Detalle de solicitud</h3>
-            <p class="text-muted mb-0 small">
-                ID #<?= $id_solicitud ?> &bull;
-                <?= $controlador->etiquetaTipo($solicitud['tipo']) ?> &bull;
-                Recibida el <?= date("d/m/Y H:i", strtotime($solicitud['fecha_solicitud'])) ?>
-            </p>
-        </div>
-        <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
+        <?php
+        $titulo      = 'Detalle de solicitud';
+        $descripcion = 'ID #<?= $id_solicitud ?> &bull;
+                <?= $controlador->etiquetaTipo($solicitud["tipo"]) ?>&bull Recibida el <?= date("d/m/Y H:i", strtotime($solicitud["fecha_solicitud"])) ?>';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-6 col-md-4 text-md-end mt-2 mt-md-0">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Regresar
             </a>
             <?php if ($solicitud['estado'] === 'pendiente'): ?>
                 <a href="index.php?action=aprobar&id_solicitud=<?= $id_solicitud ?>"
-                   class="btn btn-success ms-2"
-                   onclick="return confirm('¿Aprobar esta solicitud?')">
+                    class="btn btn-success ms-2"
+                    onclick="return confirm('¿Aprobar esta solicitud?')">
                     <i class="bi bi-check-circle-fill me-1"></i> Aprobar
                 </a>
                 <a href="respuesta.php?id_solicitud=<?= $id_solicitud ?>"
-                   class="btn btn-danger ms-2">
+                    class="btn btn-danger ms-2">
                     <i class="bi bi-x-circle-fill me-1"></i> Rechazar
                 </a>
             <?php endif; ?>
@@ -74,7 +72,7 @@ ob_start();
                 <div class="card-body d-flex align-items-center gap-3 py-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center
                                 bg-<?= $controlador->estiloEstado($solicitud['estado']) ?> bg-opacity-10"
-                         style="width:52px;height:52px;flex-shrink:0;">
+                        style="width:52px;height:52px;flex-shrink:0;">
                         <i class="bi <?= $controlador->iconoEstado($solicitud['estado']) ?>
                            text-<?= $controlador->estiloEstado($solicitud['estado']) ?> fs-3"></i>
                     </div>
@@ -161,8 +159,8 @@ ob_start();
                             <div>
                                 <p class="mb-1 fw-semibold"><?= htmlspecialchars($solicitud['doc_nombre'] ?? $solicitud['nombre_archivo']) ?></p>
                                 <a href="<?= htmlspecialchars($solicitud['ruta']) ?>"
-                                   target="_blank"
-                                   class="btn btn-outline-danger btn-sm">
+                                    target="_blank"
+                                    class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-eye me-1"></i> Ver PDF
                                 </a>
                             </div>
@@ -192,14 +190,14 @@ ob_start();
                             <?php foreach ($historial as $h): ?>
                                 <li class="timeline-item mb-4 ps-4 border-start border-2
                                     <?= $h['estado_nuevo'] === 'aprobado'
-                                          ? 'border-success'
-                                          : ($h['estado_nuevo'] === 'rechazado'
-                                             ? 'border-danger'
-                                             : 'border-warning') ?>">
+                                        ? 'border-success'
+                                        : ($h['estado_nuevo'] === 'rechazado'
+                                            ? 'border-danger'
+                                            : 'border-warning') ?>">
 
                                     <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                                         <span class="badge rounded-pill bg-<?= $h['estado_nuevo'] === 'aprobado'
-                                            ? 'success' : ($h['estado_nuevo'] === 'rechazado' ? 'danger' : 'warning text-dark') ?>">
+                                                                                ? 'success' : ($h['estado_nuevo'] === 'rechazado' ? 'danger' : 'warning text-dark') ?>">
                                             <?= ucfirst($h['estado_nuevo']) ?>
                                         </span>
                                         <?php if (!empty($h['estado_anterior'])): ?>
@@ -236,24 +234,37 @@ ob_start();
 </div>
 
 <style>
-.timeline-item {
-    position: relative;
-}
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -6px;
-    top: 6px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #6c757d;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 2px #6c757d;
-}
-.timeline-item.border-success::before { background: #198754; box-shadow: 0 0 0 2px #198754; }
-.timeline-item.border-danger::before  { background: #dc3545; box-shadow: 0 0 0 2px #dc3545; }
-.timeline-item.border-warning::before { background: #ffc107; box-shadow: 0 0 0 2px #ffc107; }
+    .timeline-item {
+        position: relative;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -6px;
+        top: 6px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #6c757d;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #6c757d;
+    }
+
+    .timeline-item.border-success::before {
+        background: #198754;
+        box-shadow: 0 0 0 2px #198754;
+    }
+
+    .timeline-item.border-danger::before {
+        background: #dc3545;
+        box-shadow: 0 0 0 2px #dc3545;
+    }
+
+    .timeline-item.border-warning::before {
+        background: #ffc107;
+        box-shadow: 0 0 0 2px #ffc107;
+    }
 </style>
 
 <?php

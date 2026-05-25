@@ -32,13 +32,15 @@ if (empty($director)) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Detalles del Director</h3>
-        </div>
+        <?php
+        $titulo      = 'Detalle de Director';
+        $descripcion = 'Información del director seleccionado';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar

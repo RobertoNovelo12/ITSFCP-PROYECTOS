@@ -53,13 +53,15 @@ if (!empty($historialAgrupado)) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- HEADER -->
     <div class="row mb-3">
-        <div class="col-md-6">
-            <h3>Historial del estudiante</h3>
-        </div>
+        <?php
+        $titulo      = 'Historial del Estudiante';
+        $descripcion = 'Estados y etapas del estudiante en el proyecto';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
             <a href="detalles.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
@@ -151,7 +153,7 @@ ob_start();
     <!-- PAGINACIÓN -->
     <?php
     $qBase    = 'id_proyecto=' . urlencode($id_proyecto) . '&id_usuario=' . urlencode($id_usuario);
-    $entidad  = 'registros'; 
+    $entidad  = 'registros';
     include __DIR__ . '../../../publico/incluido/_paginacion.php';
     ?>
 

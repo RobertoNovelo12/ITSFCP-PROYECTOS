@@ -31,15 +31,17 @@ $subtematicas = $datos['subtematicas'];
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
 
     <div class="row mb-4 align-items-center">
 
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Detalles de la temática</h3>
-        </div>
+        <?php
+        $titulo      = 'Detalle de Temática';
+        $descripcion = 'Información de la temática seleccionada';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
         <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">
@@ -143,7 +145,7 @@ ob_start();
 
                             <span class="badge rounded-pill text-bg-<?= $sub['estado'] == "1" ? 'success' : 'danger' ?>">
 
-                                <?=  $sub['estado'] == "1" ? 'Activo' : 'Desactivado' ?>
+                                <?= $sub['estado'] == "1" ? 'Activo' : 'Desactivado' ?>
 
                             </span>
 

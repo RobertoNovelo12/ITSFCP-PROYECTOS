@@ -39,13 +39,15 @@ if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
 
 ob_start();
 ?>
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
 
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Dar de baja al estudiante</h3>
-        </div>
+        <?php
+        $titulo      = 'Baja de Estudiante';
+        $descripcion = 'Dar de baja a un estudiante del proyecto';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
             <a href="editar.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar

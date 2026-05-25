@@ -130,7 +130,7 @@ $error   = $_GET['error']   ?? null;
 ob_start();
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- Alertas de feedback (PRG) -->
     <?php if ($mensaje === 'ok'): ?>

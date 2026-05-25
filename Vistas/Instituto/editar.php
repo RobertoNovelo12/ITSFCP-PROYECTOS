@@ -39,12 +39,14 @@ if (!$director) {
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <div class="row mb-4">
-        <div class="col-md-6">
-            <h3 class="fw-bold">Editar Instituto</h3>
-        </div>
+        <?php
+        $titulo      = 'Datos del Instituto';
+        $descripcion = 'Modificar información general del instituto';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
     </div>
 
     <form method="POST">

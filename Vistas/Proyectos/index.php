@@ -72,21 +72,21 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- HEADER -->
     <div class="row mb-3 align-items-center">
-        <div class="col-md-6">
-            <h2 class="mb-0 fw-bold">
-                <?php if ($rol === 'supervisor'): ?>
-                    Proyectos Aprobados
-                <?php elseif ($rol === 'estudiante'): ?>
-                    Proyectos
-                <?php else: ?>
-                    Proyectos
-                <?php endif; ?>
-            </h2>
-        </div>
+        <?php
+        if ($rol === 'supervisor') {
+            $titulo = 'Proyectos Aprobados';
+        } elseif ($rol === 'estudiante') {
+            $titulo = 'Proyectos';
+        } else {
+            $titulo = 'Proyectos';
+        }
+        $descripcion = 'Listado de proyectos de investigación';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-md-6 text-md-end">
             <?php if ($rol === 'investigador' || $rol === 'profesor'):  ?>
                 <?php if ($puedeCrear_Editar): ?>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * tareas_estudiante.php
  * Vista: Mis Actividades — estudiante
@@ -100,190 +101,193 @@ ob_start();
 ?>
 
 
-<div class="container-fluid py-4" style="max-width:95%;">
-
-<div class="act-page">
-
+<div class="container-fluid py-4 ancho_container">
     <!--  Encabezado  -->
-    <div class="act-header">
-        <div class="act-header-left">
-            <h4>Mis Actividades</h4>
-            <p>Actividades asignadas del proyecto</p>
+    <div class="row mb-4 align-items-center">
+
+        <?php
+        $titulo      = 'Mis Actividades';
+        $descripcion = 'Actividades asignadas del proyecto';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+
+        <div class="col-6 col-md-6 text-md-end">
+            <?php if ($rol == "supervisor"): ?>
+                <a href="../../Vistas/Proyectos/index.php" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Regresar
+                </a>
+            <?php endif; ?>
         </div>
-        <a href="../../Vistas/Proyectos/index.php" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Regresar
-        </a>
     </div>
+    <div class="act-page">
 
-    <?php if (empty($tareasActivas) && empty($tareasInactivas)): ?>
+        <?php if (empty($tareasActivas) && empty($tareasInactivas)): ?>
 
-        <div class="act-empty">
-            <i class="bi bi-inbox"></i>
-            No tienes actividades asignadas por el momento.
-        </div>
+            <div class="act-empty">
+                <i class="bi bi-inbox"></i>
+                No tienes actividades asignadas por el momento.
+            </div>
 
-    <?php else: ?>
+        <?php else: ?>
 
-        <!--  Lista de actividades ═ -->
-        <?php if (!empty($tareasActivas)): ?>
-        <div class="act-list">
-            <?php foreach ($tareasActivas as $idx => $tarea):
-                $idEstado    = (int)$tarea['id_estadoT'];
-                $bsColor     = badgeEstado($idEstado);
-                $estadoLabel = labelEstado($idEstado, $tarea['estado_texto'] ?? '');
-                $iconTipo    = iconoTipo($tarea['tipo'] ?? '');
-                $isVencido   = $idEstado === 6;
-                [$btnTxt, $btnIco, $btnStyle] = btnAccion($idEstado);
-                $bodyId      = 'act-body-' . $idx;
-            ?>
-            <div class="act-item">
+            <!--  Lista de actividades ═ -->
+            <?php if (!empty($tareasActivas)): ?>
+                <div class="act-list">
+                    <?php foreach ($tareasActivas as $idx => $tarea):
+                        $idEstado    = (int)$tarea['id_estadoT'];
+                        $bsColor     = badgeEstado($idEstado);
+                        $estadoLabel = labelEstado($idEstado, $tarea['estado_texto'] ?? '');
+                        $iconTipo    = iconoTipo($tarea['tipo'] ?? '');
+                        $isVencido   = $idEstado === 6;
+                        [$btnTxt, $btnIco, $btnStyle] = btnAccion($idEstado);
+                        $bodyId      = 'act-body-' . $idx;
+                    ?>
+                        <div class="act-item">
 
-                <!-- Trigger -->
-                <button
-                    class="act-trigger"
-                    type="button"
-                    aria-expanded="false"
-                    aria-controls="<?= $bodyId ?>"
-                    onclick="toggleAct(this)"
-                >
-                    <!-- Ícono tipo -->
-                    <div class="act-icon" aria-hidden="true">
-                        <i class="bi <?= $iconTipo ?>"></i>
-                    </div>
+                            <!-- Trigger -->
+                            <button
+                                class="act-trigger"
+                                type="button"
+                                aria-expanded="false"
+                                aria-controls="<?= $bodyId ?>"
+                                onclick="toggleAct(this)">
+                                <!-- Ícono tipo -->
+                                <div class="act-icon" aria-hidden="true">
+                                    <i class="bi <?= $iconTipo ?>"></i>
+                                </div>
 
-                    <!-- Texto -->
-                    <div class="act-trigger-content">
-                        <div class="act-trigger-row1">
-                            <span class="act-tipo"><?= htmlspecialchars($tarea['tipo'] ?? '—') ?></span>
-                            <span class="badge text-bg-<?= $bsColor ?>">
-                                <?= htmlspecialchars($estadoLabel) ?>
-                            </span>
-                        </div>
-                        <div class="act-trigger-row2">
-                            <?php if (!empty($tarea['fecha_entrega'])): ?>
-                                <span class="act-meta <?= $isVencido ? 'vencida' : '' ?>">
-                                    <i class="bi bi-calendar3"></i>
-                                    Entrega:&nbsp;<strong><?= date('d/m/Y', strtotime($tarea['fecha_entrega'])) ?></strong>
-                                </span>
-                            <?php else: ?>
-                                <span class="act-meta">
-                                    <i class="bi bi-calendar-x"></i> Sin fecha
-                                </span>
-                            <?php endif; ?>
-                            <?php if (!empty($tarea['fecha_modificacion'])): ?>
-                                <span class="act-meta-edit">
-                                    <i class="bi bi-pencil-fill" style="font-size:.6rem;"></i>
-                                    Act.&nbsp;<?= date('d/m/Y', strtotime($tarea['fecha_modificacion'])) ?>
-                                </span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+                                <!-- Texto -->
+                                <div class="act-trigger-content">
+                                    <div class="act-trigger-row1">
+                                        <span class="act-tipo"><?= htmlspecialchars($tarea['tipo'] ?? '—') ?></span>
+                                        <span class="badge text-bg-<?= $bsColor ?>">
+                                            <?= htmlspecialchars($estadoLabel) ?>
+                                        </span>
+                                    </div>
+                                    <div class="act-trigger-row2">
+                                        <?php if (!empty($tarea['fecha_entrega'])): ?>
+                                            <span class="act-meta <?= $isVencido ? 'vencida' : '' ?>">
+                                                <i class="bi bi-calendar3"></i>
+                                                Entrega:&nbsp;<strong><?= date('d/m/Y', strtotime($tarea['fecha_entrega'])) ?></strong>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="act-meta">
+                                                <i class="bi bi-calendar-x"></i> Sin fecha
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($tarea['fecha_modificacion'])): ?>
+                                            <span class="act-meta-edit">
+                                                <i class="bi bi-pencil-fill" style="font-size:.6rem;"></i>
+                                                Act.&nbsp;<?= date('d/m/Y', strtotime($tarea['fecha_modificacion'])) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
 
-                    <i class="bi bi-chevron-down act-chevron" aria-hidden="true"></i>
-                </button>
+                                <i class="bi bi-chevron-down act-chevron" aria-hidden="true"></i>
+                            </button>
 
-                <!-- Cuerpo -->
-                <div class="act-body" id="<?= $bodyId ?>">
+                            <!-- Cuerpo -->
+                            <div class="act-body" id="<?= $bodyId ?>">
 
-                    <!-- Instrucciones -->
-                    <?php if (!empty($tarea['instrucciones'])): ?>
-                        <div class="act-instrucciones">
-                            <?= $tarea['instrucciones'] ?>
-                        </div>
-                    <?php else: ?>
-                        <div class="act-instrucciones muted">
-                            El investigador no ha agregado instrucciones adicionales.
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Archivo guía -->
-                    <?php if (!empty($tarea['archivo_nombre'])): ?>
-                        <a href="descargar_guia.php?id_tarea=<?= (int)$tarea['id_tarea'] ?>"
-                           class="act-guia" target="_blank">
-                            <i class="bi bi-file-earmark-arrow-down"></i>
-                            <?= htmlspecialchars($tarea['archivo_nombre']) ?>
-                        </a>
-                    <?php endif; ?>
-
-                    <!-- Footer -->
-                    <div class="act-footer">
-                        <span class="act-fecha <?= $isVencido ? 'vencida' : '' ?>">
-                            <?php if (!empty($tarea['fecha_entrega'])): ?>
-                                <i class="bi bi-calendar-event"></i>
-                                Fecha de entrega:&nbsp;
-                                <strong><?= date('d \d\e F \d\e Y', strtotime($tarea['fecha_entrega'])) ?></strong>
-                                <?php if ($isVencido): ?>
-                                    &nbsp;<span class="text-danger" style="font-size:.72rem;">— Vencida</span>
+                                <!-- Instrucciones -->
+                                <?php if (!empty($tarea['instrucciones'])): ?>
+                                    <div class="act-instrucciones">
+                                        <?= $tarea['instrucciones'] ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="act-instrucciones muted">
+                                        El investigador no ha agregado instrucciones adicionales.
+                                    </div>
                                 <?php endif; ?>
-                            <?php else: ?>
-                                <i class="bi bi-dash"></i> Sin fecha definida
-                            <?php endif; ?>
-                        </span>
-                        <a href="tarea.php?id_asignacion=<?= (int)$tarea['id_asignacion'] ?>&id_tarea=<?= (int)$tarea['id_tarea'] ?>&id_proyectos=<?= (int)$tarea['id_proyectos'] ?>"
-                           class="btn btn-sm <?= $btnStyle ?>">
-                            <i class="bi <?= $btnIco ?> me-1"></i><?= $btnTxt ?>
-                        </a>
-                    </div>
 
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
+                                <!-- Archivo guía -->
+                                <?php if (!empty($tarea['archivo_nombre'])): ?>
+                                    <a href="descargar_guia.php?id_tarea=<?= (int)$tarea['id_tarea'] ?>"
+                                        class="act-guia" target="_blank">
+                                        <i class="bi bi-file-earmark-arrow-down"></i>
+                                        <?= htmlspecialchars($tarea['archivo_nombre']) ?>
+                                    </a>
+                                <?php endif; ?>
 
-        <!--  Sin activar  -->
-        <?php if (!empty($tareasInactivas)): ?>
-            <button
-                class="act-inactivas-toggle"
-                type="button"
-                onclick="toggleInactivas(this)"
-                aria-expanded="false"
-            >
-                <i class="bi bi-chevron-right me-1"></i>
-                Aún no disponibles (<?= count($tareasInactivas) ?>)
-            </button>
-            <div class="act-inactivas-list" id="act-inactivas-list">
-                <?php foreach ($tareasInactivas as $tarea): ?>
-                    <div class="act-inactiva-row">
-                        <div>
-                            <p class="act-inactiva-tipo"><?= htmlspecialchars($tarea['tipo'] ?? '—') ?></p>
-                            <p class="act-inactiva-nota">Aún no habilitada por el investigador.</p>
+                                <!-- Footer -->
+                                <div class="act-footer">
+                                    <span class="act-fecha <?= $isVencido ? 'vencida' : '' ?>">
+                                        <?php if (!empty($tarea['fecha_entrega'])): ?>
+                                            <i class="bi bi-calendar-event"></i>
+                                            Fecha de entrega:&nbsp;
+                                            <strong><?= date('d \d\e F \d\e Y', strtotime($tarea['fecha_entrega'])) ?></strong>
+                                            <?php if ($isVencido): ?>
+                                                &nbsp;<span class="text-danger" style="font-size:.72rem;">— Vencida</span>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <i class="bi bi-dash"></i> Sin fecha definida
+                                        <?php endif; ?>
+                                    </span>
+                                    <a href="tarea.php?id_asignacion=<?= (int)$tarea['id_asignacion'] ?>&id_tarea=<?= (int)$tarea['id_tarea'] ?>&id_proyectos=<?= (int)$tarea['id_proyectos'] ?>"
+                                        class="btn btn-sm <?= $btnStyle ?>">
+                                        <i class="bi <?= $btnIco ?> me-1"></i><?= $btnTxt ?>
+                                    </a>
+                                </div>
+
+                            </div>
                         </div>
-                        <span class="badge text-bg-secondary">Sin activar</span>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
 
-    <?php endif; ?>
-</div>
+            <!--  Sin activar  -->
+            <?php if (!empty($tareasInactivas)): ?>
+                <button
+                    class="act-inactivas-toggle"
+                    type="button"
+                    onclick="toggleInactivas(this)"
+                    aria-expanded="false">
+                    <i class="bi bi-chevron-right me-1"></i>
+                    Aún no disponibles (<?= count($tareasInactivas) ?>)
+                </button>
+                <div class="act-inactivas-list" id="act-inactivas-list">
+                    <?php foreach ($tareasInactivas as $tarea): ?>
+                        <div class="act-inactiva-row">
+                            <div>
+                                <p class="act-inactiva-tipo"><?= htmlspecialchars($tarea['tipo'] ?? '—') ?></p>
+                                <p class="act-inactiva-nota">Aún no habilitada por el investigador.</p>
+                            </div>
+                            <span class="badge text-bg-secondary">Sin activar</span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+        <?php endif; ?>
+    </div>
 </div>
 <script>
-function toggleAct(btn) {
-    const open   = btn.getAttribute('aria-expanded') === 'true';
-    const bodyId = btn.getAttribute('aria-controls');
+    function toggleAct(btn) {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        const bodyId = btn.getAttribute('aria-controls');
 
-    // Cerrar el anterior (modo acordeón — eliminar este bloque para multi-apertura)
-    document.querySelectorAll('.act-trigger[aria-expanded="true"]').forEach(b => {
-        if (b !== btn) {
-            b.setAttribute('aria-expanded', 'false');
-            b.classList.remove('is-open');
-            const id = b.getAttribute('aria-controls');
-            if (id) document.getElementById(id)?.classList.remove('is-open');
-        }
-    });
+        // Cerrar el anterior (modo acordeón — eliminar este bloque para multi-apertura)
+        document.querySelectorAll('.act-trigger[aria-expanded="true"]').forEach(b => {
+            if (b !== btn) {
+                b.setAttribute('aria-expanded', 'false');
+                b.classList.remove('is-open');
+                const id = b.getAttribute('aria-controls');
+                if (id) document.getElementById(id)?.classList.remove('is-open');
+            }
+        });
 
-    btn.setAttribute('aria-expanded', String(!open));
-    btn.classList.toggle('is-open', !open);
-    document.getElementById(bodyId)?.classList.toggle('is-open', !open);
-}
+        btn.setAttribute('aria-expanded', String(!open));
+        btn.classList.toggle('is-open', !open);
+        document.getElementById(bodyId)?.classList.toggle('is-open', !open);
+    }
 
-function toggleInactivas(btn) {
-    const list = document.getElementById('act-inactivas-list');
-    const open = list.classList.toggle('open');
-    btn.classList.toggle('open', open);
-    btn.setAttribute('aria-expanded', String(open));
-}
+    function toggleInactivas(btn) {
+        const list = document.getElementById('act-inactivas-list');
+        const open = list.classList.toggle('open');
+        btn.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', String(open));
+    }
 </script>
 
 <?php

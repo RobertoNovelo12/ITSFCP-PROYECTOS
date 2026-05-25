@@ -44,17 +44,14 @@ $periodos    = $resultado['periodos']    ?? [];
 ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <div class="row mb-3 align-items-center">
-        <div class="col-md-6">
-            <h2 class="mb-0 fw-semibold" style="color: var(--color-primario); font-size: 1.6rem; letter-spacing: -.3px;">
-                Solicitudes de integración
-            </h2>
-            <p class="mb-0 small" style="color: var(--color-texto-secundario); margin-top: 2px;">
-                Gestiona las solicitudes de estudiantes para tus proyectos.
-            </p>
-        </div>
+        <?php
+        $titulo      = 'Solicitudes de Integración a Proyecto';
+        $descripcion = 'Gestión de solicitudes de integración de estudiantes';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-md-6 text-md-end">
             <div class="d-flex align-items-center gap-2 flex-wrap justify-content-md-end">
                 <label class="fw-semibold small mb-0 text-nowrap" style="color: var(--color-texto-principal);">Periodo:</label>

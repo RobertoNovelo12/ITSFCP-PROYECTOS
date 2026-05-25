@@ -66,16 +66,18 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- TITULO -->
     <div class="row mb-4 align-items-center">
 
-        <div class="col-12 col-md-6">
-            <h3 class="fw-bold mb-2 mb-md-0">Línea de investigación</h3>
-        </div>
+        <?php
+        $titulo      = 'Líneas de Investigación';
+        $descripcion = 'Gestión de líneas de investigación';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
 
-        <div class="col-12 col-md-6 text-md-end">
+        <div class="col-6 col-md-6 text-md-end">
             <?php if ($rol == "supervisor"): ?>
                 <a href="crear.php" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Crear Línea de investigación
@@ -233,8 +235,9 @@ include __DIR__ . '/../../mensaje.php';
 
     <?php if ($paginacion['total_paginas'] > 1):
         $qBase = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');        $entidad = 'entradas';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php';?>
+            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+        $entidad = 'entradas';
+        include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
     <?php endif; ?>
 </div>
 <?php

@@ -45,13 +45,15 @@ function mostrarFecha(?string $fecha, string $formato = "d/m/Y"): string
 ob_start();
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h3 class="fw-bold mb-0">Detalles del periodo</h3>
-        </div>
+        <?php
+        $titulo      = 'Detalle de Periodo';
+        $descripcion = 'Información del periodo seleccionado';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
         <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
@@ -165,11 +167,11 @@ ob_start();
                     </div>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar <?= $color ?>"
-                             role="progressbar"
-                             style="width: <?= $porcentaje ?>%"
-                             aria-valuenow="<?= $porcentaje ?>"
-                             aria-valuemin="0"
-                             aria-valuemax="100">
+                            role="progressbar"
+                            style="width: <?= $porcentaje ?>%"
+                            aria-valuenow="<?= $porcentaje ?>"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
                         </div>
                     </div>
                 </div>
@@ -217,11 +219,11 @@ ob_start();
                     </div>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar <?= $color ?>"
-                             role="progressbar"
-                             style="width: <?= $porcentaje ?>%"
-                             aria-valuenow="<?= $porcentaje ?>"
-                             aria-valuemin="0"
-                             aria-valuemax="100">
+                            role="progressbar"
+                            style="width: <?= $porcentaje ?>%"
+                            aria-valuenow="<?= $porcentaje ?>"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
                         </div>
                     </div>
                 </div>

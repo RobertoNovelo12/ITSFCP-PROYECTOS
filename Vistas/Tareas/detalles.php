@@ -41,22 +41,26 @@ ob_start();
 ?>
 
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- Cabecera -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-        <div>
-            <h4 class="mb-0 fw-semibold"><?= htmlspecialchars($tarea['titulo_tarea'] ?? 'Detalles de Actividad') ?></h4>
-            <small class="text-muted">Vista de solo lectura</small>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tarea['estado'] ?? '') ?>">
-                <?= htmlspecialchars($tarea['estado'] ?? '') ?>
-            </span>
-            <a href="index.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-secondary btn-sm px-3"><i class="bi bi-arrow-left"></i> Regresar</a>
+    <div class="row mb-4 align-items-center">
+
+        <?php
+        $titulo      = '<?= htmlspecialchars($tarea["titulo_tarea"] ?? "Detalles de Actividad") ?>';
+        $descripcion = 'Vista de solo lectura';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+
+        <div class="col-6 col-md-6 text-md-end">
+            <?php if ($rol == "supervisor"): ?>
+                <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tarea['estado'] ?? '') ?>">
+                    <?= htmlspecialchars($tarea['estado'] ?? '') ?>
+                </span>
+                <a href="index.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-secondary btn-sm px-3"><i class="bi bi-arrow-left"></i> Regresar</a>
+            <?php endif; ?>
         </div>
     </div>
-
     <!-- Alerta de edición reciente -->
     <?php if (!empty($tarea['fecha_modificacion'])): ?>
         <div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3">

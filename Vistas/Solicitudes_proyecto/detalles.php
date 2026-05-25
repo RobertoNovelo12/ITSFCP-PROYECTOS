@@ -59,14 +59,18 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- CABECERA -->
-    <div class="row mb-3 align-items-center">
-        <div class="col-8">
-            <h3 class="mb-0 fw-bold">Detalle de Solicitud</h3>
-        </div>
-        <div class="col-4 text-end">
+    <div class="row mb-1">
+
+        <?php
+        $titulo      = 'Detalle de Solicitud de Proyecto';
+        $descripcion = 'Información de la solicitud seleccionada';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+
+        <div class="col-6 text-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
@@ -270,14 +274,14 @@ include __DIR__ . '/../../mensaje.php';
 
                         <!-- APROBAR CREACIÓN — apunta a index.php del mismo módulo -->
                         <a href="index.php?action=actualizarestado&id_proyectos=<?= $id_proyecto ?>&tipo=Activos"
-                           class="btn btn-success btn-lg"
-                           onclick="return confirm('¿Confirma que desea APROBAR este proyecto?')">
+                            class="btn btn-success btn-lg"
+                            onclick="return confirm('¿Confirma que desea APROBAR este proyecto?')">
                             <i class="bi bi-check-circle-fill"></i> Aprobar proyecto
                         </a>
 
                         <!-- RECHAZAR CREACIÓN -->
                         <a href="comentarios.php?id_proyectos=<?= $id_proyecto ?>&motivo=creacion_rechazada&desde=solicitudes"
-                           class="btn btn-danger btn-lg">
+                            class="btn btn-danger btn-lg">
                             <i class="bi bi-x-circle-fill"></i> Rechazar proyecto
                         </a>
 
@@ -289,14 +293,14 @@ include __DIR__ . '/../../mensaje.php';
 
                         <!-- APROBAR CIERRE — apunta a index.php del mismo módulo -->
                         <a href="index.php?action=actualizarestado&id_proyectos=<?= $id_proyecto ?>&tipo=Cierre"
-                           class="btn btn-success btn-sm"
-                           onclick="return confirm('¿Confirma que desea APROBAR el cierre de este proyecto?')">
+                            class="btn btn-success btn-sm"
+                            onclick="return confirm('¿Confirma que desea APROBAR el cierre de este proyecto?')">
                             <i class="bi bi-check-circle-fill"></i> Aprobar cierre
                         </a>
 
                         <!-- RECHAZAR CIERRE -->
                         <a href="comentarios.php?id_proyectos=<?= $id_proyecto ?>&motivo=cierre_rechazado&desde=solicitudes"
-                           class="btn btn-danger btn-sm">
+                            class="btn btn-danger btn-sm">
                             <i class="bi bi-x-circle-fill"></i> Rechazar cierre
                         </a>
 

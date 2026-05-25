@@ -16,7 +16,7 @@ $id_usuario = (int)$_SESSION['id_usuario'];
 $rol        = strtolower($_SESSION['rol'] ?? '');
 
 //Todos los roles pueden acceder
-if (!in_array($rol, ['investigador', 'profesor','estudiante', 'supervisor'], true)) {
+if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
@@ -75,12 +75,16 @@ ob_start();
 include __DIR__ . '/../../mensaje.php';
 ?>
 
-<div class="container-fluid py-4" style="max-width:95%;">
+<div class="container-fluid py-4 ancho_container">
 
     <!-- Encabezado -->
     <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold mb-0"><?= htmlspecialchars($proyecto['titulo']) ?></h2>
+        <?php
+        $titulo      = 'Detalle';
+        $descripcion = 'Información detallada del proyecto seleccionado';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-6">
         </div>
     </div>
 
