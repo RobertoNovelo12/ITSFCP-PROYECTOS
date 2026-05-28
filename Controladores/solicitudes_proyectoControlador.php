@@ -7,32 +7,10 @@
 
 require_once __DIR__ . '/../Modelos/solicitudes_proyecto.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class SolicitudesProyectoControlador
+class SolicitudesProyectoControlador extends BaseControlador
 {
-
-    // 
-    // VALIDACIONES INTERNAS
-    // 
-
-    private function rolValido(string $rol): bool
-    {
-        return in_array($rol, ['investigador', 'supervisor', 'profesor'], true);
-    }
-
-    private function validarAcceso(string $rol, array $permitidos): void
-    {
-        if (!in_array($rol, $permitidos, true)) {
-            throw new Exception("No tienes permisos para realizar esta acción");
-        }
-    }
-
-    private function validarMetodo(string $metodo): void
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== $metodo) {
-            throw new Exception("Método no permitido");
-        }
-    }
 
     // 
     // ESTILO DE ESTADO (badge Bootstrap)
@@ -60,7 +38,6 @@ class SolicitudesProyectoControlador
         string $tipo_solicitud,
         string $estado_proyecto
     ): string {
-        // Botón "Ver detalles" siempre presente
         $botones = '<a href="detalles.php?id_proyectos=' . $id_proyecto . '"
             class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-title="Ver detalle de solicitud">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
@@ -74,7 +51,6 @@ class SolicitudesProyectoControlador
         }
 
         if ($tipo_solicitud === 'creacion' && $estado_proyecto === 'Por aprobar') {
-            // Aprobar creación — &tipo=Activos → numerofiltro() = 2
             $botones .= '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos"
                 class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar proyecto"
                 onclick="return confirm(\'¿Aprobar este proyecto?\')">
@@ -83,7 +59,6 @@ class SolicitudesProyectoControlador
                     <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
                 </svg></a>';
 
-            // Rechazar creación
             $botones .= '<a href="comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=creacion_rechazada&desde=solicitudes"
                 class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-title="Rechazar proyecto">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
@@ -93,7 +68,6 @@ class SolicitudesProyectoControlador
         }
 
         if ($tipo_solicitud === 'cierre' && $estado_proyecto === 'Por cerrar') {
-            // Aprobar cierre — &tipo=Cierre → numerofiltro() = 1
             $botones .= '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"
                 class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar cierre"
                 onclick="return confirm(\'¿Aprobar el cierre de este proyecto?\')">
@@ -102,7 +76,6 @@ class SolicitudesProyectoControlador
                     <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
                 </svg></a>';
 
-            // Rechazar cierre
             $botones .= '<a href="comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=cierre_rechazado&desde=solicitudes"
                 class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-title="Rechazar cierre">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
@@ -115,7 +88,7 @@ class SolicitudesProyectoControlador
     }
 
     // 
-    // RESUMEN (tarjetas del dashboard de Solicitudes_proyecto/index.php)
+    // RESUMEN (tarjetas del dashboard)
     // 
 
     public function resumenSolicitudes(string $rol, int $id_usuario, int $id_periodo = 0): array
@@ -130,7 +103,7 @@ class SolicitudesProyectoControlador
     }
 
     // 
-    // LISTADO PAGINADO (Solicitudes_proyecto/index.php)
+    // LISTADO PAGINADO
     // 
 
     public function listarSolicitudes(
@@ -169,7 +142,7 @@ class SolicitudesProyectoControlador
     }
 
     // 
-    // DETALLE DE SOLICITUD (Solicitudes_proyecto/detalles.php)
+    // DETALLE DE SOLICITUD
     // 
 
     public function datosproyecto(int $id_proyecto): ?array
@@ -181,7 +154,7 @@ class SolicitudesProyectoControlador
     public function datosinvestigador(int $id_proyecto): array
     {
         global $conn;
-        $modelo       = new SolicitudesProyecto($conn);
+        $modelo     = new SolicitudesProyecto($conn);
         $investigador = $modelo->obtenerProyectoInvestigador($id_proyecto);
         $id_usuario   = $investigador['id_usuarios'] ?? null;
         return [
@@ -216,9 +189,13 @@ class SolicitudesProyectoControlador
 
     // 
     // ACTUALIZAR ESTADO — rechazo con comentario (POST desde comentarios.php)
+    //
+    // Acción de formulario POST → redirige con msg.
+    // El rechazo puede originarse desde solicitudes o desde proyectos,
+    // por eso se conserva el parámetro 'desde' para elegir el destino.
     // 
 
-    public function actualizarestadoRechazo(array $data, int $id_usuario, string $rol): ?string
+    public function actualizarestadoRechazo(array $data, int $id_usuario, string $rol): void
     {
         global $conn;
         try {
@@ -226,7 +203,7 @@ class SolicitudesProyectoControlador
             $this->validarAcceso($rol, ['supervisor']);
 
             if (empty($data['comentario']) || empty($data['id_proyectos'])) {
-                throw new Exception("Datos incompletos");
+                throw new Exception('error_rechazo');
             }
 
             (new SolicitudesProyecto($conn))->actualizarEstadoProyectoRechazo(
@@ -236,18 +213,25 @@ class SolicitudesProyectoControlador
                 $data['comentario']
             );
 
-            header("Location: index.php?mensaje=1");
-            exit();
+            $desde = $data['desde'] ?? 'solicitudes';
+            if ($desde === 'solicitudes') {
+                $this->redirigir('exito_rechazo');
+            } else {
+                $this->redirigir('exito_rechazo', '../Proyectos/index.php');
+            }
+
         } catch (Exception $e) {
-            return $e->getMessage();
+            error_log($e->getMessage());
+            $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_rechazo';
+            $this->redirigir($msg, 'comentarios.php', "&id_proyectos=" . ($data['id_proyectos'] ?? '') . "&motivo=" . ($data['tipo'] ?? ''));
         }
     }
 
     // 
-    // ACTUALIZAR ESTADO — aprobación por enlace GET (desde index.php / detalles.php)
+    // ACTUALIZAR ESTADO — aprobación por enlace GET (desde index.php)
     // 
 
-    public function actualizarestado(int $id_proyecto, string $rol, string $tipo): ?string
+    public function actualizarestado(int $id_proyecto, string $rol, string $tipo): void
     {
         global $conn;
         try {
@@ -262,10 +246,12 @@ class SolicitudesProyectoControlador
 
             $modelo->actualizarestado($id_proyecto, $estado, $porcentaje);
 
-            header("Location: index.php?mensaje=1");
-            exit();
+            $this->redirigir('exito_estado');
+
         } catch (Exception $e) {
-            return $e->getMessage();
+            error_log($e->getMessage());
+            $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_estado';
+            $this->redirigir($msg);
         }
     }
 
@@ -276,16 +262,16 @@ class SolicitudesProyectoControlador
     public function numerofiltro(string $action): int
     {
         return match ($action) {
-            'Total'                     => 0,
-            'Cierre'                    => 1,
-            'Activos', 'Activo'         => 2,
-            'PorAprobar'                => 3,
-            'Rechazados'                => 4,
-            'PorCerrar'                 => 5,
-            'Vencido'                   => 6,
+            'Total'                   => 0,
+            'Cierre'                  => 1,
+            'Activos', 'Activo'       => 2,
+            'PorAprobar'              => 3,
+            'Rechazados'              => 4,
+            'PorCerrar'               => 5,
+            'Vencido'                 => 6,
             'Cierrerechazado',
-            'CierreRechazado'           => 7,
-            default                     => 0,
+            'CierreRechazado'         => 7,
+            default                   => 0,
         };
     }
 

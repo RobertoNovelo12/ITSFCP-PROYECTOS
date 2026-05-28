@@ -1,4 +1,7 @@
 <?php
+// Vistas/Solicitudes_actualizacion/respuesta.php
+// Formulario para que el supervisor ingrese el motivo de rechazo
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -6,45 +9,54 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header('Location: /ITSFCP-PROYECTOS/index.php');
     exit;
 }
 
 $rol        = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = intval($_SESSION['id_usuario']);
+$id_usuario = (int)$_SESSION['id_usuario'];
 
-//Solo supervisor accede
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
     exit;
 }
 
 require_once '../../Controladores/solicitudActualizacionControlador.php';
 
-$controlador = new SolicitudActualizacionControlador();
+$ctrl = new SolicitudActualizacionControlador();
 
-//  POST: confirmar rechazo 
+//  POST: confirmar rechazo ─
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controlador->rechazar($_POST, $id_usuario);
+    $ctrl->rechazar($_POST, $id_usuario);
+    // rechazar() redirige; no llega aquí
+}
+
+//  GET: mostrar formulario ─
+$id_solicitud = (int)($_GET['id_solicitud'] ?? 0);
+if ($id_solicitud <= 0) {
+    header('Location: index.php');
     exit;
 }
 
-//  GET: mostrar formulario 
-$id_solicitud = intval($_GET['id_solicitud'] ?? 0);
-if ($id_solicitud <= 0) die("ID de solicitud no válido.");
-
-$datos     = $controlador->detalle($id_solicitud);
+$datos     = $ctrl->detalle($id_solicitud);
 $solicitud = $datos['solicitud'];
 
-if (empty($solicitud)) die("No se encontró la solicitud.");
-
-// Solo se puede rechazar si está pendiente
-if ($solicitud['estado'] !== 'pendiente') {
-    header("Location: detalles.php?id_solicitud=" . $id_solicitud);
+if (empty($solicitud)) {
+    header('Location: index.php?msg=error_rechazar');
     exit;
 }
 
-$error = $_GET['error'] ?? '';
+if ($solicitud['estado'] !== 'pendiente') {
+    header('Location: detalles.php?id_solicitud=' . $id_solicitud);
+    exit;
+}
+
+//  Mensajes 
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'error_rechazar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al rechazar',   'mensaje' => 'No fue posible rechazar la solicitud. Intenta de nuevo.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida', 'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
 
 ob_start();
 ?>
@@ -55,8 +67,8 @@ ob_start();
     <div class="row mb-4 align-items-center">
         <?php
         $titulo      = 'Rechazar solicitud académica';
-        $descripcion = 'ID #<?= $id_solicitud ?>&bull <?= $controlador->etiquetaTipo($solicitud["tipo"]) ?>';
-        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        $descripcion = 'ID #' . $id_solicitud . ' &bull; ' . $ctrl->etiquetaTipo($solicitud['tipo']);
+        include __DIR__ . '/../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 col-md-4 text-md-end mt-2 mt-md-0">
             <a href="detalles.php?id_solicitud=<?= $id_solicitud ?>" class="btn btn-secondary">
@@ -65,13 +77,13 @@ ob_start();
         </div>
     </div>
 
-    <?php if (!empty($error)): ?>
-        <div class="alert alert-danger alert-dismissible fade show">
-            <i class="bi bi-exclamation-triangle-fill me-1"></i>
-            <?= htmlspecialchars($error) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
+    <!-- ALERTAS -->
+    <?php
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '/../../../publico/incluido/_mensaje.php';
+    }
+    ?>
 
     <div class="row g-4">
 
@@ -88,9 +100,7 @@ ob_start();
                     <div>
                         <small class="text-muted d-block">Estado resultante</small>
                         <span class="badge rounded-pill bg-danger fs-6 px-3 py-2">Rechazado</span>
-                        <small class="text-muted d-block mt-1">
-                            El estado cambiará al confirmar el rechazo.
-                        </small>
+                        <small class="text-muted d-block mt-1">El estado cambiará al confirmar el rechazo.</small>
                     </div>
                 </div>
             </div>
@@ -112,12 +122,12 @@ ob_start();
                     </div>
                     <div>
                         <small class="text-muted d-block">Fecha de solicitud</small>
-                        <span><?= date("d/m/Y H:i", strtotime($solicitud['fecha_solicitud'])) ?></span>
+                        <span><?= date('d/m/Y H:i', strtotime($solicitud['fecha_solicitud'])) ?></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Cambio solicitado (resumen) -->
+            <!-- Cambio solicitado -->
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
                     <i class="bi bi-arrow-left-right text-success fs-5"></i>
@@ -185,19 +195,15 @@ ob_start();
                             </div>
                         </div>
 
-                        <!-- Contador de caracteres -->
                         <div class="text-end mb-3">
                             <small class="text-muted" id="char-count">0 caracteres</small>
                         </div>
 
                         <div class="d-flex justify-content-between flex-wrap gap-2">
-                            <a href="detalles.php?id_solicitud=<?= $id_solicitud ?>"
-                                class="btn btn-secondary">
+                            <a href="detalles.php?id_solicitud=<?= $id_solicitud ?>" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left me-1"></i> Cancelar
                             </a>
-                            <button type="submit"
-                                class="btn btn-danger"
-                                onclick="return confirmarRechazo()">
+                            <button type="submit" class="btn btn-danger" onclick="return confirmarRechazo()">
                                 <i class="bi bi-x-circle-fill me-1"></i> Confirmar rechazo
                             </button>
                         </div>
@@ -212,7 +218,6 @@ ob_start();
 </div>
 
 <script>
-    // Contador de caracteres
     const textarea = document.getElementById('comentario');
     const counter = document.getElementById('char-count');
     textarea.addEventListener('input', () => {
@@ -225,8 +230,7 @@ ob_start();
             form.classList.add('was-validated');
             return false;
         }
-        const comentario = textarea.value.trim();
-        if (comentario.length < 10) {
+        if (textarea.value.trim().length < 10) {
             alert('El comentario debe tener al menos 10 caracteres.');
             return false;
         }
@@ -236,8 +240,7 @@ ob_start();
 
 <?php
 $contenido = ob_get_clean();
-$titulo    = "Rechazar solicitud académica";
-$bodyClass = "solicitudes-page";
-
+$titulo    = 'Rechazar solicitud académica';
+$bodyClass = 'solicitudes-page';
 include __DIR__ . '/../../layout.php';
 ?>

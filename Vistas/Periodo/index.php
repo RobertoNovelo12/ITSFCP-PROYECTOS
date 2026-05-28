@@ -1,8 +1,5 @@
 <?php
 // Periodo/index.php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 session_start();
 
@@ -12,59 +9,68 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $rol        = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = intval($_SESSION['id_usuario']);
+$id_usuario = (int)$_SESSION['id_usuario'];
 
-//Solo supervisor
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-$action = $_GET['action'] ?? 'index';
-$buscar = $_GET['buscar'] ?? '';
-$pagina = intval($_GET['pagina'] ?? 1);
-
-include "../../Controladores/periodoControlador.php";
+require_once '../../Controladores/periodoControlador.php';
 
 $periodoControlador = new periodoControlador();
 
-/* Desactivar periodo por GET */
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'desactivar_periodo') {
-    $id_periodos = intval($_GET['id_periodos']);
-    $periodoControlador->eliminar($id_periodos, $rol);
-    header("Location: index.php");
-    exit;
+//  Acción GET: desactivar periodo ─
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'desactivar_periodo') {
+    $id_periodos = (int)($_GET['id_periodos'] ?? 0);
+    $periodoControlador->desactivarPeriodo($rol, $id_periodos);
+    // Siempre redirige → el código no continúa.
 }
 
-if (!method_exists($periodoControlador, $action)) {
-    die("Error: La acción '$action' no existe en el controlador.");
+//  Parámetros de listado 
+$action = $_GET['action'] ?? 'Total';
+$buscar = $_GET['buscar'] ?? '';
+$pagina = (int)($_GET['pagina'] ?? 1);
+
+$accionesFiltro = ['Total', 'Activo', 'Terminado', 'Desactivado'];
+if (!in_array($action, $accionesFiltro, true)) {
+    $action = 'Total';
 }
 
-$resultado = $periodoControlador->$action($rol, $buscar);
-
-if (is_string($resultado)) {
-    $resultado = json_decode($resultado, true);
-}
-
+$resultado  = $periodoControlador->$action($rol, $buscar);
 $periodos   = $resultado['periodo']    ?? [];
 $paginacion = $resultado['paginacion'] ?? [
     'total'         => count($periodos),
     'por_pagina'    => 6,
     'pagina'        => $pagina,
-    'total_paginas' => max(1, ceil(count($periodos) / 6))
+    'total_paginas' => max(1, (int)ceil(count($periodos) / 6)),
 ];
 
 $filtros     = $periodoControlador->filtros($rol);
 $encabezados = $periodoControlador->encabezadosPrincipal($rol);
 $opciones    = $periodoControlador->opciones($rol, $filtros);
 
+//  Mapa de mensajes ─
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_crear'         => ['tipo' => 'exito',  'titulo_msg' => 'Periodo creado',         'mensaje' => 'El periodo fue creado correctamente.'],
+    'exito_editar'        => ['tipo' => 'exito',  'titulo_msg' => 'Periodo actualizado',     'mensaje' => 'Las fechas del periodo fueron actualizadas correctamente.'],
+    'exito_desactivar'    => ['tipo' => 'exito',  'titulo_msg' => 'Periodo desactivado',     'mensaje' => 'El periodo fue desactivado correctamente.'],
+    'exito_reactivar'     => ['tipo' => 'exito',  'titulo_msg' => 'Periodo reactivado',      'mensaje' => 'El periodo fue reactivado correctamente.'],
+    'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',          'mensaje' => 'No fue posible crear el periodo. Verifica los datos e intenta de nuevo.'],
+    'error_editar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',         'mensaje' => 'No fue posible actualizar las fechas del periodo.'],
+    'error_desactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',     'mensaje' => 'No fue posible desactivar el periodo.'],
+    'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',      'mensaje' => 'No fue posible reactivar el periodo.'],
+    'error_duplicado'     => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',      'mensaje' => 'Ya existe un periodo con esas fechas o nombre.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',     'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
 
-    <!-- TITULO -->
+    <!-- TÍTULO -->
     <div class="row mb-4 align-items-center">
         <?php
         $titulo      = 'Periodos';
@@ -80,100 +86,96 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
+    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
+
     <!-- FILTROS Y BÚSQUEDA -->
-    <div class="row g-2 mb-4">
-        <div class="col-12 col-md-4">
-            <select class="form-select"
-                onchange="location.href='index.php?action=' + this.value;">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="index.php">
-                <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                <input type="text"
-                    name="buscar"
-                    class="form-control"
-                    placeholder="Buscar..."
-                    value="<?= htmlspecialchars($buscar) ?>">
-                <button type="submit" class="btn btn-primary">Buscar</button>
-            </form>
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=' + this.value;">
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-8 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                    <form class="d-flex gap-2" method="GET" action="index.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Por nombre..."
+                            value="<?= htmlspecialchars($buscar) ?>">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- AVISO CONTEXTUAL cuando se está viendo desactivados -->
+    <!-- AVISO para desactivados -->
     <?php if ($action === 'Desactivado'): ?>
         <div class="alert alert-secondary d-flex align-items-center gap-2 mb-4" role="alert">
             <i class="bi bi-info-circle-fill flex-shrink-0"></i>
             <div>
                 Los periodos <strong>desactivados administrativamente</strong> se muestran aquí.
                 Solo pueden reactivarse aquellos cuyo semestre aún no ha terminado.
-                Los periodos de semestres pasados no pueden reactivarse.
             </div>
         </div>
     <?php endif; ?>
 
-    <!-- TABLA (escritorio) -->
+    <!-- TABLA ESCRITORIO -->
     <div class="card shadow-sm d-none d-md-block">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <?php foreach ($encabezados as $encabezado): ?>
-                                <th><?= $encabezado ?></th>
+                            <?php foreach ($encabezados as $enc): ?>
+                                <th><?= htmlspecialchars($enc) ?></th>
                             <?php endforeach; ?>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($rol === 'supervisor'): ?>
-                            <?php if (!empty($periodos)): ?>
-                                <?php foreach ($periodos as $per): ?>
-                                    <tr class="<?= ($per['estados'] === 'Desactivado') ? 'table-secondary' : '' ?>">
-                                        <td><?= htmlspecialchars($per['periodo']) ?></td>
-                                        <td><?= date("d/m/Y", strtotime($per['inicio'])) ?></td>
-                                        <td><?= date("d/m/Y", strtotime($per['final'])) ?></td>
-                                        <td><?= date("d/m/Y", strtotime($per['crear']))  ?></td>
-                                        <td><?= date("H:i",   strtotime($per['crear']))  ?></td>
-                                        <td>
-                                            <span class="badge rounded-pill text-bg-<?= $periodoControlador->EstiloEstadoLista($per['estados']) ?>">
-                                                <?= htmlspecialchars($per['estados']) ?>
-                                            </span>
-                                            <?php if ($per['estados'] === 'Desactivado' && !$per['puede_reactivar']): ?>
-                                                <br>
-                                                <small class="text-muted">Semestre pasado</small>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?= $periodoControlador->botonesAccionPrincipal(
-                                                $per['id_periodos'],
-                                                $rol,
-                                                $per['estados'],
-                                                $per['puede_reactivar'] ?? 0
-                                            ) ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7">
-                                        <div class="alert alert-info mb-0">
-                                            No hay periodos en esta categoría.
-                                        </div>
+                        <?php if (!empty($periodos)): ?>
+                            <?php foreach ($periodos as $per): ?>
+                                <tr class="<?= ($per['estados'] === 'Desactivado') ? 'table-secondary' : '' ?>">
+                                    <td><?= htmlspecialchars($per['periodo']) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($per['inicio'])) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($per['final'])) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($per['crear'])) ?></td>
+                                    <td><?= date('H:i',   strtotime($per['crear'])) ?></td>
+                                    <td>
+                                        <span class="badge rounded-pill text-bg-<?= $periodoControlador->EstiloEstadoLista($per['estados']) ?>">
+                                            <?= htmlspecialchars($per['estados']) ?>
+                                        </span>
+                                        <?php if ($per['estados'] === 'Desactivado' && !$per['puede_reactivar']): ?>
+                                            <br><small class="text-muted">Semestre pasado</small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?= $periodoControlador->botonesAccionPrincipal(
+                                            (int)$per['id_periodos'],
+                                            $rol,
+                                            $per['estados'],
+                                            (int)($per['puede_reactivar'] ?? 0)
+                                        ) ?>
                                     </td>
                                 </tr>
-                            <?php endif; ?>
+                            <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7">
-                                    <div class="alert alert-danger mb-0">
-                                        No tiene permiso para ver los periodos.
-                                    </div>
+                                <td colspan="7" class="text-center text-muted py-3">
+                                    No hay periodos en esta categoría.
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -183,20 +185,18 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
-    <!-- TARJETAS (móvil) -->
+    <!-- TARJETAS MÓVIL -->
     <div class="d-block d-md-none">
         <?php if (!empty($periodos)): ?>
-            <?php foreach ($periodos as $periodo_item): ?>
-                <div class="card shadow-sm mb-3 <?= ($periodo_item['estados'] === 'Desactivado') ? 'border-secondary' : '' ?>">
+            <?php foreach ($periodos as $per): ?>
+                <div class="card shadow-sm mb-3 <?= ($per['estados'] === 'Desactivado') ? 'border-secondary' : '' ?>">
                     <div class="card-body text-center">
-                        <h5 class="fw-bold"><?= htmlspecialchars($periodo_item['periodo']) ?></h5>
-                        <h5 class="fw-bold">
-                            <span class="badge rounded-pill text-bg-<?= $periodoControlador->EstiloEstadoLista($periodo_item['estados']) ?>">
-                                <?= htmlspecialchars($periodo_item['estados']) ?>
-                            </span>
-                        </h5>
-                        <?php if ($periodo_item['estados'] === 'Desactivado' && !$periodo_item['puede_reactivar']): ?>
-                            <small class="text-muted">Semestre pasado — no reactivable</small>
+                        <h5 class="fw-bold"><?= htmlspecialchars($per['periodo']) ?></h5>
+                        <span class="badge rounded-pill text-bg-<?= $periodoControlador->EstiloEstadoLista($per['estados']) ?>">
+                            <?= htmlspecialchars($per['estados']) ?>
+                        </span>
+                        <?php if ($per['estados'] === 'Desactivado' && !$per['puede_reactivar']): ?>
+                            <br><small class="text-muted">Semestre pasado — no reactivable</small>
                         <?php endif; ?>
                     </div>
                     <ul class="list-group list-group-flush">
@@ -204,29 +204,21 @@ include __DIR__ . '/../../mensaje.php';
                             <div class="row text-center">
                                 <div class="col-6">
                                     <strong>Fecha inicio</strong>
-                                    <p class="mb-0">
-                                        <?= date("d/m/Y", strtotime($periodo_item['inicio'])) ?>
-                                    </p>
+                                    <p class="mb-0"><?= date('d/m/Y', strtotime($per['inicio'])) ?></p>
                                 </div>
                                 <div class="col-6">
                                     <strong>Fecha final</strong>
-                                    <p class="mb-0">
-                                        <?= date("d/m/Y", strtotime($periodo_item['final'])) ?>
-                                    </p>
+                                    <p class="mb-0"><?= date('d/m/Y', strtotime($per['final'])) ?></p>
                                 </div>
                             </div>
                             <div class="row text-center mt-2">
                                 <div class="col-6">
                                     <strong>Fecha Creación</strong>
-                                    <p class="mb-0">
-                                        <?= date("d/m/Y", strtotime($periodo_item['crear'])) ?>
-                                    </p>
+                                    <p class="mb-0"><?= date('d/m/Y', strtotime($per['crear'])) ?></p>
                                 </div>
                                 <div class="col-6">
                                     <strong>Hora Creación</strong>
-                                    <p class="mb-0">
-                                        <?= date("H:i", strtotime($periodo_item['crear'])) ?>
-                                    </p>
+                                    <p class="mb-0"><?= date('H:i', strtotime($per['crear'])) ?></p>
                                 </div>
                             </div>
                         </li>
@@ -234,10 +226,10 @@ include __DIR__ . '/../../mensaje.php';
                     <div class="card-body">
                         <div class="d-flex justify-content-center gap-2">
                             <?= $periodoControlador->botonesAccionPrincipal(
-                                $periodo_item['id_periodos'],
+                                (int)$per['id_periodos'],
                                 $rol,
-                                $periodo_item['estados'],
-                                $periodo_item['puede_reactivar'] ?? 0
+                                $per['estados'],
+                                (int)($per['puede_reactivar'] ?? 0)
                             ) ?>
                         </div>
                     </div>
@@ -250,18 +242,17 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- PAGINACIÓN -->
     <?php if ($paginacion['total_paginas'] > 1):
-        $qBase = 'action=' . urlencode($action)
+        $qBase  = 'action=' . urlencode($action)
             . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
         $entidad = 'periodos';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
-    <?php endif; ?>
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';
+    endif; ?>
 
 </div>
 
 <?php
 $contenido = ob_get_clean();
-$titulo    = "Períodos";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Períodos';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
 ?>

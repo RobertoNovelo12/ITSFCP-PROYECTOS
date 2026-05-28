@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 // 
 //  DATOS PARA LA VISTA
 // 
-$datos     = $tareaControlador->mostrarTarea($id_asignacion, $rol);
+$datos     = $tareaControlador->mostrarTarea($id_asignacion, $rol, $id);
 $resultado = $tareaControlador->info_linea_tiempo($id_asignacion);
 
 $historialAgrupado = $resultado['datos'];

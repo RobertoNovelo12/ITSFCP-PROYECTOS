@@ -1,589 +1,376 @@
 <?php
+// Modelos/carrera.php
+
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseModelo.php';
 
-class Carrera
+class Carrera extends BaseModelo
 {
-    private $con;
-
-    public function __construct($conn)
+    public function __construct(mysqli $conn)
     {
-        $this->con = $conn;
+        parent::__construct($conn);
     }
 
-    /**
-     * Obtiene datos para filtros (totales, activos, desactivados)
-     */
-    public function obtenerDatosFiltro($rol): array
+
+    // ─
+    // FILTROS / CONTEOS
+    // ─
+
+    public function obtenerDatosFiltro(string $rol): array
     {
         if ($rol !== 'supervisor') {
             return [];
         }
 
-        $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
-                    COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
-                FROM carreras";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerDatosFiltro): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerDatosFiltro): " . $stmt->error);
-        }
-
-        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close();
-
-        return $resultado;
+        return $this->ejecutar(
+            "SELECT
+                COUNT(*) AS Total,
+                COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
+                COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
+             FROM carreras"
+        );
     }
 
-    /**
-     * Método base para construir WHERE dinámico (REUTILIZABLE)
-     * Nota: 'carreras' usa 'nombre_carrera' como campo principal (en lugar de 'nombre')
-     */
-    private function construirWhere(&$params, &$types, $buscar, $filtro): string
+
+    // ─
+    // TABLA PRINCIPAL
+    // ─
+
+    public function obtenerTablaFiltro(?string $buscar, int $filtro): array
     {
-        $where = [];
+        $total         = $this->obtenerCantidadCarrera($buscar, $filtro);
+        $por_pagina    = 6;
+        $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
+        $desde         = ($pagina - 1) * $por_pagina;
+        $total_paginas = max(1, (int)ceil($total / $por_pagina));
 
-        // Filtro lógico
-        if ($filtro == 0) {
-            $where[] = "estado = 0";
-        }
-        if ($filtro == 1) {
-            $where[] = "estado = 1";
-        } elseif ($filtro == 2) {
-            $where[] = "estado IN (0,1)";
-        }
+        [$where, $params, $types] = $this->construirWhere($buscar, $filtro);
 
-        // Búsqueda por nombre_carrera y fecha_creacion
-        if (!empty($buscar)) {
-            $where[] = "(nombre_carrera LIKE ? OR fecha_creacion LIKE ?)";
-            $params[] = "%$buscar%";
-            $params[] = "%$buscar%";
-            $types .= "ss";
-        }
-
-        return " WHERE " . implode(" AND ", $where);
-    }
-
-    /**
-     * Obtiene tabla principal con paginación
-     */
-    public function obtenerTablaFiltro($buscar, $filtro): array
-    {
-        $pagina = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
-        $por_pagina = 6;
-        $desde = ($pagina - 1) * $por_pagina;
-
-        $params = [];
-        $types = "";
-
-        $total = $this->obtenerCantidadCarrera($buscar, $filtro);
-        $total_paginas = ($total > 0) ? ceil($total / $por_pagina) : 1;
-
-        $sql = "SELECT 
+        $sql = "SELECT
                     id_carrera,
                     nombre_carrera,
                     fecha_creacion AS crear,
-                    CASE 
-                        WHEN estado = 1 THEN 'Activo'        
+                    CASE
+                        WHEN estado = 1 THEN 'Activo'
                         WHEN estado = 0 THEN 'Desactivado'
                         ELSE 'Desconocido'
                     END AS estados
-                FROM carreras";
-
-        $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
-
-        $sql .= " ORDER BY id_carrera ASC LIMIT ?, ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerTablaFiltro): " . $this->con->error);
-        }
+                FROM carreras
+                $where
+                ORDER BY id_carrera ASC
+                LIMIT ?, ?";
 
         $params[] = $desde;
         $params[] = $por_pagina;
-        $types .= "ii";
-
-        $stmt->bind_param($types, ...$params);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerTablaFiltro): " . $stmt->error);
-        }
-
-        $data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close();
+        $types   .= 'ii';
 
         return [
-            "carrera" => $data,
-            "paginacion" => [
-                "total" => $total,
-                "por_pagina" => $por_pagina,
-                "pagina" => $pagina,
-                "total_paginas" => $total_paginas
-            ]
+            "carrera"    => $this->ejecutar($sql, $types, $params),
+            "paginacion" => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas],
         ];
     }
 
-    /**
-     * Obtiene total de registros con filtros
-     */
-    public function obtenerCantidadCarrera($buscar = null, $filtro = 2): int
+    public function obtenerCantidadCarrera(?string $buscar, int $filtro): int
     {
-        $params = [];
-        $types = "";
+        [$where, $params, $types] = $this->construirWhere($buscar, $filtro);
 
-        $sql = "SELECT COUNT(*) AS total FROM carreras";
-        $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
+        $sql = "SELECT COUNT(*) AS total FROM carreras $where";
 
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerCantidadCarrera): " . $this->con->error);
-        }
-
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerCantidadCarrera): " . $stmt->error);
-        }
-
-        $resultado = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close();
-
-        return (int)($resultado['total'] ?? 0);
+        return (int)($this->ejecutar($sql, $types, $params, false)['total'] ?? 0);
     }
 
     /**
-     * Obtiene datos para edición
-     */
-    public function obtenerEditar($id_carrera): array
-    {
-        $sql = "SELECT 
-                    id_carrera, 
-                    nombre_carrera,                    
-                    CASE 
-                        WHEN estado = 1 THEN 'Activo'
-                        WHEN estado = 0 THEN 'Desactivado'
-                        ELSE 'Desconocido'
-                    END AS estado
-                FROM carreras
-                WHERE id_carrera = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerEditar): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_carrera);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerEditar): " . $stmt->error);
-        }
-
-        $carrera = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close();
-
-        if (!$carrera) {
-            throw new Exception("Carrera no encontrada");
-        }
-
-        return $carrera;
-    }
-
-    /**
-     * Obtiene datos para vista de detalles
-     */
-    public function obtenerDetalles($id_carrera): array
-    {
-        $sql = "SELECT 
-                    id_carrera, 
-                    nombre_carrera, 
-                    fecha_creacion, 
-                    fecha_modificacion,
-                    CASE 
-                        WHEN estado = 1 THEN 'Activo'
-                        WHEN estado = 0 THEN 'Desactivado'
-                        ELSE 'Desconocido'
-                    END AS estado
-                FROM carreras
-                WHERE id_carrera = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerDetalles): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_carrera);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerDetalles): " . $stmt->error);
-        }
-
-        $carrera = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close();
-
-        if (!$carrera) {
-            throw new Exception("Carrera no encontrada");
-        }
-
-        return $carrera;
-    }
-
-    /**
-     * Registra una nueva carrera.
-     * 
-     * REGLAS:
-     * - Se crea siempre como activo
-     * - No debe duplicar nombre activo
-     * 
-     * IMPORTANTE:
-     * Este método DEBE ejecutarse dentro de una transacción desde el controlador.
+     * Construye la cláusula WHERE con sus parámetros.
+     * Devuelve [string $where, array $params, string $types].
      *
-     * @param string $nombre_carrera
-     * @return int ID insertado
+     * Filtro: 0 = Desactivado | 1 = Activo | 2 = Total (ambos)
+     */
+    private function construirWhere(?string $buscar, int $filtro): array
+    {
+        $conditions = [];
+        $params     = [];
+        $types      = '';
+
+        // Estado
+        if ($filtro === 0 || $filtro === 1) {
+            $conditions[] = "estado = ?";
+            $params[]     = $filtro;
+            $types       .= 'i';
+        } else {
+            // filtro === 2: ambos estados
+            $conditions[] = "estado IN (0, 1)";
+        }
+
+        // Búsqueda por nombre y fecha
+        if (!empty($buscar)) {
+            $conditions[] = "(nombre_carrera LIKE ? OR fecha_creacion LIKE ?)";
+            $params[]     = "%$buscar%";
+            $params[]     = "%$buscar%";
+            $types       .= 'ss';
+        }
+
+        $where = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
+        return [$where, $params, $types];
+    }
+
+
+    // ─
+    // DATOS PARA FORMULARIOS
+    // ─
+
+    public function obtenerEditar(int $id_carrera): array
+    {
+        $fila = $this->ejecutar(
+            "SELECT
+                id_carrera,
+                nombre_carrera,
+                CASE
+                    WHEN estado = 1 THEN 'Activo'
+                    WHEN estado = 0 THEN 'Desactivado'
+                    ELSE 'Desconocido'
+                END AS estado
+             FROM carreras
+             WHERE id_carrera = ?",
+            "i",
+            [$id_carrera],
+            false
+        );
+
+        if (!$fila) {
+            throw new Exception("Carrera no encontrada.");
+        }
+
+        return $fila;
+    }
+
+    public function obtenerDetalles(int $id_carrera): array
+    {
+        $fila = $this->ejecutar(
+            "SELECT
+                id_carrera,
+                nombre_carrera,
+                fecha_creacion,
+                fecha_modificacion,
+                CASE
+                    WHEN estado = 1 THEN 'Activo'
+                    WHEN estado = 0 THEN 'Desactivado'
+                    ELSE 'Desconocido'
+                END AS estado
+             FROM carreras
+             WHERE id_carrera = ?",
+            "i",
+            [$id_carrera],
+            false
+        );
+
+        if (!$fila) {
+            throw new Exception("Carrera no encontrada.");
+        }
+
+        return $fila;
+    }
+
+
+    // ─
+    // CREAR
+    // ─
+
+    /**
+     * Inserta una nueva carrera activa.
+     * Lanza Exception si ya existe una carrera activa con el mismo nombre.
+     * Debe ejecutarse dentro de una transacción.
+     *
+     * @return int  ID insertado.
      * @throws Exception
      */
     public function registrarCarrera(string $nombre_carrera): int
     {
         $validacion = $this->verificarCarrera($nombre_carrera);
 
-        if ($validacion['activo']) {
-            throw new Exception("Conflicto: ya existe una carrera activa con ese nombre.");
+        if ($validacion['activo'] > 0) {
+            throw new Exception('error_duplicado');
         }
 
-        $sql = "INSERT INTO carreras 
-            (nombre_carrera, estado, fecha_creacion) 
-            VALUES (?, 1, NOW())";
+        $this->ejecutar(
+            "INSERT INTO carreras (nombre_carrera, estado, fecha_creacion) VALUES (?, 1, NOW())",
+            "s",
+            [$nombre_carrera]
+        );
 
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (registrarCarrera): " . $this->con->error);
-        }
-
-        $stmt->bind_param("s", $nombre_carrera);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (registrarCarrera): " . $stmt->error);
-        }
-
-        $id = $stmt->insert_id;
-
-        $stmt->close();
-
-        return $id;
+        return (int)$this->conn->insert_id;
     }
 
+
+    // ─
+    // EDITAR
+    // ─
+
     /**
-     * Edita una carrera existente.
-     * 
-     * REGLAS:
-     * - No debe duplicar nombre activo con otro id
-     * 
-     * IMPORTANTE:
-     * Este método DEBE ejecutarse dentro de una transacción desde el controlador.
+     * Actualiza el nombre de una carrera.
+     * Debe ejecutarse dentro de una transacción.
      *
-     * @param string $nombre_carrera
-     * @param int $id_carrera
-     * @return int ID editado
-     * @throws Exception
+     * @return int  El mismo $id_carrera recibido.
      */
     public function editarCarrera(string $nombre_carrera, int $id_carrera): int
     {
-        $sql = "UPDATE carreras SET nombre_carrera = ?, fecha_modificacion = NOW() WHERE id_carrera = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (editarCarrera): " . $this->con->error);
-        }
-
-        $stmt->bind_param("si", $nombre_carrera, $id_carrera);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (editarCarrera): " . $stmt->error);
-        }
-
-        $stmt->close();
+        $this->ejecutar(
+            "UPDATE carreras SET nombre_carrera = ?, fecha_modificacion = NOW() WHERE id_carrera = ?",
+            "si",
+            [$nombre_carrera, $id_carrera]
+        );
 
         return $id_carrera;
     }
 
+
+    // ─
+    // REACTIVAR
+    // ─
+
     /**
-     * Reactiva una carrera previamente desactivada.
-     * 
-     * IMPORTANTE:
-     * Ejecutar dentro de transacción.
+     * Reactiva una carrera desactivada.
+     * Valida que no exista otra activa con el mismo nombre.
+     * Debe ejecutarse dentro de una transacción con bloqueo previo.
      *
-     * @param int $id_carrera
-     * @return void
      * @throws Exception
      */
     public function reactivar(int $id_carrera): void
     {
-        $carrera = $this->obtenerPorId($id_carrera, true);
-
-        if (!$carrera) {
-            throw new Exception("Carrera no encontrada.");
-        }
-
-        $sqlDatos = "SELECT nombre_carrera 
-                 FROM carreras
-                 WHERE id_carrera = ?";
-
-        $stmtDatos = $this->con->prepare($sqlDatos);
-
-        if (!$stmtDatos) {
-            throw new Exception("Error en prepare (reactivar datos): " . $this->con->error);
-        }
-
-        $stmtDatos->bind_param("i", $id_carrera);
-        $stmtDatos->execute();
-        $datos = $stmtDatos->get_result()->fetch_assoc();
-        $stmtDatos->close();
+        // Obtener nombre para validar duplicidad
+        $datos = $this->ejecutar(
+            "SELECT nombre_carrera FROM carreras WHERE id_carrera = ?",
+            "i",
+            [$id_carrera],
+            false
+        );
 
         if (!$datos) {
-            throw new Exception("No se pudieron obtener datos de la carrera.");
+            throw new Exception("Carrera no encontrada.");
         }
 
         $validacion = $this->verificarCarrera($datos['nombre_carrera']);
 
-        if ($validacion['activo']) {
-            throw new Exception("Conflicto: ya existe una carrera activa con el mismo nombre.");
+        if ($validacion['activo'] > 0) {
+            throw new Exception('error_duplicado');
         }
 
-        $sql = "UPDATE carreras 
-            SET estado = 1, 
-                fecha_modificacion = NOW() 
-            WHERE id_carrera = ? 
-              AND estado = 0";
+        $this->ejecutar(
+            "UPDATE carreras
+             SET estado = 1, fecha_modificacion = NOW()
+             WHERE id_carrera = ? AND estado = 0",
+            "i",
+            [$id_carrera]
+        );
 
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (reactivarCarrera): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_carrera);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (reactivarCarrera): " . $stmt->error);
-        }
-
-        if ($stmt->affected_rows === 0) {
+        if ($this->conn->affected_rows === 0) {
             throw new Exception("La carrera ya estaba activa o no se pudo actualizar.");
         }
-
-        $stmt->close();
     }
 
-    /**
-     * Bloquea únicamente los registros activos.
-     * IMPORTANTE: Debe ejecutarse dentro de una transacción.
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function bloquear_tabla(): void
-    {
-        $sql = "SELECT id_carrera 
-                FROM carreras
-                WHERE estado = 1 
-                FOR UPDATE";
 
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (bloquear_tabla): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (bloquear_tabla): " . $stmt->error);
-        }
-
-        $stmt->free_result();
-        $stmt->close();
-    }
+    // ─
+    // DESACTIVAR (soft delete)
+    // ─
 
     /**
-     * Eliminación lógica (soft delete) de una carrera.
-     *
-     * @param int $id_carrera
-     * @return int Número de filas afectadas
-     * @throws Exception
+     * @return int  Filas afectadas (≥ 1 éxito, 0 ya estaba desactivada).
      */
     public function eliminar_carrera(int $id_carrera): int
     {
-        $sql = "UPDATE carreras 
-                SET estado = 0, 
-                    fecha_modificacion = NOW() 
-                WHERE id_carrera = ? 
-                  AND estado <> 0";
+        $this->ejecutar(
+            "UPDATE carreras
+             SET estado = 0, fecha_modificacion = NOW()
+             WHERE id_carrera = ? AND estado <> 0",
+            "i",
+            [$id_carrera]
+        );
 
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (eliminar_carrera): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_carrera);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (eliminar_carrera): " . $stmt->error);
-        }
-
-        $filas = $stmt->affected_rows;
-
-        $stmt->close();
-
-        return $filas;
+        return $this->conn->affected_rows;
     }
 
-    /**
-     * Verifica duplicidad de carreras por nombre.
-     *
-     * @param string $nombre_carrera
-     * @return array
-     * @throws Exception
-     */
-    public function verificarCarrera(string $nombre_carrera): array
+
+    // ─
+    // BLOQUEO OPTIMISTA PARA CONCURRENCIA
+    // ─
+
+    public function bloquear_tabla(): void
     {
-        $sql = "SELECT
-                EXISTS(
-                    SELECT 1 FROM carreras
-                    WHERE estado = 1 AND nombre_carrera = ?
-                ) AS activo,
-
-                EXISTS(
-                    SELECT 1 FROM carreras
-                    WHERE estado = 0 AND nombre_carrera = ?
-                ) AS desactivado
-        ";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (verificarCarrera): " . $this->con->error);
-        }
-
-        $stmt->bind_param("ss", $nombre_carrera, $nombre_carrera);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (verificarCarrera): " . $stmt->error);
-        }
-
-        $res = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close();
-
-        return [
-            "activo" => (int)($res['activo']),
-            "desactivado" => (int)($res['desactivado'])
-        ];
+        $this->ejecutar(
+            "SELECT id_carrera FROM carreras WHERE estado = 1 FOR UPDATE"
+        );
     }
 
-    /**
-     * Obtiene una carrera por ID.
-     *
-     * @param int $id_carrera
-     * @param bool $forUpdate
-     * @return array|null
-     * @throws Exception
-     */
+
+    // ─
+    // OBTENER POR ID
+    // ─
+
     public function obtenerPorId(int $id_carrera, bool $forUpdate = false): ?array
     {
-        $sql = "SELECT estado 
-                FROM carreras 
-                WHERE id_carrera = ?";
-
+        $sql = "SELECT estado FROM carreras WHERE id_carrera = ?";
         if ($forUpdate) {
             $sql .= " FOR UPDATE";
         }
 
-        $stmt = $this->con->prepare($sql);
+        $fila = $this->ejecutar($sql, "i", [$id_carrera], false);
 
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerPorId): " . $this->con->error);
-        }
+        return $fila ?: null;
+    }
 
-        $stmt->bind_param("i", $id_carrera);
 
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerPorId): " . $stmt->error);
-        }
+    // ─
+    // VERIFICACIÓN DE DUPLICIDAD
+    // ─
 
-        $res = $stmt->get_result()->fetch_assoc();
+    /**
+     * Verifica si ya existe una carrera con el nombre dado (cualquier estado).
+     *
+     * @return array{activo: int, desactivado: int}
+     */
+    public function verificarCarrera(string $nombre_carrera): array
+    {
+        $fila = $this->ejecutar(
+            "SELECT
+                EXISTS(SELECT 1 FROM carreras WHERE estado = 1 AND nombre_carrera = ?) AS activo,
+                EXISTS(SELECT 1 FROM carreras WHERE estado = 0 AND nombre_carrera = ?) AS desactivado",
+            "ss",
+            [$nombre_carrera, $nombre_carrera],
+            false
+        );
 
-        $stmt->close();
-
-        return $res ?: null;
+        return [
+            'activo'      => (int)($fila['activo']      ?? 0),
+            'desactivado' => (int)($fila['desactivado'] ?? 0),
+        ];
     }
 
     /**
      * Verifica si existe otra carrera con el mismo nombre, excluyendo el ID actual.
+     * Usado al editar para detectar conflictos con otros registros.
      *
-     * @param int $id_carrera
-     * @param string $nombre_carrera
-     * @return array|null
-     * @throws Exception
+     * @return array{activo: int, desactivado: int}
      */
-    public function obtenerPorIdDiferente(int $id_carrera, $nombre_carrera): ?array
+    public function obtenerPorIdDiferente(int $id_carrera, string $nombre_carrera): array
     {
-        $sql = "SELECT
-    EXISTS(
-        SELECT 1 FROM carreras
-        WHERE estado = 1 AND nombre_carrera = ? AND id_carrera != ?
-    ) AS activo,
-
-    EXISTS(
-        SELECT 1 FROM carreras
-        WHERE estado = 0 AND nombre_carrera = ? AND id_carrera != ?
-    ) AS desactivado
-                FROM carreras 
-                WHERE id_carrera != ? AND nombre_carrera = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerPorIdDiferente): " . $this->con->error);
-        }
-
-        $stmt->bind_param(
-            "sisiis",
-            $nombre_carrera,
-            $id_carrera,
-            $nombre_carrera,
-            $id_carrera,
-            $id_carrera,
-            $nombre_carrera
+        $fila = $this->ejecutar(
+            "SELECT
+                EXISTS(
+                    SELECT 1 FROM carreras
+                    WHERE estado = 1 AND nombre_carrera = ? AND id_carrera != ?
+                ) AS activo,
+                EXISTS(
+                    SELECT 1 FROM carreras
+                    WHERE estado = 0 AND nombre_carrera = ? AND id_carrera != ?
+                ) AS desactivado",
+            "sisi",
+            [$nombre_carrera, $id_carrera, $nombre_carrera, $id_carrera],
+            false
         );
 
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerPorIdDiferente): " . $stmt->error);
-        }
-
-        $res = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close();
-
         return [
-            "activo" => (int)($res['activo']),
-            "desactivado" => (int)($res['desactivado'])
+            'activo'      => (int)($fila['activo']      ?? 0),
+            'desactivado' => (int)($fila['desactivado'] ?? 0),
         ];
     }
 }

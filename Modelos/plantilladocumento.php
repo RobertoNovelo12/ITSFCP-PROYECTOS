@@ -1,77 +1,11 @@
 <?php
-/**
- * Modelo: plantilladocumento.php
- *
- * Acceso a datos para el módulo de Plantillas de Documentos.
- * Todas las consultas pasan por ejecutar() para evitar duplicación
- * de lógica de prepare/bind/execute y centralizar el manejo de errores.
- */
+// Modelos/plantilladocumento.php
 
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseModelo.php';
 
-class plantilladocumento
+class plantilladocumento extends BaseModelo
 {
-    private mysqli $con;
-
-    public function __construct(mysqli $conn)
-    {
-        $this->con = $conn;
-    }
-
-    // 
-    //  MÉTODO BASE REUTILIZABLE
-    // 
-
-    /**
-     * Prepara, enlaza parámetros y ejecuta cualquier sentencia SQL.
-     *
-     * Para SELECT devuelve array de filas (fetchAll=true) o una sola fila.
-     * Para INSERT devuelve el último insert_id como int.
-     * Para UPDATE/DELETE devuelve affected_rows como int.
-     *
-     * @throws Exception si prepare o execute fallan.
-     */
-    private function ejecutar(
-        string $sql,
-        string $types  = '',
-        array  $params = [],
-        bool   $fetchAll = true
-    ): mixed {
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) {
-            throw new Exception("Error en prepare(): " . $this->con->error);
-        }
-
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute(): " . $stmt->error);
-        }
-
-        $tipo = strtoupper(substr(ltrim($sql), 0, 6));
-
-        if ($tipo === 'SELECT') {
-            $result = $stmt->get_result();
-            $data   = $fetchAll
-                ? $result->fetch_all(MYSQLI_ASSOC)
-                : $result->fetch_assoc();
-            $stmt->close();
-            return $data;
-        }
-
-        if ($tipo === 'INSERT') {
-            $id = $stmt->insert_id;
-            $stmt->close();
-            return $id;
-        }
-
-        // UPDATE / DELETE
-        $affected = $stmt->affected_rows;
-        $stmt->close();
-        return $affected;
-    }
 
     // 
     //  WHERE DINÁMICO
@@ -93,7 +27,7 @@ class plantilladocumento
         // filtro === 2 → sin restricción de activo
 
         if (!empty($buscar)) {
-            $where[] = "pd.nombre LIKE ?";
+            $where[]  = "pd.nombre LIKE ?";
             $params[] = "%{$buscar}%";
             $types   .= 's';
         }
@@ -107,13 +41,10 @@ class plantilladocumento
 
     /**
      * Listado paginado de plantillas con datos del archivo asociado.
-     *
-     * Une plantillas_documentos con documentos_subidos para obtener
-     * nombre_archivo, ruta y mime en una sola consulta.
      */
     public function obtenerTablaFiltro(?string $buscar, int $filtro): array
     {
-        $pagina    = max(1, (int) ($_GET['pagina'] ?? 1));
+        $pagina    = max(1, (int)($_GET['pagina'] ?? 1));
         $porPagina = 6;
         $desde     = ($pagina - 1) * $porPagina;
 
@@ -121,17 +52,15 @@ class plantilladocumento
         $types  = '';
         $where  = $this->construirWhere($params, $types, $buscar, $filtro);
 
-        // Total de registros
-        $total = (int) ($this->ejecutar(
+        $total = (int)($this->ejecutar(
             "SELECT COUNT(*) AS total FROM plantillas_documentos pd" . $where,
             $types,
             $params,
-            false          // fetch_assoc
+            false
         )['total'] ?? 0);
 
-        $totalPaginas = $total > 0 ? (int) ceil($total / $porPagina) : 1;
+        $totalPaginas = $total > 0 ? (int)ceil($total / $porPagina) : 1;
 
-        // Datos de la página
         $params[] = $desde;
         $params[] = $porPagina;
         $types   .= 'ii';
@@ -142,7 +71,7 @@ class plantilladocumento
                 pd.id_tipo_documento,
                 pd.nombre,
                 pd.version,
-                pd.fecha_creacion   AS crear,
+                pd.fecha_creacion    AS crear,
                 pd.fecha_modificacion AS modificar,
                 pd.activo,
                 CASE
@@ -150,7 +79,6 @@ class plantilladocumento
                     WHEN pd.activo = 0 THEN 'Desactivado'
                     ELSE 'Desconocido'
                 END AS estado_texto,
-                -- Datos del archivo en documentos_subidos
                 ds.nombre_archivo,
                 ds.ruta,
                 ds.tipo_mime,
@@ -158,21 +86,19 @@ class plantilladocumento
             FROM plantillas_documentos pd
             LEFT JOIN documentos_subidos ds
                 ON ds.id_documento = pd.id_documento
-                AND ds.activo = 1
+               AND ds.activo = 1
             {$where}
             ORDER BY pd.id_plantilla ASC
             LIMIT ?, ?
         ";
 
-        $filas = $this->ejecutar($sql, $types, $params);
-
         return [
-            'plantillas' => $filas,
+            'plantillas' => $this->ejecutar($sql, $types, $params),
             'paginacion' => [
-                'total'        => $total,
-                'por_pagina'   => $porPagina,
-                'pagina'       => $pagina,
-                'total_paginas'=> $totalPaginas,
+                'total'         => $total,
+                'por_pagina'    => $porPagina,
+                'pagina'        => $pagina,
+                'total_paginas' => $totalPaginas,
             ],
         ];
     }
@@ -182,15 +108,16 @@ class plantilladocumento
      */
     public function obtenerDatosFiltro(): array
     {
-        $sql = "
-            SELECT
-                COUNT(*)                                           AS Total,
-                COALESCE(SUM(activo = 1), 0)                      AS Activo,
-                COALESCE(SUM(activo = 0), 0)                      AS Desactivado
-            FROM plantillas_documentos
-        ";
-
-        return $this->ejecutar($sql, '', [], false) ?? [];
+        return $this->ejecutar(
+            "SELECT
+                COUNT(*)                     AS Total,
+                COALESCE(SUM(activo = 1), 0) AS Activo,
+                COALESCE(SUM(activo = 0), 0) AS Desactivado
+             FROM plantillas_documentos",
+            '',
+            [],
+            false
+        ) ?? [];
     }
 
     /**
@@ -198,14 +125,12 @@ class plantilladocumento
      */
     public function obtenerTipos_documentos(): array
     {
-        $sql = "
-            SELECT id_tipo_documento, nombre, categoria
-            FROM tipo_documento
-            WHERE estado = 1
-            ORDER BY orden ASC
-        ";
-
-        return $this->ejecutar($sql);
+        return $this->ejecutar(
+            "SELECT id_tipo_documento, nombre, categoria
+             FROM tipo_documento
+             WHERE estado = 1
+             ORDER BY orden ASC"
+        );
     }
 
     /**
@@ -213,18 +138,19 @@ class plantilladocumento
      */
     public function obtenerInfoTipos(int $id_tipo_documento): array
     {
-        $sql = "
-            SELECT
+        $resultado = $this->ejecutar(
+            "SELECT
                 t.nombre,
                 MAX(p.version) AS ultima_version
-            FROM tipo_documento t
-            LEFT JOIN plantillas_documentos p
-                ON t.id_tipo_documento = p.id_tipo_documento
-            WHERE t.id_tipo_documento = ?
-            GROUP BY t.id_tipo_documento
-        ";
-
-        $resultado = $this->ejecutar($sql, 'i', [$id_tipo_documento], false);
+             FROM tipo_documento t
+             LEFT JOIN plantillas_documentos p
+                 ON t.id_tipo_documento = p.id_tipo_documento
+             WHERE t.id_tipo_documento = ?
+             GROUP BY t.id_tipo_documento",
+            'i',
+            [$id_tipo_documento],
+            false
+        );
 
         if (!$resultado) {
             throw new Exception("Tipo de documento no encontrado (ID: {$id_tipo_documento})");
@@ -238,20 +164,21 @@ class plantilladocumento
      */
     public function obtenerInfoPlantilla(int $id_plantilla): array
     {
-        $sql = "
-            SELECT
+        $resultado = $this->ejecutar(
+            "SELECT
                 p.id_plantilla,
                 p.version,
                 p.activo,
                 p.id_tipo_documento,
                 t.nombre
-            FROM plantillas_documentos p
-            INNER JOIN tipo_documento t
-                ON p.id_tipo_documento = t.id_tipo_documento
-            WHERE p.id_plantilla = ?
-        ";
-
-        $resultado = $this->ejecutar($sql, 'i', [$id_plantilla], false);
+             FROM plantillas_documentos p
+             INNER JOIN tipo_documento t
+                 ON p.id_tipo_documento = t.id_tipo_documento
+             WHERE p.id_plantilla = ?",
+            'i',
+            [$id_plantilla],
+            false
+        );
 
         if (!$resultado) {
             throw new Exception("Plantilla no encontrada (ID: {$id_plantilla})");
@@ -261,39 +188,43 @@ class plantilladocumento
     }
 
     /**
-     * Sólo el campo activo de una plantilla (para validar antes de cambiar estado).
+     * Solo el campo activo de una plantilla (para validar antes de cambiar estado).
      */
     public function obtenerPorId(int $id_plantilla): ?array
     {
-        $sql = "SELECT activo FROM plantillas_documentos WHERE id_plantilla = ?";
-        return $this->ejecutar($sql, 'i', [$id_plantilla], false) ?: null;
+        return $this->ejecutar(
+            "SELECT activo FROM plantillas_documentos WHERE id_plantilla = ?",
+            'i',
+            [$id_plantilla],
+            false
+        ) ?: null;
     }
 
     /**
      * Datos del archivo para descarga segura.
-     * Une plantilla → documento para obtener la ruta física y validar activos.
      */
     public function obtenerPlantillaPorId(int $id_plantilla): ?array
     {
-        $sql = "
-            SELECT
+        return $this->ejecutar(
+            "SELECT
                 ds.id_documento,
                 ds.nombre_archivo,
                 ds.nombre,
                 ds.ruta,
                 ds.tipo_mime,
                 ds.extension,
-                pd.activo  AS plantilla_activa,
-                ds.activo  AS archivo_activo
-            FROM plantillas_documentos pd
-            INNER JOIN documentos_subidos ds
-                ON ds.id_documento = pd.id_documento
-                AND ds.tipo        = 'plantilla'
-            WHERE pd.id_plantilla = ?
-            LIMIT 1
-        ";
-
-        return $this->ejecutar($sql, 'i', [$id_plantilla], false) ?: null;
+                pd.activo AS plantilla_activa,
+                ds.activo AS archivo_activo
+             FROM plantillas_documentos pd
+             INNER JOIN documentos_subidos ds
+                 ON ds.id_documento = pd.id_documento
+                AND ds.tipo = 'plantilla'
+             WHERE pd.id_plantilla = ?
+             LIMIT 1",
+            'i',
+            [$id_plantilla],
+            false
+        ) ?: null;
     }
 
     // 
@@ -316,15 +247,11 @@ class plantilladocumento
         int    $id_usuario,
         int    $version
     ): int {
-        $sql = "
-            INSERT INTO documentos_subidos
+        $id = (int)$this->ejecutar(
+            "INSERT INTO documentos_subidos
                 (nombre, nombre_archivo, ruta, tipo_mime, extension,
                  tamano_bytes, tipo, visibilidad, id_usuarios, version, activo, fecha_subida)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
-        ";
-
-        $id = (int) $this->ejecutar(
-            $sql,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())",
             'sssssissii',
             [$nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
              $tamano_bytes, $tipo, $visibilidad, $id_usuario, $version]
@@ -347,14 +274,10 @@ class plantilladocumento
         int    $version,
         int    $id_documento
     ): int {
-        $sql = "
-            INSERT INTO plantillas_documentos
+        $id = (int)$this->ejecutar(
+            "INSERT INTO plantillas_documentos
                 (id_tipo_documento, nombre, version, id_documento, activo, fecha_creacion)
-            VALUES (?, ?, ?, ?, 1, NOW())
-        ";
-
-        $id = (int) $this->ejecutar(
-            $sql,
+             VALUES (?, ?, ?, ?, 1, NOW())",
             'isii',
             [$id_tipo_documento, $nombre, $version, $id_documento]
         );
@@ -372,13 +295,13 @@ class plantilladocumento
      */
     public function desactivarPorTipo(int $id_tipo_documento): int
     {
-        $sql = "
-            UPDATE plantillas_documentos
-            SET activo = 0, fecha_modificacion = NOW()
-            WHERE id_tipo_documento = ? AND activo = 1
-        ";
-
-        return (int) $this->ejecutar($sql, 'i', [$id_tipo_documento]);
+        return (int)$this->ejecutar(
+            "UPDATE plantillas_documentos
+             SET activo = 0, fecha_modificacion = NOW()
+             WHERE id_tipo_documento = ? AND activo = 1",
+            'i',
+            [$id_tipo_documento]
+        );
     }
 
     /**
@@ -399,7 +322,7 @@ class plantilladocumento
             throw new Exception("Plantilla no existe (ID: {$id_plantilla})");
         }
 
-        $id_tipo = (int) $row['id_tipo_documento'];
+        $id_tipo = (int)$row['id_tipo_documento'];
 
         // 2. Bloquear todos los del tipo
         $this->ejecutar(
@@ -416,7 +339,7 @@ class plantilladocumento
         );
 
         // 4. Activar la versión seleccionada
-        $afectadas = (int) $this->ejecutar(
+        $afectadas = (int)$this->ejecutar(
             "UPDATE plantillas_documentos SET activo = 1, fecha_modificacion = NOW() WHERE id_plantilla = ?",
             'i',
             [$id_plantilla]
@@ -430,7 +353,7 @@ class plantilladocumento
     /**
      * Bloqueo pesimista de registros de un tipo (dentro de transacción).
      */
-    public function bloquear_tabla(int $id_tipo_documento): void
+    public function bloquearTabla(int $id_tipo_documento): void
     {
         $this->ejecutar(
             "SELECT id_plantilla FROM plantillas_documentos WHERE id_tipo_documento = ? FOR UPDATE",
@@ -453,7 +376,7 @@ class plantilladocumento
             false
         );
 
-        return (int) ($resultado['version'] ?? 1);
+        return (int)($resultado['version'] ?? 1);
     }
 
     /**
@@ -485,8 +408,7 @@ class plantilladocumento
         $pagina = max(1, $pagina);
         $desde  = ($pagina - 1) * $porPagina;
 
-        // Total de eventos
-        $total = (int) ($this->ejecutar(
+        $total = (int)($this->ejecutar(
             "SELECT COUNT(*) AS total
              FROM historial_plantillas h
              INNER JOIN plantillas_documentos p ON h.id_plantilla = p.id_plantilla
@@ -496,18 +418,17 @@ class plantilladocumento
             false
         )['total'] ?? 0);
 
-        $totalPaginas = $total > 0 ? (int) ceil($total / $porPagina) : 1;
+        $totalPaginas = $total > 0 ? (int)ceil($total / $porPagina) : 1;
 
-        // Datos paginados
         $historial = $this->ejecutar(
             "SELECT
                 h.id_plantilla,
                 p.version,
                 ds.nombre_archivo,
-                h.accion          AS tipo_evento,
+                h.accion     AS tipo_evento,
                 h.descripcion,
                 h.fecha,
-                u.nombre          AS usuario
+                u.nombre     AS usuario
              FROM historial_plantillas h
              INNER JOIN plantillas_documentos p
                  ON h.id_plantilla = p.id_plantilla
@@ -522,7 +443,6 @@ class plantilladocumento
             [$id_tipo_documento, $desde, $porPagina]
         );
 
-        // Agrupar por versión
         $agrupado = [];
         foreach ($historial as $item) {
             $agrupado['Versión ' . $item['version']][] = $item;
@@ -531,10 +451,10 @@ class plantilladocumento
         return [
             'datos'      => $agrupado,
             'paginacion' => [
-                'total'        => $total,
-                'por_pagina'   => $porPagina,
-                'pagina'       => $pagina,
-                'total_paginas'=> $totalPaginas,
+                'total'         => $total,
+                'por_pagina'    => $porPagina,
+                'pagina'        => $pagina,
+                'total_paginas' => $totalPaginas,
             ],
         ];
     }

@@ -69,6 +69,21 @@ ob_start();
         </div>
     </div>
 
+    <?php
+    // Al inicio de la vista, antes del HTML:
+    $msg = $_GET['msg'] ?? '';
+
+    $_mapa = [
+        'error_cargar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar la información. Verifica los datos e intenta de nuevo.'],
+        'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver este proyecto.'],
+    ];
+
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    }
+    ?>
+
     <!-- RESUMEN -->
     <div class="card shadow-sm p-3 mb-4">
         <h5 class="mb-3"><b>Resumen</b></h5>

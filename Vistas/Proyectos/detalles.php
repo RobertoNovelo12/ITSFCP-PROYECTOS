@@ -1,9 +1,5 @@
 <?php
-/*Proyectos/detalles.php - Página secundaria para ver detalles del proyecto */
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+/* Proyectos/detalles.php — Página secundaria para ver detalles del proyecto */
 
 session_start();
 
@@ -12,11 +8,10 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
-$id = $_SESSION['id_usuario'];
-$id_proyecto = $_GET["id_proyectos"];
+$rol         = strtolower($_SESSION['rol'] ?? '');
+$id          = $_SESSION['id_usuario'];
+$id_proyecto = (int)($_GET['id_proyectos'] ?? 0);
 
-//Todos los roles pueden acceder
 if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
@@ -26,17 +21,48 @@ require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
-$proyecto = $proyectoControlador->datosproyecto($id_proyecto);
+// 
+// ACCIONES POST — deben procesarse ANTES de cualquier output para que
+// el header() de redirigir() funcione sin errores de "headers already sent".
+// 
+$action = $_POST['action'] ?? null;
+
+if (
+    in_array($action, ['baja', 'reactivar'], true) &&
+    in_array($rol, ['investigador', 'profesor'], true)
+) {
+    $proyectoControlador->accionEstudiante($_POST);
+    // accionEstudiante() siempre llama a redirigir() → exit, nunca llega aquí.
+}
+
+// 
+// CARGA DE DATOS
+// 
+$proyecto    = $proyectoControlador->datosproyecto($id_proyecto);
 $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
 $subtematicas = $proyectoControlador->subtematicasProyecto($id_proyecto);
 
-$dat_inv = $investigador['investigador'] ?? [];
-$dat_area_inv = $investigador['area'] ?? [];
-$datos_linea_inv = $investigador['lineas'] ?? [];
+$dat_inv         = $investigador['investigador'] ?? [];
+$dat_area_inv    = $investigador['area']         ?? [];
+$datos_linea_inv = $investigador['lineas']       ?? [];
+
 $estudiantes = null;
-if ($rol == "investigador" || $rol == "profesor" || $rol == "supervisor") {
+if (in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
     $estudiantes = $proyectoControlador->estudiantes($id_proyecto);
 }
+
+// 
+// MAPA DE ALERTAS — igual que en index.php, usando el nuevo _mensaje.php
+// 
+$msg  = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_operacion'    => ['tipo' => 'exito',  'titulo_msg' => 'Operación completada',  'mensaje' => 'La operación sobre el estudiante fue realizada correctamente.'],
+    'error_operacion'    => ['tipo' => 'error',  'titulo_msg' => 'Error en la operación', 'mensaje' => 'No fue posible completar la operación sobre el estudiante.'],
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',    'mensaje' => 'No tienes permiso para ver este proyecto.'],
+    'accion_no_permitida'=> ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'error_cargar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',       'mensaje' => 'No fue posible cargar la información del proyecto.'],
+    'error_estado'       => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',       'mensaje' => 'No fue posible actualizar el estado del proyecto.'],
+];
 
 ob_start();
 ?>
@@ -59,10 +85,15 @@ ob_start();
 
     </div>
 
-
+    <!-- ALERTAS -->
+    <?php
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    }
+    ?>
 
     <!-- INFORMACIÓN DEL PROYECTO -->
-
     <div class="card mb-4 shadow-sm">
 
         <div class="card-header">
@@ -82,9 +113,7 @@ ob_start();
             <div class="row">
 
                 <div class="col-md-6">
-
                     <dl>
-
                         <dt>Objetivos</dt>
                         <dd><?= nl2br(htmlspecialchars($proyecto['objetivo'])) ?></dd>
 
@@ -93,15 +122,11 @@ ob_start();
 
                         <dt>Requisitos</dt>
                         <dd><?= nl2br(htmlspecialchars($proyecto['requisitos'])) ?></dd>
-
                     </dl>
-
                 </div>
 
                 <div class="col-md-6">
-
                     <dl>
-
                         <dt>Cantidad alumnos</dt>
                         <dd><?= $proyecto['cantidad_estudiante'] ?></dd>
 
@@ -132,9 +157,7 @@ ob_start();
 
                         <dt>Fecha creación</dt>
                         <dd><?= $proyecto['creado_en'] ?></dd>
-
                     </dl>
-
                 </div>
 
             </div>
@@ -142,26 +165,19 @@ ob_start();
             <hr>
 
             <b>Subtemáticas</b>
-
             <div class="mt-2">
-
-                <?php
-                //$subs = explode(",", $proyecto['subtematicas']);
-                foreach ($subtematicas as $sub) {
-                    echo "<span class='badge bg-primary me-2 mb-2'>" . trim($sub['nombre']) . "</span>";
-                }
-                ?>
-
+                <?php foreach ($subtematicas as $sub): ?>
+                    <span class="badge bg-primary me-2 mb-2">
+                        <?= htmlspecialchars(trim($sub['nombre'])) ?>
+                    </span>
+                <?php endforeach; ?>
             </div>
 
         </div>
 
     </div>
 
-
-
     <!-- INVESTIGADOR -->
-
     <div class="card mb-4 shadow-sm">
 
         <div class="card-header">
@@ -170,27 +186,28 @@ ob_start();
 
         <div class="card-body">
             <div class="row">
+
                 <div class="col-md-6">
                     <dl>
                         <dt>Nombre completo</dt>
                         <dd>
-                            <?= $dat_inv['nombre'] . " " . $dat_inv['apellido_paterno'] . " " . $dat_inv['apellido_materno'] ?>
+                            <?= htmlspecialchars(
+                                $dat_inv['nombre'] . ' ' .
+                                $dat_inv['apellido_paterno'] . ' ' .
+                                $dat_inv['apellido_materno']
+                            ) ?>
                         </dd>
 
                         <dt>Área conocimiento</dt>
-                        <dd><?= $dat_area_inv['area_conocimiento'] ? $dat_area_inv['area_conocimiento'] : "No tiene área asignada" ?></dd>
+                        <dd><?= $dat_area_inv['area_conocimiento'] ?: 'No tiene área asignada' ?></dd>
 
                         <dt>Subárea</dt>
-                        <dd><?= $dat_area_inv['subarea'] ? $dat_area_inv['subarea'] : "No tiene subárea asignada" ?></dd>
-
+                        <dd><?= $dat_area_inv['subarea'] ?: 'No tiene subárea asignada' ?></dd>
                     </dl>
-
                 </div>
 
                 <div class="col-md-6">
-
                     <dl>
-
                         <dt>Nivel SNI</dt>
                         <dd><?= $dat_inv['nivel_sni'] ?></dd>
 
@@ -199,16 +216,23 @@ ob_start();
 
                         <dt>Línea investigación</dt>
                         <dd><?= $datos_linea_inv['linea'] ?></dd>
-
                     </dl>
                 </div>
+
             </div>
         </div>
     </div>
 
+    <!-- FORMULARIO OCULTO PARA ACCIONES DE ESTUDIANTE -->
+    <form id="formAccion" method="POST">
+        <input type="hidden" name="action"        id="action">
+        <input type="hidden" name="id_estudiante" id="id_estudiante">
+        <input type="hidden" name="id_proyecto"   value="<?= $id_proyecto ?>">
+    </form>
 
+    <!-- ESTUDIANTES -->
+    <?php if (in_array($rol, ['supervisor', 'profesor', 'investigador'], true)): ?>
 
-    <?php if ($rol == "supervisor" || $rol == "profesor" || $rol == "investigador"): ?>
         <div class="card-header">
             <i class="bi bi-people-fill"></i> <b>Estudiantes involucrados</b>
         </div>
@@ -229,6 +253,9 @@ ob_start();
                                     <th>Subárea</th>
                                     <th>Estado Proceso</th>
                                     <th>Historial</th>
+                                    <?php if ($rol === 'investigador'): ?>
+                                        <th>Acciones</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -244,10 +271,10 @@ ob_start();
                                 ?>
                                     <tr>
                                         <td><?= $alumno['id_usuarios'] ?></td>
-                                        <td><?= $alumno['nombre'] . ' ' . $alumno['apellido_paterno'] . ' ' . $alumno['apellido_materno'] ?></td>
+                                        <td><?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['apellido_paterno'] . ' ' . $alumno['apellido_materno']) ?></td>
                                         <td><?= $alumno['carrera'] ?></td>
-                                        <td><?= $alumno['area']['area']       ?? 'Sin área' ?></td>
-                                        <td><?= $alumno['area']['subarea']    ?? 'Sin subárea' ?></td>
+                                        <td><?= $alumno['area']['area']    ?? 'Sin área' ?></td>
+                                        <td><?= $alumno['area']['subarea'] ?? 'Sin subárea' ?></td>
                                         <td>
                                             <span class="badge text-bg-<?= $clase ?>">
                                                 <?= htmlspecialchars($estado_proceso) ?>
@@ -255,10 +282,21 @@ ob_start();
                                         </td>
                                         <td>
                                             <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
-                                                class="btn btn-info btn-sm">
+                                               class="btn btn-info btn-sm">
                                                 Historial
                                             </a>
                                         </td>
+                                        <?php if ($rol === 'investigador'): ?>
+                                            <td>
+                                                <?= $proyectoControlador->botonesAccionEditarEstudiante(
+                                                    $alumno['id_usuarios'],
+                                                    $rol,
+                                                    $alumno['estado'],
+                                                    $id_proyecto,
+                                                    $proyecto['estado_proyecto']
+                                                ) ?>
+                                            </td>
+                                        <?php endif; ?>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -282,7 +320,7 @@ ob_start();
                     <div class="card mb-3">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <?= $alumno['nombre'] . ' ' . $alumno['apellido_paterno'] ?>
+                                <?= htmlspecialchars($alumno['nombre'] . ' ' . $alumno['apellido_paterno']) ?>
                             </h5>
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item"><b>ID:</b> <?= $alumno['id_usuarios'] ?></li>
@@ -297,7 +335,7 @@ ob_start();
                                 </li>
                                 <li class="list-group-item">
                                     <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
-                                        class="btn btn-info btn-sm">
+                                       class="btn btn-info btn-sm">
                                         Historial
                                     </a>
                                 </li>
@@ -315,13 +353,24 @@ ob_start();
 
     <?php endif; ?>
 
-
 </div>
+
+<!-- JS: conecta los botones data-accion con el formulario oculto -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-accion]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('action').value        = btn.dataset.accion;
+            document.getElementById('id_estudiante').value = btn.dataset.id;
+            document.getElementById('formAccion').submit();
+        });
+    });
+});
+</script>
 
 <?php
 $contenido = ob_get_clean();
-$titulo = "Detalles de proyecto";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Detalles de proyecto';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
 ?>

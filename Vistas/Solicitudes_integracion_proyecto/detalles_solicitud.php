@@ -41,7 +41,7 @@ $comentarios = $data['comentarios'];
 $id_proyecto   = intval($sol['id_proyectos']);
 $id_estudiante = intval($sol['id_estudiante']);
 
-$seg           = $ctrl->getDatosSeguimientoEstudiante($id_proyecto, $id_estudiante, $id_usuario);
+$seg           = $ctrl->DatosSeguimientoEstudiante($id_proyecto, $id_estudiante, $id_usuario);
 $e1_estado     = $seg['e1_estado'];
 $e2_estado     = $seg['e2_estado'];
 $e3_estado     = $seg['e3_estado'];

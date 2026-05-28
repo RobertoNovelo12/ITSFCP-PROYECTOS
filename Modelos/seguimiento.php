@@ -19,10 +19,10 @@
  *   Estado 'finalizacion_pendiente' en cierres_estudiante cuando el alumno
  *   ya terminó actividades, subió la carta y el supervisor no ha respondido.
  *
- *   - getEtapasPorProyecto: Etapa 1 siempre 'completado'; expone documento
+ *   - EtapasPorProyecto: Etapa 1 siempre 'completado'; expone documento
  *     subido para descarga exclusiva (no re-subida).
- *   - getCierreEstudiante: mapea 'finalizacion_pendiente' correctamente.
- *   - getComentariosCierre: obtiene el hilo de comentarios/correcciones
+ *   - CierreEstudiante: mapea 'finalizacion_pendiente' correctamente.
+ *   - ComentariosCierre: obtiene el hilo de comentarios/correcciones
  *     para la vista correcciones_carta.php.
  *   - agregarComentarioCierre: estudiante responde correcciones del supervisor.
  *   - aprobarCarta / rechazarCarta: alineados con solicitudes_carta_terminacion.php.
@@ -45,7 +45,7 @@ class SeguimientoModelo
      * Datos del proyecto visibles para el estudiante (debe estar activa/concluida).
      * Incluye estado_proceso, id_integrante y datos de solicitud de integración.
      */
-    public function getProyectoPorId(int $id_usuario, int $id_proyecto): ?array
+    public function ProyectoPorId(int $id_usuario, int $id_proyecto): ?array
     {
         $sql = "
         SELECT
@@ -106,9 +106,9 @@ class SeguimientoModelo
      * y en cada etapa no completada indica que ya no puede continuar.
      */
 
-    public function getEtapasPorProyecto(int $id_proyecto, int $id_usuario): array
+    public function EtapasPorProyecto(int $id_proyecto, int $id_usuario): array
     {
-        // ── Verificar si el estudiante está dado de baja en este proyecto ──────
+        //  Verificar si el estudiante está dado de baja en este proyecto 
         $sqlEstado = "
         SELECT pu.estado, pu.motivo_baja, pu.fecha_baja,
                ep.nombre AS estado_proyecto
@@ -131,7 +131,7 @@ class SeguimientoModelo
             return $this->getEtapasBaja($id_proyecto, $id_usuario, $estadoIntegrante);
         }
 
-        // ── Flujo normal ───────────────────────────────────────────────────────
+        //  Flujo normal 
         $sql = "
         SELECT
             e.id_etapa,
@@ -171,7 +171,7 @@ class SeguimientoModelo
 
             if ($orden === 1) {
                 $etapa['estado']           = 'completado';
-                $etapa['documento_subido'] = $this->getDocumentoEtapa1($id_proyecto, $id_usuario);
+                $etapa['documento_subido'] = $this->DatosSeguimientoEstudiante($id_proyecto, $id_usuario);
             } elseif ($orden === 2) {
                 $total     = $this->contarTareasTotales($id_proyecto, $id_usuario);
                 $aprobadas = $this->contarTareasAprobadas($id_proyecto, $id_usuario);
@@ -185,7 +185,7 @@ class SeguimientoModelo
                 $etapa['id_plantilla']     = null;
                 $etapa['documento_subido'] = null;
             } elseif ($orden === 3) {
-                $cierre                    = $this->getCierreEstudiante($id_proyecto, $id_usuario);
+                $cierre                    = $this->CierreEstudiante($id_proyecto, $id_usuario);
                 $etapa['documento_subido'] = null;
                 $etapa['cierre']           = $cierre;
 
@@ -275,7 +275,7 @@ class SeguimientoModelo
             if ($orden === 1) {
                 // Etapa 1 siempre completada (fue aceptado en el proyecto)
                 $etapa['estado']           = 'completado';
-                $etapa['documento_subido'] = $this->getDocumentoEtapa1($id_proyecto, $id_usuario);
+                $etapa['documento_subido'] = $this->DatosSeguimientoEstudiante($id_proyecto, $id_usuario);
             } elseif ($orden === 2) {
                 $etapa['tareas_total']     = $total_t;
                 $etapa['tareas_aprobadas'] = $aprobadas_t;
@@ -324,7 +324,7 @@ class SeguimientoModelo
      * Documento activo de Etapa 1 (carta compromiso firmada) del estudiante.
      * Busca en documentos_subidos vinculado al seguimiento_documento de tipo 1.
      */
-    public function getDocumentoEtapa1(int $id_proyecto, int $id_usuario): ?array
+    public function DatosSeguimientoEstudiante(int $id_proyecto, int $id_usuario): ?array
     {
         $sql = "
             SELECT
@@ -512,7 +512,7 @@ class SeguimientoModelo
      * NOTA: usa la tabla solicitud_comentarios reutilizada para el hilo,
      * con id_referencia = id_cierre_est y tipo_referencia = 'cierre'.
      */
-    public function getComentariosCierre(int $id_cierre_est): array
+    public function ComentariosCierre(int $id_cierre_est): array
     {
         $sql = "
             SELECT
@@ -587,7 +587,7 @@ class SeguimientoModelo
     /**
      * Registro de cierres_estudiante del estudiante en el proyecto.
      */
-    public function getCierreEstudiante(int $id_proyecto, int $id_usuario): ?array
+    public function CierreEstudiante(int $id_proyecto, int $id_usuario): ?array
     {
         $sql = "
             SELECT ce.*
@@ -608,7 +608,7 @@ class SeguimientoModelo
     /**
      * Obtiene un cierre por su id (para la vista de correcciones).
      */
-    public function getCierrePorId(int $id_cierre_est): ?array
+    public function CierrePorId(int $id_cierre_est): ?array
     {
         $sql = "
             SELECT
@@ -864,7 +864,7 @@ class SeguimientoModelo
     // 
 
     /** id_etapa (FK a etapas_documento) correspondiente al tipo_documento. */
-    public function getIdEtapaPorTipoDocumento(int $id_tipo_documento): ?int
+    public function IdEtapaPorTipoDocumento(int $id_tipo_documento): ?int
     {
         $sql  = "
             SELECT e.id_etapa

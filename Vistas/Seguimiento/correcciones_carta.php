@@ -46,8 +46,8 @@ $ctrl = new SeguimientoControlador();
 require_once '../../Modelos/seguimiento.php';
 $modelo = new SeguimientoModelo($conn);
 
-$cierre      = $modelo->getCierrePorId($id_cierre_est);
-$comentarios = $modelo->getComentariosCierre($id_cierre_est);
+$cierre      = $modelo->CierrePorId($id_cierre_est);
+$comentarios = $modelo->ComentariosCierre($id_cierre_est);
 
 // Verificar que el cierre pertenece al estudiante
 if (!$cierre || (int)$cierre['id_usuarios'] !== $id_usuario) {

@@ -1,371 +1,271 @@
 <?php
+// Controladores/ajustesTiposDocumentosControlador.php
 
 require_once __DIR__ . '/../Modelos/ajustestiposdocumentos.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class ajustesTiposDocumentoscontrolador
+class ajustesTiposDocumentosControlador extends BaseControlador
 {
-    /**
-     * Verifica si el usuario tiene rol de supervisor.
-     *
-     * @param string $rol
-     * @return bool
-     */
-    private function esSupervisor($rol): bool
-    {
-        return isset($rol) && $rol === 'supervisor';
-    }
 
-    /**
-     * Sanitiza datos de entrada para prevenir XSS.
-     *
-     * @param string|null $dato
-     * @return string|null
-     */
-    private function limpiar($dato): ?string
-    {
-        return isset($dato)
-            ? htmlspecialchars(trim($dato), ENT_QUOTES, 'UTF-8')
-            : null;
-    }
+    // 
+    // DATOS PARA TABLA E INDEX
+    // 
 
-    /**
-     * Obtiene listado de tipos de documentos con filtro opcional.
-     *
-     * @param string $rol
-     * @param string|null $buscar
-     * @return array
-     */
-    public function index($rol): array
+    public function index(string $rol): array
     {
         global $conn;
-
         try {
-            // Validación de acceso
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-
-            $ajustes = new ajustesdocumentos($conn);
-
-            return $ajustes->obtenerTablaFiltro(['proceso', 'final']);
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new ajustesdocumentos($conn))->obtenerTablaFiltro(['proceso', 'final']);
         } catch (Throwable $e) {
-            error_log("Error en index(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-        public function EstiloEstado($estado): string
-    {
-        $estado = strtolower(trim($estado));
-
-        return match ($estado) {
-            'activo' => "success",
-            'desactivado' => "danger",
-            default => "info"
-        };
-    }
-
-    /**
-     * Obtiene datos de un ajuste de documento para edición.
-     *
-     * @param string $rol
-     * @param int $id_tipo_documento
-     * @return array
-     */
-    public function indexEditar($rol, $id_tipo_documento): array
+    public function indexEditar(string $rol, int $id_tipo_documento): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            // Validación estricta de ID
+            $this->validarAcceso($rol, ['supervisor']);
             $id = filter_var($id_tipo_documento, FILTER_VALIDATE_INT);
-
-            if (!$id) {
-                return [];
-            }
-
-            $ajustes = new ajustesdocumentos($conn);
-
-            return $ajustes->obtenerEditar($id);
+            if (!$id) return [];
+            return (new ajustesdocumentos($conn))->obtenerEditar($id);
         } catch (Throwable $e) {
-            error_log("Error en indexEditar(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Retorna los encabezados de la tabla principal.
-     *
-     * @param string $rol
-     * @return array
-     */
-    public function encabezadosPrincipal($rol): array
-    {
-        if (!$this->esSupervisor($rol)) {
-            return [];
-        }
-
-        return [
-            'Nombre',
-            'Categoria',
-            'Descripción',
-            'Orden',
-            'Estado',
-            'Acciones'
-        ];
-    }
-
-    /**
-     * Genera las opciones de filtro con conteo.
-     *
-     * @param string $rol
-     * @param array $filtros
-     * @return array
-     */
-    public function opciones($rol, $filtros): array
-    {
-        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) {
-            return [];
-        }
-
-        return [
-            'Todos' => "Todos",
-            'Proceso' => "Proceso",
-            'Final' => "Final"
-        ];
-    }
-
-
-    /**
-     * Obtiene datos para filtros.
-     *
-     * @param string $rol
-     * @return array
-     */
-    public function filtros($rol): array
+    public function filtros(string $rol): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            $ajustes = new ajustesdocumentos($conn);
-
-            return $ajustes->obtenerDatosFiltro($rol);
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new ajustesdocumentos($conn))->obtenerDatosFiltro($rol);
         } catch (Throwable $e) {
-            error_log("Error en filtros(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Método base para evitar duplicación de lógica en filtros.
-     *
-     * @param string $rol
-     * @param array $tipoFiltro
-     * @return array
-     */
+
+    // 
+    // FILTROS DE TABLA
+    // 
+
     private function obtenerPorFiltro(string $rol, array $tipoFiltro): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            $ajustes = new ajustesdocumentos($conn);
-
-            return $ajustes->obtenerTablaFiltro($tipoFiltro);
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new ajustesdocumentos($conn))->obtenerTablaFiltro($tipoFiltro);
         } catch (Throwable $e) {
-            error_log("Error en obtenerPorFiltro(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtiene todos los tipos de documentos.
-     */
-    public function Todos($rol): array
+    public function Todos(string $rol): array
     {
         return $this->obtenerPorFiltro($rol, ['proceso', 'final']);
     }
 
-    /**
-     * Obtiene los tipos proceso de documentos.
-     */
-    public function Proceso($rol): array
+    public function Proceso(string $rol): array
     {
         return $this->obtenerPorFiltro($rol, ['proceso']);
     }
 
-    /**
-     * Obtiene los tipos final de documentos.
-     */
-    public function Final($rol): array
+    public function Final(string $rol): array
     {
         return $this->obtenerPorFiltro($rol, ['final']);
     }
 
-    //BOTONES
 
-    public function obtenerbotonesEditar($tipo)
+    // 
+    // ENCABEZADOS Y OPCIONES DE FILTRO
+    // 
+
+    public function encabezadosPrincipal(string $rol): array
     {
-        $boton = "";
-        switch ($tipo) {
-            case 'Desactivar':
-                $boton = '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>';
-                break;
-            case 'Reactivar':
-                $boton = '<button type="submit" name="action" value="Reactivar" class="btn btn-sm btn-warning">Reactivar</button>';
-                break;
-            case 'Guardar':
-                $boton = '<button type="submit" name="action" value="Guardar" class="btn btn-sm btn-guardar">Guardar cambios</button>';
-                break;
-            default:
-                break;
-        }
-        return $boton;
+        if (!$this->esSupervisor($rol)) return [];
+
+        return ['Nombre', 'Categoría', 'Descripción', 'Orden', 'Estado', 'Acciones'];
     }
 
-    //Botones para panel de tareas
-    public function botonesAccionEditar($rol, $estado = null)
+    public function opciones(string $rol, array $filtros): array
     {
-        $boton = "";
+        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
 
-        switch ($rol) {
-            case 'supervisor':
-                if (in_array($estado, ["Activo"])) {
-                    $boton  = $this->obtenerbotonesEditar("Desactivar");
-                    $boton  .= $this->obtenerbotonesEditar("Guardar");
-                } elseif (in_array($estado, ["Desactivado"])) {
-                    $boton  = $this->obtenerbotonesEditar("Reactivar");
-                    $boton  .= $this->obtenerbotonesEditar("Guardar");
-                }
-                break;
-            default:
-                break;
-        }
-
-        return $boton;
+        return [
+            'Todos'   => 'Todos',
+            'Proceso' => 'Proceso',
+            'Final'   => 'Final',
+        ];
     }
 
-    //Registrar
 
-    //Editar ajuste de documento
-    //REVISAR
-    public function editar($rol, $datos)
+    // 
+    // ESTILO DE ESTADO (badge Bootstrap)
+    // 
+
+    public function EstiloEstado(string $estado): string
     {
+        return match (strtolower(trim($estado))) {
+            'activo'      => 'success',
+            'desactivado' => 'danger',
+            default       => 'info',
+        };
+    }
 
-        $id_tipo_documento = $datos['id_tipo'];
-        $descripcion = trim($datos['Descripcion']);
-        $orden = trim($datos['Orden']);
 
-        if (!$this->esSupervisor($rol)) return "";
+    // 
+    // BOTONES
+    // 
+
+    public function obtenerbotonesEditar(string $tipo): string
+    {
+        return match ($tipo) {
+            'Desactivar' => '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>',
+            'Reactivar'  => '<button type="submit" name="action" value="Reactivar"  class="btn btn-sm btn-warning">Reactivar</button>',
+            'Guardar'    => '<button type="submit" name="action" value="Guardar"    class="btn btn-sm btn-guardar">Guardar cambios</button>',
+            default      => '',
+        };
+    }
+
+    public function botonesAccionEditar(string $rol, ?string $estado = null): string
+    {
+        if (!$this->esSupervisor($rol)) return '';
+
+        return match ($estado) {
+            'Activo'      => $this->obtenerbotonesEditar('Desactivar') . $this->obtenerbotonesEditar('Guardar'),
+            'Desactivado' => $this->obtenerbotonesEditar('Reactivar')  . $this->obtenerbotonesEditar('Guardar'),
+            default       => '',
+        };
+    }
+
+
+    // 
+    // EDITAR
+    // Acción de formulario POST → redirige con msg.
+    // 
+
+    public function editar(string $rol, array $datos): void
+    {
         global $conn;
-
-        $conn->begin_transaction();
         try {
-            $ajustes = new ajustesdocumentos($conn);
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
 
-            $ajustes ->editar($descripcion, $orden, $id_tipo_documento);
-
+            $id_tipo_documento = (int)($datos['id_tipo'] ?? 0);
+            $descripcion       = trim($datos['Descripcion'] ?? '');
+            $orden             = (int)trim($datos['Orden']  ?? 0);
 
             if (!$id_tipo_documento) {
-                header("Location: index.php?error=10");
-                exit;
+                throw new Exception('error_editar');
             }
+
+            $conn->begin_transaction();
+            (new ajustesdocumentos($conn))->editar($descripcion, $orden, $id_tipo_documento);
             $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
+
+            $this->redirigir('exito_editar');
+
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
+            error_log($e->getMessage());
+            $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_editar';
+            $this->redirigir($msg);
 
-            if ($e->getCode() == 1062) {
-                header("Location: index.php?error=duplicado");
-            } else {
-                header("Location: index.php?error=2");
-            }
-
-            exit;
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_editar'])
+                ? $e->getMessage()
+                : 'error_editar';
+            $this->redirigir($msg);
         }
     }
 
-    //Cambia de estado a 0 - Desactivado administrativamente 
-    public function desactivar($rol, $id_tipo_documento)
-    {
-        if (!$this->esSupervisor($rol)) {
-            throw new Exception("No tienes permiso para desactivar un documento.");
-        }
-        if (!$id_tipo_documento) {
-            throw new Exception("ID inválido");
-        }
-        global $conn;
-        $conn->begin_transaction();
-        try {
-            $ajustes = new ajustesdocumentos($conn);
-            //$ajustes->bloquear_tabla(); // BLOQUEO 
-            $ajustes->obtenerPorId((int)$id_tipo_documento); // OBTENER EL AJUSTE DE DOCUMENTO
 
-            $filas = $ajustes->desactivar((int)$id_tipo_documento);
+    // 
+    // DESACTIVAR
+    // Acción de formulario POST → redirige con msg.
+    // 
+
+    public function desactivar(string $rol, int $id_tipo_documento): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            if (!$id_tipo_documento) {
+                throw new Exception('error_desactivar');
+            }
+
+            $conn->begin_transaction();
+            $ajustes = new ajustesdocumentos($conn);
+            $ajustes->obtenerPorId($id_tipo_documento);
+
+            $filas = $ajustes->desactivar($id_tipo_documento);
             if ($filas < 0) {
-                throw new Exception("Error al eliminar");
+                throw new Exception('error_desactivar');
             }
+
             $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (Throwable $e) {
+            $this->redirigir('exito_desactivar');
 
-            // Reversión segura
-            if ($conn->errno === 0) {
-                $conn->rollback();
-            }
-
-            error_log("Error en eliminar(): " . $e->getMessage());
-
-            header("Location: index.php?error=10");
-            exit;
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_desactivar'])
+                ? $e->getMessage()
+                : 'error_desactivar';
+            $this->redirigir($msg);
         }
     }
 
-    //REVISAR
-    public function reactivar($rol, $id_tipo_documento)
+
+    // 
+    // REACTIVAR
+    // Acción de formulario POST → redirige con msg.
+    // 
+
+    public function reactivar(string $rol, int $id_tipo_documento): void
     {
-
-        if (!$this->esSupervisor($rol)) return "";
         global $conn;
-
-        $conn->begin_transaction();
         try {
-            $ajustes = new ajustesdocumentos($conn);
-            // BLOQUEO DE CONCURRENCIA
-            $ajustes->bloquear_tabla();
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
 
-            $ajustes->obtenerPorId($id_tipo_documento, true);
-            //Reactivar
-            $ajustes->reactivar($id_tipo_documento);
-
-            $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (mysqli_sql_exception $e) {
-            $conn->rollback();
-
-            if ($e->getCode() == 1062) {
-                header("Location: index.php?error=duplicado");
-            } else {
-                header("Location: index.php?error=2");
+            if (!$id_tipo_documento) {
+                throw new Exception('error_reactivar');
             }
 
-            exit;
+            $conn->begin_transaction();
+            $ajustes = new ajustesdocumentos($conn);
+            $ajustes->bloquear_tabla();
+            $ajustes->obtenerPorId($id_tipo_documento, true);
+            $ajustes->reactivar($id_tipo_documento);
+            $conn->commit();
+
+            $this->redirigir('exito_reactivar');
+
+        } catch (mysqli_sql_exception $e) {
+            $conn->rollback();
+            error_log($e->getMessage());
+            $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_reactivar';
+            $this->redirigir($msg);
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_reactivar'])
+                ? $e->getMessage()
+                : 'error_reactivar';
+            $this->redirigir($msg);
         }
     }
 }

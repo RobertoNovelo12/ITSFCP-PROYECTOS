@@ -7,10 +7,11 @@
  * Ruta sugerida: /ITSFCP-PROYECTOS/Controladores/MisAlumnosControlador.php
  */
 
-require_once __DIR__ . '/../Modelos/misalumnos.php';
+require_once __DIR__ . '/../Modelos/misAlumnos.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class misalumnosControlador
+class misalumnosControlador extends BaseControlador
 {
     private misalumnos $modelo;
 
@@ -21,13 +22,9 @@ class misalumnosControlador
     }
 
     // 
-    // GUARDIA DE ACCESO
+    //  GUARDIA
     // 
 
-    /**
-     * Verifica que el usuario en sesión tenga rol de investigador o profesor.
-     * Si no, redirige a la página principal.
-     */
     private function soloInvestigador(): void
     {
         $rol = strtolower($_SESSION['rol'] ?? '');
@@ -39,37 +36,26 @@ class misalumnosControlador
     }
 
     // 
-    // LECTURA SEGURA DE FILTROS GET
+    //  FILTROS GET
     // 
 
-    /**
-     * Lee y sanea todos los filtros del querystring.
-     * Nunca confía en valores crudos de $_GET.
-     */
     private function filtrosGET(): array
     {
         return [
-            // Periodo es independiente: afecta a los demás selects
             'periodo'        => isset($_GET['periodo'])        ? (int)$_GET['periodo']            : 0,
             'id_proyecto'    => isset($_GET['id_proyecto'])    ? (int)$_GET['id_proyecto']         : 0,
             'carrera'        => isset($_GET['carrera'])        ? (int)$_GET['carrera']             : 0,
-            // Cadenas: se recortan y escapan en las vistas con htmlspecialchars
             'estado'         => isset($_GET['estado'])         ? trim($_GET['estado'])             : '',
             'estado_proceso' => isset($_GET['estado_proceso']) ? trim($_GET['estado_proceso'])     : '',
             'buscar'         => isset($_GET['buscar'])         ? trim($_GET['buscar'])             : '',
-            // Paginación
             'pagina'         => isset($_GET['pagina'])         ? max(1, (int)$_GET['pagina'])      : 1,
         ];
     }
 
     // 
-    // ACCIÓN PRINCIPAL — index()
+    //  ACCIÓN PRINCIPAL
     // 
 
-    /**
-     * Reúne todos los datos necesarios para la vista index.php.
-     * Devuelve un array que la vista extrae con extract().
-     */
     public function index(): array
     {
         $this->soloInvestigador();
@@ -79,18 +65,12 @@ class misalumnosControlador
         $por_pagina      = 6;
         $desde           = ($filtros['pagina'] - 1) * $por_pagina;
 
-        //  Catálogos para los selects 
-        $periodos   = $this->modelo->obtenerPeriodos();
-        // El select de proyectos se restringe por periodo activo
-        $proyectos  = $this->modelo->obtenerProyectosInvestigador($id_investigador, $filtros['periodo']);
-        $carreras   = $this->modelo->obtenerCarreras();
-
-        //  Tarjetas resumen 
-        $resumen = $this->modelo->resumenAlumnos($id_investigador, $filtros);
-
-        //  Listado paginado 
-        $total   = $this->modelo->contarAlumnos($id_investigador, $filtros);
-        $alumnos = $this->modelo->obtenerAlumnos($id_investigador, $filtros, $desde, $por_pagina);
+        $periodos  = $this->modelo->obtenerPeriodos();
+        $proyectos = $this->modelo->obtenerProyectosInvestigador($id_investigador, $filtros['periodo']);
+        $carreras  = $this->modelo->obtenerCarreras();
+        $resumen   = $this->modelo->resumenAlumnos($id_investigador, $filtros);
+        $total     = $this->modelo->contarAlumnos($id_investigador, $filtros);
+        $alumnos   = $this->modelo->obtenerAlumnos($id_investigador, $filtros, $desde, $por_pagina);
 
         $paginacion = [
             'total'         => $total,
@@ -100,23 +80,15 @@ class misalumnosControlador
         ];
 
         return compact(
-            'filtros',
-            'periodos',
-            'proyectos',
-            'carreras',
-            'resumen',
-            'alumnos',
-            'paginacion'
+            'filtros', 'periodos', 'proyectos', 'carreras',
+            'resumen', 'alumnos', 'paginacion'
         );
     }
 
     // 
-    // HELPERS DE PRESENTACIÓN (usados directamente en la vista)
+    //  HELPERS DE PRESENTACIÓN
     // 
 
-    /**
-     * Badge Bootstrap para el estado de participación en el proyecto.
-     */
     public function badgeEstadoParticipacion(string $estado): string
     {
         return match ($estado) {
@@ -128,10 +100,6 @@ class misalumnosControlador
         };
     }
 
-    /**
-     * Badge Bootstrap para el estado del proceso (etapa del alumno).
-     * Basado en los valores de la tabla estados_proceso.
-     */
     public function badgeEstadoProceso(string $estado): string
     {
         return match ($estado) {
@@ -144,9 +112,6 @@ class misalumnosControlador
         };
     }
 
-    /**
-     * Genera el HTML de una barra de progreso de tareas.
-     */
     public function barraAvance(int $aprobadas, int $total): string
     {
         if ($total <= 0) {
@@ -162,5 +127,4 @@ class misalumnosControlador
             <span class='small text-muted'>{$aprobadas}/{$total} ({$pct}%)</span>
         ";
     }
-
 }

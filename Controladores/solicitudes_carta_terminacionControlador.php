@@ -1,161 +1,158 @@
 <?php
-// Controladores/solicitudes_carta_terminacionControlador.php
-// Controlador para el módulo de Solicitudes de Carta de Terminación (supervisor)
+// Controladores/solicitudesCartaTerminacionControlador.php
 
-require_once __DIR__ . '/../Modelos/solicitudes_carta_terminacion.php';
+require_once __DIR__ . '/../Modelos/solicitudesCartaTerminacion.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class solicitudes_carta_terminacionControlador
+class solicitudes_carta_terminacionControlador extends BaseControlador
 {
-    // 
-    // VALIDACIONES INTERNAS
-    // 
+    // ─
+    //  CATÁLOGOS
+    // ─
 
-    private function validarAcceso($rol, array $permitidos)
-    {
-        if (!in_array($rol, $permitidos)) {
-            throw new Exception("No tienes permisos para realizar esta acción.");
-        }
-    }
-
-    private function validarMetodo($metodo)
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== $metodo) {
-            throw new Exception("Método no permitido.");
-        }
-    }
-
-    // 
-    // CATÁLOGOS
-    // 
-
-    public function obtenerTodosPeriodos()
+    public function obtenerTodosPeriodos(): array
     {
         global $conn;
         try {
             return (new solicitudes_carta_terminacion($conn))->obtenerTodosPeriodos();
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+        } catch (\Exception $e) {
+            error_log('CartaTerminacionControlador::obtenerTodosPeriodos() — ' . $e->getMessage());
             return [];
         }
     }
 
-    // 
-    // DASHBOARD — resumen de tarjetas
-    // 
+    // ─
+    //  DASHBOARD
+    // ─
 
-    public function resumenCartas($id_periodo = 0)
+    public function resumenCartas(int $id_periodo = 0): array
     {
         global $conn;
         try {
             return (new solicitudes_carta_terminacion($conn))->resumenCartas($id_periodo);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+        } catch (\Exception $e) {
+            error_log('CartaTerminacionControlador::resumenCartas() — ' . $e->getMessage());
             return ['total' => 0, 'pendientes' => 0, 'aprobadas' => 0, 'rechazadas' => 0];
         }
     }
 
-    // 
-    // LISTADO PAGINADO
-    // 
+    // ─
+    //  LISTADO PAGINADO
+    // ─
 
-    public function listarCartas($tipo_filtro = 'Todas', $buscar = '', $pagina = 1, $id_periodo = 0)
-    {
+    public function listarCartas(
+        string $tipo_filtro = 'Todas',
+        string $buscar = '',
+        int    $pagina = 1,
+        int    $id_periodo = 0
+    ): array {
         global $conn;
         try {
             return (new solicitudes_carta_terminacion($conn))->listarCartas($tipo_filtro, $buscar, $pagina, $id_periodo);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+        } catch (\Exception $e) {
+            error_log('CartaTerminacionControlador::listarCartas() — ' . $e->getMessage());
             return ['solicitudes' => [], 'paginacion' => []];
         }
     }
 
-    // 
-    // DETALLE
-    // 
+    // ─
+    //  DETALLE
+    // ─
 
-    public function detalleCarta($id_cierre_est)
+    public function detalleCarta(int $id_cierre_est): ?array
     {
         global $conn;
         try {
-            return (new solicitudes_carta_terminacion($conn))->detalleCarta((int)$id_cierre_est);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+            return (new solicitudes_carta_terminacion($conn))->detalleCarta($id_cierre_est);
+        } catch (\Exception $e) {
+            error_log('CartaTerminacionControlador::detalleCarta() — ' . $e->getMessage());
             return null;
         }
     }
 
-    public function historialProceso($id_proyectos, $id_usuarios)
+    public function historialProceso(int $id_proyectos, int $id_usuarios): array
     {
         global $conn;
         try {
-            return (new solicitudes_carta_terminacion($conn))->historialProceso((int)$id_proyectos, (int)$id_usuarios);
-        } catch (Exception $e) {
-            error_log($e->getMessage());
+            return (new solicitudes_carta_terminacion($conn))->historialProceso($id_proyectos, $id_usuarios);
+        } catch (\Exception $e) {
+            error_log('CartaTerminacionControlador::historialProceso() — ' . $e->getMessage());
             return [];
         }
     }
 
-    // 
-    // APROBAR CARTA
-    // 
+    // ─
+    //  APROBAR (GET desde botón tabla)
+    // ─
 
-    public function aprobarCarta($id_cierre_est, $id_supervisor, $rol)
+    /**
+     * Aprueba una carta de terminación y redirige con msg al index.
+     */
+    public function aprobarCarta(int $id_cierre_est, int $id_supervisor, string $rol): void
     {
         global $conn;
         try {
             $this->validarAcceso($rol, ['supervisor']);
-            $resultado = (new solicitudes_carta_terminacion($conn))->aprobarCarta((int)$id_cierre_est, (int)$id_supervisor);
+
+            $resultado = (new solicitudes_carta_terminacion($conn))->aprobarCarta($id_cierre_est, $id_supervisor);
 
             if ($resultado['success']) {
-                header("Location: index.php?mensaje=aprobado");
+                $this->redirigir('exito_aprobar');
             } else {
-                header("Location: detalles.php?id=" . intval($id_cierre_est) . "&error=" . urlencode($resultado['msg']));
+                $this->redirigir('error_aprobar', 'detalles.php', "&id={$id_cierre_est}");
             }
-            exit;
-        } catch (Exception $e) {
-            header("Location: index.php?error=" . urlencode($e->getMessage()));
-            exit;
+        } catch (\Exception $e) {
+            error_log('CartaTerminacionControlador::aprobarCarta() — ' . $e->getMessage());
+            $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_aprobar';
+            $this->redirigir($msg);
         }
     }
 
-    // 
-    // RECHAZAR CARTA — recibe POST con comentario
-    // 
+    // ─
+    //  RECHAZAR (POST con comentario)
+    // ─
 
-    public function rechazarCarta($data, $id_supervisor, $rol)
+    /**
+     * Rechaza una carta con motivo y redirige con msg al index.
+     */
+    public function rechazarCarta(array $data, int $id_supervisor, string $rol): void
     {
         global $conn;
         try {
             $this->validarMetodo('POST');
             $this->validarAcceso($rol, ['supervisor']);
 
-            $id_cierre_est = intval($data['id_cierre_est'] ?? 0);
+            $id_cierre_est = (int)($data['id_cierre_est'] ?? 0);
             $comentario    = trim($data['comentario']    ?? '');
 
             if (!$id_cierre_est || empty($comentario)) {
-                throw new Exception("Datos incompletos. El comentario es obligatorio.");
+                throw new \Exception('Datos incompletos. El comentario es obligatorio.');
             }
 
-            $resultado = (new solicitudes_carta_terminacion($conn))->rechazarCarta($id_cierre_est, (int)$id_supervisor, $comentario);
+            $resultado = (new solicitudes_carta_terminacion($conn))->rechazarCarta(
+                $id_cierre_est,
+                $id_supervisor,
+                $comentario
+            );
 
             if ($resultado['success']) {
-                header("Location: index.php?mensaje=rechazado");
+                $this->redirigir('exito_rechazar');
             } else {
-                header("Location: motivo_rechazo.php?id=" . $id_cierre_est . "&error=" . urlencode($resultado['msg']));
+                $this->redirigir('error_rechazar', 'motivo_rechazo.php', "&id={$id_cierre_est}");
             }
-            exit;
-        } catch (Exception $e) {
-            header("Location: index.php?error=" . urlencode($e->getMessage()));
-            exit;
+        } catch (\Exception $e) {
+            error_log('CartaTerminacionControlador::rechazarCarta() — ' . $e->getMessage());
+            $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_rechazar';
+            $this->redirigir($msg);
         }
     }
 
-    // 
-    // HELPERS DE PRESENTACIÓN (reutilizables en vistas)
-    // 
+    // ─
+    //  HELPERS DE PRESENTACIÓN
+    // ─
 
-    public function estiloCarta($estado)
+    public function estiloCarta(string $estado): string
     {
         return match ($estado) {
             'aprobado'  => 'success',
@@ -165,7 +162,7 @@ class solicitudes_carta_terminacionControlador
         };
     }
 
-    public function etiquetaCarta($estado)
+    public function etiquetaCarta(string $estado): string
     {
         return match ($estado) {
             'aprobado'  => 'Aprobada',
@@ -175,7 +172,7 @@ class solicitudes_carta_terminacionControlador
         };
     }
 
-    public function estiloEstadoProceso($estado)
+    public function estiloEstadoProceso(string $estado): string
     {
         return match ($estado) {
             'concluido'           => 'success',
@@ -185,7 +182,7 @@ class solicitudes_carta_terminacionControlador
         };
     }
 
-    public function etiquetaEstadoProceso($estado)
+    public function etiquetaEstadoProceso(string $estado): string
     {
         return match ($estado) {
             'concluido'           => 'Concluido',
@@ -195,10 +192,7 @@ class solicitudes_carta_terminacionControlador
         };
     }
 
-    /**
-     * Tamaño legible en KB / MB
-     */
-    public function formatoTamano($bytes)
+    public function formatoTamano(?int $bytes): string
     {
         if (!$bytes) return '—';
         if ($bytes >= 1048576) return round($bytes / 1048576, 2) . ' MB';

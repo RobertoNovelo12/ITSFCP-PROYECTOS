@@ -50,18 +50,8 @@ if ($action == 'editarProyecto') {
     $proyectoControlador->editarProyecto($_POST, $id, $rol);
 }
 
-if ($action == 'baja') {
-    $proyectoControlador->accionEstudiante($_POST);
-}
-
-if ($action == 'reactivar') {
-    $proyectoControlador->accionEstudiante($_POST);
-}
-
 // CONTENIDO
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
@@ -182,82 +172,6 @@ include __DIR__ . '/../../error.php';
         </div>
     </form>
 
-    <!-- FORMULARIO OCULTO PARA ACCIONES -->
-    <form id="formAccion" method="POST">
-        <input type="hidden" name="action" id="action">
-        <input type="hidden" name="id_estudiante" id="id_estudiante">
-        <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
-    </form>
-
-    <!-- ESTUDIANTES -->
-    <?php if (in_array($rol, ["supervisor", "profesor", "investigador"])): ?>
-
-        <h5 class="mt-5">Estudiantes involucrados</h5>
-
-        <div class="table-responsive">
-            <table class="table table-striped text-center">
-
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Carrera</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <?php foreach ($estudiantes as $alumno): ?>
-                        <tr>
-
-                            <td><?= $alumno['id_usuarios'] ?></td>
-
-                            <td>
-                                <?= $alumno['nombre'] . " " . $alumno['apellido_paterno'] ?>
-                            </td>
-
-                            <td><?= $alumno['carrera'] ?></td>
-
-                            <td>
-                                <?php if ($alumno['estado'] == "activo"): ?>
-
-                                    <span class="badge bg-success">Activo</span>
-
-                                <?php else: ?>
-
-                                    <span class="badge bg-danger">
-                                        Baja <i class="bi bi-info-circle"
-                                            data-bs-toggle="tooltip"
-                                            title="<?= htmlspecialchars($alumno['motivo']) ?>">
-                                        </i>
-                                    </span>
-
-                                <?php endif; ?>
-                            </td>
-
-                            <td>
-                                <?= $proyectoControlador->botonesAccionEditarEstudiante(
-                                    $alumno['id_usuarios'],
-                                    $rol,
-                                    $alumno['estado'],
-                                    $id_proyecto,
-                                    $p['estado_proyecto']
-                                ) ?>
-                                <a href="historial_estudiante.php?id_proyecto=<?= $id_proyecto ?>&id_usuario=<?= $alumno['id_usuarios'] ?>"
-                                    class="btn btn-info btn-sm">
-                                    Historial
-                                </a>
-                            </td>
-
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-
-            </table>
-        </div>
-
-    <?php endif; ?>
 
 </div>
 

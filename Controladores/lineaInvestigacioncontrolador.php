@@ -1,582 +1,386 @@
 <?php
+// Controladores/lineaInvestigacionControlador.php
 
-require_once __DIR__ . '/../Modelos/lineainvestigacion.php';
+require_once __DIR__ . '/../Modelos/lineaInvestigacion.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class lineaControlador
+class LineaInvestigacionControlador extends BaseControlador
 {
-    /**
-     * Verifica si el usuario tiene rol de supervisor.
-     *
-     * @param string $rol
-     * @return bool
-     */
-    private function esSupervisor($rol): bool
-    {
-        return isset($rol) && $rol === 'supervisor';
-    }
 
-    /**
-     * Sanitiza datos de entrada para prevenir XSS.
-     *
-     * @param string|null $dato
-     * @return string|null
-     */
-    private function limpiar($dato): ?string
-    {
-        return isset($dato)
-            ? htmlspecialchars(trim($dato), ENT_QUOTES, 'UTF-8')
-            : null;
-    }
+    // ─
+    // LECTURA / FILTROS
+    // ─
 
-    /**
-     * Obtiene listado de líneas de investigación con filtro opcional.
-     *
-     * @param string $rol
-     * @param string|null $buscar
-     * @return array
-     */
-    public function index($rol, $buscar = null): array
+    /** Tabla principal (filtro = 2 → todos). */
+    public function index(string $rol, ?string $buscar = null): array
     {
         global $conn;
-
         try {
-            // Validación de acceso
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            // Sanitización del filtro (evita XSS en vistas)
+            if (!$this->esSupervisor($rol)) return [];
             $buscar = $this->limpiar($buscar);
-
-            $Linea = new Linea($conn);
-
-            return $Linea->obtenerTablaFiltro($buscar, 2);
+            return (new Linea($conn))->obtenerTablaFiltro($buscar, 2);
         } catch (Throwable $e) {
-            error_log("Error en index(): " . $e->getMessage());
+            error_log('LineaInvestigacionControlador::index — ' . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtiene datos de una línea de investigación para edición.
-     *
-     * @param string $rol
-     * @param int $id_linea
-     * @return array
-     */
-    public function indexEditar($rol, $id_linea): array
+    /** Datos para el formulario de edición. */
+    public function indexEditar(string $rol, mixed $id_linea): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            // Validación estricta de ID
+            if (!$this->esSupervisor($rol)) return [];
             $id = filter_var($id_linea, FILTER_VALIDATE_INT);
-
-            if (!$id) {
-                return [];
-            }
-
-            $Linea = new Linea($conn);
-
-            return $Linea->obtenerEditar($id);
+            if (!$id) return [];
+            return (new Linea($conn))->obtenerEditar($id);
         } catch (Throwable $e) {
-            error_log("Error en indexEditar(): " . $e->getMessage());
+            error_log('LineaInvestigacionControlador::indexEditar — ' . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtiene detalles de una línea de investigación específico.
-     *
-     * @param string $rol
-     * @param int $id_linea
-     * @return array
-     */
-    public function indexDetalles($rol, $id_linea): array
+    /** Datos para la vista de detalles. */
+    public function indexDetalles(string $rol, mixed $id_linea): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
+            if (!$this->esSupervisor($rol)) return [];
             $id = filter_var($id_linea, FILTER_VALIDATE_INT);
-
-            if (!$id) {
-                return [];
-            }
-
-            $Linea = new Linea($conn);
-
-            return $Linea->obtenerDetalles($id);
+            if (!$id) return [];
+            return (new Linea($conn))->obtenerDetalles($id);
         } catch (Throwable $e) {
-            error_log("Error en indexDetalles(): " . $e->getMessage());
+            error_log('LineaInvestigacionControlador::indexDetalles — ' . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Desactiva una línea de investigación (borrado lógico).
-     * Implementa control transaccional, bloqueo y validaciones.
-     *
-     * @param int $id_linea
-     * @param string $rol
-     * @throws Exception
-     */
-    //Cambia de estado a 0 - Desactivado administrativamente 
-    public function eliminar($rol, $id_linea)
-    {
-        if (!$this->esSupervisor($rol)) {
-            throw new Exception("No tienes permiso para eliminar línea de investigación.");
-        }
-        if (!$id_linea) {
-            throw new Exception("ID inválido");
-        }
-        global $conn;
-        $conn->begin_transaction();
-        try {
-            $Linea = new Linea($conn);
-            //$Linea->bloquear_tabla(); // BLOQUEO 
-            $Linea->obtenerPorId((int)$id_linea); // OBTENER LA LINEA DE INVESTIGACION 
-
-            $filas = $Linea->eliminar_linea((int)$id_linea);
-            if ($filas < 0) {
-                throw new Exception("Error al eliminar");
-            }
-            $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (Throwable $e) {
-
-            // Reversión segura
-            if ($conn->errno === 0) {
-                $conn->rollback();
-            }
-
-            error_log("Error en eliminar(): " . $e->getMessage());
-
-            header("Location: index.php?error=10");
-            exit;
-        }
-    }
-
-    /**
-     * Retorna los encabezados de la tabla principal.
-     *
-     * @param string $rol
-     * @return array
-     */
-    public function encabezadosPrincipal($rol): array
-    {
-        if (!$this->esSupervisor($rol)) {
-            return [];
-        }
-
-        return [
-            'Línea de investigación',
-            'Descripción',
-            'Fecha Creación',
-            'Hora Creación',
-            'Estado',
-            'Acciones'
-        ];
-    }
-
-    /**
-     * Genera las opciones de filtro con conteo.
-     *
-     * @param string $rol
-     * @param array $filtros
-     * @return array
-     */
-    public function opciones($rol, $filtros): array
-    {
-        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) {
-            return [];
-        }
-
-        // Validación defensiva
-        $data = $filtros[0];
-
-        return [
-            'Total' => "Total (" . ($data['Total'] ?? 0) . " en total)",
-            'Activo' => "Activos (" . ($data['Activo'] ?? 0) . " en total)",
-            'Desactivado' => "Desactivados (" . ($data['Desactivado'] ?? 0) . " en total)"
-        ];
-    }
-
-    /**
-     * Convierte acción a número de filtro.
-     *
-     * @param string $action
-     * @return int
-     */
-    public function numerofiltro($action): int
-    {
-        return match ($action) {
-            'Total' => 2,
-            'Activo' => 1,
-            'Desactivado' => 0,
-            default => 2 // fallback lógico
-        };
-    }
-
-    /**
-     * Obtiene datos para filtros.
-     *
-     * @param string $rol
-     * @return array
-     */
-    public function filtros($rol): array
+    /** Datos para los contadores de filtro. */
+    public function filtros(string $rol): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            $Linea = new Linea($conn);
-
-            return $Linea->obtenerDatosFiltro($rol);
+            if (!$this->esSupervisor($rol)) return [];
+            return (new Linea($conn))->obtenerDatosFiltro($rol);
         } catch (Throwable $e) {
-            error_log("Error en filtros(): " . $e->getMessage());
+            error_log('LineaInvestigacionControlador::filtros — ' . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Método base para evitar duplicación de lógica en filtros.
-     *
-     * @param string $rol
-     * @param int $tipoFiltro
-     * @param string|null $buscar
-     * @return array
-     */
-    private function obtenerPorFiltro($rol, int $tipoFiltro, $buscar = null): array
+    // ─
+    // FILTROS POR ESTADO (usados desde index.php vía $action)
+    // ─
+
+    private function obtenerPorFiltro(string $rol, int $tipoFiltro, ?string $buscar = null): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            // Sanitización preventiva
+            if (!$this->esSupervisor($rol)) return [];
             $buscar = $this->limpiar($buscar);
-
-            $Linea = new Linea($conn);
-
-            return $Linea->obtenerTablaFiltro($buscar, $tipoFiltro);
+            return (new Linea($conn))->obtenerTablaFiltro($buscar, $tipoFiltro);
         } catch (Throwable $e) {
-            error_log("Error en obtenerPorFiltro(): " . $e->getMessage());
+            error_log('LineaInvestigacionControlador::obtenerPorFiltro — ' . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtiene todos las líneas de investigación.
-     */
-    public function Total($rol, $buscar = null): array
+    public function Total(string $rol, ?string $buscar = null): array
     {
         return $this->obtenerPorFiltro($rol, 2, $buscar);
     }
 
-    /**
-     * Obtiene líneas de investigación activos.
-     */
-    public function Activo($rol, $buscar = null): array
+    public function Activo(string $rol, ?string $buscar = null): array
     {
         return $this->obtenerPorFiltro($rol, 1, $buscar);
     }
 
-    /**
-     * Obtiene líneas de investigación desactivados.
-     */
-    public function Desactivado($rol, $buscar = null): array
+    public function Desactivado(string $rol, ?string $buscar = null): array
     {
         return $this->obtenerPorFiltro($rol, 0, $buscar);
     }
 
-    /**
-     * Retorna clase de estilo según estado.
-     *
-     * @param string $estado
-     * @return string
-     */
-    public function EstiloEstadoLista($estado): string
-    {
-        /**
-         * Normalización para evitar errores por mayúsculas/minúsculas
-         */
-        $estado = strtolower(trim($estado));
+    // ─
+    // CRUD
+    // ─
 
-        return match ($estado) {
-            'activo' => "success",
-            'desactivado' => "danger",
-            default => "info"
+    /**
+     * Registra una nueva línea de investigación.
+     * Acción POST → redirige con msg.
+     */
+    public function registrarLinea(string $rol, string $nombre, string $descripcion): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            $conn->begin_transaction();
+            $modelo = new Linea($conn);
+            $modelo->bloquear_tabla();
+
+            $verificacion = $modelo->verificarLinea($nombre);
+            if ($verificacion['activo'] > 0) {
+                throw new Exception('error_duplicado');
+            }
+
+            $id = $modelo->registrarLinea($nombre, $descripcion);
+            if (!$id) throw new Exception('error_crear');
+
+            $conn->commit();
+            $this->redirigir('exito_crear');
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log('LineaInvestigacionControlador::registrarLinea — ' . $e->getMessage());
+            $claves = ['accion_no_permitida', 'error_duplicado', 'error_crear'];
+            $msg = in_array($e->getMessage(), $claves) ? $e->getMessage() : 'error_crear';
+            $this->redirigir($msg);
+        }
+    }
+
+    /**
+     * Edita una línea de investigación existente.
+     * Acción POST → redirige con msg.
+     */
+    public function editarLinea(string $rol, mixed $id_linea, string $nombre, string $descripcion): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            $id = (int)$id_linea;
+            if (!$id) throw new Exception('error_editar');
+
+            $conn->begin_transaction();
+            $modelo = new Linea($conn);
+
+            $verificacion = $modelo->obtenerPorIdDiferente($id, $nombre);
+            if ($verificacion['activo'] > 0 || $verificacion['desactivado'] > 0) {
+                throw new Exception('error_duplicado');
+            }
+
+            $modelo->editarLinea($nombre, $descripcion, $id);
+            $conn->commit();
+            $this->redirigir('exito_editar');
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log('LineaInvestigacionControlador::editarLinea — ' . $e->getMessage());
+            $claves = ['accion_no_permitida', 'error_duplicado', 'error_editar'];
+            $msg = in_array($e->getMessage(), $claves) ? $e->getMessage() : 'error_editar';
+            $this->redirigir($msg);
+        }
+    }
+
+    /**
+     * Desactiva (soft delete) una línea de investigación.
+     * Invocado desde GET (enlace tabla) o POST (formulario editar).
+     */
+    public function eliminar(string $rol, mixed $id_linea): void
+    {
+        global $conn;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            $id = (int)$id_linea;
+            if (!$id) throw new Exception('error_desactivar');
+
+            $conn->begin_transaction();
+            $modelo = new Linea($conn);
+            $modelo->obtenerPorId($id);
+            $filas = $modelo->eliminar_linea($id);
+            if ($filas < 0) throw new Exception('error_desactivar');
+            $conn->commit();
+            $this->redirigir('exito_desactivar');
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log('LineaInvestigacionControlador::eliminar — ' . $e->getMessage());
+            $claves = ['accion_no_permitida', 'error_desactivar'];
+            $msg = in_array($e->getMessage(), $claves) ? $e->getMessage() : 'error_desactivar';
+            $this->redirigir($msg);
+        }
+    }
+
+    /**
+     * Reactiva una línea de investigación desactivada.
+     * Acción POST → redirige con msg.
+     */
+    public function reactivar(string $rol, mixed $id_linea): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            $id = (int)$id_linea;
+            if (!$id) throw new Exception('error_reactivar');
+
+            $conn->begin_transaction();
+            $modelo = new Linea($conn);
+            $modelo->bloquear_tabla();
+            $modelo->obtenerPorId($id, true);
+            $modelo->reactivar($id);
+            $conn->commit();
+            $this->redirigir('exito_reactivar');
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log('LineaInvestigacionControlador::reactivar — ' . $e->getMessage());
+            $claves = ['accion_no_permitida', 'error_reactivar'];
+            $msg = in_array($e->getMessage(), $claves) ? $e->getMessage() : 'error_reactivar';
+            $this->redirigir($msg);
+        }
+    }
+
+    // ─
+    // VERIFICACIONES (usadas en vistas antes de enviar)
+    // ─
+
+    public function verificarLinea(string $nombre): array
+    {
+        global $conn;
+        try {
+            if (empty($nombre)) return ['activo' => 0, 'desactivado' => 0];
+            return (new Linea($conn))->verificarLinea($nombre);
+        } catch (Throwable $e) {
+            error_log('LineaInvestigacionControlador::verificarLinea — ' . $e->getMessage());
+            return ['activo' => 0, 'desactivado' => 0];
+        }
+    }
+
+    public function obtenerPorIdDiferente(mixed $id_linea, string $nombre): array
+    {
+        global $conn;
+        try {
+            if (empty($nombre)) return ['activo' => 0, 'desactivado' => 0];
+            return (new Linea($conn))->obtenerPorIdDiferente((int)$id_linea, $nombre);
+        } catch (Throwable $e) {
+            error_log('LineaInvestigacionControlador::obtenerPorIdDiferente — ' . $e->getMessage());
+            return ['activo' => 0, 'desactivado' => 0];
+        }
+    }
+
+    // ─
+    // HELPERS DE VISTA
+    // ─
+
+    public function encabezadosPrincipal(string $rol): array
+    {
+        if (!$this->esSupervisor($rol)) return [];
+        return ['Línea de investigación', 'Descripción', 'Fecha Creación', 'Hora Creación', 'Estado', 'Acciones'];
+    }
+
+    public function opciones(string $rol, array $filtros): array
+    {
+        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) return [];
+        $data = $filtros[0];
+        return [
+            'Total'       => 'Total ('        . ($data['Total']       ?? 0) . ' en total)',
+            'Activo'      => 'Activos ('      . ($data['Activo']      ?? 0) . ' en total)',
+            'Desactivado' => 'Desactivados (' . ($data['Desactivado'] ?? 0) . ' en total)',
+        ];
+    }
+
+    public function numerofiltro(string $action): int
+    {
+        return match ($action) {
+            'Activo'      => 1,
+            'Desactivado' => 0,
+            default       => 2,
         };
     }
 
-    //BOTONES
-    private function obtenerbotones($tipo, $id1 = null)
+    public function EstiloEstadoLista(string $estado): string
     {
-        $boton = "";
-        switch ($tipo) {
-            case 'Editar Linea':
-                $boton = '<a href="editar.php?id_linea=' . $id1 . '" type="button" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Editar línea de investigación"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-</svg></a>';
-                break;
-            case 'Detalles':
-                $boton = '<a href="detalles.php?id_linea=' . $id1 . '" type="button" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la línea de investigación"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
-                break;
-            case 'Desactivar':
-                $boton = '<a href="index.php?&id_linea=' . $id1 . '&action=desactivar_linea" type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar línea de investigación"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-</svg></a>';
-                break;
-            default:
-                break;
+        return match (strtolower(trim($estado))) {
+            'activo'      => 'success',
+            'desactivado' => 'danger',
+            default       => 'info',
+        };
+    }
+
+    // ─ Botones tabla principal ─
+
+    private function obtenerbotones(string $tipo, int $id): string
+    {
+        return match ($tipo) {
+            'Editar' =>
+                '<a href="editar.php?id_linea=' . $id . '" class="btn btn-sm btn-warning"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Editar línea de investigación">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                         class="bi bi-pencil-square" viewBox="0 0 16 16">
+                      <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                      <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                    </svg></a>',
+
+            'Detalles' =>
+                '<a href="detalles.php?id_linea=' . $id . '" class="btn btn-sm btn-primary"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la línea de investigación">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                         class="bi bi-eye-fill" viewBox="0 0 16 16">
+                      <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
+                      <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
+                    </svg></a>',
+
+            'Desactivar' =>
+                '<a href="index.php?id_linea=' . $id . '&action=desactivar_linea"
+                    class="btn btn-sm btn-danger"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar línea de investigación">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                         class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                    </svg></a>',
+
+            default => '',
+        };
+    }
+
+    public function botonesAccionPrincipal(int $id, string $rol, string $estado = ''): string
+    {
+        if (!$this->esSupervisor($rol)) return '';
+
+        $boton = '';
+        if ($estado === 'Activo') {
+            $boton .= $this->obtenerbotones('Editar', $id);
+            $boton .= $this->obtenerbotones('Detalles', $id);
+            $boton .= $this->obtenerbotones('Desactivar', $id);
+        } elseif ($estado === 'Desactivado') {
+            $boton .= $this->obtenerbotones('Editar', $id);
+            $boton .= $this->obtenerbotones('Detalles', $id);
         }
         return $boton;
     }
 
-    //Botones de acción en la tabla 
-    public function botonesAccionPrincipal($id, $rol, $estado = null)
+    // ─ Botones formulario editar ─
+
+    private function obtenerbotonesEditar(string $tipo): string
     {
-        if (!$this->esSupervisor($rol)) return "";
-
-        $boton = "";
-
-        if (in_array($estado, ["Activo"])) {
-            $boton .= $this->obtenerbotones("Editar Linea", $id);
-            $boton .= $this->obtenerbotones("Detalles", $id);
-            $boton .= $this->obtenerbotones("Desactivar", $id);
-        } elseif ($estado === "Desactivado") {
-            $boton .= $this->obtenerbotones("Editar Linea", $id);
-            $boton .= $this->obtenerbotones("Detalles", $id);
-        }
-
-        return $boton;
+        return match ($tipo) {
+            'Desactivar' => '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>',
+            'Reactivar'  => '<button type="submit" name="action" value="Reactivar"  class="btn btn-sm btn-warning">Reactivar</button>',
+            'Guardar'    => '<button type="submit" name="action" value="Guardar"    class="btn btn-sm btn-guardar">Guardar cambios</button>',
+            default      => '',
+        };
     }
 
-    //BOTONES
-
-    public function obtenerbotonesEditar($tipo)
+    public function botonesAccionEditar(string $rol, string $estado = ''): string
     {
-        $boton = "";
-        switch ($tipo) {
-            case 'Desactivar':
-                $boton = '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>';
-                break;
-            case 'Reactivar':
-                $boton = '<button type="submit" name="action" value="Reactivar" class="btn btn-sm btn-warning">Reactivar</button>';
-                break;
-            case 'Guardar':
-                $boton = '<button type="submit" name="action" value="Guardar" class="btn btn-sm btn-guardar">Guardar cambios</button>';
-                break;
-            default:
-                break;
+        if (!$this->esSupervisor($rol)) return '';
+
+        $boton = '';
+        if ($estado === 'Activo') {
+            $boton .= $this->obtenerbotonesEditar('Desactivar');
+            $boton .= $this->obtenerbotonesEditar('Guardar');
+        } elseif ($estado === 'Desactivado') {
+            $boton .= $this->obtenerbotonesEditar('Reactivar');
+            $boton .= $this->obtenerbotonesEditar('Guardar');
         }
         return $boton;
-    }
-
-    //Botones para panel de tareas
-    public function botonesAccionEditar($rol, $estado = null)
-    {
-        $boton = "";
-
-        switch ($rol) {
-            case 'supervisor':
-                if (in_array($estado, ["Activo"])) {
-                    $boton  = $this->obtenerbotonesEditar("Desactivar");
-                    $boton  .= $this->obtenerbotonesEditar("Guardar");
-                } elseif (in_array($estado, ["Desactivado"])) {
-                    $boton  = $this->obtenerbotonesEditar("Reactivar");
-                    $boton  .= $this->obtenerbotonesEditar("Guardar");
-                }
-                break;
-            default:
-                break;
-        }
-
-        return $boton;
-    }
-
-    //Crear Línea de investigación
-    function registrarLinea($rol, $nombre, $descripcion)
-    {
-
-        if (!$this->esSupervisor($rol)) return "";
-
-        global $conn;
-
-        $conn->begin_transaction();
-        try {
-            $Linea = new Linea($conn);
-            // BLOQUEO DE CONCURRENCIA
-            $Linea->bloquear_tabla();
-
-            $verificacion = $Linea->verificarLinea($nombre);
-
-            if ($verificacion['activo'] > 0 && $verificacion['desactivado'] > 0) {
-                throw new Exception("Registro duplicado");
-            }
-
-            $id_linea = $Linea->registrarLinea($nombre, $descripcion);
-
-            if (!$id_linea) {
-                header("Location: index.php?error=1");
-                exit;
-            }
-            $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (mysqli_sql_exception $e) {
-            $conn->rollback();
-
-            if ($e->getCode() == 1062) {
-                header("Location: index.php?error=duplicado");
-            } else {
-                header("Location: index.php?error=2");
-            }
-
-            exit;
-        }
-    }
-
-    //Editar Línea de investigación
-    function editarLinea($rol, $id_linea, $nombre, $descripcion)
-    {
-
-        if (!$this->esSupervisor($rol)) return "";
-        global $conn;
-
-        $conn->begin_transaction();
-        try {
-            $Linea = new Linea($conn);
-            // BLOQUEO DE CONCURRENCIA
-            $verificacion = $this->obtenerPorIdDiferente((int)$id_linea, $nombre); // OBTENER LINEA DE INVESTIGACIÓN 
-
-            if ($verificacion['activo'] > 0 || $verificacion['desactivado'] > 0) {
-                throw new Exception("Registro duplicado");
-            }
-
-            $id_linea = $Linea->editarLinea($nombre, $descripcion, $id_linea);
-
-            if (!$id_linea) {
-                header("Location: index.php?error=10");
-                exit;
-            }
-            $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (mysqli_sql_exception $e) {
-            $conn->rollback();
-
-            if ($e->getCode() == 1062) {
-                header("Location: index.php?error=duplicado");
-            } else {
-                header("Location: index.php?error=2");
-            }
-
-            exit;
-        }
-    }
-
-    public function reactivar($rol, $id_linea)
-    {
-
-        if (!$this->esSupervisor($rol)) return "";
-        global $conn;
-
-        $conn->begin_transaction();
-        try {
-            $Linea = new Linea($conn);
-            // BLOQUEO DE CONCURRENCIA
-            $Linea->bloquear_tabla();
-
-            $Linea->obtenerPorId($id_linea, true);
-            //Reactivar
-            $Linea->reactivar($id_linea);
-
-            $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (mysqli_sql_exception $e) {
-            $conn->rollback();
-
-            if ($e->getCode() == 1062) {
-                header("Location: index.php?error=duplicado");
-            } else {
-                header("Location: index.php?error=2");
-            }
-
-            exit;
-        }
-    }
-
-    /**
-     * Verifica existencia de conflictos de linea de investigación.
-     *
-     * @param string $nombre
-     * @return array
-     */
-    public function verificarLinea($nombre): array
-    {
-        global $conn;
-
-        try {
-            /**
-             * Validación defensiva básica
-             */
-            if (empty($nombre)) {
-                return ["activo" => 0, "desactivado" => 0];
-            }
-
-            $Linea = new Linea($conn);
-
-            return $Linea->verificarLinea($nombre);
-        } catch (Throwable $e) {
-            error_log("Error en verificarLinea(): " . $e->getMessage());
-
-            // Respuesta segura por defecto
-            return ["activo" => 0, "desactivado" => 0];
-        }
-    }
-
-    public function obtenerPorIdDiferente($id_linea, $nombre): array
-    {
-        global $conn;
-
-        try {
-            /**
-             * Validación defensiva básica
-             */
-            if (empty($nombre)) {
-                return ["activo" => 0, "desactivado" => 0];
-            }
-
-            $Linea = new Linea($conn);
-
-            return $Linea->obtenerPorIdDiferente($id_linea, $nombre);
-        } catch (Throwable $e) {
-            error_log("Error en obtenerPorIdDiferente(): " . $e->getMessage());
-
-            // Respuesta segura por defecto
-            return ["activo" => 0, "desactivado" => 0];
-        }
     }
 }

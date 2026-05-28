@@ -1,87 +1,98 @@
 <?php
+// Modelos/instituto.php
 
-class Instituto
+require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseModelo.php';
+
+class Instituto extends BaseModelo
 {
-    private $con;
 
-    public function __construct($conn)
+    // 
+    //  CONSULTAS
+    // 
+
+    public function obtenerDetalles(): ?array
     {
-        $this->con = $conn;
+        return $this->ejecutar(
+            "SELECT * FROM instituto LIMIT 1",
+            "",
+            [],
+            false
+        );
     }
 
-    public function obtenerDetalles(): array
+    public function obtenerDirectores(): array
     {
-        $sql = "SELECT * FROM instituto LIMIT 1";
-
-        $res = $this->con->query($sql);
-        return $res->fetch_assoc();
+        return $this->ejecutar(
+            "SELECT id_director, nombre, apellido, estado FROM director ORDER BY nombre ASC"
+        );
     }
 
-    public function obtenerDirectores()
+    // 
+    //  VALIDACIÓN
+    // 
+
+    /**
+     * Verifica que el director exista y esté activo.
+     * Lanza excepción si no es válido.
+     */
+    public function validarDirectorActivo(int $id_director): void
     {
-        $sql = "SELECT id_director, nombre, apellido, estado FROM director";
-        $res = $this->con->query($sql);
+        $row = $this->ejecutar(
+            "SELECT estado FROM director WHERE id_director = ?",
+            "i",
+            [$id_director],
+            false
+        );
 
-        $directores = [];
-
-        while ($row = $res->fetch_assoc()) {
-            $directores[] = $row;
+        if (!$row || (int)$row['estado'] !== 1) {
+            throw new Exception("director_inactivo");
         }
-
-        return $directores;
     }
 
-    public function editar($id, $nombre, $unidad, $direccion, $estado, $correo, $ciudad, $clave, $telefono, $id_director)
-{
-    $sql = "UPDATE instituto SET 
-            nombre=?,
-            unidad_academica=?,
-            direccion=?,
-            estado=?,
-            correo_instituto=?,
-            ciudad=?,
-            clave_plantel=?,
-            telefono=?,
-            id_director=?
-            WHERE id_instituto=?";
+    // 
+    //  CRUD
+    // 
 
-    $stmt = $this->con->prepare($sql);
-
-    $stmt->bind_param(
-        "ssssssssii",
-        $nombre,
-        $unidad,
-        $direccion,
-        $estado,
-        $correo,
-        $ciudad,
-        $clave,
-        $telefono,
-        $id_director,
-        $id
-    );
-
-    $stmt->execute();
-}
-
-    public function bloquear_tabla()
-    {
-        $sql = "SELECT id_instituto FROM instituto FOR UPDATE";
-        $this->con->query($sql);
+    public function editar(
+        int $id_instituto,
+        string $nombre,
+        string $unidad_academica,
+        string $direccion,
+        string $estado,
+        string $correo_instituto,
+        string $ciudad,
+        string $clave_plantel,
+        string $telefono,
+        int $id_director
+    ): void {
+        $this->ejecutar(
+            "UPDATE instituto SET
+                nombre           = ?,
+                unidad_academica = ?,
+                direccion        = ?,
+                estado           = ?,
+                correo_instituto = ?,
+                ciudad           = ?,
+                clave_plantel    = ?,
+                telefono         = ?,
+                id_director      = ?
+             WHERE id_instituto  = ?",
+            "ssssssssii",
+            [
+                $nombre, $unidad_academica, $direccion, $estado,
+                $correo_instituto, $ciudad, $clave_plantel, $telefono,
+                $id_director, $id_instituto,
+            ]
+        );
     }
 
-    public function validar($id_director)
+    // 
+    //  UTILIDADES
+    // 
+
+    public function bloquearTabla(): void
     {
-        $idDirector = intval($id_director);
-
-        $sql = "SELECT estado FROM director WHERE id_director = ?";
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $idDirector);
-        $stmt->execute();
-        $res = $stmt->get_result()->fetch_assoc();
-
-        if (!$res || $res['estado'] !== 1) {
-            throw new Exception("Director inválido o inactivo");
-        }
+        $this->ejecutar("SELECT id_instituto FROM instituto FOR UPDATE");
     }
 }

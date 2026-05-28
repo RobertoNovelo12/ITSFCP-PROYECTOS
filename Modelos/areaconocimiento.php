@@ -1,379 +1,364 @@
 <?php
+// Modelos/areaconocimiento.php
+
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseModelo.php';
 
-class AreaConocimiento
+class AreaConocimiento extends BaseModelo
 {
-    private $con;
-
-    public function __construct($conn)
+    public function __construct(mysqli $conn)
     {
-        $this->con = $conn;
+        parent::__construct($conn);
     }
 
-    public function obtenerAreasDatosFiltro($rol)
+
+    // 
+    // FILTROS / CONTEOS
+    // 
+
+    public function obtenerAreasDatosFiltro(string $rol): array
     {
-        switch ($rol) {
-            case 'supervisor':
-                $sql = "SELECT DISTINCT 
-  COUNT(*) AS Total,
-  COALESCE(SUM(CASE WHEN estado= 1 THEN 1 ELSE 0 END),0) AS Activo,
-  COALESCE(SUM(CASE WHEN estado= 0 THEN 1 ELSE 0 END),0) AS Desactivado
-FROM areas_conocimiento AS area;";
-                $stmt = $this->con->prepare($sql);
-                break;
-            default:
-                return []; // Retorna un array vacío si el rol no es válido
+        if ($rol !== 'supervisor') {
+            return [];
         }
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        return $this->ejecutar(
+            "SELECT
+                COUNT(*) AS Total,
+                COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
+                COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
+             FROM areas_conocimiento"
+        );
     }
 
+
+    // 
     // TABLA PRINCIPAL
-    public function obtenerAreasTablaFiltro($buscar, $filtro)
+    // 
+
+    public function obtenerAreasTablaFiltro(?string $buscar, int $filtro): array
     {
-        $total = $this->obtenerCantidadArea($buscar, $filtro);
+        $total         = $this->obtenerCantidadArea($buscar, $filtro);
+        $por_pagina    = 6;
+        $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
+        $desde         = ($pagina - 1) * $por_pagina;
+        $total_paginas = max(1, (int)ceil($total / $por_pagina));
 
-        $por_pagina = 6;
-        $pagina = empty($_GET['pagina']) ? 1 : intval($_GET['pagina']);
-        $desde = ($pagina - 1) * $por_pagina;
-        $total_paginas = ($total > 0) ? ceil($total / $por_pagina) : 1;
-
+        $where  = [];
         $params = [];
-        $types = "";
-        $where = [];
+        $types  = '';
 
-        $sql = "SELECT 
-                area.id_area,
-                area.nombre_area AS nombre,
-                area.descripcion_area AS descripcion,
-                area.fecha_creacion AS creacion,
-                area.fecha_modificacion AS modificacion,
-                (SELECT COUNT(*) FROM subareas_conocimiento as suba WHERE area.id_area = suba.id_area AND suba.estado = 1) AS total,
-                (CASE 
-            WHEN area.estado = 1 THEN 'Activo'
-            ELSE 'Desactivado'
-        END) AS estado
-            FROM areas_conocimiento area
-            LEFT JOIN subareas_conocimiento suba 
-                ON suba.id_area = area.id_area";
-
-        // Filtros
-        if ($filtro == 0 || $filtro == 1) {
-            $where[] = "area.estado = ?";
+        // Filtro por estado: 1 = Activo, 0 = Desactivado, 2 = Total (sin filtro)
+        if ($filtro === 0 || $filtro === 1) {
+            $where[]  = "area.estado = ?";
             $params[] = $filtro;
-            $types .= "i";
+            $types   .= 'i';
         }
 
         if (!empty($buscar)) {
-            $where[] = "area.nombre_area LIKE ?";
+            $where[]  = "area.nombre_area LIKE ?";
             $params[] = "%$buscar%";
-            $types .= "s";
+            $types   .= 's';
         }
+
+        $sql = "SELECT
+                    area.id_area,
+                    area.nombre_area        AS nombre,
+                    area.descripcion_area   AS descripcion,
+                    area.fecha_creacion     AS creacion,
+                    area.fecha_modificacion AS modificacion,
+                    (SELECT COUNT(*)
+                     FROM subareas_conocimiento suba2
+                     WHERE suba2.id_area = area.id_area
+                       AND suba2.estado  = 1) AS total,
+                    CASE
+                        WHEN area.estado = 1 THEN 'Activo'
+                        ELSE 'Desactivado'
+                    END AS estado
+                FROM areas_conocimiento area
+                LEFT JOIN subareas_conocimiento suba ON suba.id_area = area.id_area";
 
         if (!empty($where)) {
             $sql .= " WHERE " . implode(" AND ", $where);
         }
 
-        // AGRUPACIÓN NECESARIA
-        $sql .= " GROUP BY area.id_area";
+        $sql .= " GROUP BY area.id_area ORDER BY area.id_area ASC LIMIT ?, ?";
 
-        // IMPORTANTE: LIMIT SIN PLACEHOLDER
-        $sql .= " ORDER BY area.id_area ASC LIMIT $desde, $por_pagina";
-
-        // DEBUG (por si vuelve a fallar)
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            die("Error en prepare(): " . $this->con->error . "<br>SQL: $sql");
-        }
-
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-
-        if (!$stmt->execute()) {
-            die("Error en execute(): " . $stmt->error);
-        }
+        $params[] = $desde;
+        $params[] = $por_pagina;
+        $types   .= 'ii';
 
         return [
-            "area" => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
-            "paginacion" => [
-                "total" => $total,
-                "por_pagina" => $por_pagina,
-                "pagina" => $pagina,
-                "total_paginas" => $total_paginas
-            ]
+            "area"       => $this->ejecutar($sql, $types, $params),
+            "paginacion" => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas],
         ];
     }
 
-    public function obtenerCantidadArea($buscar = null, $filtro = 2)
+    private function obtenerCantidadArea(?string $buscar, int $filtro): int
     {
-        if ($filtro == 2) {
-            // Si el filtro es 2 (Total), no aplicamos ninguna condición adicional
-            $sql = "SELECT COUNT(*) AS total FROM areas_conocimiento as area WHERE 1";
-            $params = [];
-            $types  = "";
+        $where  = ["1 = 1"];
+        $params = [];
+        $types  = '';
 
-            if (!empty($buscar)) {
-                $sql .= " AND area.nombre_area LIKE ?";
-                $params[] = "%$buscar%";
-                $types   .= "s";
-            }
-
-            $stmt = $this->con->prepare($sql);
-
-
-            if (!empty($params)) {
-                $stmt->bind_param($types, ...$params);
-            } else {
-                // No hay parámetros para enlazar
-            }
-            $stmt->execute();
-            $resultado = $stmt->get_result()->fetch_assoc();
-            return $resultado['total'];   // OBTENER EL NUMERO TOTAL DE AREAS
-        } else {
-
-            $sql = "SELECT COUNT(*) AS total FROM areas_conocimiento as area 
-WHERE area.estado = ?";
-
-            $params = [$filtro];
-            $types  = "i";
-
-            if (!empty($buscar)) {
-                $sql .= " AND area.nombre_area LIKE ?";
-                $params[] = "%$buscar%";
-                $types   .= "s";
-            }
-
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param($types, ...$params);
+        if ($filtro === 0 || $filtro === 1) {
+            $where[]  = "area.estado = ?";
+            $params[] = $filtro;
+            $types   .= 'i';
         }
-        $stmt->execute();
-        $resultado = $stmt->get_result()->fetch_assoc();
-        return $resultado['total'];   // OBTENER EL NUMERO TOTAL DE AREAS
+
+        if (!empty($buscar)) {
+            $where[]  = "area.nombre_area LIKE ?";
+            $params[] = "%$buscar%";
+            $types   .= 's';
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM areas_conocimiento area
+                WHERE " . implode(" AND ", $where);
+
+        return (int)($this->ejecutar($sql, $types, $params, false)['total'] ?? 0);
     }
 
 
-    // EDICIÓN
-    public function obtenerAreaEditar($id_area)
+    // 
+    // DATOS PARA EL FORMULARIO DE EDICIÓN
+    // 
+
+    public function obtenerAreaEditar(int $id_area): array
     {
-        $sql = "SELECT id_area, nombre_area AS nombre, descripcion_area AS descripcion, 
-        (CASE 
-            WHEN estado = 1 THEN 'Activo'
-            ELSE 'Desactivado'
-        END) AS estado
-                FROM areas_conocimiento
-                WHERE id_area = ?";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_area);
-        $stmt->execute();
-
-        $area = $stmt->get_result()->fetch_assoc();
+        $area = $this->ejecutar(
+            "SELECT
+                id_area,
+                nombre_area      AS nombre,
+                descripcion_area AS descripcion,
+                CASE
+                    WHEN estado = 1 THEN 'Activo'
+                    ELSE 'Desactivado'
+                END AS estado
+             FROM areas_conocimiento
+             WHERE id_area = ?",
+            "i",
+            [$id_area],
+            false
+        );
 
         if (!$area) {
             throw new Exception("Área no encontrada");
         }
 
-        $sql2 = "SELECT id_subarea, nombre_subarea AS nombre, estado
-                 FROM subareas_conocimiento
-                 WHERE id_area = ? AND estado = 1";
-
-        $stmt2 = $this->con->prepare($sql2);
-        $stmt2->bind_param("i", $id_area);
-        $stmt2->execute();
+        $subareas = $this->ejecutar(
+            "SELECT id_subarea, nombre_subarea AS nombre, estado
+             FROM subareas_conocimiento
+             WHERE id_area = ? AND estado = 1",
+            "i",
+            [$id_area]
+        );
 
         return [
-            "area" => $area,
-            "subareas" => $stmt2->get_result()->fetch_all(MYSQLI_ASSOC)
+            "area"     => $area,
+            "subareas" => $subareas,
         ];
     }
 
-    //Obtener datos para detalles
-    public function obtenerAreasDetalles($id_area)
+
+    // 
+    // DATOS PARA DETALLES
+    // 
+
+    public function obtenerAreasDetalles(int $id_area): array
     {
-        // AREA
-        $sql = "SELECT 
-                id_area, 
-                nombre_area AS nombre,
+        $area = $this->ejecutar(
+            "SELECT
+                id_area,
+                nombre_area      AS nombre,
                 descripcion_area AS descripcion,
-                (CASE 
+                CASE
                     WHEN estado = 1 THEN 'Activo'
                     ELSE 'Desactivado'
-                END) AS estado
-            FROM areas_conocimiento
-            WHERE id_area = ?";
+                END AS estado
+             FROM areas_conocimiento
+             WHERE id_area = ?",
+            "i",
+            [$id_area],
+            false
+        );
 
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            die("Error SQL: " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_area);
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-        $area = $result->fetch_assoc();
-
-        $stmt->close();
-
-        // SUBAREAS
-        $sql2 = "SELECT 
-                suba.id_subarea,
-                suba.nombre_subarea AS nombre,
-                suba.estado
-            FROM subareas_conocimiento AS suba
-            WHERE suba.id_area = ?";
-
-        $stmt2 = $this->con->prepare($sql2);
-
-        if (!$stmt2) {
-            die("Error SQL (subareas): " . $this->con->error);
-        }
-
-        $stmt2->bind_param("i", $id_area);
-        $stmt2->execute();
-
-        $result2 = $stmt2->get_result();
-        $subareas = $result2->fetch_all(MYSQLI_ASSOC);
-
-        $stmt2->close();
+        $subareas = $this->ejecutar(
+            "SELECT id_subarea, nombre_subarea AS nombre, estado
+             FROM subareas_conocimiento
+             WHERE id_area = ?",
+            "i",
+            [$id_area]
+        );
 
         return [
-            "area" => $area,
-            "subareas" => $subareas
+            "area"     => $area,
+            "subareas" => $subareas,
         ];
     }
 
+
+    // 
     // CREAR
-    public function crearAreaCompleta($nombre, $descripcion, $subareas)
+    // 
+
+    /**
+     * Inserta el área y sus subareas.
+     * La transacción es responsabilidad del controlador.
+     *
+     * @return int  ID del área creada.
+     * @throws Exception
+     */
+    public function crearAreaCompleta(string $nombre, string $descripcion, array $subareas): int
     {
-        $this->con->begin_transaction();
+        $this->ejecutar(
+            "INSERT INTO areas_conocimiento (nombre_area, descripcion_area, estado)
+             VALUES (?, ?, 1)",
+            "ss",
+            [$nombre, $descripcion]
+        );
 
-        try {
-            $sql = "INSERT INTO areas_conocimiento (nombre_area, descripcion_area, estado)
-                    VALUES (?, ?, 1)";
-            $stmt = $this->con->prepare($sql);
-            $stmt->bind_param("ss", $nombre, $descripcion);
-            $stmt->execute();
+        $id_area = (int)$this->conn->insert_id;
 
-            $id_area = $stmt->insert_id;
-
-            foreach ($subareas as $sub) {
-                $sql2 = "INSERT INTO subareas_conocimiento (id_area, nombre_subarea, estado)
-                         VALUES (?, ?, 1)";
-                $stmt2 = $this->con->prepare($sql2);
-                $stmt2->bind_param("is", $id_area, $sub);
-                $stmt2->execute();
-            }
-
-            $this->con->commit();
-            return $id_area;
-        } catch (Exception $e) {
-            $this->con->rollback();
-            return false;
+        foreach ($subareas as $sub) {
+            $this->ejecutar(
+                "INSERT INTO subareas_conocimiento (id_area, nombre_subarea, estado)
+                 VALUES (?, ?, 1)",
+                "is",
+                [$id_area, $sub]
+            );
         }
+
+        return $id_area;
     }
 
-    //Crea subareas
-    public function registrarsubarea($id_area, $nombre_subarea)
+    public function registrarsubarea(int $id_area, string $nombre_subarea): void
     {
-        $sql_sub = "INSERT INTO subareas_conocimiento (id_area, nombre_subarea) VALUES (?, ?);";
-        $stmt_sub = $this->con->prepare($sql_sub);
-        $stmt_sub->bind_param("is", $id_area, $nombre_subarea);
-        return $stmt_sub->execute();
+        $this->ejecutar(
+            "INSERT INTO subareas_conocimiento (id_area, nombre_subarea) VALUES (?, ?)",
+            "is",
+            [$id_area, $nombre_subarea]
+        );
     }
 
+
+    // 
     // ACTUALIZAR
-    public function editarArea($nombre, $descripcion, $id_area)
-    {
-        $sql = "UPDATE areas_conocimiento
-                SET nombre_area = ?, descripcion_area = ?, fecha_modificacion = NOW()
-                WHERE id_area = ?";
+    // 
 
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("ssi", $nombre, $descripcion, $id_area);
-        return $stmt->execute();
+    public function editarArea(string $nombre, string $descripcion, int $id_area): void
+    {
+        $this->ejecutar(
+            "UPDATE areas_conocimiento
+             SET nombre_area = ?, descripcion_area = ?, fecha_modificacion = NOW()
+             WHERE id_area = ?",
+            "ssi",
+            [$nombre, $descripcion, $id_area]
+        );
     }
 
-    public function editarSubarea($id, $nombre)
+    public function editarSubarea(int $id_subarea, string $nombre): void
     {
-        $sql = "UPDATE subareas_conocimiento
-                SET nombre_subarea = ?, fecha_modificacion = NOW()
-                WHERE id_subarea = ?";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("si", $nombre, $id);
-        return $stmt->execute();
+        $this->ejecutar(
+            "UPDATE subareas_conocimiento
+             SET nombre_subarea = ?, fecha_modificacion = NOW()
+             WHERE id_subarea = ?",
+            "si",
+            [$nombre, $id_subarea]
+        );
     }
 
-    // ELIMINAR (SOFT DELETE)
-    public function eliminar_area($id_area, $estado)
+
+    // 
+    // SOFT DELETE
+    // 
+
+    /**
+     * Desactiva (o reactiva) el área y todas sus subareas en cascada.
+     *
+     * @param int $estado  0 = desactivar, 1 = reactivar
+     */
+    public function eliminar_area(int $id_area, int $estado): void
     {
+        $this->ejecutar(
+            "UPDATE areas_conocimiento SET estado = ? WHERE id_area = ?",
+            "ii",
+            [$estado, $id_area]
+        );
 
-        $sql = "UPDATE areas_conocimiento SET estado = ? WHERE id_area = ?";
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("ii", $estado, $id_area);
-        $stmt->execute();
-
-        $sql2 = "UPDATE subareas_conocimiento SET estado = ? WHERE id_area = ?";
-        $stmt2 = $this->con->prepare($sql2);
-        $stmt2->bind_param("ii", $estado, $id_area);
-        $stmt2->execute();
-        return 0;
+        $this->ejecutar(
+            "UPDATE subareas_conocimiento SET estado = ? WHERE id_area = ?",
+            "ii",
+            [$estado, $id_area]
+        );
     }
 
-    public function eliminar_subarea($id_subarea, $estado)
+    public function eliminar_subarea(int $id_subarea, int $estado): void
     {
-        $sql = "UPDATE subareas_conocimiento 
-                SET estado = ?, fecha_modificacion = NOW()
-                WHERE id_subarea = ?";
-
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("ii", $estado, $id_subarea);
-        return $stmt->execute();
+        $this->ejecutar(
+            "UPDATE subareas_conocimiento
+             SET estado = ?, fecha_modificacion = NOW()
+             WHERE id_subarea = ?",
+            "ii",
+            [$estado, $id_subarea]
+        );
     }
-    //Busca duplicidad de subareas
-        public function comparar_Duplicidad_Subareas($id_area, $nombre, $id_excluir = null)
-    {
-        $sql = "SELECT COUNT(*) as total
-            FROM subareas_conocimiento
-            WHERE id_area = ?
-            AND LOWER(nombre_subarea) = LOWER(?)
-            AND estado = 1";
 
-        if (!empty($id_excluir)) {
-            $sql .= " AND id_subarea != ?";
+
+    // 
+    // VALIDACIÓN DE DUPLICIDAD
+    // 
+
+    /**
+     * Lanza excepción si ya existe una subárea activa con el mismo nombre
+     * dentro del área, excluyendo opcionalmente la propia subárea en edición.
+     *
+     * @throws Exception
+     */
+    public function comparar_Duplicidad_Subareas(int $id_area, string $nombre, mixed $id_excluir = null): void
+    {
+        $sql    = "SELECT COUNT(*) AS total
+                   FROM subareas_conocimiento
+                   WHERE id_area = ?
+                     AND LOWER(nombre_subarea) = LOWER(?)
+                     AND estado = 1";
+        $params = [$id_area, $nombre];
+        $types  = "is";
+
+        // Solo excluir si es un ID numérico válido (no 'nuevo', no null, no '')
+        $id_excluir_int = filter_var($id_excluir, FILTER_VALIDATE_INT);
+        if ($id_excluir_int !== false) {
+            $sql    .= " AND id_subarea != ?";
+            $params[] = $id_excluir_int;
+            $types   .= "i";
         }
 
-        $stmt = $this->con->prepare($sql);
+        $total = (int)($this->ejecutar($sql, $types, $params, false)['total'] ?? 0);
 
-        if (!empty($id_excluir)) {
-            $stmt->bind_param("isi", $id_area, $nombre, $id_excluir);
-        } else {
-            $stmt->bind_param("is", $id_area, $nombre);
-        }
-
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-
-        if ($result['total'] > 0) {
-            throw new Exception("La Subarea ya existe en esta Área de conocimiento");
+        if ($total > 0) {
+            throw new Exception("La subárea ya existe en esta área de conocimiento.");
         }
     }
-        //Obtener las ID de subáreas
-        public function obtenerIdsSubareas($id_area)
+
+
+    // 
+    // OBTENER IDS DE SUBAREAS
+    // 
+
+    /**
+     * Devuelve los IDs de las subareas activas de un área.
+     * Usado en editarArea para comparar contra el formulario y detectar eliminaciones.
+     *
+     * @return int[]
+     */
+    public function obtenerIdsSubareas(int $id_area): array
     {
-        $sql = "SELECT id_subarea FROM subareas_conocimiento WHERE id_area = ? AND estado = 1";
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_area);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $ids = [];
-        while ($row = $result->fetch_assoc()) {
-            $ids[] = $row['id_subarea'];
-        }
-        return $ids;
+        $filas = $this->ejecutar(
+            "SELECT id_subarea FROM subareas_conocimiento WHERE id_area = ? AND estado = 1",
+            "i",
+            [$id_area]
+        );
+
+        return array_column($filas, 'id_subarea');
     }
 }

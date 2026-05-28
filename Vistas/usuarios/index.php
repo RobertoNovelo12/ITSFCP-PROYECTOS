@@ -38,7 +38,7 @@ if ($action === 'aprobar' && isset($_GET['id_usuarios'])) {
 //  Validar que la acción exista en el controlador ─
 $accionesPermitidas = ['index', 'Espera', 'Aprobado', 'Activo', 'Cancelado'];
 if (!in_array($action, $accionesPermitidas)) {
-    $action = 'index';
+    header("Location: index.php?msg=accion_no_permitida");
 }
 
 //  Ejecutar acción 
@@ -85,73 +85,80 @@ include __DIR__ . '/../../error.php';
     </div>
 
     <!-- ALERTAS -->
-    <?php if ($msg === 'aprobado'):
-        header("Location: index.php?mensaje=1");
+    <?php if ($msg === 'aprobado') {
+        $mensaje = ' Usuario aprobado correctamente.';
+        include __DIR__ . '../../../publico/incluido/_mensaje_exito.php';
+
     ?>
 
-        <!--<div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-1"></i> Usuario aprobado correctamente.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div> -->
-    <?php elseif ($msg === 'rechazado'):
-        header("Location: index.php?mensaje=1");
+    <?php } elseif ($msg === 'rechazado') {
+        $mensaje = ' Solicitud rechazada y notificación enviada.';
+        include __DIR__ . '../../../publico/incluido/_mensaje_error.php';
+
     ?>
-        <!--<div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-x-circle-fill me-1"></i> Solicitud rechazada y notificación enviada.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>-->
-    <?php endif; ?>
+    <?php } elseif ($msg === 'accion_no_permitida') {
+        $mensaje = ' Acción no reconocida.';
+        include __DIR__ . '../../../publico/incluido/_mensaje_alerta.php';
+    }
+    ?>
 
     <!-- FILTROS -->
-    <div class="row g-2 mb-4">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
 
-        <!-- Select estado -->
-        <div class="col-12 col-md-3">
-            <select class="form-select"
-                onchange="location.href='index.php?action=' + this.value
+                <!-- Select estado -->
+                <div class="col-md-3 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=' + this.value
                         + '&buscar=<?= urlencode($buscar) ?>&tipo=<?= urlencode($tipo) ?>';">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-        <!-- Select tipo de usuario -->
-        <div class="col-12 col-md-3">
-            <select class="form-select"
-                onchange="location.href='index.php?action=<?= urlencode($action) ?>&buscar=<?= urlencode($buscar) ?>&tipo=' + this.value;">
-                <option value="" <?= ($tipo === '')               ? 'selected' : '' ?>>Todos los tipos</option>
-                <option value="estudiante" <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
-                <option value="investigador" <?= ($tipo === 'investigador') ? 'selected' : '' ?>>Investigador</option>
-                <option value="supervisor" <?= ($tipo === 'supervisor')   ? 'selected' : '' ?>>Supervisor</option>
-            </select>
-        </div>
+                <!-- Select tipo de usuario -->
+                <div class="col-md-3 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Tipo</label>
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=<?= urlencode($action) ?>&buscar=<?= urlencode($buscar) ?>&tipo=' + this.value;">
+                        <option value="" <?= ($tipo === '')               ? 'selected' : '' ?>>Todos los tipos</option>
+                        <option value="estudiante" <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
+                        <option value="investigador" <?= ($tipo === 'investigador') ? 'selected' : '' ?>>Investigador</option>
+                        <option value="supervisor" <?= ($tipo === 'supervisor')   ? 'selected' : '' ?>>Supervisor</option>
+                    </select>
+                </div>
 
-        <!-- Búsqueda por nombre -->
-        <div class="col-12 col-md-6">
-            <form class="d-flex gap-2" method="GET" action="index.php">
-                <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo) ?>">
-                <input type="text"
-                    name="buscar"
-                    class="form-control"
-                    placeholder="Buscar por nombre..."
-                    value="<?= htmlspecialchars($buscar) ?>">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-search"></i>
-                </button>
-                <?php if (!empty($buscar)): ?>
-                    <a href="index.php?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
-                        class="btn btn-secondary" title="Limpiar búsqueda">
-                        <i class="bi bi-x-lg"></i>
-                    </a>
-                <?php endif; ?>
-            </form>
-        </div>
+                <!-- Búsqueda por nombre -->
+                <div class="col-md-6 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                    <form class="d-flex gap-2" method="GET" action="index.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo) ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Buscar por nombre..."
+                            value="<?= htmlspecialchars($buscar) ?>">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <?php if (!empty($buscar)): ?>
+                            <a href="index.php?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
+                                class="btn btn-secondary" title="Limpiar búsqueda">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        <?php endif; ?>
+                    </form>
+                </div>
 
+            </div>
+        </div>
     </div>
 
     <!-- TABLA ESCRITORIO -->

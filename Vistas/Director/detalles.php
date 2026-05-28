@@ -167,7 +167,7 @@ ob_start();
 
     <?php
     // OBTENER HISTORIAL
-    $resultado = $directorControlador->info_linea_tiempo($id_director);
+    $resultado = $directorControlador->infoLineaTiempo($id_director);
     $historialAgrupado = $resultado['datos'];
     $paginacion = $resultado['paginacion'];
     ?>

@@ -1,63 +1,64 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Carreras/crear.php
 
 session_start();
 
-/* VALIDACIÓN DE SESIÓN */
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = intval($_SESSION['id_usuario']);
+$rol        = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = (int)$_SESSION['id_usuario'];
 
-//Solo supervisor
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-/* CONTROLADOR */
 require_once '../../Controladores/carreraControlador.php';
 
-$action = $_POST['action'] ?? null;
-$carreraControlador = new carreraControlador();
-$estadoVista = ["activo" => 0, "desactivado" => 0];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Registrar') {
-    $nombre_carrera = $_POST['NombreCarrera'];
-    $estadoVista = $carreraControlador->verificarCarrera($nombre_carrera);
-
-    if ($estadoVista['activo'] == 0 && $estadoVista['desactivado'] == 0) {
-        $carreraControlador->registrarCarrera($rol, $nombre_carrera);
-    } else {
-        $mensaje = "Ya hay una carrera con ese nombre, intente con otro";
-    }
+//  Acción POST: registrar carrera ─
+// registrarCarrera() valida método, rol y redirige internamente con ?msg=.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'Registrar') {
+    $carreraControlador = new carreraControlador();
+    $carreraControlador->registrarCarrera($rol, $_POST);
+    // Siempre redirige → el código no continúa.
 }
 
+//  Mapa de mensajes ─
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_crear'         => ['tipo' => 'exito',  'titulo_msg' => 'Carrera creada',       'mensaje' => 'La carrera fue creada correctamente.'],
+    'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',        'mensaje' => 'No fue posible crear la carrera. Verifica los datos e intenta de nuevo.'],
+    'error_duplicado'     => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',    'mensaje' => 'Ya existe una carrera con ese nombre.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
 
+<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); include __DIR__ . '../../../publico/incluido/_mensaje.php'; endif; ?>
+
 <div class="container-fluid py-4 ancho_container">
+
     <!-- ENCABEZADO -->
-    <div class="row mb-3">
+    <div class="row mb-3 align-items-center">
         <?php
         $titulo      = 'Nueva Carrera';
         $descripcion = 'Registro de una nueva carrera';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 text-end">
-            <a href="index.php" class="btn btn-danger">Regresar</a>
+            <a href="index.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar
+            </a>
         </div>
     </div>
-    <!-- DATOS CARRERA -->
+
+    <!-- FORMULARIO -->
     <form method="POST" action="">
-        <input type="hidden" name="action" value="registrar">
+
         <div class="mb-3">
             <label class="form-label">Nombre de la Carrera</label>
             <input
@@ -66,24 +67,17 @@ include __DIR__ . '/../../error.php';
                 class="form-control"
                 required>
         </div>
-        <?php if (!empty($mensaje)) { ?>
-            <div class="alert alert-warning" role="alert">
-                <?= $mensaje ?>
-            </div>
-            <button type="submit" name="action" value="Registrar" class="btn btn-guardar">Guardar cambios</button>
 
-        <?php } else { ?>
-            <button type="submit" name="action" value="Registrar" class="btn btn-guardar">Guardar cambios</button>
-        <?php } ?>
+        <button type="submit" name="action" value="Registrar" class="btn btn-guardar">
+            Guardar cambios
+        </button>
+
     </form>
 </div>
 
-
 <?php
-
 $contenido = ob_get_clean();
-$titulo = "Crear Carrera";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Crear Carrera';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
 ?>

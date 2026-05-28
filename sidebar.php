@@ -26,7 +26,7 @@ function crearLink($nombre, $rol)
         "Ajuste de documentos" => "/ITSFCP-PROYECTOS/Vistas/Tipos_documentos/index.php",
         "Plantillas de documentos" => "/ITSFCP-PROYECTOS/Vistas/Plantillas_documentos/index.php",
         "Período" => "/ITSFCP-PROYECTOS/Vistas/Periodo/index.php",
-        "Instituto" => "/ITSFCP-PROYECTOS/Vistas/Instituto/editar.php",
+        "Instituto" => "/ITSFCP-PROYECTOS/Vistas/Instituto/index.php",
         "Director" => "/ITSFCP-PROYECTOS/Vistas/Director/index.php",
         "Carreras" => "/ITSFCP-PROYECTOS/Vistas/Carreras/index.php",
         "Niveles SNI" => "/ITSFCP-PROYECTOS/Vistas/Niveles_SNI/index.php",

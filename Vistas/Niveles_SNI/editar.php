@@ -1,4 +1,6 @@
 <?php
+// Vistas/Niveles_SNI/editar.php
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -6,49 +8,82 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header('Location: /ITSFCP-PROYECTOS/index.php');
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
+$rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_nivel = $_GET["id_nivel"] ?? null;
+$id_nivel   = (int)($_GET['id_nivel'] ?? 0);
 
-//Solo supervisor
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
+    exit;
+}
+
+if (!$id_nivel) {
+    header('Location: index.php?msg=accion_no_permitida');
     exit;
 }
 
 require_once '../../Controladores/nivelsniControlador.php';
 
-$action = $_POST['action'] ?? null;
-$nivelsniControlador = new nivelsniControlador();
-$datos = $nivelsniControlador->indexEditar($rol, $id_nivel);
-$mensaje  = "";
-$estadoVista = ["activo" => 0, "desactivado" => 0];
+$ctrl    = new NivelsniControlador();
+$action  = $_POST['action'] ?? null;
+$datos   = $ctrl->indexEditar($rol, $id_nivel);
+$mensaje = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Guardar') {
-    $nombre = $_POST['Nombre'];
-    $estadoVista = $nivelsniControlador->obtenerPorIdDiferente($id_nivel, $nombre);
-
-    if ($estadoVista['activo'] == 0 && $estadoVista['desactivado'] == 0) {
-        $nivelsniControlador->editarNivelSNI($rol, $id_nivel, $nombre);
-    } else {
-        $mensaje = "Ya hay un Nivel SNI con ese nombre, busca otro";
-    }
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Reactivar') {
-    $nivelsniControlador->reactivar($rol, $_POST['id_nivel']);
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Desactivar') {
-    $nivelsniControlador->eliminar($rol, $_POST['id_nivel']);
+if (empty($datos)) {
+    header('Location: index.php?msg=accion_no_permitida');
+    exit;
 }
 
+//  Procesar acción POST 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
+
+    if ($action === 'Guardar') {
+        $nombre      = trim($_POST['Nombre'] ?? '');
+        $estadoVista = $ctrl->obtenerPorIdDiferente($id_nivel, $nombre);
+
+        if ($estadoVista['activo'] === 0 && $estadoVista['desactivado'] === 0) {
+            $ctrl->editarNivelSNI($rol, $id_nivel, $nombre); // redirige con ?msg=
+        } else {
+            $mensaje = 'Ya existe un Nivel SNI con ese nombre. Por favor elige otro.';
+        }
+
+    } elseif ($action === 'Reactivar') {
+        $ctrl->reactivar($rol, (int)($_POST['id_nivel'] ?? 0)); // redirige con ?msg=
+
+    } elseif ($action === 'Desactivar') {
+        $ctrl->eliminar($rol, (int)($_POST['id_nivel'] ?? 0)); // redirige con ?msg=
+    }
+}
+
+//  Mensajes ─
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_editar'        => ['tipo' => 'exito',  'titulo_msg' => 'Nivel SNI actualizado',  'mensaje' => 'El Nivel SNI fue editado correctamente.'],
+    'exito_desactivar'    => ['tipo' => 'exito',  'titulo_msg' => 'Nivel SNI desactivado',  'mensaje' => 'El Nivel SNI fue desactivado correctamente.'],
+    'exito_reactivar'     => ['tipo' => 'exito',  'titulo_msg' => 'Nivel SNI reactivado',   'mensaje' => 'El Nivel SNI fue reactivado correctamente.'],
+    'error_editar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar el Nivel SNI. Verifica los datos e intenta de nuevo.'],
+    'error_desactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',    'mensaje' => 'No fue posible desactivar el Nivel SNI.'],
+    'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',     'mensaje' => 'No fue posible reactivar el Nivel SNI.'],
+    'error_duplicado'     => ['tipo' => 'alerta', 'titulo_msg' => 'Registro duplicado',     'mensaje' => 'Ya existe un Nivel SNI con ese nombre.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',    'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
+
+    <!-- ALERTAS -->
+    <?php
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    }
+    ?>
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
@@ -64,35 +99,36 @@ include __DIR__ . '/../../error.php';
         </div>
     </div>
 
-    <!-- DATOS NIVEL SNI -->
+    <!-- FORMULARIO -->
     <form method="POST" action="">
-        <input type="hidden" name="id_nivel" value="<?= $datos['id_nivel']; ?>">
+        <input type="hidden" name="id_nivel" value="<?= (int)$datos['id_nivel'] ?>">
+
         <div class="mb-3">
             <label class="form-label">Nivel SNI</label>
             <input
                 type="text"
                 name="Nombre"
                 class="form-control"
-                value="<?= htmlspecialchars($datos['nombre']); ?>"
+                value="<?= htmlspecialchars($datos['nombre']) ?>"
                 required>
         </div>
+
         <div class="mb-3">
-            <?php if (!empty($mensaje)) { ?>
+            <?php if (!empty($mensaje)): ?>
                 <div class="alert alert-warning" role="alert">
-                    <?= $mensaje ?>
+                    <?= htmlspecialchars($mensaje) ?>
                 </div>
-            <?php } else { ?>
-                <?php echo $nivelsniControlador->botonesAccionEditar($rol, $datos['estado']); ?>
-            <?php } ?>
+            <?php else: ?>
+                <?= $ctrl->botonesAccionEditar($rol, $datos['estado']) ?>
+            <?php endif; ?>
         </div>
     </form>
+
 </div>
 
 <?php
-
 $contenido = ob_get_clean();
-$titulo = "Editar Nivel SNI";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Editar Nivel SNI';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
 ?>

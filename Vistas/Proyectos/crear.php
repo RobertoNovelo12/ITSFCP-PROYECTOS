@@ -42,10 +42,10 @@ if ($action == 'registrarProyecto') {
     $proyectoControlador->registrarProyecto($_POST, $id, $rol);
 }
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 <div class="container-fluid py-4 ancho_container">
     <div class="row mb-3 align-items-center">
+        <!--Encabezado-->
         <div class="row mb-1">
             <?php
             $titulo      = 'Nuevo Proyecto';
@@ -58,6 +58,7 @@ include __DIR__ . '/../../mensaje.php';
                 </a>
             </div>
         </div>
+
         <form method="POST" id="formProyecto" action="">
             <input type="hidden" id="input_hidden" name="action" value="registrarProyecto">
             <div class="row mb-1">

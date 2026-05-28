@@ -65,7 +65,7 @@ class SupervisorModelo
         $typesPeriodo  = !empty($f['periodo']) ? "i" : "";
         $paramsPeriodo = !empty($f['periodo']) ? [(int)$f['periodo']] : [];
 
-        // ── Proyectos ──────────────────────────────────────────────
+        //  Proyectos 
         $sql = "
             SELECT
                 COUNT(*)                              AS total_proyectos,
@@ -84,7 +84,7 @@ class SupervisorModelo
         $stmt->execute();
         $proyectos = $stmt->get_result()->fetch_assoc() ?? [];
 
-        // ── Estudiantes únicos con proyectos ───────────────────────
+        //  Estudiantes únicos con proyectos 
         $sql = "
             SELECT
                 COUNT(DISTINCT pu.id_usuarios)      AS total_estudiantes,
@@ -101,7 +101,7 @@ class SupervisorModelo
         $stmt->execute();
         $estudiantes = $stmt->get_result()->fetch_assoc() ?? [];
 
-        // ── Solicitudes ────────────────────────────────────────────
+        //  Solicitudes 
         $sql = "
             SELECT
                 COUNT(*)                           AS total_solicitudes,
@@ -119,7 +119,7 @@ class SupervisorModelo
         $stmt->execute();
         $solicitudes = $stmt->get_result()->fetch_assoc() ?? [];
 
-        // ── Tareas / secciones del documento ──────────────────────
+        //  Tareas / secciones del documento 
         // Solo contamos tareas activas (excluye 'Sin activar')
         // Mapeamos todos los estados existentes de forma coherente:
         //   Pendiente   → pendientes

@@ -1,105 +1,109 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Carreras/editar.php
 
 session_start();
 
-/* VALIDACIÓN DE SESIÓN */
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = intval($_SESSION['id_usuario']);
-$id_carrera = $_GET["id_carrera"] ?? null;
+$rol        = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = (int)$_SESSION['id_usuario'];
+$id_carrera = (int)($_GET['id_carrera'] ?? 0);
 
-//Solo supervisor
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-/* CONTROLADOR */
 require_once '../../Controladores/carreraControlador.php';
 
-$action = $_POST['action'] ?? null;
 $carreraControlador = new carreraControlador();
-$datos = $carreraControlador->indexEditar($rol, $id_carrera);
-$mensaje  = "";
-$estadoVista = ["activo" => 0, "desactivado" => 0];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Guardar') {
-    $nombre_carrera = $_POST['NombreCarrera'];
-    $estadoVista = $carreraControlador->obtenerPorIdDiferente($id_carrera, $nombre_carrera);
+//  Acciones POST 
+// Cada método valida internamente el método HTTP, el rol y redirige con ?msg=.
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
 
-    if ($estadoVista['activo'] == 0 && $estadoVista['desactivado'] == 0) {
-        $carreraControlador->editarCarrera($rol, $id_carrera, $nombre_carrera);
-    } else {
-        $mensaje = "Ya hay una carrera con ese nombre, busca otro";
+    if ($action === 'Guardar') {
+        $carreraControlador->editarCarrera($rol, $_POST);
+    } elseif ($action === 'Reactivar') {
+        $carreraControlador->reactivarCarrera($rol, $_POST);
+    } elseif ($action === 'Desactivar') {
+        $carreraControlador->desactivarCarrera($rol, (int)($_POST['id_carrera'] ?? 0));
     }
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Reactivar') {
-    $carreraControlador->reactivar($rol, $_POST['id_carrera']);
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Desactivar') {
-    $carreraControlador->eliminar($rol, $_POST['id_carrera']);
+    // Si alguna acción no redirigió (valor desconocido), la página recarga normalmente.
 }
 
+//  Cargar datos actuales de la carrera 
+$datos = $carreraControlador->indexEditar($rol, $id_carrera);
+
+if (empty($datos)) {
+    header("Location: index.php?msg=error_cargar");
+    exit;
+}
+
+//  Mapa de mensajes ─
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_editar'        => ['tipo' => 'exito',  'titulo_msg' => 'Carrera actualizada',    'mensaje' => 'La carrera fue editada correctamente.'],
+    'exito_desactivar'    => ['tipo' => 'exito',  'titulo_msg' => 'Carrera desactivada',    'mensaje' => 'La carrera fue desactivada correctamente.'],
+    'exito_reactivar'     => ['tipo' => 'exito',  'titulo_msg' => 'Carrera reactivada',     'mensaje' => 'La carrera fue reactivada correctamente.'],
+    'error_editar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',         'mensaje' => 'No fue posible editar la carrera. Verifica los datos e intenta de nuevo.'],
+    'error_desactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',     'mensaje' => 'No fue posible desactivar la carrera.'],
+    'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',      'mensaje' => 'No fue posible reactivar la carrera.'],
+    'error_duplicado'     => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',      'mensaje' => 'Ya existe una carrera con ese nombre.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',         'mensaje' => 'No se encontró la carrera solicitada.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',     'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
 
+<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); include __DIR__ . '../../../publico/incluido/_mensaje.php'; endif; ?>
 
 <div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-
         <?php
         $titulo      = 'Editar Carrera';
         $descripcion = 'Modificar datos de la carrera';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
-
         <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>
-
     </div>
 
-    <!-- DATOS CARRERA -->
+    <!-- FORMULARIO -->
     <form method="POST" action="">
-        <input type="hidden" name="id_carrera" value="<?= $datos['id_carrera']; ?>">
+
+        <input type="hidden" name="id_carrera" value="<?= (int)$datos['id_carrera'] ?>">
+
         <div class="mb-3">
             <label class="form-label">Nombre de la Carrera</label>
             <input
                 type="text"
                 name="NombreCarrera"
                 class="form-control"
-                value="<?= htmlspecialchars($datos['nombre_carrera']); ?>"
+                value="<?= htmlspecialchars($datos['nombre_carrera']) ?>"
                 required>
         </div>
+
         <div class="mb-3">
-            <?php if (!empty($mensaje)) { ?>
-                <div class="alert alert-warning" role="alert">
-                    <?= $mensaje ?>
-                </div>
-            <?php } else { ?>
-                <?php echo $carreraControlador->botonesAccionEditar($rol, $datos['estado']); ?>
-            <?php } ?>
+            <?= $carreraControlador->botonesAccionEditar($rol, $datos['estado']) ?>
         </div>
+
     </form>
 </div>
 
-
 <?php
-
 $contenido = ob_get_clean();
-$titulo = "Editar Carrera";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Editar Carrera';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
 ?>

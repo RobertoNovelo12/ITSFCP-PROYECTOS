@@ -53,11 +53,8 @@ include __DIR__ . '/../../mensaje.php';
         ?>
 
         <div class="col-6 col-md-6 text-md-end">
-            <?php if ($rol == "supervisor"): ?>
                 <a href="../Proyectos/index.php" class="btn btn-secondary btn-sm px-4">
                     <i class="bi bi-arrow-left"></i> Regresar</a>
-
-            <?php endif; ?>
         </div>
     </div>
 

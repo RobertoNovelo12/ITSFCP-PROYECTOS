@@ -31,7 +31,7 @@ $periodo = $proyectoControlador->periodoactual();
 // Solo acciones de proyectos (no solicitudes)
 $accionesPermitidas = ['index', 'Total', 'Activos', 'Cierre', 'PorAprobar', 'Rechazados', 'PorCerrar', 'Vencido', 'Cierrerechazado'];
 if (!in_array($action, $accionesPermitidas)) {
-    die("Error: Acción no permitida.");
+    header("Location: index.php?msg=accion_no_permitida");
 }
 
 if (!method_exists($proyectoControlador, $action)) {
@@ -68,8 +68,23 @@ $hoy = date('Y-m-d');
 $puedeCrear_Editar = ($hoy >= $periodo['fecha_inicio_proyectos']
     && $hoy <= $periodo['fecha_fin_proyectos']);
 
+//  Mensaje de éxito/error ─
+$msg = $_GET['msg'] ?? '';
+
+$_mapa = [
+    'exito_crear'        => ['tipo' => 'exito',  'titulo_msg' => 'Proyecto creado',        'mensaje' => 'El proyecto fue creado correctamente.'],
+    'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Proyecto actualizado',   'mensaje' => 'El proyecto fue editado correctamente.'],
+    'exito_estado'       => ['tipo' => 'exito',  'titulo_msg' => 'Estado actualizado',     'mensaje' => 'El estado del proyecto fue actualizado correctamente.'],
+    'exito_operacion'    => ['tipo' => 'exito',  'titulo_msg' => 'Operación completada',   'mensaje' => 'La operación sobre el estudiante fue realizada correctamente.'],
+    'error_crear'        => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',         'mensaje' => 'No fue posible crear el proyecto. Verifica los datos e intenta de nuevo.'],
+    'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar el proyecto. Verifica los datos e intenta de nuevo.'],
+    'error_estado'       => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',        'mensaje' => 'No fue posible actualizar el estado del proyecto.'],
+    'error_operacion'    => ['tipo' => 'error',  'titulo_msg' => 'Error en la operación',  'mensaje' => 'No fue posible completar la operación sobre el estudiante.'],
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver este proyecto.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
@@ -100,12 +115,21 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
-    <!-- FILTROS -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="row justify-content-end">
+    <!-- ALERTAS -->
+    <?php
 
-                <div class="col-md-6 mb-3">
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    }
+    ?>
+
+    <!-- FILTROS -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
                     <select class="form-select"
                         onchange="location.href='index.php?action=' + this.value;">
                         <?php foreach ($opciones as $key => $label): ?>
@@ -116,17 +140,20 @@ include __DIR__ . '/../../mensaje.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
-
-                <div class="col-md-6">
-                    <form class="d-flex gap-2" method="GET">
+                <div class="col-md-8 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                    <form class="d-flex gap-2" method="GET" action="index.php">
                         <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                        <input type="text" name="buscar" class="form-control"
-                            placeholder="Buscar por título..."
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Por nombre..."
                             value="<?= htmlspecialchars($buscar) ?>">
-                        <button type="submit" class="btn btn-primary">Buscar</button>
+                        <button type="submit" class="btn btn-primary">
+                            Buscar
+                        </button>
                     </form>
                 </div>
-
             </div>
         </div>
     </div>

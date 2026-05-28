@@ -1,56 +1,64 @@
 <?php
 // Periodo/editar.php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 
-/* VALIDACIÓN DE SESIÓN */
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
 
 $rol         = strtolower($_SESSION['rol'] ?? '');
-$id_usuario  = intval($_SESSION['id_usuario']);
-$id_periodos = isset($_GET['id_periodos']) ? intval($_GET['id_periodos']) : 0;
+$id_usuario  = (int)$_SESSION['id_usuario'];
+$id_periodos = (int)($_GET['id_periodos'] ?? 0);
 
-//Solo supervisor
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-/* CONTROLADOR */
 require_once '../../Controladores/periodoControlador.php';
 
-$action             = $_POST['action'] ?? null;
 $periodoControlador = new periodoControlador();
 
-/* Procesar acciones POST antes de cargar datos */
-if ($action === 'guardar_fechas') {
-    $periodoControlador->actualizarFechasSubperiodos($rol, $id_periodos); // redirige internamente
+// ── Acciones POST ────────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'guardar_fechas') {
+        $periodoControlador->actualizarFechasSubperiodos($rol, $id_periodos, $_POST);
+        // Siempre redirige → el código no continúa.
+    }
+
+    if ($action === 'desactivar') {
+        $periodoControlador->desactivarPeriodoPost($rol, $id_periodos);
+        // Siempre redirige → el código no continúa.
+    }
 }
 
-if ($action === 'desactivar') {
-    $periodoControlador->eliminar($id_periodos, $rol); // redirige internamente
-}
-
-/* Cargar datos del periodo */
+// ── Cargar datos del periodo ─────────────────────────────────────────────────
 $datos = $periodoControlador->indexEditar($rol, $id_periodos);
 
 if (empty($datos)) {
-    die("No se encontró el periodo o no tiene permiso para editarlo.");
+    header("Location: index.php?msg=error_cargar");
+    exit;
 }
 
-/* Mensaje de error de rango (viene por GET tras redirección) */
+// ── Error de rango de fecha (string en URL) ──────────────────────────────────
 $error_fecha = isset($_GET['error_fecha']) ? htmlspecialchars($_GET['error_fecha']) : null;
 
+// ── Mapa de mensajes ─────────────────────────────────────────────────────────
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_editar'        => ['tipo' => 'exito',  'titulo_msg' => 'Periodo actualizado',    'mensaje' => 'Las fechas del periodo fueron actualizadas correctamente.'],
+    'exito_desactivar'    => ['tipo' => 'exito',  'titulo_msg' => 'Periodo desactivado',    'mensaje' => 'El periodo fue desactivado correctamente.'],
+    'error_editar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',         'mensaje' => 'No fue posible actualizar las fechas del periodo.'],
+    'error_desactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',     'mensaje' => 'No fue posible desactivar el periodo.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',         'mensaje' => 'No se encontró el periodo solicitado.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',     'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
@@ -60,7 +68,6 @@ include __DIR__ . '/../../error.php';
         <?php
         $titulo      = 'Editar Periodo';
         $descripcion = 'Modificar datos del periodo';
-
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-md-6 text-md-end">
@@ -69,6 +76,10 @@ include __DIR__ . '/../../error.php';
             </a>
         </div>
     </div>
+
+    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
 
     <?php if ($error_fecha): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -81,8 +92,7 @@ include __DIR__ . '/../../error.php';
     <!-- INFORMACIÓN DEL PERIODO (solo lectura) -->
     <div class="card mb-4 shadow-sm">
         <div class="card-header">
-            <h5 class="mb-0">
-                Información del periodo
+            <h5 class="mb-0">Información del periodo
                 <span class="text-muted fs-6 fw-normal">(no editable)</span>
             </h5>
         </div>
@@ -191,7 +201,7 @@ include __DIR__ . '/../../error.php';
 
     </form>
 
-    <!-- Advertencia: DESACTIVAR PERIODO -->
+    <!-- DESACTIVAR PERIODO -->
     <div class="card border-danger shadow-sm">
         <div class="card-header bg-danger text-white">
             <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-1"></i> Advertencia</h5>
@@ -223,7 +233,6 @@ include __DIR__ . '/../../error.php';
         pares.forEach(([inicioId, finId]) => {
             const inputInicio = document.getElementById(inicioId);
             const inputFin = document.getElementById(finId);
-
             if (!inputInicio || !inputFin) return;
 
             inputInicio.addEventListener('change', () => {
@@ -246,8 +255,7 @@ include __DIR__ . '/../../error.php';
 
 <?php
 $contenido = ob_get_clean();
-$titulo    = "Editar periodo";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Editar periodo';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
 ?>

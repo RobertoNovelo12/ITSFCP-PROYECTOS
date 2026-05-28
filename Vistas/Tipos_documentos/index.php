@@ -38,9 +38,27 @@ $filtros = $ajustesTiposDocumentoscontrolador->filtros($rol);
 $encabezados = $ajustesTiposDocumentoscontrolador->encabezadosPrincipal($rol);
 $opciones = $ajustesTiposDocumentoscontrolador->opciones($rol, $filtros);
 
-ob_start();
 include __DIR__ . '/../../mensaje.php';
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    // Éxitos
+    'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Cambios guardados',       'mensaje' => 'El tipo de documento fue actualizado correctamente.'],
+    'exito_desactivar'   => ['tipo' => 'exito',  'titulo_msg' => 'Documento desactivado',   'mensaje' => 'El tipo de documento fue desactivado correctamente.'],
+    'exito_reactivar'    => ['tipo' => 'exito',  'titulo_msg' => 'Documento reactivado',    'mensaje' => 'El tipo de documento fue reactivado correctamente.'],
+    // Errores de operación
+    'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al guardar',        'mensaje' => 'No fue posible guardar los cambios. Verifica los datos e intenta de nuevo.'],
+    'error_desactivar'   => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',     'mensaje' => 'No fue posible desactivar el tipo de documento.'],
+    'error_reactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',      'mensaje' => 'No fue posible reactivar el tipo de documento.'],
+    'error_duplicado'    => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',      'mensaje' => 'Ya existe un tipo de documento con esos datos.'],
+    'error_cargar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',         'mensaje' => 'No fue posible cargar la información. Intenta de nuevo.'],
+    // Permisos
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',      'mensaje' => 'No tienes permiso para ver esta sección.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',     'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+ob_start();
+
 ?>
+
 
 <div class="container-fluid py-4 ancho_container">
 
@@ -54,20 +72,31 @@ include __DIR__ . '/../../mensaje.php';
         <div class="col-6 col-md-6">
         </div>
     </div>
+    <!-- Mostrar la alerta: -->
+
+    <?php if (isset($_mapa[$msg])) : extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
+
 
     <!-- FILTROS -->
-    <div class="row mb-3">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2">
 
-        <div class="col-12 col-md-4">
-            <select class="form-select"
-                onchange="location.href='index.php?action=' + this.value;">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+                <div class="col-md-4 mb-1">
+                                        <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=' + this.value;">
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
     <!-- TABLA LAPTOP -->

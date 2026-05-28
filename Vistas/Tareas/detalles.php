@@ -27,7 +27,7 @@ $id_proyectos = $_GET["id_proyectos"] ?? null;
 require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
-$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol);
+$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id_usuario);
 $ediciones = $tareaControlador->obtenerEdicionesRecientes($id_tarea, 10);
 
 $campoNombres = [

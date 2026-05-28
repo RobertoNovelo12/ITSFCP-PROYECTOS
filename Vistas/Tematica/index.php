@@ -85,32 +85,39 @@ include __DIR__ . '/../../mensaje.php';
 
     <!-- FILTROS Y BUSQUEDA -->
 
-    <div class="row g-2 mb-4">
-        <div class="col-12 col-md-4">
-            <select class="form-select"
-                onchange="location.href='index.php?action=' + this.value;">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="index.php">
-                <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                <input type="text"
-                    name="buscar"
-                    class="form-control"
-                    placeholder="Buscar temática..."
-                    value="<?= htmlspecialchars($buscar) ?>">
-                <button type="submit" class="btn btn-primary">
-                    Buscar
-                </button>
-            </form>
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=' + this.value;">
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-8 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                    <form class="d-flex gap-2" method="GET" action="index.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Buscar temática..."
+                            value="<?= htmlspecialchars($buscar) ?>">
+                        <button type="submit" class="btn btn-primary">
+                            Buscar
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+
     <!-- TABLA LAPTOP -->
     <div class="card shadow-sm d-none d-md-block">
         <div class="card-body p-0">

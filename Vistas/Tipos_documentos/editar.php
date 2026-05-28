@@ -34,8 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action == 'Guard
     $ajustesTiposDocumentoscontrolador->desactivar($rol, $id_tipo_documento);
 }
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
+
 ?>
 
 
@@ -88,7 +87,7 @@ include __DIR__ . '/../../error.php';
 <?php
 
 $contenido = ob_get_clean();
-$titulo = "Crear Línea de investigación";
+$titulo = "Editar tipo de documento";
 $bodyClass = "proyectos-page";
 
 include __DIR__ . '/../../layout.php';

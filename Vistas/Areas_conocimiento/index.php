@@ -1,8 +1,5 @@
 <?php
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Areas_conocimiento/index.php
 
 session_start();
 
@@ -11,75 +8,81 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = intval($_SESSION['id_usuario']);
+$rol        = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = (int)$_SESSION['id_usuario'];
 
-//Solo supervisor
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-$action = isset($_GET['action']) ? $_GET['action'] : 'index';
-$buscar = $_GET['buscar'] ?? '';
-$pagina = intval($_GET['pagina'] ?? 1);
-
-include "../../Controladores/areaconocimientoControlador.php";
+require_once '../../Controladores/AreaConocimientoControlador.php';
 
 $areaControlador = new AreaConocimientoControlador();
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_area') {
-    $id_area = intval($_GET['id_area']);
-
-    $areaControlador->eliminar_area($id_area, $rol);
-
-    // Redirigir para evitar doble ejecución
-    header("Location: index.php");
-    exit;
+//  Acción GET: desactivar área 
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'desactivar_area') {
+    $id_area = (int)($_GET['id_area'] ?? 0);
+    $areaControlador->desactivarArea($rol, $id_area);
+    // desactivarArea() siempre redirige → el código.
 }
 
+//  Parámetros de listado 
+$action = $_GET['action'] ?? 'Total';
+$buscar = $_GET['buscar'] ?? '';
+$pagina = (int)($_GET['pagina'] ?? 1);
 
-if (!method_exists($areaControlador, $action)) {
-    die("Error: La acción '$action' no existe en el controlador.");
+// Acciones válidas de filtro de tabla
+$accionesFiltro = ['Total', 'Activo', 'Desactivado'];
+if (!in_array($action, $accionesFiltro, true)) {
+    $action = 'Total';
 }
 
 $resultado = $areaControlador->$action($rol, $buscar);
 
-if (is_string($resultado)) {
-    $resultado = json_decode($resultado, true);
-}
-
-$area = $resultado['area'] ?? [];
-
+$area       = $resultado['area']       ?? [];
 $paginacion = $resultado['paginacion'] ?? [
-    'total' => count($area),
-    'por_pagina' => 6,
-    'pagina' => $pagina,
-    'total_paginas' => max(1, ceil(count($area) / 6))
+    'total'         => count($area),
+    'por_pagina'    => 6,
+    'pagina'        => $pagina,
+    'total_paginas' => max(1, (int)ceil(count($area) / 6)),
 ];
 
-$filtros = $areaControlador->filtros($rol);
-
+$filtros     = $areaControlador->filtros($rol);
 $encabezados = $areaControlador->encabezadosPrincipal($rol);
-$opciones = $areaControlador->opciones($rol, $filtros);
+$opciones    = $areaControlador->opciones($rol, $filtros);
+
+//  Mapa de mensajes ─
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_crear'        => ['tipo' => 'exito',  'titulo_msg' => 'Área creada',           'mensaje' => 'El área de conocimiento fue creada correctamente.'],
+    'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Área actualizada',       'mensaje' => 'El área de conocimiento fue editada correctamente.'],
+    'exito_desactivar'   => ['tipo' => 'exito',  'titulo_msg' => 'Área desactivada',       'mensaje' => 'El área de conocimiento fue desactivada correctamente.'],
+    'error_crear'        => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',         'mensaje' => 'No fue posible crear el área. Verifica los datos e intenta de nuevo.'],
+    'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar el área. Verifica los datos e intenta de nuevo.'],
+    'error_desactivar'   => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',    'mensaje' => 'No fue posible desactivar el área.'],
+    'error_duplicado'    => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',     'mensaje' => 'Ya existe un área o subárea con ese nombre.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',    'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
+
+<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+    include __DIR__ . '../../../publico/incluido/_mensaje.php';
+endif; ?>
 
 <div class="container-fluid py-4 ancho_container">
 
-    <!-- TITULO -->
+    <!-- TÍTULO -->
     <div class="row mb-4 align-items-center">
-
         <?php
         $titulo      = 'Áreas de Conocimiento';
         $descripcion = 'Gestión de áreas de conocimiento';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
-
         <div class="col-6 col-md-6 text-md-end">
-            <?php if ($rol == "supervisor"): ?>
+            <?php if ($rol === 'supervisor'): ?>
                 <a href="crear.php" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Crear área de conocimiento
                 </a>
@@ -87,35 +90,39 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
-    <!-- FILTROS Y BUSQUEDA -->
-
-    <div class="row g-2 mb-4">
-        <div class="col-12 col-md-4">
-            <select class="form-select"
-                onchange="location.href='index.php?action=' + this.value;">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="index.php">
-                <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                <input type="text"
-                    name="buscar"
-                    class="form-control"
-                    placeholder="Buscar Área..."
-                    value="<?= htmlspecialchars($buscar) ?>">
-                <button type="submit" class="btn btn-primary">
-                    Buscar
-                </button>
-            </form>
+    <!-- FILTROS Y BÚSQUEDA -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=' + this.value;">
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-8 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                    <form class="d-flex gap-2" method="GET" action="index.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Buscar área..."
+                            value="<?= htmlspecialchars($buscar) ?>">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-    <!-- TABLA LAPTOP -->
+
+    <!-- TABLA ESCRITORIO -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm d-none d-md-block">
@@ -124,55 +131,52 @@ include __DIR__ . '/../../mensaje.php';
                         <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <?php
-                                    foreach ($encabezados as $encabezado) {
-                                        echo "<th>{$encabezado}</th>";
-                                    }
-                                    ?>
+                                    <?php foreach ($encabezados as $enc): ?>
+                                        <th><?= htmlspecialchars($enc) ?></th>
+                                    <?php endforeach; ?>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if ($rol == "supervisor"): ?>
+                                <?php if (!empty($area)): ?>
                                     <?php foreach ($area as $ar): ?>
                                         <tr>
-                                            <td><?= $ar['nombre'] ?></td>
+                                            <td><?= htmlspecialchars($ar['nombre']) ?></td>
                                             <td title="<?= htmlspecialchars($ar['descripcion']) ?>">
                                                 <?= strlen($ar['descripcion']) > 60
-                                                    ? substr($ar['descripcion'], 0, 60) . '...'
-                                                    : $ar['descripcion']; ?>
+                                                    ? htmlspecialchars(substr($ar['descripcion'], 0, 60)) . '...'
+                                                    : htmlspecialchars($ar['descripcion']); ?>
                                             </td>
-                                            <td><?= $ar['total'] ?></td>
+                                            <td><?= (int)$ar['total'] ?></td>
                                             <td>
-                                                <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar['estado']); ?>">
+                                                <span class="badge rounded-pill text-bg-<?= $areaControlador->EstiloEstadoLista($ar['estado']) ?>">
                                                     <?= htmlspecialchars($ar['estado']) ?>
                                                 </span>
                                             </td>
                                             <td>
-                                                <?= date("d/m/Y", strtotime($ar['creacion'])) ?>
-                                                <br>
-                                                <?= date("H:i", strtotime($ar['creacion'])) ?>
+                                                <?= date('d/m/Y', strtotime($ar['creacion'])) ?><br>
+                                                <?= date('H:i',   strtotime($ar['creacion'])) ?>
                                             </td>
                                             <td>
-                                                <?php
-                                                if (!empty($ar['modificacion'])) {
-                                                    echo date("d/m/Y", strtotime($ar['modificacion'])) . "<br>";
-                                                    echo date("H:i", strtotime($ar['modificacion']));
-                                                } else {
-                                                    echo "No modificado";
-                                                }
-                                                ?>
+                                                <?php if (!empty($ar['modificacion'])): ?>
+                                                    <?= date('d/m/Y', strtotime($ar['modificacion'])) ?><br>
+                                                    <?= date('H:i',   strtotime($ar['modificacion'])) ?>
+                                                <?php else: ?>
+                                                    No modificado
+                                                <?php endif; ?>
                                             </td>
                                             <td>
-                                                <?= $areaControlador->botonesAccionPrincipal($ar['id_area'], $rol, $ar['estado']) ?>
+                                                <?= $areaControlador->botonesAccionPrincipal(
+                                                    (int)$ar['id_area'],
+                                                    $rol,
+                                                    $ar['estado']
+                                                ) ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="7">
-                                            <div class="alert alert-danger">
-                                                No tiene permiso para editar el área y subarea de
-                                            </div>
+                                        <td colspan="7" class="text-center text-muted py-3">
+                                            No se encontraron áreas de conocimiento.
                                         </td>
                                     </tr>
                                 <?php endif; ?>
@@ -182,23 +186,20 @@ include __DIR__ . '/../../mensaje.php';
                 </div>
             </div>
 
-            <!-- TARJETAS MOVIL -->
-
+            <!-- TARJETAS MÓVIL -->
             <div class="d-block d-md-none">
-                <?php foreach ($area as $ar_item): ?>
+                <?php foreach ($area as $ar): ?>
                     <div class="card shadow-sm mb-3">
                         <div class="card-body text-center">
-                            <h5 class="fw-bold">
-                                <?= $ar_item['tematica'] ?>
-                            </h5>
+                            <h5 class="fw-bold"><?= htmlspecialchars($ar['nombre']) ?></h5>
                         </div>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">
                                 <strong>Descripción</strong>
-                                <p class="mb-0" title="<?= htmlspecialchars($ar_item['descripcion']) ?>">
-                                    <?= strlen($ar_item['descripcion']) > 60
-                                        ? substr($ar_item['descripcion'], 0, 60) . '...'
-                                        : $ar_item['descripcion']; ?>
+                                <p class="mb-0" title="<?= htmlspecialchars($ar['descripcion']) ?>">
+                                    <?= strlen($ar['descripcion']) > 60
+                                        ? htmlspecialchars(substr($ar['descripcion'], 0, 60)) . '...'
+                                        : htmlspecialchars($ar['descripcion']); ?>
                                 </p>
                             </li>
                             <li class="list-group-item">
@@ -206,36 +207,33 @@ include __DIR__ . '/../../mensaje.php';
                                     <div class="col-6">
                                         <strong>Creación</strong>
                                         <p class="mb-0">
-                                            <?= date("d/m/Y", strtotime($ar_item['creacion'])) ?>
-                                            <br>
-                                            <?= date("H:i", strtotime($ar_item['creacion'])) ?>
+                                            <?= date('d/m/Y', strtotime($ar['creacion'])) ?><br>
+                                            <?= date('H:i',   strtotime($ar['creacion'])) ?>
                                         </p>
                                     </div>
                                     <div class="col-6">
                                         <strong>Modificación</strong>
-                                        <br>
-                                        <?php if (!empty($ar_item['modificacion'])) {
-                                            echo date("d/m/Y", strtotime($ar_item['modificacion'])) . "<br>";
-                                            echo date("H:i", strtotime($ar_item['modificacion']));
-                                        } else {
-                                            echo "No modificado";
-                                        } ?>
+                                        <p class="mb-0">
+                                            <?php if (!empty($ar['modificacion'])): ?>
+                                                <?= date('d/m/Y', strtotime($ar['modificacion'])) ?><br>
+                                                <?= date('H:i',   strtotime($ar['modificacion'])) ?>
+                                            <?php else: ?>
+                                                No modificado
+                                            <?php endif; ?>
+                                        </p>
                                     </div>
                                 </div>
                             </li>
                             <li class="list-group-item">
                                 <div class="row text-center">
                                     <div class="col-6">
-                                        <strong>Subtemáticas</strong>
-                                        <p class="mb-0">
-                                            <?= $ar_item['total'] ?>
-                                        </p>
+                                        <strong>Subáreas</strong>
+                                        <p class="mb-0"><?= (int)$ar['total'] ?></p>
                                     </div>
                                     <div class="col-6">
-                                        <strong>Estado</strong>
-                                        <br>
-                                        <span class="badge rounded-pill text-bg-<?php echo $areaControlador->EstiloEstadoLista($ar_item['estado']); ?>">
-                                            <?= htmlspecialchars($ar_item['estado']) ?>
+                                        <strong>Estado</strong><br>
+                                        <span class="badge rounded-pill text-bg-<?= $areaControlador->EstiloEstadoLista($ar['estado']) ?>">
+                                            <?= htmlspecialchars($ar['estado']) ?>
                                         </span>
                                     </div>
                                 </div>
@@ -243,31 +241,32 @@ include __DIR__ . '/../../mensaje.php';
                         </ul>
                         <div class="card-body">
                             <div class="d-flex justify-content-center gap-2">
-                                <?php echo $areaControlador->botonesAccionPrincipal($ar_item['id_area'], $rol, $ar_item['estado']); ?>
+                                <?= $areaControlador->botonesAccionPrincipal(
+                                    (int)$ar['id_area'],
+                                    $rol,
+                                    $ar['estado']
+                                ) ?>
                             </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
 
-            <!-- PAGINACION -->
-
+            <!-- PAGINACIÓN -->
             <?php if ($paginacion['total_paginas'] > 1):
-                $qBase = 'action=' . urlencode($action)
-                    . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
-                    . (!empty($tipo) ? '&tipo=' . urlencode($tipo) : '');
+                $qBase  = 'action=' . urlencode($action)
+                    . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
                 $entidad = 'entradas';
-                include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
-            <?php endif; ?>
+                include __DIR__ . '../../../publico/incluido/_paginacion.php';
+            endif; ?>
+
         </div>
     </div>
 </div>
+
 <?php
-
 $contenido = ob_get_clean();
-$titulo = "Área y subarea de conocimientos";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Área y subárea de conocimientos';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
-
 ?>

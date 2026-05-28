@@ -1,57 +1,63 @@
 <?php
 // Periodo/crear.php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 
-/* VALIDACIÓN DE SESIÓN */
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
 
 $rol        = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = intval($_SESSION['id_usuario']);
+$id_usuario = (int)$_SESSION['id_usuario'];
 
-//Solo supervisor
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-/* CONTROLADOR */
 require_once '../../Controladores/periodoControlador.php';
 
-$action              = $_POST['action'] ?? null;
-$periodoControlador  = new periodoControlador();
-$estadoVista         = $periodoControlador->obtenerEstadoVista();
-$datos               = $estadoVista['datos'];
+$periodoControlador = new periodoControlador();
+$estadoVista        = $periodoControlador->obtenerEstadoVista();
+$datos              = $estadoVista['datos'];
 
-/* POST – crear o reactivar */
-if ($action === 'registrarPeriodo') {
-    $periodoControlador->registrarPeriodo($rol);   // redirige internamente
+// ── Acciones POST ────────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'registrarPeriodo') {
+        $periodoControlador->registrarPeriodo($rol, $_POST);
+        // Siempre redirige → el código no continúa.
+    }
+
+    if ($action === 'reactivarPeriodo') {
+        $periodoControlador->reactivar($rol, $datos['nombre']);
+        // Siempre redirige → el código no continúa.
+    }
 }
 
-if ($action === 'reactivarPeriodo') {
-    $periodoControlador->reactivar($datos['nombre']); // redirige internamente
-}
-
-/* Recuperar valores del POST para re-poblar el formulario en caso de error */
-$post_fip = $_POST['fecha_inicio_proyectos']   ?? '';
-$post_ffp = $_POST['fecha_fin_proyectos']       ?? '';
-$post_fii = $_POST['fecha_inicio_integracion']  ?? '';
-$post_ffi = $_POST['fecha_fin_solicitud']     ?? '';
-
-/* Mensaje de error de rango (viene por GET tras redirección) */
+// ── Repoblar campos en caso de error de rango (redirección GET) ──────────────
+$post_fip    = $_POST['fecha_inicio_proyectos']   ?? '';
+$post_ffp    = $_POST['fecha_fin_proyectos']       ?? '';
+$post_fii    = $_POST['fecha_inicio_solicitud']    ?? '';
+$post_ffi    = $_POST['fecha_fin_solicitud']       ?? '';
 $error_fecha = isset($_GET['error_fecha']) ? htmlspecialchars($_GET['error_fecha']) : null;
 
+// ── Mapa de mensajes ─────────────────────────────────────────────────────────
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_crear'         => ['tipo' => 'exito',  'titulo_msg' => 'Periodo creado',      'mensaje' => 'El periodo fue creado correctamente.'],
+    'exito_reactivar'     => ['tipo' => 'exito',  'titulo_msg' => 'Periodo reactivado',  'mensaje' => 'El periodo fue reactivado correctamente.'],
+    'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',       'mensaje' => 'No fue posible crear el periodo. Verifica los datos e intenta de nuevo.'],
+    'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',   'mensaje' => 'No fue posible reactivar el periodo.'],
+    'error_duplicado'     => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',   'mensaje' => 'Ya existe un periodo con esas fechas o nombre.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',  'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
+
 
 <div class="container-fluid py-4 ancho_container">
 
@@ -63,11 +69,15 @@ include __DIR__ . '/../../error.php';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 text-end">
-            <a href="index.php" class="btn btn-danger">
+            <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>
     </div>
+
+    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
 
     <?php if ($error_fecha): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -161,10 +171,10 @@ include __DIR__ . '/../../error.php';
                     <h6 class="fw-semibold mb-3 border-bottom pb-1">Periodo de Integración</h6>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="fecha_inicio_integracion" class="form-label">Fecha inicio de integración</label>
+                            <label for="fecha_inicio_solicitud" class="form-label">Fecha inicio de integración</label>
                             <input type="date"
-                                id="fecha_inicio_integracion"
-                                name="fecha_inicio_integracion"
+                                id="fecha_inicio_solicitud"
+                                name="fecha_inicio_solicitud"
                                 class="form-control"
                                 value="<?= htmlspecialchars($post_fii) ?>"
                                 min="<?= htmlspecialchars($datos['inicio']) ?>"
@@ -205,20 +215,15 @@ include __DIR__ . '/../../error.php';
 </div>
 
 <script>
-    /*
-     * Validación cliente: ajusta el min del campo "fin" al valor de "inicio"
-     * para evitar seleccionar fin < inicio en proyectos e integración.
-     */
     (function() {
         const pares = [
             ['fecha_inicio_proyectos', 'fecha_fin_proyectos'],
-            ['fecha_inicio_integracion', 'fecha_fin_solicitud'],
+            ['fecha_inicio_solicitud', 'fecha_fin_solicitud'],
         ];
 
         pares.forEach(([inicioId, finId]) => {
             const inputInicio = document.getElementById(inicioId);
             const inputFin = document.getElementById(finId);
-
             if (!inputInicio || !inputFin) return;
 
             inputInicio.addEventListener('change', () => {
@@ -241,8 +246,7 @@ include __DIR__ . '/../../error.php';
 
 <?php
 $contenido = ob_get_clean();
-$titulo    = "Crear periodo";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Crear periodo';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
 ?>

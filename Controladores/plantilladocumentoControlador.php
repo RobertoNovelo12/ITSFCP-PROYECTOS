@@ -1,57 +1,40 @@
 <?php
-/**
- * Controlador: plantilladocumentoControlador.php
- *
- * Orquesta la lógica de negocio del módulo de Plantillas de Documentos.
- * El controlador no genera HTML; las vistas hacen eso.
- * Las operaciones de archivo (upload/descarga) se mantienen en las vistas
- * correspondientes para respetar la separación de capas.
- */
+// Controladores/plantilladocumentoControlador.php
 
 require_once __DIR__ . '/../Modelos/plantilladocumento.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class plantilladocumentoControlador
+class plantilladocumentoControlador extends BaseControlador
 {
+
     // 
-    //  HELPERS PRIVADOS
+    //  HELPER PRIVADO
     // 
 
-    private function esSupervisor(string $rol): bool
-    {
-        return $rol === 'supervisor';
-    }
-
-    /** Sanitiza un string para evitar XSS al mostrarlo en HTML. */
-    private function limpiar(?string $dato): ?string
-    {
-        return $dato !== null
-            ? htmlspecialchars(trim($dato), ENT_QUOTES, 'UTF-8')
-            : null;
-    }
-
-    /** Instancia el modelo con la conexión global. */
     private function modelo(): plantilladocumento
     {
         global $conn;
         return new plantilladocumento($conn);
     }
 
-    /** Redirige con un código de mensaje o error y termina la ejecución. */
-    private function redirigir(string $url): never
+    private function vacio(): array
     {
-        header("Location: {$url}");
-        exit;
+        return [
+            'plantillas' => [],
+            'paginacion' => [
+                'total'         => 0,
+                'por_pagina'    => 6,
+                'pagina'        => 1,
+                'total_paginas' => 1,
+            ],
+        ];
     }
 
     // 
     //  LISTADOS / FILTROS
     // 
 
-    /**
-     * Listado con filtro de estado y búsqueda por nombre.
-     * Devuelve ['plantillas' => [...], 'paginacion' => [...]]
-     */
     public function index(string $rol, ?string $buscar = null): array
     {
         if (!$this->esSupervisor($rol)) return $this->vacio();
@@ -73,62 +56,41 @@ class plantilladocumentoControlador
         return $this->obtenerPorFiltro($rol, 0, $buscar);
     }
 
-    /** Método base para evitar duplicación entre Total/Activo/Desactivado. */
     private function obtenerPorFiltro(string $rol, int $estado, ?string $buscar): array
     {
         if (!$this->esSupervisor($rol)) return $this->vacio();
         try {
             return $this->modelo()->obtenerTablaFiltro($this->limpiar($buscar), $estado);
         } catch (Throwable $e) {
-            error_log("[plantilladocumento] obtenerPorFiltro(): " . $e->getMessage());
+            error_log($e->getMessage());
             return $this->vacio();
         }
     }
 
-    /** Resultado vacío con estructura de paginación válida. */
-    private function vacio(): array
-    {
-        return [
-            'plantillas' => [],
-            'paginacion' => [
-                'total'        => 0,
-                'por_pagina'   => 6,
-                'pagina'       => 1,
-                'total_paginas'=> 1,
-            ],
-        ];
-    }
-
-    /**
-     * Tipos de documento activos para el formulario de creación.
-     */
     public function indexCrear(string $rol): array
     {
         if (!$this->esSupervisor($rol)) return [];
         try {
             return $this->modelo()->obtenerTipos_documentos();
         } catch (Throwable $e) {
-            error_log("[plantilladocumento] indexCrear(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Datos de conteo para generar las opciones del select de filtro.
-     */
     public function filtros(string $rol): array
     {
         if (!$this->esSupervisor($rol)) return [];
         try {
             return $this->modelo()->obtenerDatosFiltro();
         } catch (Throwable $e) {
-            error_log("[plantilladocumento] filtros(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
     // 
-    //  PRESENTACIÓN
+    //  PRESENTACIÓN / UI
     // 
 
     public function encabezadosPrincipal(string $rol): array
@@ -137,32 +99,22 @@ class plantilladocumentoControlador
         return ['Plantilla', 'Versión', 'Creación', 'Modificación', 'Archivo', 'Estado', 'Acciones'];
     }
 
-    /**
-     * Genera el array de opciones para el select de filtro con conteos.
-     * $filtros es el resultado directo de filtros() (una sola fila asociativa).
-     */
     public function opciones(string $rol, array $filtros): array
     {
         if (!$this->esSupervisor($rol) || empty($filtros)) return [];
-
-        // filtros() devuelve un array asociativo con Total/Activo/Desactivado
-        $d = $filtros;
         return [
-            'Total'       => "Total ("       . ($d['Total']       ?? 0) . " en total)",
-            'Activo'      => "Activos ("     . ($d['Activo']      ?? 0) . " en total)",
-            'Desactivado' => "Desactivados (" . ($d['Desactivado'] ?? 0) . " en total)",
+            'Total'       => "Total ("        . ($filtros['Total']       ?? 0) . " en total)",
+            'Activo'      => "Activos ("      . ($filtros['Activo']      ?? 0) . " en total)",
+            'Desactivado' => "Desactivados (" . ($filtros['Desactivado'] ?? 0) . " en total)",
         ];
     }
 
-    /**
-     * Convierte la acción del GET al número de filtro esperado por el modelo.
-     */
     public function numerofiltro(string $action): int
     {
         return match ($action) {
             'Activo'      => 1,
             'Desactivado' => 0,
-            default       => 2,   // Total / index
+            default       => 2,
         };
     }
 
@@ -207,8 +159,8 @@ class plantilladocumentoControlador
     private function botonDesactivar(int $id_plantilla, int $id_tipo_documento): string
     {
         return '<a href="index.php?id_plantilla=' . $id_plantilla
-             . '&id_tipo_documento=' . $id_tipo_documento
-             . '&action=desactivar"
+            . '&id_tipo_documento=' . $id_tipo_documento
+            . '&action=desactivar"
                    class="btn btn-sm btn-danger"
                    data-bs-toggle="tooltip" data-bs-placement="top"
                    data-bs-title="Desactivar plantilla"
@@ -225,8 +177,8 @@ class plantilladocumentoControlador
     private function botonReactivar(int $id_plantilla, int $id_tipo_documento): string
     {
         return '<a href="index.php?id_plantilla=' . $id_plantilla
-             . '&id_tipo_documento=' . $id_tipo_documento
-             . '&action=reactivar"
+            . '&id_tipo_documento=' . $id_tipo_documento
+            . '&action=reactivar"
                    class="btn btn-sm btn-success"
                    data-bs-toggle="tooltip" data-bs-placement="top"
                    data-bs-title="Reactivar plantilla">
@@ -240,8 +192,12 @@ class plantilladocumentoControlador
                 </a>';
     }
 
-    public function botonesAccionPrincipal(int $id_plantilla, string $rol, string $estado, int $id_tipo_documento): string
-    {
+    public function botonesAccionPrincipal(
+        int    $id_plantilla,
+        string $rol,
+        string $estado,
+        int    $id_tipo_documento
+    ): string {
         if (!$this->esSupervisor($rol)) return '';
 
         $botones = $this->botonHistorial($id_tipo_documento);
@@ -259,16 +215,13 @@ class plantilladocumentoControlador
     //  DATOS PARA CREAR (Ajax)
     // 
 
-    /**
-     * Devuelve nombre y versión para rellenar el formulario vía Ajax.
-     */
     public function obtenerPlantillas(int $id_tipo_documento): array
     {
         try {
             $obj     = $this->modelo();
             $info    = $obj->obtenerInfoTipos($id_tipo_documento);
             $version = ($info['ultima_version'] !== null)
-                ? (int) $info['ultima_version'] + 1
+                ? (int)$info['ultima_version'] + 1
                 : 1;
 
             return [
@@ -276,32 +229,25 @@ class plantilladocumentoControlador
                 'version' => $version,
             ];
         } catch (Throwable $e) {
-            error_log("[plantilladocumento] obtenerPlantillas(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
     // 
-    //  DETERMINAR SUBCARPETA SEGÚN TIPO DE DOCUMENTO
+    //  SUBCARPETA SEGÚN TIPO DE DOCUMENTO
     // 
 
-    /**
-     * Devuelve la subcarpeta de storage según el nombre del tipo de documento.
-     *
-     * Prioriza la categoría (proceso/final) y el nombre para mayor precisión.
-     * Si no encaja en ningún caso conocido, usa 'general'.
-     */
     public function carpetaPorTipo(string $nombre, string $categoria = ''): string
     {
         $nombre_lc    = strtolower(trim($nombre));
         $categoria_lc = strtolower(trim($categoria));
 
-        // Casos específicos por nombre
         $mapaNombre = [
-            'carta compromiso'    => 'carta',
-            'carta de terminacion'=> 'carta',
-            'reporte final'       => 'reporte',
-            'informe'             => 'informe',
+            'carta compromiso'     => 'carta',
+            'carta de terminacion' => 'carta',
+            'reporte final'        => 'reporte',
+            'informe'              => 'informe',
         ];
 
         foreach ($mapaNombre as $clave => $carpeta) {
@@ -310,30 +256,16 @@ class plantilladocumentoControlador
             }
         }
 
-        // Fallback por categoría
-        if ($categoria_lc === 'final') return 'final';
+        if ($categoria_lc === 'final')   return 'final';
         if ($categoria_lc === 'proceso') return 'proceso';
 
         return 'general';
     }
 
     // 
-    //  OPERACIONES DE ESCRITURA (Registrar / Desactivar / Reactivar)
+    //  REGISTRAR — POST → redirige con msg
     // 
 
-    /**
-     * Registra una nueva plantilla (o nueva versión de una existente).
-     *
-     * @param string $rol
-     * @param string $nombre          Nombre de display (ej: "Carta Compromiso v3")
-     * @param string $nombre_archivo  Nombre único en disco
-     * @param string $ruta            Ruta relativa/absoluta guardada en BD
-     * @param string $extension       Sin punto: docx, doc
-     * @param string $tipo_mime
-     * @param int    $tamano_bytes
-     * @param int    $id_tipo_documento
-     * @param int    $id_usuario
-     */
     public function registrar(
         string $rol,
         string $nombre,
@@ -344,84 +276,89 @@ class plantilladocumentoControlador
         int    $tamano_bytes,
         int    $id_tipo_documento,
         int    $id_usuario
-    ): never {
-        if (!$this->esSupervisor($rol)) {
-            $this->redirigir('index.php?error=sin_permiso');
-        }
-
+    ): void {
         global $conn;
-        $conn->begin_transaction();
-
         try {
+            $this->validarAcceso($rol, ['supervisor']);
+
+            $conn->begin_transaction();
             $obj = $this->modelo();
-            $obj->bloquear_tabla($id_tipo_documento);
+            $obj->bloquearTabla($id_tipo_documento);
 
             $info    = $obj->obtenerInfoTipos($id_tipo_documento);
             $obj->desactivarPorTipo($id_tipo_documento);
             $version = $obj->obtenerSiguienteVersion($id_tipo_documento);
 
-            // 1. Registrar archivo en documentos_subidos
             $id_documento = $obj->registrarDocumento(
                 nombre:        $nombre,
-                nombre_archivo:$nombre_archivo,
-                ruta:          $ruta,
-                tipo_mime:     $tipo_mime,
-                extension:     $extension,
-                tamano_bytes:  $tamano_bytes,
-                tipo:          'plantilla',
-                visibilidad:   'privado',
-                id_usuario:    $id_usuario,
-                version:       $version
+                nombre_archivo: $nombre_archivo,
+                ruta:           $ruta,
+                tipo_mime:      $tipo_mime,
+                extension:      $extension,
+                tamano_bytes:   $tamano_bytes,
+                tipo:           'plantilla',
+                visibilidad:    'privado',
+                id_usuario:     $id_usuario,
+                version:        $version
             );
 
-            // 2. Registrar la plantilla
             $id_plantilla = $obj->registrar($id_tipo_documento, $nombre, $version, $id_documento);
 
-            // 3. Historial
             $accion      = $info['ultima_version'] === null ? 'CREACION' : 'NUEVA_VERSION';
             $descripcion = $this->generarDescripcion($accion, $version, $info['nombre']);
             $obj->registrarHistorial($id_plantilla, $id_usuario, $accion, $descripcion);
 
             $conn->commit();
-            $this->redirigir('index.php?mensaje=1');
+            $this->redirigir('exito_crear');
 
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
-            error_log("[plantilladocumento] registrar() SQL: " . $e->getMessage());
-            $this->redirigir('index.php?error=' . ($e->getCode() === 1062 ? 'duplicado' : '2'));
+            error_log($e->getMessage());
+            $msg = ($e->getCode() === 1062) ? 'error_duplicado' : 'error_crear';
+            $this->redirigir($msg);
 
-        } catch (Throwable $e) {
-            $conn->rollback();
-            error_log("[plantilladocumento] registrar(): " . $e->getMessage());
-            $this->redirigir('index.php?error=3');
+        } catch (Exception $e) {
+            // Sólo hacer rollback si la transacción fue iniciada correctamente
+            if (isset($conn) && $conn->errno === 0) {
+                $conn->rollback();
+            }
+            error_log($e->getMessage());
+            $msg = match ($e->getMessage()) {
+                'accion_no_permitida' => 'accion_no_permitida',
+                default               => 'error_crear',
+            };
+            $this->redirigir($msg);
         }
     }
 
-    public function desactivar(string $rol, int $id_plantilla, int $id_usuario): never
+    // 
+    //  DESACTIVAR — GET → redirige con msg
+    // 
+
+    public function desactivar(string $rol, int $id_plantilla, int $id_usuario): void
     {
-        if (!$this->esSupervisor($rol)) {
-            $this->redirigir('index.php?error=sin_permiso');
-        }
-        if ($id_plantilla <= 0) {
-            $this->redirigir('index.php?error=id_invalido');
-        }
-
         global $conn;
-        $conn->begin_transaction();
-
         try {
+            $this->validarMetodo('GET');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            if ($id_plantilla <= 0) {
+                throw new Exception('error_desactivar');
+            }
+
+            $conn->begin_transaction();
             $obj      = $this->modelo();
             $registro = $obj->obtenerPorId($id_plantilla);
 
             if (!$registro) {
                 throw new Exception("Plantilla no existe (ID: {$id_plantilla})");
             }
-            if ((int) $registro['activo'] === 0) {
+            if ((int)$registro['activo'] === 0) {
                 throw new Exception("La plantilla ya está desactivada");
             }
 
             $datos = $obj->obtenerInfoPlantilla($id_plantilla);
-            $obj->bloquear_tabla($datos['id_tipo_documento']);
+            $obj->bloquearTabla($datos['id_tipo_documento']);
 
             $filas = $obj->desactivarPorTipo($datos['id_tipo_documento']);
             if ($filas === 0) {
@@ -432,32 +369,41 @@ class plantilladocumentoControlador
             $obj->registrarHistorial($id_plantilla, $id_usuario, 'DESACTIVACION', $descripcion);
 
             $conn->commit();
-            $this->redirigir('index.php?mensaje=1');
+            $this->redirigir('exito_desactivar');
 
-        } catch (Throwable $e) {
-            $conn->rollback();
-            error_log("[plantilladocumento] desactivar(): " . $e->getMessage());
-            $this->redirigir('index.php?error=10');
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) {
+                $conn->rollback();
+            }
+            error_log($e->getMessage());
+            $msg = match ($e->getMessage()) {
+                'accion_no_permitida' => 'accion_no_permitida',
+                'error_desactivar'    => 'error_desactivar',
+                default               => 'error_desactivar',
+            };
+            $this->redirigir($msg);
         }
     }
 
-    public function reactivar(string $rol, int $id_plantilla, int $id_usuario): never
+    // 
+    //  REACTIVAR — GET → redirige con msg
+    // 
+
+    public function reactivar(string $rol, int $id_plantilla, int $id_usuario): void
     {
-        if (!$this->esSupervisor($rol)) {
-            $this->redirigir('index.php?error=sin_permiso');
-        }
-
         global $conn;
-        $conn->begin_transaction();
-
         try {
+            $this->validarMetodo('GET');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            $conn->begin_transaction();
             $obj      = $this->modelo();
             $registro = $obj->obtenerPorId($id_plantilla);
 
             if (!$registro) {
                 throw new Exception("Plantilla no existe (ID: {$id_plantilla})");
             }
-            if ((int) $registro['activo'] === 1) {
+            if ((int)$registro['activo'] === 1) {
                 throw new Exception("La plantilla ya está activa");
             }
 
@@ -468,12 +414,19 @@ class plantilladocumentoControlador
             $obj->registrarHistorial($id_plantilla, $id_usuario, 'REACTIVACION', $descripcion);
 
             $conn->commit();
-            $this->redirigir('index.php?mensaje=1');
+            $this->redirigir('exito_reactivar');
 
-        } catch (Throwable $e) {
-            $conn->rollback();
-            error_log("[plantilladocumento] reactivar(): " . $e->getMessage());
-            $this->redirigir('index.php?error=2');
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) {
+                $conn->rollback();
+            }
+            error_log($e->getMessage());
+            $msg = match ($e->getMessage()) {
+                'accion_no_permitida' => 'accion_no_permitida',
+                'error_reactivar'     => 'error_reactivar',
+                default               => 'error_reactivar',
+            };
+            $this->redirigir($msg);
         }
     }
 
@@ -481,19 +434,19 @@ class plantilladocumentoControlador
     //  LÍNEA DE TIEMPO
     // 
 
-    public function info_linea_tiempo(int $id_tipo_documento): array
+    public function info_linea_tiempo(int $id_tipo_documento)
     {
         try {
-            $pagina = max(1, (int) ($_GET['pagina'] ?? 1));
+            $pagina = max(1, (int)($_GET['pagina'] ?? 1));
             return $this->modelo()->linea_tiempo($id_tipo_documento, $pagina);
         } catch (Throwable $e) {
-            error_log("[plantilladocumento] info_linea_tiempo(): " . $e->getMessage());
-            $this->redirigir('index.php?error=1');
+            error_log($e->getMessage());
+            $this->redirigir('error_cargar');
         }
     }
 
     // 
-    //  HELPER INTERNO: DESCRIPCIONES DE HISTORIAL
+    //  HELPER: DESCRIPCIONES DE HISTORIAL
     // 
 
     private function generarDescripcion(string $accion, ?int $version, ?string $nombre): string

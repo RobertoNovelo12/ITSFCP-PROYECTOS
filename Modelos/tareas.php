@@ -228,7 +228,6 @@ class Tarea
                 FROM tareas t
                 INNER JOIN tbl_seguimiento s    ON t.id_avances     = s.id_avances
                 LEFT  JOIN tareas_usuarios taus ON taus.id_tarea    = t.id_tarea
-                                               AND taus.id_usuarios = ?
                 INNER JOIN tipo_tarea tt        ON t.id_tareatipo   = tt.id_tareatipo
                 LEFT  JOIN estados_tarea est    ON t.id_estadoT     = est.id_estadoT
                 LEFT  JOIN estados_tarea esu    ON taus.id_estadoT  = esu.id_estadoT
@@ -236,15 +235,38 @@ class Tarea
                         ON ds_rec.id_documento  = t.id_documento_recurso
                 LEFT  JOIN documentos_subidos ds_ent
                         ON ds_ent.id_documento  = taus.id_documento_entrega
-                WHERE s.id_proyectos = ?
+                WHERE s.id_proyectos = ? AND taus.id_usuarios = ?
                 ORDER BY t.id_tarea ASC
                 ";
                 $stmt = $this->con->prepare($sql);
-                $stmt->bind_param("ii", $id_usuario, $id_proyecto);
+                $stmt->bind_param("ii", $id_proyecto, $id_usuario);
                 break;
 
             case 'profesor':
             case 'investigador':
+                $sql = "
+                SELECT
+                    t.id_tarea,
+                    tt.descripcion_tipo          AS tipo,
+                    ds_rec.nombre               AS archivo_nombre,
+                    ds_rec.ruta                 AS archivo_ruta,
+                    t.fecha_entrega,
+                    t.fecha_modificacion,
+                    est.nombre                  AS estado_plantilla,
+                    (SELECT COUNT(*) FROM tareas_usuarios tu WHERE tu.id_tarea = t.id_tarea) AS total_asignados,
+                    (SELECT COUNT(*) FROM tareas_usuarios tu WHERE tu.id_tarea = t.id_tarea AND tu.id_documento_entrega IS NOT NULL) AS total_entregados
+                FROM tareas t
+                INNER JOIN tbl_seguimiento s ON t.id_avances   = s.id_avances
+                INNER JOIN proyectos proy    ON proy.id_proyectos = s.id_proyectos
+                INNER JOIN tipo_tarea tt     ON t.id_tareatipo = tt.id_tareatipo
+                LEFT  JOIN estados_tarea est ON t.id_estadoT   = est.id_estadoT
+                LEFT  JOIN documentos_subidos ds_rec
+                        ON ds_rec.id_documento = t.id_documento_recurso
+                WHERE s.id_proyectos = ? AND proy.id_investigador = ?
+                ORDER BY t.id_tarea ASC
+                ";
+                $stmt = $this->con->prepare($sql);
+                $stmt->bind_param("ii", $id_proyecto, $id_usuario);
             case 'supervisor':
                 $sql = "
                 SELECT
@@ -281,11 +303,51 @@ class Tarea
     // 
     //  OBTENER TAREAS LISTA (por id_tarea)
     // 
-    public function obtenerTareasLista($id_tarea, $rol)
+    public function obtenerTareasLista($id_tarea, $rol, $id_usuario)
     {
         switch ($rol) {
             case 'profesor':
             case 'investigador':
+                                $sql = "
+                SELECT
+                    tu.id_asignacion,
+                    tita.descripcion_tipo        AS tipo,
+                    u.id_usuarios,
+                    CONCAT(u.nombre, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS estudiante,
+                    et.nombre                   AS estados_tarea,
+                    ds_ent.nombre               AS archivo_nombre,
+                    ds_ent.ruta                 AS archivo_ruta,
+                    ta.id_tarea,
+                    (SELECT MAX(th.fecha)
+                     FROM tareas_historial th
+                     WHERE th.id_asignacion = tu.id_asignacion
+                       AND th.tipo_cambio = 'estado'
+                       AND th.id_estadoT = 2) AS fecha_revision,
+                    (SELECT MAX(th.fecha)
+                     FROM tareas_historial th
+                     WHERE th.id_asignacion = tu.id_asignacion
+                       AND th.tipo_cambio = 'estado'
+                       AND th.id_estadoT = 3) AS fecha_correccion,
+                    (SELECT MAX(th.fecha)
+                     FROM tareas_historial th
+                     WHERE th.id_asignacion = tu.id_asignacion
+                       AND th.tipo_cambio = 'estado'
+                       AND th.id_estadoT = 5) AS fecha_aprobacion
+                FROM tareas_usuarios tu
+                INNER JOIN usuarios u          ON tu.id_usuarios    = u.id_usuarios
+                INNER JOIN estados_tarea et    ON tu.id_estadoT     = et.id_estadoT
+                INNER JOIN tareas ta           ON ta.id_tarea       = tu.id_tarea
+                INNER JOIN tipo_tarea tita     ON ta.id_tareatipo   = tita.id_tareatipo
+                INNER JOIN tbl_seguimiento s ON t.id_avances   = s.id_avances
+                INNER JOIN proyectos proy    ON proy.id_proyectos = s.id_proyectos
+                LEFT  JOIN documentos_subidos ds_ent
+                ON ds_ent.id_documento = tu.id_documento_entrega
+                WHERE tu.id_tarea = ? AND proy.id_investigador = ?
+                ORDER BY estudiante ASC
+                ";
+                $stmt = $this->con->prepare($sql);
+                $stmt->bind_param("ii", $id_tarea, $id_usuario);
+                break;
             case 'supervisor':
                 $sql = "
                 SELECT
@@ -318,7 +380,7 @@ class Tarea
                 INNER JOIN tareas ta           ON ta.id_tarea       = tu.id_tarea
                 INNER JOIN tipo_tarea tita     ON ta.id_tareatipo   = tita.id_tareatipo
                 LEFT  JOIN documentos_subidos ds_ent
-                        ON ds_ent.id_documento = tu.id_documento_entrega
+                ON ds_ent.id_documento = tu.id_documento_entrega
                 WHERE tu.id_tarea = ?
                 ORDER BY estudiante ASC
                 ";
@@ -742,7 +804,7 @@ class Tarea
     // 
     //  OBTENER TAREA ALUMNO
     // 
-    public function obtenerTareaAlumno($id_asignacion)
+    public function obtenerTareaAlumno($id_asignacion, $id_usuario)
     {
         $sql = "
         SELECT
@@ -772,13 +834,13 @@ class Tarea
                 ON ds_ent.id_documento  = a.id_documento_entrega
         LEFT  JOIN documentos_subidos ds_rec
                 ON ds_rec.id_documento  = t.id_documento_recurso
-        WHERE a.id_asignacion = ?
+        WHERE a.id_asignacion = ? AND a.id_usuarios = ?
         LIMIT 1
         ";
 
         $stmt = $this->con->prepare($sql);
         if (!$stmt) die("Error al preparar consulta: " . $this->con->error);
-        $stmt->bind_param("i", $id_asignacion);
+        $stmt->bind_param("i", $id_asignacion, $id_usuario);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
@@ -786,9 +848,78 @@ class Tarea
     // 
     //  OBTENER TAREA GENERAL
     // 
-    public function obtenerTareaGeneral($id_tarea)
+    public function obtenerTareaGeneral($id_tarea, $rol, $id_usuario)
     {
-        $sql = "
+        switch ($rol) {
+            case 'estudiante':
+                $sql = "
+        SELECT
+            tare.id_tarea,
+            tita.descripcion_tipo       AS tipo,
+            tita.id_tareatipo,
+            tare.descripcion,
+            tare.instrucciones,
+            tare.fecha_entrega,
+            tare.fecha_modificacion,
+            tita.descripcion_tipo       AS titulo_tarea,
+            esta.nombre                 AS estado,
+            tare.id_estadoT,
+            ds_rec.nombre               AS archivo_nombre,
+            ds_rec.ruta                 AS archivo_ruta,
+            ds_rec.tipo_mime            AS archivo_tipo,
+            ds_rec.extension            AS archivo_extension
+        FROM tareas tare
+        INNER JOIN tipo_tarea tita      ON tare.id_tareatipo = tita.id_tareatipo
+        INNER JOIN estados_tarea esta   ON esta.id_estadoT   = tare.id_estadoT
+        INNER JOIN tareas_usuarios taus ON taus.id_tarea = tare.id_tarea
+        LEFT  JOIN documentos_subidos ds_rec
+                ON ds_rec.id_documento  = tare.id_documento_recurso
+        WHERE tare.id_tarea = ? AND taus.id_usuarios = ?
+        ";
+
+
+                $stmt = $this->con->prepare($sql);
+                if (!$stmt) die("Error en SQL: " . $this->con->error);
+                $stmt->bind_param("ii", $id_tarea, $id_usuario);
+                $stmt->execute();
+                return $stmt->get_result()->fetch_assoc();
+                break;
+            case 'investigador':
+                $sql = "
+        SELECT
+            tare.id_tarea,
+            tita.descripcion_tipo       AS tipo,
+            tita.id_tareatipo,
+            tare.descripcion,
+            tare.instrucciones,
+            tare.fecha_entrega,
+            tare.fecha_modificacion,
+            tita.descripcion_tipo       AS titulo_tarea,
+            esta.nombre                 AS estado,
+            tare.id_estadoT,
+            ds_rec.nombre               AS archivo_nombre,
+            ds_rec.ruta                 AS archivo_ruta,
+            ds_rec.tipo_mime            AS archivo_tipo,
+            ds_rec.extension            AS archivo_extension
+        FROM tareas tare
+        INNER JOIN tipo_tarea tita      ON tare.id_tareatipo = tita.id_tareatipo
+        INNER JOIN estados_tarea esta   ON esta.id_estadoT   = tare.id_estadoT
+        INNER JOIN tbl_seguimiento tbse     ON tbse.id_avances = tarea.id_avances
+        INNER JOIN proyectos tbse proy  ON proy.id_proyectos = tbse.id_proyectos
+        LEFT  JOIN documentos_subidos ds_rec
+                ON ds_rec.id_documento  = tare.id_documento_recurso
+        WHERE tare.id_tarea = ? AND proy.id_investigador = ?
+        ";
+
+
+                $stmt = $this->con->prepare($sql);
+                if (!$stmt) die("Error en SQL: " . $this->con->error);
+                $stmt->bind_param("ii", $id_tarea, $id_usuario);
+                $stmt->execute();
+                return $stmt->get_result()->fetch_assoc();
+                break;
+            case 'supervisor':
+                $sql = "
         SELECT
             tare.id_tarea,
             tita.descripcion_tipo       AS tipo,
@@ -812,11 +943,14 @@ class Tarea
         WHERE tare.id_tarea = ?
         ";
 
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) die("Error en SQL: " . $this->con->error);
-        $stmt->bind_param("i", $id_tarea);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
+
+                $stmt = $this->con->prepare($sql);
+                if (!$stmt) die("Error en SQL: " . $this->con->error);
+                $stmt->bind_param("i", $id_tarea);
+                $stmt->execute();
+                return $stmt->get_result()->fetch_assoc();
+                break;
+        }
     }
 
     public function obtenerTareaPorId($id_asignacion)

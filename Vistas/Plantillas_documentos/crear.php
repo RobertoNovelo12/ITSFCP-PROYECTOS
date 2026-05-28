@@ -1,18 +1,5 @@
 <?php
-
-/**
- * Plantillas_documentos/crear.php
- * Registro de nuevas plantillas de documentos — solo supervisor.
- *
- * Seguridad aplicada:
- *  - Validación de extensión por whitelist
- *  - Validación de MIME real con finfo (no confía en $_FILES['type'])
- *  - Tamaño máximo de archivo (10 MB)
- *  - Nombre único en disco con bin2hex(random_bytes())
- *  - Subcarpeta calculada por el controlador según tipo y categoría
- *  - move_uploaded_file() único punto de escritura en disco
- *  - Rollback automático si falla cualquier paso tras subir el archivo
- */
+// Vistas/Plantillas_documentos/crear.php
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -26,7 +13,7 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $rol        = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = (int) $_SESSION['id_usuario'];
+$id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -38,14 +25,37 @@ require_once '../../Controladores/plantilladocumentoControlador.php';
 $ctrl   = new plantilladocumentoControlador();
 $action = $_POST['action'] ?? null;
 
-//  PROCESAMIENTO DEL FORMULARIO ──
+// ── Mapa de mensajes del sistema $_mapa (errores que llegan tras redirect) ──
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',      'mensaje' => 'No fue posible registrar la plantilla. Intenta de nuevo.'],
+    'error_duplicado'     => ['tipo' => 'alerta', 'titulo_msg' => 'Registro duplicado',   'mensaje' => 'Ya existe una plantilla con esos datos.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',  'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
+// ── Mapa de errores de validación de archivo (llegan por ?error=clave) ──
+$errorMsgs = [
+    'datos_invalidos'    => 'Faltan datos obligatorios. Intenta de nuevo.',
+    'upload_1'           => 'El archivo supera el tamaño permitido por el servidor.',
+    'upload_2'           => 'El archivo supera el tamaño permitido por el formulario.',
+    'upload_4'           => 'No se seleccionó ningún archivo.',
+    'tamano_excedido'    => 'El archivo supera el límite de 10 MB.',
+    'extension_invalida' => 'Solo se permiten archivos .doc y .docx.',
+    'mime_invalido'      => 'El tipo de archivo no es válido (se esperaba un documento Word).',
+    'dir_fallo'          => 'No se pudo crear el directorio de almacenamiento.',
+    'move_fallo'         => 'Error al guardar el archivo en el servidor.',
+];
+$errorCode = $_GET['error'] ?? null;
+$errorMsg  = $errorMsgs[$errorCode] ?? ($errorCode ? 'Error desconocido.' : null);
+
+// ── Procesar POST ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
 
-    $id_tipo_documento = (int) ($_POST['id_tipo_documento'] ?? 0);
+    $id_tipo_documento = (int)($_POST['id_tipo_documento'] ?? 0);
     $nombre            = trim($_POST['nombre'] ?? '');
     $archivo           = $_FILES['archivo'] ?? null;
 
-    // Validaciones básicas
+    // Validaciones básicas de formulario
     if ($id_tipo_documento <= 0 || $nombre === '') {
         header("Location: crear.php?error=datos_invalidos");
         exit;
@@ -58,16 +68,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
     }
 
     // Tamaño máximo: 10 MB
-    $maxBytes = 10 * 1024 * 1024;
-    if ($archivo['size'] > $maxBytes) {
+    if ($archivo['size'] > 10 * 1024 * 1024) {
         header("Location: crear.php?error=tamano_excedido");
         exit;
     }
 
     // Extensión por whitelist
-    $extensionesPermitidas = ['doc', 'docx'];
     $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
-    if (!in_array($extension, $extensionesPermitidas, true)) {
+    if (!in_array($extension, ['doc', 'docx'], true)) {
         header("Location: crear.php?error=extension_invalida");
         exit;
     }
@@ -86,23 +94,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
         exit;
     }
 
-    // Nombre único en disco — bin2hex(random_bytes(8)) produce 16 hex chars
+    // Nombre único en disco
     $nombreFisico = bin2hex(random_bytes(8)) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($archivo['name']));
 
-    // Obtener categoría del tipo para determinar la subcarpeta
-    // El nombre ya viene calculado desde el Ajax (ej: "Carta Compromiso v3")
-    // Recuperamos el nombre original del tipo para la lógica de carpeta
-    $nombreTipo = strtok($nombre, ' v');   // "Carta Compromiso" de "Carta Compromiso v3"
+    // Subcarpeta según tipo
+    $nombreTipo = strtok($nombre, ' v');
     $carpeta    = $ctrl->carpetaPorTipo($nombreTipo);
 
-    // Rutas
     $base       = "/ITSFCP-PROYECTOS/storage/plantillas/supervisor_{$id_usuario}/{$carpeta}/";
     $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFisico;
     $rutaBD     = $base . $nombreFisico;
 
     // Crear directorio si no existe
-    $dirFisico = dirname($rutaFisica);
-    if (!is_dir($dirFisico) && !mkdir($dirFisico, 0755, true)) {
+    if (!is_dir(dirname($rutaFisica)) && !mkdir(dirname($rutaFisica), 0755, true)) {
         header("Location: crear.php?error=dir_fallo");
         exit;
     }
@@ -113,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
         exit;
     }
 
-    // Registrar en BD — si algo falla dentro del controlador, elimina el archivo
+    // Registrar en BD — si falla, elimina el archivo físico
     try {
         $ctrl->registrar(
             $rol,
@@ -121,53 +125,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
             $nombreFisico,
             $rutaBD,
             $extension,
-            $mimeReal,          // MIME validado, no el del navegador
-            (int) $archivo['size'],
+            $mimeReal,
+            (int)$archivo['size'],
             $id_tipo_documento,
             $id_usuario
         );
-        // registrar() hace header() + exit() → si llega aquí, algo falló sin excepción
+        // registrar() siempre redirige; no llega aquí.
     } catch (Throwable $e) {
-        // Eliminar archivo físico si el registro en BD falló
         if (file_exists($rutaFisica)) {
             unlink($rutaFisica);
         }
         error_log("[crear.php] Error tras move_uploaded_file: " . $e->getMessage());
-        header("Location: crear.php?error=3");
+        header("Location: crear.php?msg=error_crear");
         exit;
     }
 }
 
-//  DATOS PARA LA VISTA ──
+// ── Datos para la vista ──
 $tipos = $ctrl->indexCrear($rol);
 
-// Alertas de error del formulario
-$errorMsgs = [
-    'datos_invalidos'  => 'Faltan datos obligatorios. Intenta de nuevo.',
-    'upload_1'         => 'El archivo supera el tamaño permitido por el servidor.',
-    'upload_2'         => 'El archivo supera el tamaño permitido por el formulario.',
-    'upload_4'         => 'No se seleccionó ningún archivo.',
-    'tamano_excedido'  => 'El archivo supera el límite de 10 MB.',
-    'extension_invalida' => 'Solo se permiten archivos .doc y .docx.',
-    'mime_invalido'    => 'El tipo de archivo no es válido (se esperaba un documento Word).',
-    'dir_fallo'        => 'No se pudo crear el directorio de almacenamiento.',
-    'move_fallo'       => 'Error al guardar el archivo en el servidor.',
-];
-$errorCode = $_GET['error'] ?? null;
-$errorMsg  = $errorMsgs[$errorCode] ?? ($errorCode ? 'Error desconocido.' : null);
-
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
+
+<!-- ALERTAS del sistema de mensajes ($msg por redirect) -->
+<?php if (isset($_mapa[$msg])):
+    extract($_mapa[$msg]);
+    include __DIR__ . '../../../publico/incluido/_mensaje.php';
+endif; ?>
+
 
 <div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
-    <div class="row mb-3">
+    <div class="row mb-3 align-items-center">
         <?php
-$titulo      = 'Nueva Plantilla';
-$descripcion = 'Registro de una nueva plantilla de documento';
-
+        $titulo      = 'Nueva Plantilla';
+        $descripcion = 'Registro de una nueva plantilla de documento';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 text-end">
@@ -176,7 +169,7 @@ $descripcion = 'Registro de una nueva plantilla de documento';
             </a>
         </div>
     </div>
-
+    <!-- ALERTA de validación de archivo (?error=clave) -->
     <?php if ($errorMsg): ?>
         <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
             <?= htmlspecialchars($errorMsg) ?>
@@ -199,7 +192,7 @@ $descripcion = 'Registro de una nueva plantilla de documento';
                     <select class="form-select" name="id_tipo_documento" id="select-tipo" required>
                         <option value="">— Selecciona un tipo —</option>
                         <?php foreach ($tipos as $tipo): ?>
-                            <option value="<?= (int) $tipo['id_tipo_documento'] ?>"
+                            <option value="<?= (int)$tipo['id_tipo_documento'] ?>"
                                 data-nombre="<?= htmlspecialchars($tipo['nombre']) ?>"
                                 data-categoria="<?= htmlspecialchars($tipo['categoria']) ?>">
                                 <?= htmlspecialchars($tipo['nombre']) ?>
@@ -303,7 +296,6 @@ include __DIR__ . '/../../layout.php';
 
         selectTipo.addEventListener('change', cargarDatos);
 
-        // Cargar al abrir si ya hay selección
         if (selectTipo.value) {
             cargarDatos();
         }

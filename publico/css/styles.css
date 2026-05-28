@@ -15,11 +15,11 @@
   /*  Tipografía  */
   --tamanio-fuente-base: 16px;
 
-  /*  Fondos ─ */
+  /*  Fondos  */
   --fondo-web: #f5f7fa;
   --fondo-inputs: #ffffff;
 
-  /*  Bordes ─ */
+  /*  Bordes  */
   --borde-menu: #e2e8f0;
 
   /*  Texto  */
@@ -31,14 +31,14 @@
   --color-boton-secundario: #e5e7eb;
   --color-rojo-logout: #b91c1c;
 
-  /*  Avatar ─ */
+  /*  Avatar  */
   --fondo-avatar: #cae4ca;
   --color-avatar: #718096;
 
   /*  Hover gris  */
   --color-hover-gris: #f3f4f6;
 
-  /*  Sombras ─ */
+  /*  Sombras  */
   --color-sombra: rgba(45, 55, 72, 0.15);
   --color-sombra-fuerte: rgba(45, 55, 72, 0.25);
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.07);
@@ -153,8 +153,8 @@ body {
   font-size: 16px;
 }
 
-.ancho_container{
-  max-width:95%;
+.ancho_container {
+  max-width: 95%;
 }
 .page-title {
   font-size: 2rem;
@@ -407,9 +407,9 @@ html.dark-mode .avatar-arrow {
   font-weight: 600;
 }
 
-/* ====================================================
+/* ==
    SIDEBAR Y NAVEGACIÓN
-   ==================================================== */
+   == */
 .container {
   display: flex;
   min-height: calc(100vh - 80px);
@@ -446,9 +446,9 @@ html.dark-mode .avatar-arrow {
   color: var(--color-texto-secundario);
 }
 
-/* ====================================================
+/* ==
    BADGES Y FILTROS
-   ==================================================== */
+   == */
 .badge-date {
   background-color: var(--color-boton-secundario);
   color: var(--color-texto-secundario);
@@ -525,9 +525,9 @@ html.dark-mode .avatar-arrow {
   color: #2e7d32;
 }
 
-/* ====================================================
+/* ==
    ESTILOS DEL CALENDARIO
-   ==================================================== */
+   == */
 .calendar-header {
   display: flex;
   align-items: center;
@@ -1092,9 +1092,9 @@ body.sidebar-collapsed
   pointer-events: none;
 }
 
-/* ====================================================
+/* ==
    PREVENIR FLASH DEL SIDEBAR
-   ==================================================== */
+   == */
 
 html.sidebar-collapsed-initial .sidebar {
   width: 64px;
@@ -1126,9 +1126,9 @@ html.sidebar-collapsed-initial .submenu {
   display: none !important;
 }
 
-/* ====================================================
+/* ==
    CONTENIDO PRINCIPAL
-   ==================================================== */
+   == */
 .main-content {
   flex: 1;
   padding: 40px;
@@ -1193,9 +1193,9 @@ html.sidebar-collapsed-initial .submenu {
   margin: 15px;
 }
 
-/* ====================================================
+/* ==
    FORMULARIOS - LOGIN Y REGISTRO
-   ==================================================== */
+   == */
 .header-log-reg {
   position: fixed;
   top: 20px;
@@ -1587,9 +1587,9 @@ select:focus {
   color: var(--hover-boton);
 }
 
-/* ====================================================
+/* ==
    PERFIL Y AVATAR
-   ==================================================== */
+   == */
 .container-perfil {
   width: 100%;
   max-width: 480px;
@@ -1673,9 +1673,9 @@ select:focus {
   display: none;
 }
 
-/* ====================================================
+/* ==
    MODAL
-   ==================================================== */
+   == */
 /* OVERLAY */
 .modal-overlay {
   position: fixed;
@@ -1864,9 +1864,9 @@ select:focus {
   color: #003e5c;
 }
 
-/* ===========================
+/* ==
    MODAL DE EVENTO
-   =========================== */
+   == */
 .modal-evento {
   display: none;
   position: fixed;
@@ -2277,9 +2277,9 @@ select:focus {
   margin-top: 4px;
 }
 
-/* ====================================================
+/* ==
    ANIMACIONES Y EFECTOS
-   ==================================================== */
+   == */
 .submit-btn,
 .login-btn,
 .toggle-btn,
@@ -2300,9 +2300,9 @@ select:focus {
   transform: scale(0.95);
 }
 
-/* ====================================================
+/* ==
    ESTILOS DE PROPUESTAS Y DASHBOARD
-   ==================================================== */
+   == */
 .card-propuesta {
   background-color: var(--fondo-inputs) !important;
   border: 1px solid var(--borde-menu);
@@ -3724,9 +3724,9 @@ select:focus {
   opacity: 0.3;
 }
 
-/* ========================================
+/* ===============
    MEDIA QUERIES - RESPONSIVE
-   ======================================== */
+   =============== */
 
 /* Tablets y pantallas medianas (768px - 991px) */
 @media (max-width: 991px) {
@@ -4565,7 +4565,7 @@ summary::-webkit-details-marker {
   color: var(--hover-boton);
 }
 
-/*  Base del timeline ─ */
+/*  Base del timeline  */
 .timeline_historial {
   list-style: none;
   position: relative;
@@ -4638,7 +4638,7 @@ summary::-webkit-details-marker {
   margin-top: 5px;
 }
 
-/*  Colores por rol / acción ─ */
+/*  Colores por rol / acción  */
 .estudiante {
   color: var(--hover-boton);
 }
@@ -7267,7 +7267,7 @@ summary::-webkit-details-marker {
   color: var(--hover-boton);
 }
 
-/*  Confirmación (original conservado) ─ */
+/*  Confirmación (original conservado)  */
 .confirmacion-box {
   display: flex;
   align-items: flex-start;
@@ -7506,7 +7506,7 @@ summary::-webkit-details-marker {
   display: block;
 }
 
-/*  Indicador de paso ─ */
+/*  Indicador de paso  */
 .paso-indicador {
   display: flex;
   align-items: center;
@@ -8024,7 +8024,7 @@ summary::-webkit-details-marker {
 
 /* colores por tipo — ya no se usan, Bootstrap los cubre */
 
-/*  Tabla ─ */
+/*  Tabla  */
 .ms-tabla-wrap {
   background: #fff;
   border: 1px solid var(--borde-menu);
@@ -8084,7 +8084,7 @@ summary::-webkit-details-marker {
   font-size: 0.78rem;
 }
 
-/*  Badges ─ */
+/*  Badges  */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -8195,7 +8195,7 @@ summary::-webkit-details-marker {
   color: #fff;
 }
 
-/*  Estado vacío ─ */
+/*  Estado vacío  */
 .ms-empty {
   text-align: center;
   padding: 4rem 2rem;
@@ -8268,7 +8268,7 @@ summary::-webkit-details-marker {
   padding: 0.6rem 1rem 0.85rem;
 }
 
-/*  Paginación ─ */
+/*  Paginación  */
 .ms-paginacion {
   display: flex;
   justify-content: center;
@@ -8407,7 +8407,7 @@ summary::-webkit-details-marker {
   background: #d1d5db;
 }
 
-/*  Nota corrección en tabla ─ */
+/*  Nota corrección en tabla  */
 .ms-nota-corr {
   display: inline-flex;
   align-items: center;
@@ -8420,7 +8420,7 @@ summary::-webkit-details-marker {
   margin-top: 0.25rem;
 }
 
-/*  Responsive tabla ─ */
+/*  Responsive tabla  */
 @media (max-width: 767px) {
   .ms-tabla-wrap {
     display: none;
@@ -8654,7 +8654,7 @@ summary::-webkit-details-marker {
 
 /* colores por tipo — ya no se usan, Bootstrap los cubre */
 
-/*  Tabla ─ */
+/*  Tabla  */
 .ms-tabla-wrap {
   background: #fff;
   border: 1px solid var(--borde-menu);
@@ -8714,7 +8714,7 @@ summary::-webkit-details-marker {
   font-size: 0.78rem;
 }
 
-/*  Badges ─ */
+/*  Badges  */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -8825,7 +8825,7 @@ summary::-webkit-details-marker {
   color: #fff;
 }
 
-/*  Estado vacío ─ */
+/*  Estado vacío  */
 .ms-empty {
   text-align: center;
   padding: 4rem 2rem;
@@ -8898,7 +8898,7 @@ summary::-webkit-details-marker {
   padding: 0.6rem 1rem 0.85rem;
 }
 
-/*  Paginación ─ */
+/*  Paginación  */
 .ms-paginacion {
   display: flex;
   justify-content: center;
@@ -9037,7 +9037,7 @@ summary::-webkit-details-marker {
   background: #d1d5db;
 }
 
-/*  Nota corrección en tabla ─ */
+/*  Nota corrección en tabla  */
 .ms-nota-corr {
   display: inline-flex;
   align-items: center;
@@ -9050,7 +9050,7 @@ summary::-webkit-details-marker {
   margin-top: 0.25rem;
 }
 
-/*  Responsive tabla ─ */
+/*  Responsive tabla  */
 @media (max-width: 767px) {
   .ms-tabla-wrap {
     display: none;
@@ -9061,4 +9061,180 @@ summary::-webkit-details-marker {
   .ms-cards-movil-wrap {
     display: none;
   }
+}
+
+/* 
+   Mensajes de retroalimentación
+ */
+
+.alrt {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  
+
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  border: 1px solid;
+
+  margin-bottom: 1rem;
+
+  width: 100%;
+}
+
+/* Icono izquierdo */
+.alrt-icon {
+  font-size: 1.35rem;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 1px;
+}
+
+/* Contenido */
+.alrt-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.alrt-title {
+  display: block;
+
+  font-weight: 600;
+  font-size: 0.95rem;
+
+  margin-bottom: 0.2rem;
+
+  line-height: 1.2;
+}
+
+.alrt-text {
+  display: block;
+
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+/* Botón cerrar */
+.alrt-close {
+  background: none;
+  border: none;
+
+  cursor: pointer;
+
+  padding: 0.15rem;
+
+  opacity: 0.55;
+  color: inherit;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  transition: opacity 0.2s ease,
+              transform 0.2s ease;
+}
+
+.alrt-close i {
+  font-size: 1.55rem;
+}
+
+.alrt-close:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+/* 
+   Responsivo
+ */
+
+@media (max-width: 576px) {
+
+  .alrt {
+    gap: 0.7rem;
+    padding: 0.8rem;
+  }
+
+  .alrt-icon {
+    font-size: 1.2rem;
+  }
+
+  .alrt-title {
+    font-size: 0.9rem;
+  }
+
+  .alrt-text {
+    font-size: 0.82rem;
+  }
+
+  .alrt-close i {
+    font-size: 1.4rem;
+  }
+}
+
+/* Variantes */
+.alrt-exito {
+  background: #f0faf4;
+  border-color: #a3d9b8;
+  color: #0d3d22;
+}
+.alrt-exito .alrt-icon {
+  color: var(--color-boton-avalar);
+}
+.alrt-exito .alrt-title {
+  color: #0d3d22;
+}
+.alrt-exito .alrt-text {
+  color: #1a5c34;
+}
+
+.alrt-error {
+  background: #fdf1f3;
+  border-color: #f0a8b4;
+  color: #5c0a14;
+}
+.alrt-error .alrt-icon {
+  color: var(--color-rojo-institucional);
+}
+.alrt-error .alrt-title {
+  color: #5c0a14;
+}
+.alrt-error .alrt-text {
+  color: #7a0f1c;
+}
+
+.alrt-alerta {
+  background: #fdf8ec;
+  border-color: #f0d080;
+  color: #3d2a00;
+}
+.alrt-alerta .alrt-icon {
+  color: #a87a10;
+}
+.alrt-alerta .alrt-title {
+  color: #3d2a00;
+}
+.alrt-alerta .alrt-text {
+  color: #5a3d00;
+}
+
+.alrt-nota {
+  background: #eef4fc;
+  border-color: #9dc1ec;
+  color: #0c2d52;
+}
+.alrt-nota .alrt-icon {
+  color: var(--hover-boton);
+}
+.alrt-nota .alrt-title {
+  color: #0c2d52;
+}
+.alrt-nota .alrt-text {
+  color: #184a84;
 }

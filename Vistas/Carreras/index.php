@@ -1,8 +1,5 @@
 <?php
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Carreras/index.php
 
 session_start();
 
@@ -11,71 +8,82 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = intval($_SESSION['id_usuario']);
+$rol        = strtolower($_SESSION['rol'] ?? '');
+$id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-$action = isset($_GET['action']) ? $_GET['action'] : 'index';
-$buscar = $_GET['buscar'] ?? '';
-$pagina = intval($_GET['pagina'] ?? 1);
-
-include "../../Controladores/carreraControlador.php";
+require_once '../../Controladores/carreraControlador.php';
 
 $carreraControlador = new carreraControlador();
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_carrera') {
-    $id_carrera = intval($_GET['id_carrera']);
-
-    $carreraControlador->eliminar($rol, $id_carrera);
-
-    header("Location: index.php");
-    exit;
+//  Acción GET: desactivar carrera ─
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'desactivar_carrera') {
+    $id_carrera = (int)($_GET['id_carrera'] ?? 0);
+    $carreraControlador->desactivarCarrera($rol, $id_carrera);
+    // desactivarCarrera() siempre redirige → el código no continúa.
 }
 
-if (!method_exists($carreraControlador, $action)) {
-    die("Error: La acción '$action' no existe en el controlador.");
+//  Parámetros de listado 
+$action = $_GET['action'] ?? 'Total';
+$buscar = $_GET['buscar'] ?? '';
+$pagina = (int)($_GET['pagina'] ?? 1);
+
+$accionesFiltro = ['Total', 'Activo', 'Desactivado'];
+if (!in_array($action, $accionesFiltro, true)) {
+    $action = 'Total';
 }
 
 $resultado = $carreraControlador->$action($rol, $buscar);
 
-if (is_string($resultado)) {
-    $resultado = json_decode($resultado, true);
-}
-
-$carreras = $resultado['carrera'] ?? [];
-
+$carreras   = $resultado['carrera']    ?? [];
 $paginacion = $resultado['paginacion'] ?? [
-    'total' => count($carreras),
-    'por_pagina' => 6,
-    'pagina' => $pagina,
-    'total_paginas' => max(1, ceil(count($carreras) / 6))
+    'total'         => count($carreras),
+    'por_pagina'    => 6,
+    'pagina'        => $pagina,
+    'total_paginas' => max(1, (int)ceil(count($carreras) / 6)),
 ];
 
-$filtros = $carreraControlador->filtros($rol);
+$filtros     = $carreraControlador->filtros($rol);
 $encabezados = $carreraControlador->encabezadosPrincipal($rol);
-$opciones = $carreraControlador->opciones($rol, $filtros);
+$opciones    = $carreraControlador->opciones($rol, $filtros);
+
+//  Mapa de mensajes ─
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_crear'         => ['tipo' => 'exito',  'titulo_msg' => 'Carrera creada',          'mensaje' => 'La carrera fue creada correctamente.'],
+    'exito_editar'        => ['tipo' => 'exito',  'titulo_msg' => 'Carrera actualizada',      'mensaje' => 'La carrera fue editada correctamente.'],
+    'exito_desactivar'    => ['tipo' => 'exito',  'titulo_msg' => 'Carrera desactivada',      'mensaje' => 'La carrera fue desactivada correctamente.'],
+    'exito_reactivar'     => ['tipo' => 'exito',  'titulo_msg' => 'Carrera reactivada',       'mensaje' => 'La carrera fue reactivada correctamente.'],
+    'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',           'mensaje' => 'No fue posible crear la carrera. Verifica los datos e intenta de nuevo.'],
+    'error_editar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',          'mensaje' => 'No fue posible editar la carrera. Verifica los datos e intenta de nuevo.'],
+    'error_desactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',      'mensaje' => 'No fue posible desactivar la carrera.'],
+    'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',       'mensaje' => 'No fue posible reactivar la carrera.'],
+    'error_duplicado'     => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',       'mensaje' => 'Ya existe una carrera con ese nombre.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',      'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
+
+<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+    include __DIR__ . '../../../publico/incluido/_mensaje.php';
+endif; ?>
 
 <div class="container-fluid py-4 ancho_container">
 
-    <!-- TITULO -->
+    <!-- TÍTULO -->
     <div class="row mb-4 align-items-center">
-
         <?php
         $titulo      = 'Carreras';
         $descripcion = 'Gestión de carreras registradas';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
-
         <div class="col-6 col-md-6 text-md-end">
-            <?php if ($rol == "supervisor"): ?>
+            <?php if ($rol === 'supervisor'): ?>
                 <a href="crear.php" class="btn btn-primary">
                     <i class="bi bi-plus-lg"></i> Crear Carrera
                 </a>
@@ -83,85 +91,75 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
-    <!-- FILTROS Y BUSQUEDA -->
-
-    <div class="row g-2 mb-4">
-        <div class="col-12 col-md-4">
-            <select class="form-select"
-                onchange="location.href='index.php?action=' + this.value;">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="index.php">
-                <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                <input type="text"
-                    name="buscar"
-                    class="form-control"
-                    placeholder="Buscar..."
-                    value="<?= htmlspecialchars($buscar) ?>">
-                <button type="submit" class="btn btn-primary">
-                    Buscar
-                </button>
-            </form>
+    <!-- FILTROS Y BÚSQUEDA -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=' + this.value;">
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-8 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                    <form class="d-flex gap-2" method="GET" action="index.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Buscar..."
+                            value="<?= htmlspecialchars($buscar) ?>">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- TABLA LAPTOP -->
+    <!-- TABLA ESCRITORIO -->
     <div class="card shadow-sm d-none d-md-block">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <?php
-                            foreach ($encabezados as $encabezado) {
-                                echo "<th>{$encabezado}</th>";
-                            }
-                            ?>
+                            <?php foreach ($encabezados as $enc): ?>
+                                <th><?= htmlspecialchars($enc) ?></th>
+                            <?php endforeach; ?>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($rol == "supervisor"): ?>
-                            <?php if (!empty($carreras)) { ?>
-                                <?php foreach ($carreras as $car): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($car['nombre_carrera']) ?></td>
-                                        <td>
-                                            <?= date("d/m/Y", strtotime($car['crear'])) ?>
-                                        </td>
-                                        <td>
-                                            <?= date("H:i", strtotime($car['crear'])) ?>
-                                        </td>
-                                        <td>
-                                            <span class="badge rounded-pill text-bg-<?php echo $carreraControlador->EstiloEstadoLista($car['estados']); ?>">
-                                                <?= htmlspecialchars($car['estados']) ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <?= $carreraControlador->botonesAccionPrincipal($car['id_carrera'], $rol, $car['estados']) ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php } else { ?>
-                                <td colspan="5">
-                                    <div class="alert alert-danger">
-                                        No hay carreras registradas
-                                    </div>
-                                </td>
+                        <?php if (!empty($carreras)): ?>
+                            <?php foreach ($carreras as $car): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($car['nombre_carrera']) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($car['crear'])) ?></td>
+                                    <td><?= date('H:i',   strtotime($car['crear'])) ?></td>
+                                    <td>
+                                        <span class="badge rounded-pill text-bg-<?= $carreraControlador->EstiloEstadoLista($car['estados']) ?>">
+                                            <?= htmlspecialchars($car['estados']) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?= $carreraControlador->botonesAccionPrincipal(
+                                            (int)$car['id_carrera'],
+                                            $rol,
+                                            $car['estados']
+                                        ) ?>
+                                    </td>
                                 </tr>
-                            <?php } ?>
+                            <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5">
-                                    <div class="alert alert-danger">
-                                        No tiene permiso para ver las carreras
-                                    </div>
+                                <td colspan="5" class="text-center text-muted py-3">
+                                    No hay carreras registradas.
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -171,64 +169,56 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
-    <!-- TARJETAS MOVIL -->
-
+    <!-- TARJETAS MÓVIL -->
     <div class="d-block d-md-none">
         <?php foreach ($carreras as $car): ?>
             <div class="card shadow-sm mb-3">
                 <div class="card-body text-center">
-                    <h5 class="fw-bold">
-                        <?= htmlspecialchars($car['nombre_carrera']) ?>
-                    </h5>
-                    <h5 class="fw-bold">
-                        <span class="badge rounded-pill text-bg-<?php echo $carreraControlador->EstiloEstadoLista($car['estados']); ?>">
-                            <?= htmlspecialchars($car['estados']) ?>
-                        </span>
-                    </h5>
+                    <h5 class="fw-bold"><?= htmlspecialchars($car['nombre_carrera']) ?></h5>
+                    <span class="badge rounded-pill text-bg-<?= $carreraControlador->EstiloEstadoLista($car['estados']) ?>">
+                        <?= htmlspecialchars($car['estados']) ?>
+                    </span>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <div class="row text-center">
                             <div class="col-6">
                                 <strong>Fecha creación</strong>
-                                <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($car['crear'])) ?>
-                                </p>
+                                <p class="mb-0"><?= date('d/m/Y', strtotime($car['crear'])) ?></p>
                             </div>
                             <div class="col-6">
                                 <strong>Hora creación</strong>
-                                <p class="mb-0">
-                                    <?= date("H:i", strtotime($car['crear'])) ?>
-                                </p>
+                                <p class="mb-0"><?= date('H:i', strtotime($car['crear'])) ?></p>
                             </div>
                         </div>
                     </li>
                 </ul>
                 <div class="card-body">
                     <div class="d-flex justify-content-center gap-2">
-                        <?php echo $carreraControlador->botonesAccionPrincipal($car['id_carrera'], $rol, $car['estados']); ?>
+                        <?= $carreraControlador->botonesAccionPrincipal(
+                            (int)$car['id_carrera'],
+                            $rol,
+                            $car['estados']
+                        ) ?>
                     </div>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
 
-    <!-- PAGINACION -->
-
+    <!-- PAGINACIÓN -->
     <?php if ($paginacion['total_paginas'] > 1):
-        $qBase = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
-            . (!empty($tipo) ? '&tipo=' . urlencode($tipo) : '');
+        $qBase  = 'action=' . urlencode($action)
+            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
         $entidad = 'entradas';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
-    <?php endif; ?>
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';
+    endif; ?>
+
 </div>
+
 <?php
-
 $contenido = ob_get_clean();
-$titulo = "Carreras";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Carreras';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
-
 ?>

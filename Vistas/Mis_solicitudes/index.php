@@ -29,11 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $accion = $_POST['accion'] ?? '';
 
     if ($accion === 'cancelar') {
-        $id_sol    = (int)($_POST['id_solicitud'] ?? 0);
+
+        $id_sol = (int)($_POST['id_solicitud'] ?? 0);
+
         $resultado = $ctrl->cancelar($id_sol, $id_usuario);
-        $param     = $resultado['ok'] ? 'cancelado' : 'error';
-        $det       = !$resultado['ok'] ? ('&detalle=' . urlencode($resultado['mensaje'])) : '';
-        header("Location: index.php?msg={$param}{$det}");
+
+        $ok = is_array($resultado) && ($resultado['ok'] ?? false);
+
+        $param = $ok ? 'cancelado' : 'error';
+
+        $detalle = (!$ok && !empty($resultado['mensaje']))
+            ? '&detalle=' . urlencode($resultado['mensaje'])
+            : '';
+
+        header("Location: index.php?msg={$param}{$detalle}");
         exit;
     }
 }
@@ -62,7 +71,7 @@ include __DIR__ . '/../../mensaje.php';
     <div class="ms-page">
 
         <!-- ENCABEZADO + FILTRO PERIODO -->
-        <div class="row mb-3 align-items-center">}
+        <div class="row mb-3 align-items-center">
             <?php
             $titulo      = 'Mis Solicitudes';
             $descripcion = 'Historial y seguimiento de tus solicitudes de integración a proyectos';
@@ -129,51 +138,53 @@ include __DIR__ . '/../../mensaje.php';
         <!-- FILTROS SECUNDARIOS -->
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body py-2">
-                <form method="GET" class="row g-2 align-items-end">
-                    <!-- Mantener periodo activo -->
-                    <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo'] ?? '') ?>">
+                <div class="row g-2 align-items-end">
+                    <form method="GET" class="row g-2 align-items-end">
+                        <!-- Mantener periodo activo -->
+                        <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo'] ?? '') ?>">
 
-                    <!-- Buscar -->
-                    <div class="col-12 col-md-5">
-                        <label class="form-label mb-1 small fw-semibold">Buscar</label>
-                        <input type="text" name="buscar" class="form-control form-control-sm"
-                            placeholder="Proyecto o investigador…"
-                            value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
-                    </div>
+                        <!-- Buscar -->
+                        <div class="col-md-5 mb-1">
+                            <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                            <input type="text" name="buscar" class="form-control form-control-sm"
+                                placeholder="Proyecto o investigador…"
+                                value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
+                        </div>
 
-                    <!-- Estado -->
-                    <div class="col-6 col-md-3">
-                        <label class="form-label mb-1 small fw-semibold">Estado</label>
-                        <select name="estado" class="form-select form-select-sm">
-                            <option value="">Todos</option>
-                            <?php foreach (
-                                [
-                                    'pendiente'    => 'Pendiente',
-                                    'en_revision'  => 'En revisión',
-                                    'correcciones' => 'Correcciones',
-                                    'aceptado'     => 'Aceptado',
-                                    'rechazado'    => 'Rechazado',
-                                    'cancelado'    => 'Cancelado',
-                                ] as $val => $lbl
-                            ): ?>
-                                <option value="<?= $val ?>" <?= ($filtros['estado'] ?? '') === $val ? 'selected' : '' ?>>
-                                    <?= $lbl ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                        <!-- Estado -->
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label mb-1 small fw-semibold">Estado</label>
+                            <select name="estado" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                <?php foreach (
+                                    [
+                                        'pendiente'    => 'Pendiente',
+                                        'en_revision'  => 'En revisión',
+                                        'correcciones' => 'Correcciones',
+                                        'aceptado'     => 'Aceptado',
+                                        'rechazado'    => 'Rechazado',
+                                        'cancelado'    => 'Cancelado',
+                                    ] as $val => $lbl
+                                ): ?>
+                                    <option value="<?= $val ?>" <?= ($filtros['estado'] ?? '') === $val ? 'selected' : '' ?>>
+                                        <?= $lbl ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-                    <!-- Botones -->
-                    <div class="col-auto d-flex gap-1 align-items-end">
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="bi bi-funnel-fill me-1"></i>Filtrar
-                        </button>
-                        <a href="index.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
-                            class="btn btn-secondary btn-sm">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
-                        </a>
-                    </div>
-                </form>
+                        <!-- Botones -->
+                        <div class="col-auto d-flex gap-1 align-items-end">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-funnel-fill me-1"></i>Filtrar
+                            </button>
+                            <a href="index.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
+                                class="btn btn-secondary btn-sm">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 

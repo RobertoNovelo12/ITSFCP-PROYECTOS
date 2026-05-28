@@ -1,6 +1,9 @@
 <?php
-require_once __DIR__ . '/../Modelos/solicitudactualizacion.php';
+// Controladores/solicitudActualizacionControlador.php
+
+require_once __DIR__ . '/../Modelos/solicitudActualizacion.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -9,61 +12,76 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require_once __DIR__ . '/../vendor/autoload.php';
 }
 
-class SolicitudActualizacionControlador
+class SolicitudActualizacionControlador extends BaseControlador
 {
-    
-    // 
-    //  SUPERVISOR — LISTADO
-    // 
+    // ─
+    //  LISTADO (supervisor)
+    // ─
 
-    public function index($buscar = null, $tipo = null)
+    public function index(?string $buscar = null, ?string $tipo = null): array
     {
         global $conn;
-        $modelo    = new SolicitudActualizacion($conn);
-        $resultado = $modelo->obtenerSolicitudes(null, $buscar, $tipo);
-        if (is_string($resultado)) $resultado = json_decode($resultado, true);
-        return $resultado;
+        try {
+            $resultado = (new SolicitudActualizacion($conn))->obtenerSolicitudes(null, $buscar, $tipo);
+            return is_string($resultado) ? json_decode($resultado, true) : $resultado;
+        } catch (Exception $e) {
+            error_log('SolicitudActualizacionControlador::index() — ' . $e->getMessage());
+            return ['solicitudes' => [], 'paginacion' => []];
+        }
     }
 
-    public function Pendiente($buscar = null, $tipo = null)
+    public function Pendiente(?string $buscar = null, ?string $tipo = null): array
     {
         global $conn;
-        $modelo    = new SolicitudActualizacion($conn);
-        $resultado = $modelo->obtenerSolicitudes('pendiente', $buscar, $tipo);
-        if (is_string($resultado)) $resultado = json_decode($resultado, true);
-        return $resultado;
+        try {
+            $resultado = (new SolicitudActualizacion($conn))->obtenerSolicitudes('pendiente', $buscar, $tipo);
+            return is_string($resultado) ? json_decode($resultado, true) : $resultado;
+        } catch (Exception $e) {
+            error_log('SolicitudActualizacionControlador::Pendiente() — ' . $e->getMessage());
+            return ['solicitudes' => [], 'paginacion' => []];
+        }
     }
 
-    public function Aprobado($buscar = null, $tipo = null)
+    public function Aprobado(?string $buscar = null, ?string $tipo = null): array
     {
         global $conn;
-        $modelo    = new SolicitudActualizacion($conn);
-        $resultado = $modelo->obtenerSolicitudes('aprobado', $buscar, $tipo);
-        if (is_string($resultado)) $resultado = json_decode($resultado, true);
-        return $resultado;
+        try {
+            $resultado = (new SolicitudActualizacion($conn))->obtenerSolicitudes('aprobado', $buscar, $tipo);
+            return is_string($resultado) ? json_decode($resultado, true) : $resultado;
+        } catch (Exception $e) {
+            error_log('SolicitudActualizacionControlador::Aprobado() — ' . $e->getMessage());
+            return ['solicitudes' => [], 'paginacion' => []];
+        }
     }
 
-    public function Rechazado($buscar = null, $tipo = null)
+    public function Rechazado(?string $buscar = null, ?string $tipo = null): array
     {
         global $conn;
-        $modelo    = new SolicitudActualizacion($conn);
-        $resultado = $modelo->obtenerSolicitudes('rechazado', $buscar, $tipo);
-        if (is_string($resultado)) $resultado = json_decode($resultado, true);
-        return $resultado;
+        try {
+            $resultado = (new SolicitudActualizacion($conn))->obtenerSolicitudes('rechazado', $buscar, $tipo);
+            return is_string($resultado) ? json_decode($resultado, true) : $resultado;
+        } catch (Exception $e) {
+            error_log('SolicitudActualizacionControlador::Rechazado() — ' . $e->getMessage());
+            return ['solicitudes' => [], 'paginacion' => []];
+        }
     }
 
-    // 
-    //  SUPERVISOR — FILTROS (conteos para el select)
-    // 
+    // ─
+    //  FILTROS Y ENCABEZADOS
+    // ─
 
-    public function filtros()
+    public function filtros(): array
     {
         global $conn;
-        $modelo = new SolicitudActualizacion($conn);
-        return $modelo->conteosFiltros();
+        try {
+            return (new SolicitudActualizacion($conn))->conteosFiltros();
+        } catch (Exception $e) {
+            error_log('SolicitudActualizacionControlador::filtros() — ' . $e->getMessage());
+            return ['Total' => 0, 'Pendiente' => 0, 'Aprobado' => 0, 'Rechazado' => 0];
+        }
     }
 
-    public function opciones($filtros)
+    public function opciones(array $filtros): array
     {
         return [
             'index'     => "Todas ({$filtros['Total']})",
@@ -73,149 +91,180 @@ class SolicitudActualizacionControlador
         ];
     }
 
-    public function encabezados()
+    public function encabezados(): array
     {
         return ['Investigador', 'Tipo', 'Valor actual', 'Valor solicitado', 'Documento', 'Estado', 'Fecha', 'Acciones'];
     }
 
-    // 
-    //  SUPERVISOR — DETALLE
-    // 
+    // ─
+    //  DETALLE
+    // ─
 
-    public function detalle($id_solicitud)
+    public function detalle(int $id_solicitud): array
     {
         global $conn;
-        $modelo   = new SolicitudActualizacion($conn);
-        $solicitud = $modelo->obtenerDetalle($id_solicitud);
-        $historial = $modelo->historialDeSolicitud($id_solicitud);
-        return ['solicitud' => $solicitud, 'historial' => $historial];
+        try {
+            $modelo    = new SolicitudActualizacion($conn);
+            $solicitud = $modelo->obtenerDetalle($id_solicitud);
+            $historial = $modelo->historialDeSolicitud($id_solicitud);
+            return ['solicitud' => $solicitud, 'historial' => $historial];
+        } catch (Exception $e) {
+            error_log('SolicitudActualizacionControlador::detalle() — ' . $e->getMessage());
+            return ['solicitud' => null, 'historial' => []];
+        }
     }
 
-    // 
-    //  SUPERVISOR — APROBAR (GET)
-    // 
+    // ─
+    //  APROBAR (GET)
+    // ─
 
-    public function aprobar($id_solicitud, $id_supervisor)
+    /**
+     * Aprueba una solicitud y redirige con msg al index.
+     */
+    public function aprobar(int $id_solicitud, int $id_supervisor): void
     {
         global $conn;
-        $modelo    = new SolicitudActualizacion($conn);
-        $resultado = $modelo->aprobarSolicitud($id_solicitud, $id_supervisor);
+        try {
+            $this->validarMetodo('GET');
+            $this->validarAcceso($_SESSION['rol'] ?? '', ['supervisor']);
 
-        if ($resultado['ok']) {
-            // Correo
-            $det   = $modelo->obtenerDetalle($id_solicitud);
-            $datos = $modelo->obtenerCorreoInvestigador($det['id_usuarios']);
-            if ($datos) {
-                $this->enviarCorreo(
-                    $datos['correo_institucional'],
-                    $datos['nombre'] . ' ' . $datos['apellido_paterno'],
-                    'aprobado',
-                    '',
-                    $det['tipo']
-                );
+            $modelo    = new SolicitudActualizacion($conn);
+            $resultado = $modelo->aprobarSolicitud($id_solicitud, $id_supervisor);
+
+            if ($resultado['ok']) {
+                $det   = $modelo->obtenerDetalle($id_solicitud);
+                $datos = $modelo->obtenerCorreoInvestigador($det['id_usuarios']);
+                if ($datos) {
+                    $this->enviarCorreo(
+                        $datos['correo_institucional'],
+                        $datos['nombre'] . ' ' . $datos['apellido_paterno'],
+                        'aprobado',
+                        '',
+                        $det['tipo']
+                    );
+                }
+                $this->redirigir('exito_aprobar');
+            } else {
+                $this->redirigir('error_aprobar');
             }
-            header("Location: index.php?msg=aprobado");
-        } else {
-            header("Location: index.php?error=" . urlencode($resultado['msg']));
+        } catch (Exception $e) {
+            error_log('SolicitudActualizacionControlador::aprobar() — ' . $e->getMessage());
+            $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_aprobar';
+            $this->redirigir($msg);
         }
-        exit;
     }
 
-    // 
-    //  SUPERVISOR — RECHAZAR (POST)
-    // 
+    // ─
+    //  RECHAZAR (POST)
+    // ─
 
-    public function rechazar($data, $id_supervisor)
+    /**
+     * Rechaza una solicitud con comentario y redirige con msg al index.
+     */
+    public function rechazar(array $data, int $id_supervisor): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') die("Método no permitido.");
-
-        $id_solicitud = intval($data['id_solicitud'] ?? 0);
-        $comentario   = trim($data['comentario'] ?? '');
-
-        if ($id_solicitud <= 0) die("ID inválido.");
-
         global $conn;
-        $modelo    = new SolicitudActualizacion($conn);
-        $resultado = $modelo->rechazarSolicitud($id_solicitud, $id_supervisor, $comentario);
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($_SESSION['rol'] ?? '', ['supervisor']);
 
-        if ($resultado['ok']) {
-            $det   = $resultado['detalle'];
-            $datos = $modelo->obtenerCorreoInvestigador($det['id_usuarios']);
-            if ($datos) {
-                $this->enviarCorreo(
-                    $datos['correo_institucional'],
-                    $datos['nombre'] . ' ' . $datos['apellido_paterno'],
-                    'rechazado',
-                    $comentario,
-                    $det['tipo']
-                );
+            $id_solicitud = (int)($data['id_solicitud'] ?? 0);
+            $comentario   = trim($data['comentario'] ?? '');
+
+            if ($id_solicitud <= 0 || empty($comentario)) {
+                throw new Exception('datos_incompletos');
             }
-            header("Location: index.php?msg=rechazado");
-        } else {
-            header("Location: respuesta.php?id_solicitud=" . $id_solicitud . "&error=" . urlencode($resultado['msg']));
+
+            $modelo    = new SolicitudActualizacion($conn);
+            $resultado = $modelo->rechazarSolicitud($id_solicitud, $id_supervisor, $comentario);
+
+            if ($resultado['ok']) {
+                $det   = $resultado['detalle'];
+                $datos = $modelo->obtenerCorreoInvestigador($det['id_usuarios']);
+                if ($datos) {
+                    $this->enviarCorreo(
+                        $datos['correo_institucional'],
+                        $datos['nombre'] . ' ' . $datos['apellido_paterno'],
+                        'rechazado',
+                        $comentario,
+                        $det['tipo']
+                    );
+                }
+                $this->redirigir('exito_rechazar');
+            } else {
+                $this->redirigir('error_rechazar', 'respuesta.php', "&id_solicitud={$id_solicitud}");
+            }
+        } catch (Exception $e) {
+            error_log('SolicitudActualizacionControlador::rechazar() — ' . $e->getMessage());
+            $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_rechazar';
+            $this->redirigir($msg);
         }
-        exit;
     }
 
-    // 
-    //  HELPERS DE UI
-    // 
+    // ─
+    //  HELPERS DE PRESENTACIÓN
+    // ─
 
-    public function estiloEstado($estado)
+    public function estiloEstado(string $estado): string
     {
-        switch (strtolower($estado)) {
-            case 'pendiente':  return 'warning';
-            case 'aprobado':   return 'success';
-            case 'rechazado':  return 'danger';
-            default:           return 'secondary';
-        }
+        return match (strtolower($estado)) {
+            'pendiente' => 'warning',
+            'aprobado'  => 'success',
+            'rechazado' => 'danger',
+            default     => 'secondary',
+        };
     }
 
-    public function iconoEstado($estado)
+    public function iconoEstado(string $estado): string
     {
-        switch (strtolower($estado)) {
-            case 'pendiente':  return 'bi-hourglass-split';
-            case 'aprobado':   return 'bi-check-circle-fill';
-            case 'rechazado':  return 'bi-x-circle-fill';
-            default:           return 'bi-circle';
-        }
+        return match (strtolower($estado)) {
+            'pendiente' => 'bi-hourglass-split',
+            'aprobado'  => 'bi-check-circle-fill',
+            'rechazado' => 'bi-x-circle-fill',
+            default     => 'bi-circle',
+        };
     }
 
-    public function etiquetaTipo($tipo)
+    public function etiquetaTipo(string $tipo): string
     {
         return $tipo === 'sni' ? 'Nivel SNI' : 'Grado académico';
     }
 
-    public function botonesAccion($id_solicitud, $estado)
+    public function botonesAccion(int $id_solicitud, string $estado): string
     {
-        $html  = '<a href="detalles.php?id_solicitud=' . $id_solicitud . '"
-                     class="btn btn-sm btn-primary"
-                     data-bs-toggle="tooltip" title="Ver detalles">
+        $html = '<a href="detalles.php?id_solicitud=' . $id_solicitud . '"
+                    class="btn btn-sm btn-primary"
+                    data-bs-toggle="tooltip" title="Ver detalles">
                     <i class="bi bi-eye-fill"></i>
-                  </a> ';
+                 </a> ';
 
         if ($estado === 'pendiente') {
             $html .= '<a href="index.php?action=aprobar&id_solicitud=' . $id_solicitud . '"
                          class="btn btn-sm btn-success"
                          data-bs-toggle="tooltip" title="Aprobar"
                          onclick="return confirm(\'¿Aprobar esta solicitud?\')">
-                        <i class="bi bi-check-circle-fill"></i>
+                         <i class="bi bi-check-circle-fill"></i>
                       </a> ';
             $html .= '<a href="respuesta.php?id_solicitud=' . $id_solicitud . '"
                          class="btn btn-sm btn-danger"
                          data-bs-toggle="tooltip" title="Rechazar">
-                        <i class="bi bi-x-circle-fill"></i>
+                         <i class="bi bi-x-circle-fill"></i>
                       </a>';
         }
         return $html;
     }
 
-    // 
+    // ─
     //  CORREO (PHPMailer)
-    // 
+    // ─
 
-    private function enviarCorreo($destinatario, $nombre, $estado, $comentario, $tipo)
-    {
+    private function enviarCorreo(
+        string $destinatario,
+        string $nombre,
+        string $estado,
+        string $comentario,
+        string $tipo
+    ): void {
         if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) return;
 
         $mail = new PHPMailer(true);
@@ -223,8 +272,8 @@ class SolicitudActualizacionControlador
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'luismarioiretaxiu1110@gmail.com';    // ← Cambiar
-            $mail->Password   = 'alsu vdxr vbpb tgkr';         // ← Cambiar
+            $mail->Username   = 'correo@gmail.com';   // ← Cambiar
+            $mail->Password   = 'app_password';        // ← Cambiar
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
@@ -236,10 +285,10 @@ class SolicitudActualizacionControlador
 
             $estadoTexto = ($estado === 'aprobado') ? 'Aprobada' : 'Rechazada';
             $colorEstado = ($estado === 'aprobado') ? '#198754' : '#dc3545';
-            $tipoTexto   = ($tipo === 'sni') ? 'Nivel SNI' : 'Grado Académico';
+            $tipoTexto   = ($tipo   === 'sni')      ? 'Nivel SNI' : 'Grado Académico';
             $comentHtml  = !empty($comentario)
-                ? "<p><strong>Motivo:</strong><br>" . nl2br(htmlspecialchars($comentario)) . "</p>"
-                : "";
+                ? '<p><strong>Motivo:</strong><br>' . nl2br(htmlspecialchars($comentario)) . '</p>'
+                : '';
 
             $mail->Body = "<!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'></head>
             <body style='font-family:Arial,sans-serif;background:#f8f9fa;padding:20px;'>
@@ -255,8 +304,8 @@ class SolicitudActualizacionControlador
             </body></html>";
             $mail->AltBody = "Hola $nombre. Tu solicitud de $tipoTexto fue: $estadoTexto. $comentario";
             $mail->send();
-        } catch (Exception $e) {
-            error_log("Error enviando correo: " . $mail->ErrorInfo);
+        } catch (\Exception $e) {
+            error_log('Error enviando correo: ' . $mail->ErrorInfo);
         }
     }
 }

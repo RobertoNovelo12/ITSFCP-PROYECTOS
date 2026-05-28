@@ -38,7 +38,7 @@ if ($action === 'actualizarestado' && isset($_GET['id_tarea'])) {
     $tareaControlador->actualizarestado($_GET['id_tarea'], $rol, $_GET['tipo'], $id_proyectos);
 }
 
-$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol);
+$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id );
 $ediciones = $tareaControlador->obtenerEdicionesRecientes($id_tarea, 8);
 
 $campoNombres = [

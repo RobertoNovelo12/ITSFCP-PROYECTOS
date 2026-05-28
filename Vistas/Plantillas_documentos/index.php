@@ -1,9 +1,5 @@
 <?php
-
-/**
- * Plantillas_documentos/index.php
- * Listado principal de plantillas de documentos — solo supervisor.
- */
+// Vistas/Plantillas_documentos/index.php
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -17,7 +13,7 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $rol        = strtolower($_SESSION['rol'] ?? '');
-$id_usuario = (int) $_SESSION['id_usuario'];
+$id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -29,46 +25,58 @@ require_once '../../Controladores/plantilladocumentoControlador.php';
 $ctrl   = new plantilladocumentoControlador();
 $action = $_GET['action'] ?? 'index';
 $buscar = $_GET['buscar'] ?? '';
-$pagina = max(1, (int) ($_GET['pagina'] ?? 1));
+$pagina = max(1, (int)($_GET['pagina'] ?? 1));
 
-// Acciones permitidas para el listado
+//  Acciones de escritura vía GET (PRG) 
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+    if ($action === 'desactivar') {
+        $id_plantilla = (int)($_GET['id_plantilla'] ?? 0);
+        $ctrl->desactivar($rol, $id_plantilla, $id_usuario);
+        // desactivar() siempre redirige; no llega aquí.
+    }
+
+    if ($action === 'reactivar') {
+        $id_plantilla = (int)($_GET['id_plantilla'] ?? 0);
+        $ctrl->reactivar($rol, $id_plantilla, $id_usuario);
+        // reactivar() siempre redirige; no llega aquí.
+    }
+}
+
+//  Normalizar acción de filtro 
 $accionesPermitidas = ['index', 'Total', 'Activo', 'Desactivado'];
 if (!in_array($action, $accionesPermitidas, true)) {
     $action = 'index';
 }
 
-// Acciones de escritura vía GET (PRG)
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
-    if ($action === 'desactivar') {
-        $id_plantilla = (int) ($_GET['id_plantilla'] ?? 0);
-        $ctrl->desactivar($rol, $id_plantilla, $id_usuario);
-        // desactivar() hace header() + exit()
-    }
-
-    if ($action === 'reactivar') {
-        $id_plantilla = (int) ($_GET['id_plantilla'] ?? 0);
-        $ctrl->reactivar($rol, $id_plantilla, $id_usuario);
-        // reactivar() hace header() + exit()
-    }
-}
-
-// Obtener datos para la vista
-$resultado   = $ctrl->$action($rol, $buscar);
-$registros   = $resultado['plantillas']  ?? [];
-$paginacion  = $resultado['paginacion']  ?? [
-    'total'        => 0,
-    'por_pagina'   => 6,
-    'pagina'       => $pagina,
+$resultado  = $ctrl->$action($rol, $buscar);
+$registros  = $resultado['plantillas'] ?? [];
+$paginacion = $resultado['paginacion'] ?? [
+    'total'         => 0,
+    'por_pagina'    => 6,
+    'pagina'        => $pagina,
     'total_paginas' => 1,
 ];
 
-$filtros     = $ctrl->filtros($rol);       // array asociativo Total/Activo/Desactivado
+$filtros     = $ctrl->filtros($rol);
 $encabezados = $ctrl->encabezadosPrincipal($rol);
 $opciones    = $ctrl->opciones($rol, $filtros);
 
+//  Mapa de mensajes 
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_crear'         => ['tipo' => 'exito',  'titulo_msg' => 'Plantilla creada',       'mensaje' => 'La plantilla fue registrada correctamente.'],
+    'exito_desactivar'    => ['tipo' => 'exito',  'titulo_msg' => 'Plantilla desactivada',  'mensaje' => 'La plantilla fue desactivada correctamente.'],
+    'exito_reactivar'     => ['tipo' => 'exito',  'titulo_msg' => 'Plantilla reactivada',   'mensaje' => 'La plantilla fue reactivada correctamente.'],
+    'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',          'mensaje' => 'No fue posible registrar la plantilla. Intenta de nuevo.'],
+    'error_desactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',     'mensaje' => 'No fue posible desactivar la plantilla.'],
+    'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',      'mensaje' => 'No fue posible reactivar la plantilla.'],
+    'error_duplicado'     => ['tipo' => 'alerta', 'titulo_msg' => 'Registro duplicado',      'mensaje' => 'Ya existe una plantilla con esos datos.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',         'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',     'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
@@ -86,30 +94,42 @@ include __DIR__ . '/../../mensaje.php';
             </a>
         </div>
     </div>
+    <!-- ALERTAS -->
+    <?php if (isset($_mapa[$msg])):
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
+
 
     <!-- FILTROS Y BÚSQUEDA -->
-    <div class="row g-2 mb-4">
-        <div class="col-12 col-md-4">
-            <select class="form-select"
-                onchange="location.href='index.php?action=' + this.value">
-                <?php foreach ($opciones as $key => $label): ?>
-                    <option value="<?= htmlspecialchars($key) ?>"
-                        <?= ($action === $key) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($label) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-12 col-md-8">
-            <form class="d-flex gap-2" method="GET" action="index.php">
-                <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                <input type="text"
-                    name="buscar"
-                    class="form-control"
-                    placeholder="Buscar por nombre..."
-                    value="<?= htmlspecialchars($buscar) ?>">
-                <button type="submit" class="btn btn-primary">Buscar</button>
-            </form>
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <select class="form-select"
+                        onchange="location.href='index.php?action=' + this.value">
+                        <?php foreach ($opciones as $key => $label): ?>
+                            <option value="<?= htmlspecialchars($key) ?>"
+                                <?= ($action === $key) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-8 mb-1">
+                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                    <form class="d-flex gap-2" method="GET" action="index.php">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="text"
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Por nombre..."
+                            value="<?= htmlspecialchars($buscar) ?>">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -130,32 +150,23 @@ include __DIR__ . '/../../mensaje.php';
                         <tbody>
                             <?php foreach ($registros as $reg): ?>
                                 <tr>
-                                    <!-- Nombre -->
                                     <td><?= htmlspecialchars($reg['nombre']) ?></td>
-
-                                    <!-- Versión -->
-                                    <td><?= (int) $reg['version'] ?></td>
-
-                                    <!-- Fecha creación -->
+                                    <td><?= (int)$reg['version'] ?></td>
                                     <td>
                                         <?= !empty($reg['crear'])
                                             ? date('d/m/Y', strtotime($reg['crear'])) . '<br>'
                                             . '<small class="text-muted">' . date('H:i', strtotime($reg['crear'])) . '</small>'
                                             : '—' ?>
                                     </td>
-
-                                    <!-- Fecha modificación -->
                                     <td>
                                         <?= !empty($reg['modificar'])
                                             ? date('d/m/Y', strtotime($reg['modificar'])) . '<br>'
                                             . '<small class="text-muted">' . date('H:i', strtotime($reg['modificar'])) . '</small>'
                                             : '—' ?>
                                     </td>
-
-                                    <!-- Archivo -->
                                     <td>
                                         <?php if (!empty($reg['nombre_archivo'])): ?>
-                                            <a href="descargar_plantilla.php?id_plantilla=<?= (int) $reg['id_plantilla'] ?>"
+                                            <a href="descargar_plantilla.php?id_plantilla=<?= (int)$reg['id_plantilla'] ?>"
                                                 data-bs-toggle="tooltip"
                                                 data-bs-title="<?= htmlspecialchars($reg['nombre_archivo']) ?>">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
@@ -172,21 +183,17 @@ include __DIR__ . '/../../mensaje.php';
                                             <span class="text-muted small">Sin archivo</span>
                                         <?php endif; ?>
                                     </td>
-
-                                    <!-- Estado -->
                                     <td>
                                         <span class="badge rounded-pill text-bg-<?= $ctrl->EstiloEstado($reg['estado_texto']) ?>">
                                             <?= htmlspecialchars($reg['estado_texto']) ?>
                                         </span>
                                     </td>
-
-                                    <!-- Acciones -->
                                     <td>
                                         <?= $ctrl->botonesAccionPrincipal(
-                                            (int) $reg['id_plantilla'],
+                                            (int)$reg['id_plantilla'],
                                             $rol,
                                             $reg['estado_texto'],
-                                            (int) $reg['id_tipo_documento']
+                                            (int)$reg['id_tipo_documento']
                                         ) ?>
                                     </td>
                                 </tr>
@@ -212,13 +219,13 @@ include __DIR__ . '/../../mensaje.php';
                             <div class="row text-center">
                                 <div class="col-6">
                                     <strong>Versión</strong>
-                                    <p class="mb-0"><?= (int) $reg['version'] ?></p>
+                                    <p class="mb-0"><?= (int)$reg['version'] ?></p>
                                 </div>
                                 <div class="col-6">
                                     <strong>Archivo</strong>
                                     <p class="mb-0">
                                         <?php if (!empty($reg['nombre_archivo'])): ?>
-                                            <a href="descargar_plantilla.php?id_plantilla=<?= (int) $reg['id_plantilla'] ?>">
+                                            <a href="descargar_plantilla.php?id_plantilla=<?= (int)$reg['id_plantilla'] ?>">
                                                 Descargar
                                             </a>
                                         <?php else: ?>
@@ -248,10 +255,10 @@ include __DIR__ . '/../../mensaje.php';
                     <div class="card-body">
                         <div class="d-flex justify-content-center gap-2">
                             <?= $ctrl->botonesAccionPrincipal(
-                                (int) $reg['id_plantilla'],
+                                (int)$reg['id_plantilla'],
                                 $rol,
                                 $reg['estado_texto'],
-                                (int) $reg['id_tipo_documento']
+                                (int)$reg['id_tipo_documento']
                             ) ?>
                         </div>
                     </div>
@@ -260,11 +267,12 @@ include __DIR__ . '/../../mensaje.php';
         </div>
 
         <!-- PAGINACIÓN -->
-        <?php
-        $qBase   = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-        $entidad = 'plantillas';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
+        <?php if ($paginacion['total_paginas'] > 1):
+            $qBase   = 'action=' . urlencode($action)
+                . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+            $entidad = 'plantillas';
+            include __DIR__ . '../../../publico/incluido/_paginacion.php';
+        endif; ?>
 
     <?php else: ?>
         <div class="alert alert-info text-center">
@@ -279,4 +287,3 @@ $contenido = ob_get_clean();
 $titulo    = 'Plantillas de documentos';
 $bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
-?>

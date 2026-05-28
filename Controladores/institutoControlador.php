@@ -1,83 +1,87 @@
 <?php
+// Controladores/institutoControlador.php
 
 require_once __DIR__ . '/../Modelos/instituto.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class institutoControlador
+class institutoControlador extends BaseControlador
 {
-    private function esSupervisor($rol): bool
-    {
-        return $rol === 'supervisor';
-    }
 
-    public function indexDetalles($rol): array
-    {
-        global $conn;
+    // 
+    //  CONSULTAS
+    // 
 
-        if (!$this->esSupervisor($rol)) return [];
-
-        $modelo = new Instituto($conn);
-        return $modelo->obtenerDetalles();
-    }
-
-    public function directores()
+    public function indexDetalles(string $rol): ?array
     {
         global $conn;
-
-        $modelo = new Instituto($conn);
-        return $modelo->obtenerDirectores();
-    }
-
-    public function editar($datos)
-    {
-        global $conn;
-
-        $conn->begin_transaction();
-
         try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new Instituto($conn))->obtenerDetalles();
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return null;
+        }
+    }
+
+    public function directores(): array
+    {
+        global $conn;
+        try {
+            return (new Instituto($conn))->obtenerDirectores();
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
+    // 
+    //  CRUD — redirige con msg
+    // 
+
+    public function editar(string $rol, array $datos): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            $id_director = (int)($datos['id_director'] ?? 0);
+
+            $conn->begin_transaction();
             $modelo = new Instituto($conn);
 
+            // Validar que el director seleccionado esté activo
+            $modelo->validarDirectorActivo($id_director);
 
-            // VALIDAR DIRECTOR ACTIVO
-            if (!empty($datos['id_director'])) {
-
-                $validacion = $modelo->validar(['id_director']);
-                if ($validacion == 0) {
-                    throw new Exception("Director inactivo.");
-                }
-            }
-
-            $modelo->bloquear_tabla();
+            $modelo->bloquearTabla();
 
             $modelo->editar(
-                $datos['id_instituto'],
-                $datos['nombre'],
-                $datos['unidad_academica'],
-                $datos['direccion'],
-                $datos['estado'],
-                $datos['correo_instituto'],
-                $datos['ciudad'],
-                $datos['clave_plantel'],
-                $datos['telefono'],
-                $datos['id_director']
+                (int)($datos['id_instituto']      ?? 0),
+                $datos['nombre']                  ?? '',
+                $datos['unidad_academica']         ?? '',
+                $datos['direccion']                ?? '',
+                $datos['estado']                   ?? '',
+                $datos['correo_instituto']         ?? '',
+                $datos['ciudad']                   ?? '',
+                $datos['clave_plantel']            ?? '',
+                $datos['telefono']                 ?? '',
+                $id_director
             );
 
             $conn->commit();
+            $this->redirigir('exito_editar');
 
-            header("Location: index.php?mensaje=1");
-            exit;
         } catch (Exception $e) {
+            if (isset($conn) && $conn->errno !== 0) $conn->rollback();
+            error_log($e->getMessage());
 
-            $conn->rollback();
-            header("Location: index.php?error=director");
-            exit;
+            $msg = match ($e->getMessage()) {
+                'accion_no_permitida' => 'accion_no_permitida',
+                'director_inactivo'   => 'error_director',
+                default               => 'error_editar',
+            };
+            $this->redirigir($msg, 'editar.php');
         }
-    }
-    public function listaDirectores()
-    {
-        global $conn;
-
-        $modelo = new Instituto($conn);
-        return $modelo->obtenerDirectores();
     }
 }

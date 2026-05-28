@@ -1,330 +1,233 @@
 <?php
+// Modelos/ajustestiposdocumentos.php
+
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseModelo.php';
 
-class ajustesdocumentos
+class ajustesdocumentos extends BaseModelo
 {
-    private $con;
-
-    public function __construct($conn)
+    public function __construct(mysqli $conn)
     {
-        $this->con = $conn;
+        parent::__construct($conn);
     }
+
+
+    // 
+    // FILTROS / CONTEOS
+    // 
+
     /**
-     * Obtiene datos para filtros (totales, activos, terminados)
+     * Obtiene totales por categoría para los botones de filtro.
+     * Solo accesible al supervisor.
      */
-    public function obtenerDatosFiltro($rol): array
+    public function obtenerDatosFiltro(string $rol): array
     {
         if ($rol !== 'supervisor') {
             return [];
         }
 
-        $sql = "SELECT 
-                    COUNT(*) AS Todos,
-                    CASE WHEN categoria = 'proceso' THEN 'Proceso' END AS Proceso,
-                    CASE WHEN categoria = 'final' THEN 'Final' END AS Final
-                FROM tipo_documento  GROUP BY categoria";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerDatosFiltro): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerDatosFiltro): " . $stmt->error);
-        }
-
-        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close(); // liberar recurso
-
-        return $resultado;
+        return $this->ejecutar(
+            "SELECT 
+                COUNT(*) AS Todos,
+                CASE WHEN categoria = 'proceso' THEN 'Proceso' END AS Proceso,
+                CASE WHEN categoria = 'final'   THEN 'Final'   END AS Final
+             FROM tipo_documento
+             GROUP BY categoria"
+        );
     }
 
 
+    // 
+    // TABLA PRINCIPAL
+    // 
+
     /**
-     * Obtiene tabla principal 
+     * Devuelve las filas de la tabla filtradas por categoría.
+     *
+     * @param string[] $filtros  p.ej. ['proceso', 'final']
      */
     public function obtenerTablaFiltro(array $filtros): array
     {
         $placeholders = implode(',', array_fill(0, count($filtros), '?'));
+        $types        = str_repeat('s', count($filtros));
 
-        $sql = "SELECT 
-                    id_tipo_documento,
-                    nombre,
-                    descripcion,
-                    categoria,
-                    orden,
-                    fecha_modificacion AS modificar,
-                    CASE 
-                        WHEN estado = 1 THEN 'Activo'        
-                        WHEN estado = 0 THEN 'Desactivado'
-                        ELSE 'Desconocido'
-                    END AS estados
-                FROM tipo_documento WHERE categoria IN ($placeholders)";
-
-        $sql .= " ORDER BY categoria";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerTablaFiltro): " . $this->con->error);
-        }
-
-        $types = str_repeat('s', count($filtros));
-        $stmt->bind_param($types, ...$filtros);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerTablaFiltro): " . $stmt->error);
-        }
-
-        $data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close(); // liberar recurso
-
-        return $data;
+        return $this->ejecutar(
+            "SELECT 
+                id_tipo_documento,
+                nombre,
+                descripcion,
+                categoria,
+                orden,
+                fecha_modificacion AS modificar,
+                CASE 
+                    WHEN estado = 1 THEN 'Activo'
+                    WHEN estado = 0 THEN 'Desactivado'
+                    ELSE 'Desconocido'
+                END AS estados
+             FROM tipo_documento
+             WHERE categoria IN ($placeholders)
+             ORDER BY categoria",
+            $types,
+            $filtros
+        );
     }
 
 
-    /**
-     * Obtiene datos para edición
-     */
-    public function obtenerEditar($id_tipo_documento): array
+    // 
+    // DATOS PARA EL FORMULARIO DE EDICIÓN
+    // 
+
+    public function obtenerEditar(int $id_tipo_documento): array
     {
-        $sql = "SELECT 
-                    id_tipo_documento,
-                    nombre,
-                    descripcion,
-                    categoria,
-                    orden,
-                    fecha_modificacion AS modificar,
-                    CASE 
-                        WHEN estado = 1 THEN 'Activo'        
-                        WHEN estado = 0 THEN 'Desactivado'
-                        ELSE 'Desconocido'
-                    END AS estados
-                FROM tipo_documento WHERE id_tipo_documento = ?";
+        $fila = $this->ejecutar(
+            "SELECT 
+                id_tipo_documento,
+                nombre,
+                descripcion,
+                categoria,
+                orden,
+                fecha_modificacion AS modificar,
+                CASE 
+                    WHEN estado = 1 THEN 'Activo'
+                    WHEN estado = 0 THEN 'Desactivado'
+                    ELSE 'Desconocido'
+                END AS estados
+             FROM tipo_documento
+             WHERE id_tipo_documento = ?
+             ORDER BY id_tipo_documento",
+            "i",
+            [$id_tipo_documento],
+            false          // fetch_assoc
+        );
 
-        $sql .= " ORDER BY id_tipo_documento";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerTablaFiltro): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_tipo_documento);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerTablaFiltro): " . $stmt->error);
-        }
-
-        $data = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
-
-        return $data;
+        return $fila ?? [];
     }
 
-        //Editar Tipo de documento
+
+    // 
+    // EDITAR
+    // 
+
     /**
-     * Editar una nueva Tipo de documento.
-     * 
-     * REGLAS:
-     * - Se edita siempre como activo
-     * - No debe solaparse con otro activo
-     * - No debe duplicar nombre activo
-     * 
-     * IMPORTANTE:
-     * Este método DEBE ejecutarse dentro de una transacción desde el controlador.
+     * Actualiza descripción y orden de un tipo de documento.
+     * Debe ejecutarse dentro de una transacción.
      *
-     * @param string $nombre
-     * @param string $descripcion
-     * @return int ID insertado
-     * @throws Exception
+     * @return int  El mismo $id_tipo_documento recibido.
      */
     public function editar(string $descripcion, int $orden, int $id_tipo_documento): int
     {
-
-        $sql = "UPDATE tipo_documento SET descripcion = ?, orden = ?, fecha_modificacion = NOW() WHERE id_tipo_documento = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (editar): " . $this->con->error);
-        }
-
-        $stmt->bind_param("sii", $descripcion, $orden, $id_tipo_documento);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (editar): " . $stmt->error);
-        }
-
-        $stmt->close(); // liberar recurso
+        $this->ejecutar(
+            "UPDATE tipo_documento
+             SET descripcion = ?, orden = ?, fecha_modificacion = NOW()
+             WHERE id_tipo_documento = ?",
+            "sii",
+            [$descripcion, $orden, $id_tipo_documento]
+        );
 
         return $id_tipo_documento;
     }
 
 
+    // 
+    // REACTIVAR
+    // 
+
     /**
-     * Reactiva una Tipo de documento previamente desactivado.
-     * 
-     * REGLAS:
-     * - No debe existir otra Tipo de documento activa solapado
-     * - No debe duplicar nombre activo
-     * 
-     * IMPORTANTE:
-     * Ejecutar dentro de transacción.
+     * Reactiva un tipo de documento previamente desactivado.
+     * Debe ejecutarse dentro de una transacción con bloqueo previo.
      *
-     * @param int $id
-     * @return void
-     * @throws Exception
+     * @throws Exception Si el registro no existe o ya estaba activo.
      */
     public function reactivar(int $id_tipo_documento): void
     {
-        /**
-         * 1. Obtener el periodo con bloqueo (evita concurrencia)
-         */
-        $periodo = $this->obtenerPorId($id_tipo_documento, true);
+        // Confirmar existencia (con bloqueo si viene de bloquear_tabla)
+        $registro = $this->obtenerPorId($id_tipo_documento, true);
 
-        if (!$periodo) {
-            throw new Exception("Periodo no encontrado.");
+        if (!$registro) {
+            throw new Exception("Tipo de documento no encontrado.");
         }
 
+        $this->ejecutar(
+            "UPDATE tipo_documento
+             SET estado = 1, fecha_modificacion = NOW()
+             WHERE id_tipo_documento = ?
+               AND estado = 0",
+            "i",
+            [$id_tipo_documento]
+        );
 
-        /**
-         * 4. Reactivar
-         * - Solo si está desactivado
-         */
-        $sql = "UPDATE tipo_documento 
-            SET estado = 1, 
-                fecha_modificacion = NOW() 
-            WHERE id_tipo_documento = ? 
-              AND estado = 0";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (reactivar): " . $this->con->error);
+        // Verificar que realmente se actualizó una fila
+        if ($this->conn->affected_rows === 0) {
+            throw new Exception("El tipo de documento ya estaba activo o no se pudo actualizar.");
         }
-
-        $stmt->bind_param("i", $id_tipo_documento);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (reactivar): " . $stmt->error);
-        }
-
-        if ($stmt->affected_rows === 0) {
-            throw new Exception("El Tipo de documento ya estaba activa o no se pudo actualizar.");
-        }
-
-        $stmt->close();
     }
 
-    /**
-     * Bloquea únicamente los registros activos.
-     * IMPORTANTE: Debe ejecutarse dentro de una transacción.
-     *
-     * REQUIERE:
-     * - Motor InnoDB
-     * - Transacción activa
-     * @return void
-     * @throws Exception
-     */
 
+    // 
+    // DESACTIVAR  (soft delete)
+    // 
+
+    /**
+     * Desactivación lógica de un tipo de documento.
+     *
+     * @return int  Filas afectadas (≥ 1 éxito, 0 ya estaba desactivado).
+     */
+    public function desactivar(int $id_tipo_documento): int
+    {
+        $this->ejecutar(
+            "UPDATE tipo_documento
+             SET estado = 0, fecha_modificacion = NOW()
+             WHERE id_tipo_documento = ?
+               AND estado <> 0",
+            "i",
+            [$id_tipo_documento]
+        );
+
+        return $this->conn->affected_rows;
+    }
+
+
+    // 
+    // BLOQUEO OPTIMISTA PARA CONCURRENCIA
+    // 
+
+    /**
+     * Bloquea las filas activas para evitar condiciones de carrera.
+     * Debe ejecutarse dentro de una transacción (InnoDB).
+     */
     public function bloquear_tabla(): void
     {
-        $sql = "SELECT id_tipo_documento 
-                FROM tipo_documento
-                WHERE estado = 1 
-                FOR UPDATE";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (bloquear_tabla): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (bloquear_tabla): " . $stmt->error);
-        }
-
-        // No necesitamos el resultado → solo provocar el bloqueo
-        $stmt->free_result();
-        $stmt->close();
+        $this->ejecutar(
+            "SELECT id_tipo_documento
+             FROM tipo_documento
+             WHERE estado = 1
+             FOR UPDATE"
+        );
     }
 
-    /**
-     * Eliminación lógica (soft delete) de un periodo.
-     *
-     * @param int $id_tipo_documento
-     * @return int Número de filas afectadas
-     * @throws Exception
-     */
-    public function desactivar(int $id_tipo_documentos): int
-    {
 
-        $sql = "UPDATE tipo_documento 
-                SET estado = 0, 
-                    fecha_modificacion = NOW() 
-                WHERE id_tipo_documento = ? 
-                  AND estado <> 0";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (desactivar): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_tipo_documentos);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (desactivar): " . $stmt->error);
-        }
-
-        $filas = $stmt->affected_rows;
-
-        $stmt->close(); // liberar recurso SIEMPRE
-
-        return $filas;
-    }
+    // 
+    // OBTENER POR ID
+    // 
 
     /**
-     * Obtiene una Tipo de documento por ID.
-     * OPCIONAL: Permite bloqueo de fila para concurrencia.
+     * Devuelve el estado de un tipo de documento por su ID.
+     * Con $forUpdate = true agrega FOR UPDATE (requiere transacción activa).
      *
-     * @param int $id
-     * @param bool $forUpdate
-     * @return array|null
-     * @throws Exception
+     * @return array|null  ['estado' => 0|1] o null si no existe.
      */
     public function obtenerPorId(int $id_tipo_documento, bool $forUpdate = false): ?array
     {
-
-        $sql = "SELECT estado 
-                FROM tipo_documento 
+        $sql = "SELECT estado
+                FROM tipo_documento
                 WHERE id_tipo_documento = ?";
 
         if ($forUpdate) {
             $sql .= " FOR UPDATE";
         }
 
-        $stmt = $this->con->prepare($sql);
+        $fila = $this->ejecutar($sql, "i", [$id_tipo_documento], false);
 
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerPorId): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_tipo_documento);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerPorId): " . $stmt->error);
-        }
-
-        $res = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
-
-        return $res ?: null;
+        return $fila ?: null;
     }
 }

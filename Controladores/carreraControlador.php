@@ -1,555 +1,410 @@
 <?php
+// Controladores/carreraControlador.php
 
 require_once __DIR__ . '/../Modelos/carrera.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class carreraControlador
+class carreraControlador extends BaseControlador
 {
-    /**
-     * Verifica si el usuario tiene rol de supervisor.
-     *
-     * @param string $rol
-     * @return bool
-     */
-    private function esSupervisor($rol): bool
-    {
-        return isset($rol) && $rol === 'supervisor';
-    }
 
-    /**
-     * Sanitiza datos de entrada para prevenir XSS.
-     *
-     * @param string|null $dato
-     * @return string|null
-     */
-    private function limpiar($dato): ?string
-    {
-        return isset($dato)
-            ? htmlspecialchars(trim($dato), ENT_QUOTES, 'UTF-8')
-            : null;
-    }
+    // ─
+    // DATOS PARA TABLA E INDEX
+    // ─
 
-    /**
-     * Obtiene listado de carreras con filtro opcional.
-     *
-     * @param string $rol
-     * @param string|null $buscar
-     * @return array
-     */
-    public function index($rol, $buscar = null): array
+    public function index(string $rol, ?string $buscar = null): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            $buscar = $this->limpiar($buscar);
-
-            $Carrera = new Carrera($conn);
-
-            return $Carrera->obtenerTablaFiltro($buscar, 2);
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new Carrera($conn))->obtenerTablaFiltro($this->limpiar($buscar), 2);
         } catch (Throwable $e) {
-            error_log("Error en index(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtiene datos de una carrera para edición.
-     *
-     * @param string $rol
-     * @param int $id_carrera
-     * @return array
-     */
-    public function indexEditar($rol, $id_carrera): array
+    public function indexEditar(string $rol, int $id_carrera): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
+            $this->validarAcceso($rol, ['supervisor']);
             $id = filter_var($id_carrera, FILTER_VALIDATE_INT);
-
-            if (!$id) {
-                return [];
-            }
-
-            $Carrera = new Carrera($conn);
-
-            return $Carrera->obtenerEditar($id);
+            if (!$id) return [];
+            return (new Carrera($conn))->obtenerEditar($id);
         } catch (Throwable $e) {
-            error_log("Error en indexEditar(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtiene detalles de una carrera específica.
-     *
-     * @param string $rol
-     * @param int $id_carrera
-     * @return array
-     */
-    public function indexDetalles($rol, $id_carrera): array
+    public function indexDetalles(string $rol, int $id_carrera): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
+            $this->validarAcceso($rol, ['supervisor']);
             $id = filter_var($id_carrera, FILTER_VALIDATE_INT);
-
-            if (!$id) {
-                return [];
-            }
-
-            $Carrera = new Carrera($conn);
-
-            return $Carrera->obtenerDetalles($id);
+            if (!$id) return [];
+            return (new Carrera($conn))->obtenerDetalles($id);
         } catch (Throwable $e) {
-            error_log("Error en indexDetalles(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Desactiva una carrera (borrado lógico).
-     *
-     * @param string $rol
-     * @param int $id_carrera
-     * @throws Exception
-     */
-    public function eliminar($rol, $id_carrera)
-    {
-        if (!$this->esSupervisor($rol)) {
-            throw new Exception("No tienes permiso para eliminar carreras.");
-        }
-        if (!$id_carrera) {
-            throw new Exception("ID inválido");
-        }
-        global $conn;
-        $conn->begin_transaction();
-        try {
-            $Carrera = new Carrera($conn);
-            $Carrera->obtenerPorId((int)$id_carrera);
 
-            $filas = $Carrera->eliminar_carrera((int)$id_carrera);
-            if ($filas < 0) {
-                throw new Exception("Error al eliminar");
-            }
-            $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (Throwable $e) {
-            if ($conn->errno === 0) {
-                $conn->rollback();
-            }
-            error_log("Error en eliminar(): " . $e->getMessage());
-            header("Location: index.php?error=10");
-            exit;
-        }
-    }
+    // ─
+    // FILTROS DE TABLA
+    // ─
 
-    /**
-     * Retorna los encabezados de la tabla principal.
-     *
-     * @param string $rol
-     * @return array
-     */
-    public function encabezadosPrincipal($rol): array
-    {
-        if (!$this->esSupervisor($rol)) {
-            return [];
-        }
-
-        return [
-            'Carrera',
-            'Fecha Creación',
-            'Hora Creación',
-            'Estado',
-            'Acciones'
-        ];
-    }
-
-    /**
-     * Genera las opciones de filtro con conteo.
-     *
-     * @param string $rol
-     * @param array $filtros
-     * @return array
-     */
-    public function opciones($rol, $filtros): array
-    {
-        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) {
-            return [];
-        }
-
-        $data = $filtros[0];
-
-        return [
-            'Total' => "Total (" . ($data['Total'] ?? 0) . " en total)",
-            'Activo' => "Activos (" . ($data['Activo'] ?? 0) . " en total)",
-            'Desactivado' => "Desactivados (" . ($data['Desactivado'] ?? 0) . " en total)"
-        ];
-    }
-
-    /**
-     * Convierte acción a número de filtro.
-     *
-     * @param string $action
-     * @return int
-     */
-    public function numerofiltro($action): int
-    {
-        return match ($action) {
-            'Total' => 2,
-            'Activo' => 1,
-            'Desactivado' => 0,
-            default => 2
-        };
-    }
-
-    /**
-     * Obtiene datos para filtros.
-     *
-     * @param string $rol
-     * @return array
-     */
-    public function filtros($rol): array
+    public function filtros(string $rol): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            $Carrera = new Carrera($conn);
-
-            return $Carrera->obtenerDatosFiltro($rol);
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new Carrera($conn))->obtenerDatosFiltro($rol);
         } catch (Throwable $e) {
-            error_log("Error en filtros(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Método base para evitar duplicación de lógica en filtros.
-     *
-     * @param string $rol
-     * @param int $tipoFiltro
-     * @param string|null $buscar
-     * @return array
-     */
-    private function obtenerPorFiltro($rol, int $tipoFiltro, $buscar = null): array
+    private function obtenerPorFiltro(string $rol, int $tipoFiltro, ?string $buscar = null): array
     {
         global $conn;
-
         try {
-            if (!$this->esSupervisor($rol)) {
-                return [];
-            }
-
-            $buscar = $this->limpiar($buscar);
-
-            $Carrera = new Carrera($conn);
-
-            return $Carrera->obtenerTablaFiltro($buscar, $tipoFiltro);
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new Carrera($conn))->obtenerTablaFiltro($this->limpiar($buscar), $tipoFiltro);
         } catch (Throwable $e) {
-            error_log("Error en obtenerPorFiltro(): " . $e->getMessage());
+            error_log($e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtiene todas las carreras.
-     */
-    public function Total($rol, $buscar = null): array
+    public function Total(string $rol, ?string $buscar = null): array
     {
         return $this->obtenerPorFiltro($rol, 2, $buscar);
     }
 
-    /**
-     * Obtiene carreras activas.
-     */
-    public function Activo($rol, $buscar = null): array
+    public function Activo(string $rol, ?string $buscar = null): array
     {
         return $this->obtenerPorFiltro($rol, 1, $buscar);
     }
 
-    /**
-     * Obtiene carreras desactivadas.
-     */
-    public function Desactivado($rol, $buscar = null): array
+    public function Desactivado(string $rol, ?string $buscar = null): array
     {
         return $this->obtenerPorFiltro($rol, 0, $buscar);
     }
 
-    /**
-     * Retorna clase de estilo según estado.
-     *
-     * @param string $estado
-     * @return string
-     */
-    public function EstiloEstadoLista($estado): string
-    {
-        $estado = strtolower(trim($estado));
 
-        return match ($estado) {
-            'activo' => "success",
-            'desactivado' => "danger",
-            default => "info"
+    // ─
+    // ENCABEZADOS Y OPCIONES DE FILTRO
+    // ─
+
+    public function encabezadosPrincipal(string $rol): array
+    {
+        if (!$this->esSupervisor($rol)) return [];
+
+        return ['Carrera', 'Fecha Creación', 'Hora Creación', 'Estado', 'Acciones'];
+    }
+
+    public function opciones(string $rol, array $filtros): array
+    {
+        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) return [];
+
+        $data = $filtros[0];
+
+        return [
+            'Total'       => "Total ("       . ($data['Total']       ?? 0) . " en total)",
+            'Activo'      => "Activos ("      . ($data['Activo']      ?? 0) . " en total)",
+            'Desactivado' => "Desactivados (" . ($data['Desactivado'] ?? 0) . " en total)",
+        ];
+    }
+
+    public function numerofiltro(string $action): int
+    {
+        return match ($action) {
+            'Activo'      => 1,
+            'Desactivado' => 0,
+            default       => 2,
         };
     }
 
-    // BOTONES DE TABLA PRINCIPAL
-    private function obtenerbotones($tipo, $id1 = null)
+
+    // ─
+    // ESTILO DE ESTADO (badge Bootstrap)
+    // ─
+
+    public function EstiloEstadoLista(string $estado): string
     {
-        $boton = "";
-        switch ($tipo) {
-            case 'Editar Carrera':
-                $boton = '<a href="editar.php?id_carrera=' . $id1 . '" type="button" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Editar carrera"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-</svg></a>';
-                break;
-            case 'Detalles':
-                $boton = '<a href="detalles.php?id_carrera=' . $id1 . '" type="button" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la carrera"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
-                break;
-            case 'Desactivar':
-                $boton = '<a href="index.php?&id_carrera=' . $id1 . '&action=desactivar_carrera" type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar carrera"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-</svg></a>';
-                break;
-            default:
-                break;
-        }
-        return $boton;
+        return match (strtolower(trim($estado))) {
+            'activo'      => 'success',
+            'desactivado' => 'danger',
+            default       => 'info',
+        };
     }
 
-    // Botones de acción en la tabla
-    public function botonesAccionPrincipal($id, $rol, $estado = null)
+
+    // ─
+    // BOTONES TABLA PRINCIPAL
+    // ─
+
+    private function obtenerbotones(string $tipo, ?int $id1 = null): string
     {
-        if (!$this->esSupervisor($rol)) return "";
+        return match ($tipo) {
+            'Editar Carrera' =>
+                '<a href="editar.php?id_carrera=' . $id1 . '" type="button" class="btn btn-sm btn-warning"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Editar carrera">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                        class="bi bi-pencil-square" viewBox="0 0 16 16">
+                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                    </svg>
+                </a>',
 
-        $boton = "";
+            'Detalles' =>
+                '<a href="detalles.php?id_carrera=' . $id1 . '" type="button" class="btn btn-sm btn-primary"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles de la carrera">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                        class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
+                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
+                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
+                    </svg>
+                </a>',
 
-        if (in_array($estado, ["Activo"])) {
-            $boton .= $this->obtenerbotones("Editar Carrera", $id);
-            $boton .= $this->obtenerbotones("Detalles", $id);
-            $boton .= $this->obtenerbotones("Desactivar", $id);
-        } elseif ($estado === "Desactivado") {
-            $boton .= $this->obtenerbotones("Editar Carrera", $id);
-            $boton .= $this->obtenerbotones("Detalles", $id);
-        }
+            'Desactivar' =>
+                '<a href="index.php?id_carrera=' . $id1 . '&action=desactivar_carrera" type="button" class="btn btn-sm btn-danger"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar carrera">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                        class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                    </svg>
+                </a>',
 
-        return $boton;
+            default => '',
+        };
     }
 
+    public function botonesAccionPrincipal(int $id, string $rol, ?string $estado = null): string
+    {
+        if (!$this->esSupervisor($rol)) return '';
+
+        if ($estado === 'Activo') {
+            return $this->obtenerbotones('Editar Carrera', $id)
+                 . $this->obtenerbotones('Detalles', $id)
+                 . $this->obtenerbotones('Desactivar', $id);
+        }
+
+        if ($estado === 'Desactivado') {
+            return $this->obtenerbotones('Editar Carrera', $id)
+                 . $this->obtenerbotones('Detalles', $id);
+        }
+
+        return '';
+    }
+
+
+    // ─
     // BOTONES FORMULARIO EDITAR
-    public function obtenerbotonesEditar($tipo)
+    // ─
+
+    public function obtenerbotonesEditar(string $tipo): string
     {
-        $boton = "";
-        switch ($tipo) {
-            case 'Desactivar':
-                $boton = '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>';
-                break;
-            case 'Reactivar':
-                $boton = '<button type="submit" name="action" value="Reactivar" class="btn btn-sm btn-warning">Reactivar</button>';
-                break;
-            case 'Guardar':
-                $boton = '<button type="submit" name="action" value="Guardar" class="btn btn-sm btn-guardar">Guardar cambios</button>';
-                break;
-            default:
-                break;
-        }
-        return $boton;
+        return match ($tipo) {
+            'Desactivar' => '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>',
+            'Reactivar'  => '<button type="submit" name="action" value="Reactivar"  class="btn btn-sm btn-warning">Reactivar</button>',
+            'Guardar'    => '<button type="submit" name="action" value="Guardar"    class="btn btn-sm btn-guardar">Guardar cambios</button>',
+            default      => '',
+        };
     }
 
-    // Botones para panel de edición
-    public function botonesAccionEditar($rol, $estado = null)
+    public function botonesAccionEditar(string $rol, ?string $estado = null): string
     {
-        $boton = "";
+        if (!$this->esSupervisor($rol)) return '';
 
-        switch ($rol) {
-            case 'supervisor':
-                if (in_array($estado, ["Activo"])) {
-                    $boton  = $this->obtenerbotonesEditar("Desactivar");
-                    $boton  .= $this->obtenerbotonesEditar("Guardar");
-                } elseif (in_array($estado, ["Desactivado"])) {
-                    $boton  = $this->obtenerbotonesEditar("Reactivar");
-                    $boton  .= $this->obtenerbotonesEditar("Guardar");
-                }
-                break;
-            default:
-                break;
-        }
-
-        return $boton;
+        return match ($estado) {
+            'Activo'      => $this->obtenerbotonesEditar('Desactivar') . $this->obtenerbotonesEditar('Guardar'),
+            'Desactivado' => $this->obtenerbotonesEditar('Reactivar')  . $this->obtenerbotonesEditar('Guardar'),
+            default       => '',
+        };
     }
 
-    /**
-     * Registra una nueva carrera.
-     */
-    function registrarCarrera($rol, $nombre_carrera)
-    {
-        if (!$this->esSupervisor($rol)) return "";
 
+    // ─
+    // REGISTRAR
+    // Acción de formulario POST → redirige con msg.
+    // ─
+
+    public function registrarCarrera(string $rol, array $datos): void
+    {
         global $conn;
-
-        $conn->begin_transaction();
         try {
-            $Carrera = new Carrera($conn);
-            $Carrera->bloquear_tabla();
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
 
-            $verificacion = $Carrera->verificarCarrera($nombre_carrera);
+            $nombre = trim($datos['NombreCarrera'] ?? '');
 
-            if ($verificacion['activo'] > 0 && $verificacion['desactivado'] > 0) {
-                throw new Exception("Registro duplicado");
+            if ($nombre === '') {
+                throw new Exception('error_crear');
             }
 
-            $id_carrera = $Carrera->registrarCarrera($nombre_carrera);
+            $conn->begin_transaction();
+            $modelo = new Carrera($conn);
+            $modelo->bloquear_tabla();
+            $modelo->registrarCarrera($nombre);   // lanza Exception si hay duplicado activo
+            $conn->commit();
+
+            $this->redirigir('exito_crear');
+
+        } catch (mysqli_sql_exception $e) {
+            $conn->rollback();
+            error_log($e->getMessage());
+            $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_crear';
+            $this->redirigir($msg);
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_crear', 'error_duplicado'])
+                ? $e->getMessage()
+                : 'error_crear';
+            $this->redirigir($msg);
+        }
+    }
+
+
+    // ─
+    // EDITAR
+    // Acción de formulario POST → redirige con msg.
+    // ─
+
+    public function editarCarrera(string $rol, array $datos): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            $id_carrera = (int)($datos['id_carrera']    ?? 0);
+            $nombre     = trim($datos['NombreCarrera']  ?? '');
+
+            if (!$id_carrera || $nombre === '') {
+                throw new Exception('error_editar');
+            }
+
+            $conn->begin_transaction();
+            $modelo = new Carrera($conn);
+
+            // Verificar que no exista otra carrera con el mismo nombre
+            $conflicto = $modelo->obtenerPorIdDiferente($id_carrera, $nombre);
+            if ($conflicto['activo'] > 0 || $conflicto['desactivado'] > 0) {
+                throw new Exception('error_duplicado');
+            }
+
+            $modelo->editarCarrera($nombre, $id_carrera);
+            $conn->commit();
+
+            $this->redirigir('exito_editar');
+
+        } catch (mysqli_sql_exception $e) {
+            $conn->rollback();
+            error_log($e->getMessage());
+            $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_editar';
+            $this->redirigir($msg);
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_editar', 'error_duplicado'])
+                ? $e->getMessage()
+                : 'error_editar';
+            $this->redirigir($msg);
+        }
+    }
+
+
+    // ─
+    // DESACTIVAR
+    // Acción GET desde enlace → redirige con msg.
+    // ─
+
+    public function desactivarCarrera(string $rol, int $id_carrera): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('GET');
+            $this->validarAcceso($rol, ['supervisor']);
 
             if (!$id_carrera) {
-                header("Location: index.php?error=1");
-                exit;
+                throw new Exception('error_desactivar');
             }
+
+            $conn->begin_transaction();
+            $modelo = new Carrera($conn);
+            $modelo->obtenerPorId($id_carrera);
+
+            $filas = $modelo->eliminar_carrera($id_carrera);
+            if ($filas < 0) {
+                throw new Exception('error_desactivar');
+            }
+
             $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (mysqli_sql_exception $e) {
-            $conn->rollback();
+            $this->redirigir('exito_desactivar');
 
-            if ($e->getCode() == 1062) {
-                header("Location: index.php?error=duplicado");
-            } else {
-                header("Location: index.php?error=2");
-            }
-
-            exit;
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_desactivar'])
+                ? $e->getMessage()
+                : 'error_desactivar';
+            $this->redirigir($msg);
         }
     }
 
-    /**
-     * Edita una carrera existente.
-     */
-    function editarCarrera($rol, $id_carrera, $nombre_carrera)
+
+    // ─
+    // REACTIVAR
+    // Acción de formulario POST → redirige con msg.
+    // ─
+
+    public function reactivarCarrera(string $rol, array $datos): void
     {
-        if (!$this->esSupervisor($rol)) return "";
         global $conn;
-
-        $conn->begin_transaction();
         try {
-            $Carrera = new Carrera($conn);
-            $verificacion = $this->obtenerPorIdDiferente((int)$id_carrera, $nombre_carrera);
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
 
-            if ($verificacion['activo'] > 0 || $verificacion['desactivado'] > 0) {
-                throw new Exception("Registro duplicado");
-            }
-
-            $id_carrera = $Carrera->editarCarrera($nombre_carrera, $id_carrera);
+            $id_carrera = (int)($datos['id_carrera'] ?? 0);
 
             if (!$id_carrera) {
-                header("Location: index.php?error=10");
-                exit;
+                throw new Exception('error_reactivar');
             }
+
+            $conn->begin_transaction();
+            $modelo = new Carrera($conn);
+            $modelo->bloquear_tabla();
+            $modelo->obtenerPorId($id_carrera, true);
+            $modelo->reactivar($id_carrera);
             $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
+
+            $this->redirigir('exito_reactivar');
+
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
+            error_log($e->getMessage());
+            $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_reactivar';
+            $this->redirigir($msg);
 
-            if ($e->getCode() == 1062) {
-                header("Location: index.php?error=duplicado");
-            } else {
-                header("Location: index.php?error=2");
-            }
-
-            exit;
-        }
-    }
-
-    /**
-     * Reactiva una carrera.
-     */
-    public function reactivar($rol, $id_carrera)
-    {
-        if (!$this->esSupervisor($rol)) return "";
-        global $conn;
-
-        $conn->begin_transaction();
-        try {
-            $Carrera = new Carrera($conn);
-            $Carrera->bloquear_tabla();
-
-            $Carrera->obtenerPorId($id_carrera, true);
-            $Carrera->reactivar($id_carrera);
-
-            $conn->commit();
-            header("Location: index.php?mensaje=1");
-            exit;
-        } catch (mysqli_sql_exception $e) {
-            $conn->rollback();
-
-            if ($e->getCode() == 1062) {
-                header("Location: index.php?error=duplicado");
-            } else {
-                header("Location: index.php?error=2");
-            }
-
-            exit;
-        }
-    }
-
-    /**
-     * Verifica existencia de conflictos de carrera.
-     *
-     * @param string $nombre_carrera
-     * @return array
-     */
-    public function verificarCarrera($nombre_carrera): array
-    {
-        global $conn;
-
-        try {
-            if (empty($nombre_carrera)) {
-                return ["activo" => 0, "desactivado" => 0];
-            }
-
-            $Carrera = new Carrera($conn);
-
-            return $Carrera->verificarCarrera($nombre_carrera);
-        } catch (Throwable $e) {
-            error_log("Error en verificarCarrera(): " . $e->getMessage());
-            return ["activo" => 0, "desactivado" => 0];
-        }
-    }
-
-    public function obtenerPorIdDiferente($id_carrera, $nombre_carrera): array
-    {
-        global $conn;
-
-        try {
-            if (empty($nombre_carrera)) {
-                return ["activo" => 0, "desactivado" => 0];
-            }
-
-            $Carrera = new Carrera($conn);
-
-            return $Carrera->obtenerPorIdDiferente($id_carrera, $nombre_carrera);
-        } catch (Throwable $e) {
-            error_log("Error en obtenerPorIdDiferente(): " . $e->getMessage());
-            return ["activo" => 0, "desactivado" => 0];
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_reactivar', 'error_duplicado'])
+                ? $e->getMessage()
+                : 'error_reactivar';
+            $this->redirigir($msg);
         }
     }
 }

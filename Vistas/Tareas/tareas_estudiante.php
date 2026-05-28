@@ -32,7 +32,7 @@ $tareas          = $tareaControlador->listarTareasEstudiante($id_usuario, $id_pr
 $tareasActivas   = array_filter($tareas, fn($t) => (int)$t['id_estadoT'] !== 4);
 $tareasInactivas = array_filter($tareas, fn($t) => (int)$t['id_estadoT'] === 4);
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+//  Helpers ─
 
 /**
  * Convierte id_estadoT al color Bootstrap del badge.
@@ -112,11 +112,9 @@ ob_start();
         ?>
 
         <div class="col-6 col-md-6 text-md-end">
-            <?php if ($rol == "supervisor"): ?>
                 <a href="../../Vistas/Proyectos/index.php" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left me-1"></i>Regresar
                 </a>
-            <?php endif; ?>
         </div>
     </div>
     <div class="act-page">

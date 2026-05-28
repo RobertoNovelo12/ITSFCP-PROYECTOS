@@ -1,4 +1,6 @@
 <?php
+// Vistas/Grados_academicos/crear.php
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -10,10 +12,9 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
+$rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-//Solo supervisor
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
@@ -21,29 +22,31 @@ if ($rol !== 'supervisor') {
 
 require_once '../../Controladores/gradoacademicoControlador.php';
 
-$action = $_POST['action'] ?? null;
 $gradoacademicoControlador = new gradoacademicoControlador();
-$estadoVista = ["activo" => 0, "desactivado" => 0];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST) && $action === 'Registrar') {
-    $nombre = $_POST['Nombre'];
-    $estadoVista = $gradoacademicoControlador->verificarGradoAcademico($nombre);
+// ── Mapa de mensajes ──
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'error_duplicado'     => ['tipo' => 'alerta', 'titulo_msg' => 'Registro duplicado', 'mensaje' => 'Ya existe un grado académico con ese nombre. Intenta con otro.'],
+    'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',      'mensaje' => 'No fue posible registrar el grado académico. Verifica los datos e intenta de nuevo.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida', 'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
 
-    if ($estadoVista['activo'] == 0 && $estadoVista['desactivado'] == 0) {
-        $gradoacademicoControlador->registrarGradoAcademico($rol, $nombre);
-    } else {
-        $mensaje = "Ya hay un Grado Académico con ese nombre, intente con otro";
-    }
+// ── Procesar POST ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'Registrar') {
+    $gradoacademicoControlador->registrarGradoAcademico($rol, $_POST['Nombre'] ?? '');
+    // registrarGradoAcademico() siempre redirige; no llega aquí.
 }
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
 
+
+
 <div class="container-fluid py-4 ancho_container">
+
     <!-- ENCABEZADO -->
-    <div class="row mb-3">
+    <div class="row mb-3 align-items-center">
         <?php
         $titulo      = 'Nuevo Grado Académico';
         $descripcion = 'Registro de un nuevo grado académico';
@@ -53,33 +56,27 @@ include __DIR__ . '/../../error.php';
             <a href="index.php" class="btn btn-danger">Regresar</a>
         </div>
     </div>
-    <!-- DATOS GRADO ACADÉMICO -->
+    <!-- ALERTAS -->
+    <?php if (isset($_mapa[$msg])):
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
+    <!-- FORMULARIO -->
     <form method="POST" action="">
-        <input type="hidden" name="action" value="registrar">
+        <input type="hidden" name="action" value="Registrar">
+
         <div class="mb-3">
             <label class="form-label">Grado Académico</label>
-            <input
-                type="text"
-                name="Nombre"
-                class="form-control"
-                required>
+            <input type="text" name="Nombre" class="form-control" required>
         </div>
-        <?php if (!empty($mensaje)) { ?>
-            <div class="alert alert-warning" role="alert">
-                <?= $mensaje ?>
-            </div>
-            <button type="submit" name="action" value="Registrar" class="btn btn-guardar">Guardar cambios</button>
-        <?php } else { ?>
-            <button type="submit" name="action" value="Registrar" class="btn btn-guardar">Guardar cambios</button>
-        <?php } ?>
+
+        <button type="submit" class="btn btn-guardar">Guardar cambios</button>
     </form>
+
 </div>
 
 <?php
-
 $contenido = ob_get_clean();
-$titulo = "Crear Grado Académico";
-$bodyClass = "proyectos-page";
-
+$titulo    = 'Crear Grado Académico';
+$bodyClass = 'proyectos-page';
 include __DIR__ . '/../../layout.php';
-?>

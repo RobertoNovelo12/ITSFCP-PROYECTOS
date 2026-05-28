@@ -109,68 +109,74 @@ include __DIR__ . '/../../mensaje.php';
     </div>
 
     <!-- FILTROS -->
-    <form method="GET" action="" class="row g-2 mb-3 align-items-end">
-        <?php if (!empty($filtros['periodo'])): ?>
-            <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo']) ?>">
-        <?php endif; ?>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <label class="form-label small fw-medium mb-1">Buscar</label>
-            <input type="text" name="buscar" class="form-control form-control-sm"
-                placeholder="Nombre, matrícula, proyecto…"
-                value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
-        </div>
-        <div class="col-6 col-sm-4 col-md-2">
-            <label class="form-label small fw-medium mb-1">Estado</label>
-            <select name="estado" class="form-select form-select-sm">
-                <option value="">Todos</option>
-                <?php foreach (
-                    [
-                        'pendiente'    => 'Pendiente',
-                        'en_revision'  => 'En revisión',
-                        'correcciones' => 'Correcciones',
-                        'aceptado'     => 'Aceptado',
-                        'rechazado'    => 'Rechazado',
-                    ] as $val => $lbl
-                ): ?>
-                    <option value="<?= $val ?>" <?= ($filtros['estado'] ?? '') === $val ? 'selected' : '' ?>>
-                        <?= $lbl ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-6 col-sm-4 col-md-3">
-            <label class="form-label small fw-medium mb-1">Proyecto</label>
-            <select name="proyecto" class="form-select form-select-sm">
-                <option value="">Todos</option>
-                <?php foreach ($proyectos as $p): ?>
-                    <option value="<?= $p['id_proyectos'] ?>"
-                        <?= ($filtros['proyecto'] ?? '') == $p['id_proyectos'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars(mb_strimwidth($p['titulo'], 0, 40, '…')) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-6 col-sm-3 col-md-2">
-            <label class="form-label small fw-medium mb-1">Desde</label>
-            <input type="date" name="fecha_desde" class="form-control form-control-sm"
-                value="<?= htmlspecialchars($filtros['fecha_desde'] ?? '') ?>">
-        </div>
-        <div class="col-6 col-sm-3 col-md-2">
-            <label class="form-label small fw-medium mb-1">Hasta</label>
-            <input type="date" name="fecha_hasta" class="form-control form-control-sm"
-                value="<?= htmlspecialchars($filtros['fecha_hasta'] ?? '') ?>">
-        </div>
-        <div class="col-auto d-flex gap-2">
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="bi bi-search"></i> Filtrar
-            </button>
-            <a href="index.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
-                class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-x-circle"></i> Limpiar
-            </a>
-        </div>
-    </form>
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <form method="GET" action="" class="row g-2 mb-3 align-items-end">
+                    <?php if (!empty($filtros['periodo'])): ?>
+                        <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo']) ?>">
+                    <?php endif; ?>
+                    <div class="col-md-4 mb-1">
+                        <label class="form-label mb-1 small fw-semibold">Buscar</label>
+                        <input type="text" name="buscar" class="form-control form-control-sm"
+                            placeholder="Nombre, matrícula, proyecto…"
+                            value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-4 mb-1">
+                        <label class="form-label mb-1 small fw-semibold">Estado</label>
+                        <select name="estado" class="form-select form-select-sm">
+                            <option value="">Todos</option>
+                            <?php foreach (
+                                [
+                                    'pendiente'    => 'Pendiente',
+                                    'en_revision'  => 'En revisión',
+                                    'correcciones' => 'Correcciones',
+                                    'aceptado'     => 'Aceptado',
+                                    'rechazado'    => 'Rechazado',
+                                ] as $val => $lbl
+                            ): ?>
+                                <option value="<?= $val ?>" <?= ($filtros['estado'] ?? '') === $val ? 'selected' : '' ?>>
+                                    <?= $lbl ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-1">
+                        <label class="form-label mb-1 small fw-semibold">Proyecto</label>
+                        <select name="proyecto" class="form-select form-select-sm">
+                            <option value="">Todos</option>
+                            <?php foreach ($proyectos as $p): ?>
+                                <option value="<?= $p['id_proyectos'] ?>"
+                                    <?= ($filtros['proyecto'] ?? '') == $p['id_proyectos'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars(mb_strimwidth($p['titulo'], 0, 40, '…')) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-1">
+                        <label class="form-label mb-1 small fw-semibold">Desde</label>
+                        <input type="date" name="fecha_desde" class="form-control form-control-sm"
+                            value="<?= htmlspecialchars($filtros['fecha_desde'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2 mb-1">
+                        <label class="form-label mb-1 small fw-semibold">Hasta</label>
+                        <input type="date" name="fecha_hasta" class="form-control form-control-sm"
+                            value="<?= htmlspecialchars($filtros['fecha_hasta'] ?? '') ?>">
+                    </div>
+                    <div class="col-auto d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                        <a href="index.php<?= !empty($filtros['periodo']) ? '?periodo=' . urlencode($filtros['periodo']) : '' ?>"
+                            class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </a>
+                    </div>
+                </form>
 
+            </div>
+        </div>
+    </div>
     <!-- TABLA ESCRITORIO -->
     <?php if (!empty($solicitudes)): ?>
         <div class="card shadow-sm d-none d-md-block">

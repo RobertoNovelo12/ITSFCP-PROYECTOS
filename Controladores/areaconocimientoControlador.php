@@ -1,355 +1,387 @@
 <?php
+// Controladores/AreaConocimientoControlador.php
 
 require_once __DIR__ . '/../Modelos/areaconocimiento.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class AreaConocimientoControlador
+class AreaConocimientoControlador extends BaseControlador
 {
 
-    //Obtener datos
-    public function index($rol, $buscar = null)
+    // 
+    // DATOS PARA TABLA E INDEX
+    // 
+
+    public function index(string $rol, ?string $buscar = null): array
     {
         global $conn;
-
-        $areaConocimiento = new AreaConocimiento($conn);
-
-        if ($rol == "supervisor") {
-            //Revisión de estados de tarea
-            $area = $areaConocimiento->obtenerAreasTablaFiltro($buscar, 2);
-            return $area;
-        } else {
-            $area = []; // evita undefined variable
-            return $area;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new AreaConocimiento($conn))->obtenerAreasTablaFiltro($buscar, 2);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-    //Obtener datos para editar
-    public function indexEditar($rol, $id_area)
+    public function indexEditar(string $rol, int $id_area): array
     {
         global $conn;
-
-        if ($rol == "supervisor") {
-            $areaConocimiento = new AreaConocimiento($conn);
-            $area = $areaConocimiento->obtenerAreaEditar($id_area);
-            return $area;
-        } else {
-            $area = []; // evita undefined variable
-            return $area;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new AreaConocimiento($conn))->obtenerAreaEditar($id_area);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-    public function indexDetalles($rol, $id_area)
+    public function indexDetalles(string $rol, int $id_area): array
     {
         global $conn;
-
-        if ($rol == "supervisor") {
-            $areaConocimiento = new AreaConocimiento($conn);
-            $area = $areaConocimiento->obtenerAreasDetalles($id_area);
-            return $area;
-        } else {
-            $area = []; // evita undefined variable
-            return $area;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new AreaConocimiento($conn))->obtenerAreasDetalles($id_area);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return [];
         }
     }
 
-    public function eliminar_area($id_area, $rol)
+
+    // 
+    // FILTROS DE TABLA
+    // 
+
+    public function filtros(string $rol): array
     {
-        // Lógica para cambiar de estado una temática a desactivado
-        if ($rol !== 'supervisor') {
-            die("Error: No tienes permiso para eliminar temáticas.");
-        }
-
         global $conn;
-
-        $areaConocimiento = new AreaConocimiento($conn);
-        $areaConocimiento->eliminar_area($id_area, 0);
-        return 0;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new AreaConocimiento($conn))->obtenerAreasDatosFiltro($rol);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return [];
+        }
     }
 
-    public function encabezadosPrincipal($rol)
+    public function Total(string $rol, ?string $buscar = null): array
     {
-        if ($rol !== 'supervisor') {
-            die("Error: No tienes permiso para eliminar temáticas.");
+        global $conn;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new AreaConocimiento($conn))->obtenerAreasTablaFiltro($buscar, 2);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return [];
         }
-        $encabezados = [
+    }
+
+    public function Activo(string $rol, ?string $buscar = null): array
+    {
+        global $conn;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new AreaConocimiento($conn))->obtenerAreasTablaFiltro($buscar, 1);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
+    public function Desactivado(string $rol, ?string $buscar = null): array
+    {
+        global $conn;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new AreaConocimiento($conn))->obtenerAreasTablaFiltro($buscar, 0);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
+
+    // 
+    // ENCABEZADOS Y OPCIONES DE FILTRO
+    // 
+
+    public function encabezadosPrincipal(string $rol): array
+    {
+        if (!$this->esSupervisor($rol)) return [];
+
+        return [
             'Área',
             'Descripción',
             'Subareas',
             'Estado',
             'Creación',
             'Modificación',
-            'Acciones'
+            'Acciones',
         ];
-
-        return $encabezados;
     }
 
-    public function opciones($rol, $filtros)
+    public function opciones(string $rol, array $filtros): array
     {
-        switch ($rol) {
-            case 'supervisor':
-                $opciones = [
-                    'Total'       => "Total ({$filtros[0]['Total']} en total)",
-                    'Activo'     => "Activos ({$filtros[0]['Activo']} en total)",
-                    'Desactivado'  => "Desactivados ({$filtros[0]['Desactivado']} en total)"
-                ];
-                break;
-            default:
-                $opciones = [];
-                break;
-        }
-        return $opciones;
+        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
+
+        return [
+            'Total'       => "Total ({$filtros[0]['Total']} en total)",
+            'Activo'      => "Activos ({$filtros[0]['Activo']} en total)",
+            'Desactivado' => "Desactivados ({$filtros[0]['Desactivado']} en total)",
+        ];
     }
 
-    //Para obtener el número del filtro de la tabla
-    public function numerofiltro($action)
+    /**
+     * Convierte el nombre del filtro en el valor numérico que espera el modelo.
+     *   'Activo'      → 1
+     *   'Desactivado' → 0
+     *   'Total'       → 2  (sin filtro de estado)
+     */
+    public function numerofiltro(string $action): int
     {
-
-        $numerofiltro = 0;
-        switch ($action) {
-            case 'Activo':
-                $numerofiltro = 0;
-                break;
-            case 'Desactivado':
-                $numerofiltro = 1;
-                break;
-            case 'Total':
-                $numerofiltro = 2;
-                break;
-            default:
-                break;
-        }
-        return $numerofiltro;
+        return match ($action) {
+            'Activo'      => 1,
+            'Desactivado' => 0,
+            default       => 2,   // 'Total' o cualquier valor desconocido
+        };
     }
 
-    //Datos filtros GENERAL
-    public function filtros($rol)
+
+    // 
+    // ESTILO DE ESTADO (badge Bootstrap)
+    // 
+
+    public function EstiloEstadoLista(string $estado): string
+    {
+        return match ($estado) {
+            'Activo'      => 'success',
+            'Desactivado' => 'danger',
+            default       => 'info',
+        };
+    }
+
+
+    // 
+    // BOTONES
+    // 
+
+    public function obtenerbotones(string $tipo, ?int $id1 = null): string
+    {
+        return match ($tipo) {
+            'Editar Area' =>
+                '<a href="editar.php?id_area=' . $id1 . '" type="button" class="btn btn-sm btn-warning"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="Editar área de conocimiento">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                        class="bi bi-pencil-square" viewBox="0 0 16 16">
+                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                    </svg>
+                </a>',
+
+            'Detalles' =>
+                '<a href="detalles.php?id_area=' . $id1 . '" type="button" class="btn btn-sm btn-primary"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="Ver detalles del área de conocimiento">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                        class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
+                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
+                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
+                    </svg>
+                </a>',
+
+            'Desactivar' =>
+                '<a href="index.php?id_area=' . $id1 . '&action=desactivar_area" type="button" class="btn btn-sm btn-danger"
+                    data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="Desactivar área de conocimiento">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                        class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                    </svg>
+                </a>',
+
+            default => '',
+        };
+    }
+
+    public function botonesAccionPrincipal(int $id, string $rol, ?string $estado = null): string
+    {
+        if (!$this->esSupervisor($rol)) return '';
+
+        if ($estado === 'Activo') {
+            return $this->obtenerbotones('Editar Area', $id)
+                 . $this->obtenerbotones('Detalles', $id)
+                 . $this->obtenerbotones('Desactivar', $id);
+        }
+
+        if ($estado === 'Desactivado') {
+            return $this->obtenerbotones('Detalles', $id);
+        }
+
+        return '';
+    }
+
+
+    // 
+    // REGISTRAR ÁREA
+    // Acción de formulario POST → redirige con msg.
+    // 
+
+    public function registrarArea(string $rol, array $datos): void
     {
         global $conn;
-        $areaConocimiento = new AreaConocimiento($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $area = $areaConocimiento->obtenerAreasDatosFiltro($rol);
-            return $area;
-        } else {
-            $area = []; // evita undefined variable
-            return $area;
-        }
-    }
-
-    //Datos tabla por filtro
-    //Total
-    public function Total($rol, $buscar = null)
-    {
-        global $conn;
-        $areaConocimiento = new AreaConocimiento($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $areaConocimientos = $areaConocimiento->obtenerAreasTablaFiltro($buscar, 2);
-            return $areaConocimientos;
-        } else {
-            $areaConocimientos = []; // evita undefined variable
-            return $areaConocimientos;
-        }
-    }
-
-    //Activos
-    public function Activo($rol, $buscar = null)
-    {
-        global $conn;
-        $areaConocimiento = new AreaConocimiento($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $areaConocimientos = $areaConocimiento->obtenerAreasTablaFiltro($buscar, 1);
-            return $areaConocimientos;
-        } else {
-            $areaConocimientos = []; // evita undefined variable
-            return $areaConocimientos;
-        }
-    }
-
-    //Desactivados
-    public function Desactivado($rol, $buscar = null)
-    {
-        global $conn;
-        $areaConocimiento = new AreaConocimiento($conn);
-        //Datos filtros
-        if ($rol == "supervisor") {
-            $areaConocimientos = $areaConocimiento->obtenerAreasTablaFiltro($buscar, 0);
-            return $areaConocimientos;
-        } else {
-            $areaConocimientos = []; // evita undefined variable
-            return $areaConocimientos;
-        }
-    }
-
-    public function EstiloEstadoLista($estado)
-    {
-        switch ($estado) {
-
-            case 'Activo':
-                $estilo = "success";
-                break;
-            case 'Desactivado':
-                $estilo = "danger";
-                break;
-            default:
-                $estilo = "info";
-                break;
-        }
-        return $estilo;
-    }
-
-    //BOTONES
-    public function obtenerbotones($tipo, $id1 = null)
-    {
-        $boton = "";
-        switch ($tipo) {
-            case 'Editar Area':
-                $boton = '<a href="editar.php?id_area=' . $id1 . '" type="button" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Editar área de conocimiento"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-</svg></a>';
-                break;
-            case 'Detalles':
-                $boton = '<a href="detalles.php?id_area=' . $id1 . '" type="button" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles del área de conocimiento"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" style="padding:0px;margin:auto;" viewBox="0 0 16 16">
-  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></a>';
-                break;
-            case 'Desactivar':
-                $boton = '
-                <a href="index.php?&id_area=' . $id1 . '&action=desactivar_area" type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
-        data-bs-custom-class="custom-tooltip" data-bs-title="Desactivar área de conocimiento"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-</svg></a>';
-                break;
-            default:
-                break;
-        }
-        return $boton;
-    }
-
-    //Botones de acción en la tabla 
-    public function botonesAccionPrincipal($id, $rol, $estado = null)
-    {
-        $boton = "";
-
-        switch ($rol) {
-
-            case 'supervisor':
-                if (in_array($estado, ["Activo"])) {
-                    $boton = $this->obtenerbotones("Editar Area", $id);
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                    $boton .= $this->obtenerbotones("Desactivar", $id);
-                } elseif ($estado == "Desactivado") {
-                    $boton .= $this->obtenerbotones("Detalles", $id);
-                }
-                break;
-        }
-
-        return $boton;
-    }
-
-    //Crear temática
-    public function registrarArea($rol)
-    {
-        if ($rol != 'supervisor') {
-            die("No tienes permiso para registrar Áreas.");
-        }
-
-        global $conn;
-
-        $nombre = trim($_POST['NombreArea']);
-        $descripcion = trim($_POST['Descripcion']);
-        $subareas = $_POST['subarea'] ?? [];
-
-        $areaConocimiento = new AreaConocimiento($conn);
-
-        // 1️ Insertar temática
-        $id_area = $areaConocimiento->crearAreaCompleta($nombre, $descripcion, $subareas);
-
-        if (!$id_area) {
-            header("Location: crear.php?error=1");
-            exit;
-        }
-
-        header("Location: index.php?mensaje=1");
-        exit;
-    }
-
-    //Editar area y subareas
-    public function editarArea($rol)
-    {
-
-        if ($rol != 'supervisor') {
-            die("No tienes permiso.");
-        }
-
-        global $conn;
-
-        $areaConocimiento = new AreaConocimiento($conn);
-
-
-        $id_area = $_POST['id_area'];
-        $nombre = trim($_POST['NombreArea']);
-        $descripcion = trim($_POST['Descripcion']);
-        $estado = trim($_POST['Estado']);
-
-        $subareas = $_POST['subarea'] ?? [];
-
-        $ids_bd = $areaConocimiento->obtenerIdsSubareas($id_area);
-        $conn->begin_transaction();
-
-
         try {
-            $areaConocimiento->editarArea($nombre, $descripcion, $id_area);
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
 
+            $nombre      = trim($datos['NombreArea']   ?? '');
+            $descripcion = trim($datos['Descripcion']  ?? '');
+            $subareas    = $datos['subarea']            ?? [];
 
-            //Proceso de registrar y actualizar subareas
-
-            $ids_form = [];
-            //Procesar
-            foreach ($subareas as $sub) {
-
-                $id = $sub['id_subarea'] ?? null;
-                $nombre_sub = trim($sub['nombre'] ?? '');
-
-                if ($nombre_sub == '') continue;
-
-                // Validar contra BD
-                $areaConocimiento->comparar_Duplicidad_Subareas($id_area, $nombre_sub, $id);
-
-                if ($id === 'nuevo' || $id === null || $id === '') {
-                    $areaConocimiento->registrarsubarea(intval($id_area), $nombre_sub);
-                } else {
-
-                    $areaConocimiento->editarSubarea($id, $nombre_sub);
-                    $ids_form[] = $id;
-                }
-            }
-            //Proceso de eliminar subareas
-            //Revisa las IDs del formulario y las extraidas de la base de datos para comparar
-            
-            $ids_eliminar = array_diff($ids_bd, $ids_form);
-            if (!empty($ids_eliminar)) {
-                foreach ($ids_eliminar as $id) {
-                    $areaConocimiento->eliminar_subarea($id, 0);
-                }
+            if ($nombre === '') {
+                throw new Exception('error_crear');
             }
 
-            if ($estado == 0) {
-                $areaConocimiento->eliminar_area($id_area, $estado);
+            $conn->begin_transaction();
+            $id_area = (new AreaConocimiento($conn))->crearAreaCompleta($nombre, $descripcion, $subareas);
+
+            if (!$id_area) {
+                throw new Exception('error_crear');
             }
 
             $conn->commit();
-        } catch (Exception $e) {
+            $this->redirigir('exito_crear');
 
+        } catch (mysqli_sql_exception $e) {
             $conn->rollback();
-            die($e->getMessage());
-        }
+            error_log($e->getMessage());
+            $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_crear';
+            $this->redirigir($msg);
 
-        header("Location: index.php?mensaje=1");
-        exit;
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_crear'])
+                ? $e->getMessage()
+                : 'error_crear';
+            $this->redirigir($msg);
+        }
+    }
+
+
+    // 
+    // EDITAR ÁREA Y SUBAREAS
+    // Acción de formulario POST → redirige con msg.
+    // 
+
+    public function editarArea(string $rol, array $datos): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            $id_area     = (int)($datos['id_area']      ?? 0);
+            $nombre      = trim($datos['NombreArea']    ?? '');
+            $descripcion = trim($datos['Descripcion']   ?? '');
+            $estado      = (int)($datos['Estado']       ?? 1);
+            $subareas    = $datos['subarea']             ?? [];
+
+            if (!$id_area || $nombre === '') {
+                throw new Exception('error_editar');
+            }
+
+            $modelo  = new AreaConocimiento($conn);
+            $ids_bd  = $modelo->obtenerIdsSubareas($id_area);
+
+            $conn->begin_transaction();
+
+            // 1. Actualizar datos del área
+            $modelo->editarArea($nombre, $descripcion, $id_area);
+
+            // 2. Registrar / editar subareas
+            $ids_form = [];
+            foreach ($subareas as $sub) {
+                $id_sub      = $sub['id_subarea'] ?? null;
+                $nombre_sub  = trim($sub['nombre'] ?? '');
+
+                if ($nombre_sub === '') continue;
+
+                // Validar duplicidad antes de persistir
+                $modelo->comparar_Duplicidad_Subareas($id_area, $nombre_sub, $id_sub);
+
+                if ($id_sub === 'nuevo' || $id_sub === null || $id_sub === '') {
+                    $modelo->registrarsubarea($id_area, $nombre_sub);
+                } else {
+                    $modelo->editarSubarea((int)$id_sub, $nombre_sub);
+                    $ids_form[] = (int)$id_sub;
+                }
+            }
+
+            // 3. Eliminar subareas que ya no están en el formulario
+            $ids_eliminar = array_diff($ids_bd, $ids_form);
+            foreach ($ids_eliminar as $id_del) {
+                $modelo->eliminar_subarea((int)$id_del, 0);
+            }
+
+            // 4. Desactivar área si el estado indica 0
+            if ($estado === 0) {
+                $modelo->eliminar_area($id_area, 0);
+            }
+
+            $conn->commit();
+            $this->redirigir('exito_editar');
+
+        } catch (mysqli_sql_exception $e) {
+            $conn->rollback();
+            error_log($e->getMessage());
+            $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_editar';
+            $this->redirigir($msg);
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_editar'])
+                ? $e->getMessage()
+                : 'error_editar';
+            $this->redirigir($msg);
+        }
+    }
+
+
+    // 
+    // DESACTIVAR ÁREA
+    // Acción de enlace GET → redirige con msg.
+    // 
+
+    public function desactivarArea(string $rol, int $id_area): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('GET');
+            $this->validarAcceso($rol, ['supervisor']);
+
+            if (!$id_area) {
+                throw new Exception('error_desactivar');
+            }
+
+            $conn->begin_transaction();
+            (new AreaConocimiento($conn))->eliminar_area($id_area, 0);
+            $conn->commit();
+
+            $this->redirigir('exito_desactivar');
+
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->errno === 0) $conn->rollback();
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_desactivar'])
+                ? $e->getMessage()
+                : 'error_desactivar';
+            $this->redirigir($msg);
+        }
     }
 }

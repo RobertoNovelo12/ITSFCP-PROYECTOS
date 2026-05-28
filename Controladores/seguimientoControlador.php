@@ -92,13 +92,13 @@ class SeguimientoControlador
             return array_merge($vacio, ['mensaje' => 'Proyecto no especificado.']);
         }
 
-        $proyecto = $this->modelo->getProyectoPorId($id_usuario, $id_proyecto);
+        $proyecto = $this->modelo->ProyectoPorId($id_usuario, $id_proyecto);
 
         if (!$proyecto) {
             return array_merge($vacio, ['mensaje' => 'No tienes acceso a este proyecto.']);
         }
 
-        $etapas      = $this->modelo->getEtapasPorProyecto($id_proyecto, $id_usuario);
+        $etapas      = $this->modelo->EtapasPorProyecto($id_proyecto, $id_usuario);
         $completadas = array_filter($etapas, fn($e) => $e['estado'] === 'completado');
         $total       = count($etapas);
 
@@ -167,7 +167,7 @@ class SeguimientoControlador
             $this->modelo->actualizarEstadoEstudiante($id_seguimiento, 'proceso');
         }
 
-        $id_etapa = $this->modelo->getIdEtapaPorTipoDocumento($id_tipo_documento);
+        $id_etapa = $this->modelo->IdEtapaPorTipoDocumento($id_tipo_documento);
 
         $ok = $this->modelo->registrarDocumentoCentralizado(
             $id_seguimiento,
@@ -254,7 +254,7 @@ class SeguimientoControlador
             $this->json(['ok' => false, 'msg' => 'No hay supervisor asignado al proyecto. Contacta al administrador.'], 500);
         }
 
-        $cierre_previo = $this->modelo->getCierreEstudiante($id_proyecto, $id_usuario);
+        $cierre_previo = $this->modelo->CierreEstudiante($id_proyecto, $id_usuario);
 
         $id_documento = $this->modelo->registrarDocumentoCarta(
             $nombreDisplay,
@@ -319,7 +319,7 @@ class SeguimientoControlador
         }
 
         // Verificar que el cierre pertenece al estudiante
-        $cierre = $this->modelo->getCierrePorId($id_cierre_est);
+        $cierre = $this->modelo->CierrePorId($id_cierre_est);
         if (!$cierre || (int)$cierre['id_usuarios'] !== $id_usuario) {
             $this->json(['ok' => false, 'msg' => 'No tienes acceso a este registro.'], 403);
         }
@@ -442,7 +442,7 @@ class SeguimientoControlador
         elseif ($aprobadas > 0) $e2_estado = 'proceso';
         else                    $e2_estado = 'pendiente';
 
-        $cierre = $this->modelo->getCierreEstudiante($id_proyecto, $id_estudiante);
+        $cierre = $this->modelo->CierreEstudiante($id_proyecto, $id_estudiante);
         $e3_estado = !$cierre ? 'pendiente' : match ($cierre['estado']) {
             'pendiente'              => 'finalizacion_pendiente',
             'finalizacion_pendiente' => 'finalizacion_pendiente',

@@ -1,252 +1,248 @@
 <?php
+// Modelos/solicitudActualizacion.php
+
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseModelo.php';
 
-class SolicitudActualizacion
+class SolicitudActualizacion extends BaseModelo
 {
-    private $con;
+    // ─
+    //  FILTROS / CONTEOS
+    // ─
 
-    public function __construct($conn)
+    public function conteosFiltros(): array
     {
-        $this->con = $conn;
+        return $this->ejecutar(
+            "SELECT
+                COUNT(*) AS Total,
+                SUM(CASE WHEN estado = 'pendiente'  THEN 1 ELSE 0 END) AS Pendiente,
+                SUM(CASE WHEN estado = 'aprobado'   THEN 1 ELSE 0 END) AS Aprobado,
+                SUM(CASE WHEN estado = 'rechazado'  THEN 1 ELSE 0 END) AS Rechazado
+             FROM solicitudes_actualizacion",
+            '',
+            [],
+            false
+        );
     }
 
-    // 
-    //  SOLICITUDES PARA SUPERVISOR
-    // 
+    // ─
+    //  WHERE DINÁMICO (reutilizable)
+    // ─
 
-    public function conteosFiltros()
+    private function construirWhere(?string $estado, ?string $buscar, ?string $tipo): array
     {
-        $sql = "SELECT
-                    COUNT(*)                                                         AS Total,
-                    SUM(CASE WHEN estado = 'pendiente'  THEN 1 ELSE 0 END)          AS Pendiente,
-                    SUM(CASE WHEN estado = 'aprobado'   THEN 1 ELSE 0 END)          AS Aprobado,
-                    SUM(CASE WHEN estado = 'rechazado'  THEN 1 ELSE 0 END)          AS Rechazado
-                FROM solicitudes_actualizacion";
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) die("Error prepare conteos: " . $this->con->error);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
-    }
-
-    public function obtenerCantidadSolicitudes($estado = null, $buscar = null, $tipo = null)
-    {
+        $cond   = [];
         $params = [];
-        $types  = "";
-        $where  = [];
-
-        $sql = "SELECT COUNT(*) AS total
-                FROM solicitudes_actualizacion s
-                INNER JOIN usuarios u ON u.id_usuarios = s.id_usuarios";
+        $types  = '';
 
         if (!empty($estado)) {
-            $where[] = "s.estado = ?";
+            $cond[]   = 's.estado = ?';
             $params[] = $estado;
-            $types   .= "s";
+            $types   .= 's';
         }
         if (!empty($buscar)) {
-            $where[] = "(u.nombre LIKE ? OR u.apellido_paterno LIKE ? OR u.apellido_materno LIKE ?)";
+            $cond[]   = '(u.nombre LIKE ? OR u.apellido_paterno LIKE ? OR u.apellido_materno LIKE ?)';
             $like     = "%$buscar%";
-            $params[] = $like; $params[] = $like; $params[] = $like;
-            $types   .= "sss";
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+            $types   .= 'sss';
         }
         if (!empty($tipo)) {
-            $where[] = "s.tipo = ?";
+            $cond[]   = 's.tipo = ?';
             $params[] = $tipo;
-            $types   .= "s";
+            $types   .= 's';
         }
-        if (!empty($where)) $sql .= " WHERE " . implode(" AND ", $where);
 
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) die("Error prepare count solicitudes: " . $this->con->error);
-        if (!empty($types)) $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        return (int)$stmt->get_result()->fetch_assoc()['total'];
+        $where = !empty($cond) ? 'WHERE ' . implode(' AND ', $cond) : '';
+        return [$where, $params, $types];
     }
 
-    public function obtenerSolicitudes($estado = null, $buscar = null, $tipo = null)
+    // ─
+    //  LISTADO PAGINADO
+    // ─
+
+    private function obtenerCantidadSolicitudes(?string $estado, ?string $buscar, ?string $tipo): int
+    {
+        [$where, $params, $types] = $this->construirWhere($estado, $buscar, $tipo);
+
+        $row = $this->ejecutar(
+            "SELECT COUNT(*) AS total
+             FROM solicitudes_actualizacion s
+             INNER JOIN usuarios u ON u.id_usuarios = s.id_usuarios
+             $where",
+            $types,
+            $params,
+            false
+        );
+
+        return (int)($row['total'] ?? 0);
+    }
+
+    public function obtenerSolicitudes(?string $estado = null, ?string $buscar = null, ?string $tipo = null): string
     {
         $por_pagina    = 8;
-        $pagina        = max(1, intval($_GET['pagina'] ?? 1));
+        $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
         $desde         = ($pagina - 1) * $por_pagina;
         $total         = $this->obtenerCantidadSolicitudes($estado, $buscar, $tipo);
-        $total_paginas = max(1, ceil($total / $por_pagina));
+        $total_paginas = max(1, (int)ceil($total / $por_pagina));
 
-        $params = [];
-        $types  = "";
-        $where  = [];
+        [$where, $params, $types] = $this->construirWhere($estado, $buscar, $tipo);
 
-        $sql = "SELECT
-                    s.id_solicitudes_actualizacion,
-                    s.tipo,
-                    s.estado,
-                    s.fecha_solicitud,
-                    s.fecha_respuesta,
-                    CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) AS investigador,
-                    u.correo_institucional,
-                    CASE s.tipo
-                        WHEN 'sni'   THEN ns.nombre
-                        WHEN 'grado' THEN ga.nombre
-                    END AS valor_nuevo_nombre,
-                    CASE s.tipo
-                        WHEN 'sni'   THEN ns_act.nombre
-                        WHEN 'grado' THEN ga_act.nombre
-                    END AS valor_actual_nombre,
-                    d.nombre_archivo,
-                    d.ruta
-                FROM solicitudes_actualizacion s
-                INNER JOIN usuarios u ON u.id_usuarios = s.id_usuarios
-                LEFT JOIN  documentos_subidos d  ON d.id_documento  = s.id_documento
-                LEFT JOIN  niveles_sni      ns     ON ns.id_nivel    = s.valor_nuevo_id   AND s.tipo = 'sni'
-                LEFT JOIN  niveles_sni      ns_act ON ns_act.id_nivel = s.valor_actual_id AND s.tipo = 'sni'
-                LEFT JOIN  grados_academicos ga    ON ga.id_grado    = s.valor_nuevo_id   AND s.tipo = 'grado'
-                LEFT JOIN  grados_academicos ga_act ON ga_act.id_grado = s.valor_actual_id AND s.tipo = 'grado'";
+        $params[] = $desde;
+        $params[] = $por_pagina;
+        $types   .= 'ii';
 
-        if (!empty($estado)) {
-            $where[] = "s.estado = ?"; $params[] = $estado; $types .= "s";
-        }
-        if (!empty($buscar)) {
-            $where[] = "(u.nombre LIKE ? OR u.apellido_paterno LIKE ? OR u.apellido_materno LIKE ?)";
-            $like = "%$buscar%";
-            $params[] = $like; $params[] = $like; $params[] = $like;
-            $types .= "sss";
-        }
-        if (!empty($tipo)) {
-            $where[] = "s.tipo = ?"; $params[] = $tipo; $types .= "s";
-        }
-        if (!empty($where)) $sql .= " WHERE " . implode(" AND ", $where);
-        $sql .= " ORDER BY s.fecha_solicitud DESC LIMIT ?, ?";
-        $params[] = $desde; $params[] = $por_pagina; $types .= "ii";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) die("Error prepare solicitudes: " . $this->con->error);
-        $stmt->bind_param($types, ...$params);
-        if (!$stmt->execute()) die("Error execute solicitudes: " . $stmt->error);
+        $data = $this->ejecutar(
+            "SELECT
+                s.id_solicitudes_actualizacion,
+                s.tipo,
+                s.estado,
+                s.fecha_solicitud,
+                s.fecha_respuesta,
+                CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) AS investigador,
+                u.correo_institucional,
+                CASE s.tipo
+                    WHEN 'sni'   THEN ns.nombre
+                    WHEN 'grado' THEN ga.nombre
+                END AS valor_nuevo_nombre,
+                CASE s.tipo
+                    WHEN 'sni'   THEN ns_act.nombre
+                    WHEN 'grado' THEN ga_act.nombre
+                END AS valor_actual_nombre,
+                d.nombre_archivo,
+                d.ruta
+             FROM solicitudes_actualizacion s
+             INNER JOIN usuarios u        ON u.id_usuarios    = s.id_usuarios
+             LEFT JOIN  documentos_subidos d  ON d.id_documento  = s.id_documento
+             LEFT JOIN  niveles_sni      ns     ON ns.id_nivel    = s.valor_nuevo_id   AND s.tipo = 'sni'
+             LEFT JOIN  niveles_sni      ns_act ON ns_act.id_nivel = s.valor_actual_id AND s.tipo = 'sni'
+             LEFT JOIN  grados_academicos ga    ON ga.id_grado    = s.valor_nuevo_id   AND s.tipo = 'grado'
+             LEFT JOIN  grados_academicos ga_act ON ga_act.id_grado = s.valor_actual_id AND s.tipo = 'grado'
+             $where
+             ORDER BY s.fecha_solicitud DESC
+             LIMIT ?, ?",
+            $types,
+            $params
+        );
 
         return json_encode([
-            'solicitudes' => $stmt->get_result()->fetch_all(MYSQLI_ASSOC),
-            'paginacion'  => [
-                'total'        => $total,
-                'por_pagina'   => $por_pagina,
-                'pagina'       => $pagina,
-                'total_paginas'=> $total_paginas,
-            ],
+            'solicitudes' => $data,
+            'paginacion'  => compact('total', 'por_pagina', 'pagina', 'total_paginas'),
         ]);
     }
 
-    // 
-    //  DETALLE DE UNA SOLICITUD (supervisor)
-    // 
+    // ─
+    //  DETALLE
+    // ─
 
-    public function obtenerDetalle($id_solicitud)
+    public function obtenerDetalle(int $id_solicitud): ?array
     {
-        $sql = "SELECT
-                    s.*,
-                    CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) AS investigador,
-                    u.correo_institucional,
-                    CASE s.tipo
-                        WHEN 'sni'   THEN ns.nombre
-                        WHEN 'grado' THEN ga.nombre
-                    END AS valor_nuevo_nombre,
-                    CASE s.tipo
-                        WHEN 'sni'   THEN ns_act.nombre
-                        WHEN 'grado' THEN ga_act.nombre
-                    END AS valor_actual_nombre,
-                    d.nombre_archivo,
-                    d.ruta,
-                    d.nombre AS doc_nombre,
-                    CONCAT(rev.nombre,' ',rev.apellido_paterno) AS revisado_por_nombre
-                FROM solicitudes_actualizacion s
-                INNER JOIN usuarios u ON u.id_usuarios = s.id_usuarios
-                LEFT JOIN  documentos_subidos  d    ON d.id_documento   = s.id_documento
-                LEFT JOIN  niveles_sni         ns   ON ns.id_nivel       = s.valor_nuevo_id  AND s.tipo = 'sni'
-                LEFT JOIN  niveles_sni      ns_act  ON ns_act.id_nivel   = s.valor_actual_id AND s.tipo = 'sni'
-                LEFT JOIN  grados_academicos   ga   ON ga.id_grado       = s.valor_nuevo_id  AND s.tipo = 'grado'
-                LEFT JOIN  grados_academicos ga_act ON ga_act.id_grado   = s.valor_actual_id AND s.tipo = 'grado'
-                LEFT JOIN  usuarios rev ON rev.id_usuarios = s.id_usuarios
-                WHERE s.id_solicitudes_actualizacion = ?";
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) die("Error prepare detalle: " . $this->con->error);
-        $stmt->bind_param("i", $id_solicitud);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
+        return $this->ejecutar(
+            "SELECT
+                s.*,
+                CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) AS investigador,
+                u.correo_institucional,
+                CASE s.tipo
+                    WHEN 'sni'   THEN ns.nombre
+                    WHEN 'grado' THEN ga.nombre
+                END AS valor_nuevo_nombre,
+                CASE s.tipo
+                    WHEN 'sni'   THEN ns_act.nombre
+                    WHEN 'grado' THEN ga_act.nombre
+                END AS valor_actual_nombre,
+                d.nombre_archivo,
+                d.ruta,
+                d.nombre AS doc_nombre,
+                CONCAT(rev.nombre,' ',rev.apellido_paterno) AS revisado_por_nombre
+             FROM solicitudes_actualizacion s
+             INNER JOIN usuarios u ON u.id_usuarios = s.id_usuarios
+             LEFT JOIN  documentos_subidos  d    ON d.id_documento   = s.id_documento
+             LEFT JOIN  niveles_sni         ns   ON ns.id_nivel       = s.valor_nuevo_id  AND s.tipo = 'sni'
+             LEFT JOIN  niveles_sni      ns_act  ON ns_act.id_nivel   = s.valor_actual_id AND s.tipo = 'sni'
+             LEFT JOIN  grados_academicos   ga   ON ga.id_grado       = s.valor_nuevo_id  AND s.tipo = 'grado'
+             LEFT JOIN  grados_academicos ga_act ON ga_act.id_grado   = s.valor_actual_id AND s.tipo = 'grado'
+             LEFT JOIN  usuarios rev ON rev.id_usuarios = s.id_usuarios
+             WHERE s.id_solicitudes_actualizacion = ?",
+            'i',
+            [$id_solicitud],
+            false
+        ) ?: null;
     }
 
-    // 
-    //  HISTORIAL DE UNA SOLICITUD (para detalles supervisor)
-    // 
+    // ─
+    //  HISTORIAL
+    // ─
 
-    public function historialDeSolicitud($id_solicitud)
+    public function historialDeSolicitud(int $id_solicitud): array
     {
-        $sql = "SELECT
-                    h.estado_anterior,
-                    h.estado_nuevo,
-                    h.comentario,
-                    h.fecha,
-                    CONCAT(u.nombre,' ',u.apellido_paterno) AS usuario_accion
-                FROM historial_solicitudes_actualizacion h
-                LEFT JOIN usuarios u ON u.id_usuarios = h.id_usuario_accion
-                WHERE h.id_solicitudes_actualizacion = ?
-                ORDER BY h.fecha DESC";
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) die("Error prepare historial solicitud: " . $this->con->error);
-        $stmt->bind_param("i", $id_solicitud);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $this->ejecutar(
+            "SELECT
+                h.estado_anterior,
+                h.estado_nuevo,
+                h.comentario,
+                h.fecha,
+                CONCAT(u.nombre,' ',u.apellido_paterno) AS usuario_accion
+             FROM historial_solicitudes_actualizacion h
+             LEFT JOIN usuarios u ON u.id_usuarios = h.id_usuario_accion
+             WHERE h.id_solicitudes_actualizacion = ?
+             ORDER BY h.fecha DESC",
+            'i',
+            [$id_solicitud]
+        );
     }
 
-    // 
-    //  APROBAR SOLICITUD (supervisor) — TRANSACCIONAL
-    // 
+    // ─
+    //  APROBAR (transaccional)
+    // ─
 
-    public function aprobarSolicitud($id_solicitud, $id_supervisor)
+    public function aprobarSolicitud(int $id_solicitud, int $id_supervisor): array
     {
-        // Verificar que la solicitud existe y está pendiente
         $detalle = $this->obtenerDetalle($id_solicitud);
         if (empty($detalle) || $detalle['estado'] !== 'pendiente') {
             return ['ok' => false, 'msg' => 'La solicitud ya no está pendiente.'];
         }
 
-        $id_usuario    = (int)$detalle['id_usuarios'];
-        $tipo          = $detalle['tipo'];
-        $valor_nuevo   = (int)$detalle['valor_nuevo_id'];
+        $id_usuario  = (int)$detalle['id_usuarios'];
+        $tipo        = $detalle['tipo'];
+        $valor_nuevo = (int)$detalle['valor_nuevo_id'];
 
-        $this->con->begin_transaction();
+        $this->conn->begin_transaction();
         try {
             // 1. Actualizar investigador
-            if ($tipo === 'sni') {
-                $sqlUpd = "UPDATE investigadores SET id_nivel_sni = ? WHERE id_usuarios = ?";
-            } else {
-                $sqlUpd = "UPDATE investigadores SET id_grado = ? WHERE id_usuarios = ?";
-            }
-            $stmt = $this->con->prepare($sqlUpd);
-            $stmt->bind_param("ii", $valor_nuevo, $id_usuario);
-            if (!$stmt->execute()) throw new Exception("Error actualizando investigador: " . $stmt->error);
+            $campo = ($tipo === 'sni') ? 'id_nivel_sni' : 'id_grado';
+            $this->ejecutar(
+                "UPDATE investigadores SET {$campo} = ? WHERE id_usuarios = ?",
+                'ii',
+                [$valor_nuevo, $id_usuario]
+            );
 
             // 2. Actualizar solicitud
-            $sqlSol = "UPDATE solicitudes_actualizacion
-                       SET estado = 'aprobado', id_usuarios = ?, fecha_respuesta = NOW()
-                       WHERE id_solicitudes_actualizacion = ? AND estado = 'pendiente'";
-            $stmt2 = $this->con->prepare($sqlSol);
-            $stmt2->bind_param("ii", $id_supervisor, $id_solicitud);
-            if (!$stmt2->execute() || $stmt2->affected_rows === 0)
-                throw new Exception("Error actualizando solicitud.");
+            $this->ejecutar(
+                "UPDATE solicitudes_actualizacion
+                 SET estado = 'aprobado', id_usuarios = ?, fecha_respuesta = NOW()
+                 WHERE id_solicitudes_actualizacion = ? AND estado = 'pendiente'",
+                'ii',
+                [$id_supervisor, $id_solicitud]
+            );
 
             // 3. Historial
             $this->insertarHistorial($id_solicitud, $id_supervisor, 'pendiente', 'aprobado', 'Validado y aprobado por supervisor.');
 
-            $this->con->commit();
+            $this->conn->commit();
             return ['ok' => true, 'msg' => 'Solicitud aprobada correctamente.'];
-        } catch (Exception $e) {
-            $this->con->rollback();
+
+        } catch (\Exception $e) {
+            $this->conn->rollback();
             return ['ok' => false, 'msg' => $e->getMessage()];
         }
     }
 
-    // 
-    //  RECHAZAR SOLICITUD (supervisor)
-    // 
+    // ─
+    //  RECHAZAR (transaccional)
+    // ─
 
-    public function rechazarSolicitud($id_solicitud, $id_supervisor, $comentario)
+    public function rechazarSolicitud(int $id_solicitud, int $id_supervisor, string $comentario): array
     {
         $comentario = trim($comentario);
         if (empty($comentario)) {
@@ -258,51 +254,58 @@ class SolicitudActualizacion
             return ['ok' => false, 'msg' => 'La solicitud ya no está pendiente.'];
         }
 
-        $this->con->begin_transaction();
+        $this->conn->begin_transaction();
         try {
-            $sqlSol = "UPDATE solicitudes_actualizacion
-                       SET estado = 'rechazado', revisado_por = ?, fecha_respuesta = NOW()
-                       WHERE id_solicitudes_actualizacion = ? AND estado = 'pendiente'";
-            $stmt = $this->con->prepare($sqlSol);
-            $stmt->bind_param("ii", $id_supervisor, $id_solicitud);
-            if (!$stmt->execute() || $stmt->affected_rows === 0)
-                throw new Exception("Error rechazando solicitud.");
+            $this->ejecutar(
+                "UPDATE solicitudes_actualizacion
+                 SET estado = 'rechazado', revisado_por = ?, fecha_respuesta = NOW()
+                 WHERE id_solicitudes_actualizacion = ? AND estado = 'pendiente'",
+                'ii',
+                [$id_supervisor, $id_solicitud]
+            );
 
             $this->insertarHistorial($id_solicitud, $id_supervisor, 'pendiente', 'rechazado', $comentario);
 
-            $this->con->commit();
+            $this->conn->commit();
             return ['ok' => true, 'msg' => 'Solicitud rechazada.', 'detalle' => $detalle];
-        } catch (Exception $e) {
-            $this->con->rollback();
+
+        } catch (\Exception $e) {
+            $this->conn->rollback();
             return ['ok' => false, 'msg' => $e->getMessage()];
         }
     }
 
-    // 
-    //  HELPER: INSERTAR EN HISTORIAL
-    // 
+    // ─
+    //  HELPER: HISTORIAL
+    // ─
 
-    private function insertarHistorial($id_solicitud, $id_usuario_accion, $estado_anterior, $estado_nuevo, $comentario)
-    {
-        $sql = "INSERT INTO historial_solicitudes_actualizacion
-                    (id_solicitudes_actualizacion, id_usuario_accion, estado_anterior, estado_nuevo, comentario)
-                VALUES (?, ?, ?, ?, ?)";
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) die("Error prepare historial: " . $this->con->error);
-        $stmt->bind_param("iisss", $id_solicitud, $id_usuario_accion, $estado_anterior, $estado_nuevo, $comentario);
-        $stmt->execute();
+    private function insertarHistorial(
+        int    $id_solicitud,
+        int    $id_usuario_accion,
+        string $estado_anterior,
+        string $estado_nuevo,
+        string $comentario
+    ): void {
+        $this->ejecutar(
+            "INSERT INTO historial_solicitudes_actualizacion
+                (id_solicitudes_actualizacion, id_usuario_accion, estado_anterior, estado_nuevo, comentario)
+             VALUES (?, ?, ?, ?, ?)",
+            'iisss',
+            [$id_solicitud, $id_usuario_accion, $estado_anterior, $estado_nuevo, $comentario]
+        );
     }
 
-    // 
+    // ─
     //  DATOS DE CORREO
-    // 
+    // ─
 
-    public function obtenerCorreoInvestigador($id_usuario)
+    public function obtenerCorreoInvestigador(int $id_usuario): ?array
     {
-        $sql  = "SELECT correo_institucional, nombre, apellido_paterno FROM usuarios WHERE id_usuarios = ?";
-        $stmt = $this->con->prepare($sql);
-        $stmt->bind_param("i", $id_usuario);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
+        return $this->ejecutar(
+            'SELECT correo_institucional, nombre, apellido_paterno FROM usuarios WHERE id_usuarios = ?',
+            'i',
+            [$id_usuario],
+            false
+        ) ?: null;
     }
 }

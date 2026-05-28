@@ -13,7 +13,7 @@ class TareaControlador
             $tareas = new Tarea($conn);
             if (in_array($rol, ['investigador', 'estudiante', 'supervisor'])) {
                 $tareas->actualizarTareasVencidos();
-                $tareas->actualizarTareasConcluidas();        // ← NUEVO
+                $tareas->actualizarTareasConcluidas();
                 return $tareas->obtenerTareas($id_proyecto, $id_usuario, $rol);
             }
             return [];
@@ -26,12 +26,13 @@ class TareaControlador
     public function index_Lista($id_tarea, $rol)
     {
         global $conn;
+        $id_usuario = intval($_SESSION['id_usuario']);
         try {
             $tarea = new Tarea($conn);
             if (in_array($rol, ['investigador', 'estudiante', 'supervisor'])) {
                 $tarea->actualizarTareasVencidos();
                 $tarea->actualizarTareasConcluidas((int) $id_tarea);  // ← NUEVO, solo esa tarea
-                return $tarea->obtenerTareasLista($id_tarea, $rol);
+                return $tarea->obtenerTareasLista($id_tarea, $rol, $id_usuario);
             }
             return [];
         } catch (Exception $e) {
@@ -761,14 +762,14 @@ class TareaControlador
     }
 
     //  MOSTRAR TAREA GENERAL (editar/detalles)
-    public function mostrarEditarTarea($id_tarea, $rol)
+    public function mostrarEditarTarea($id_tarea, $rol, $id_usuario)
     {
         global $conn;
         try {
             $tareas = new Tarea($conn);
             if (in_array($rol, ['investigador', 'supervisor'])) {
                 $tareas->actualizarTareasVencidos();
-                return $tareas->obtenerTareaGeneral($id_tarea);
+                return $tareas->obtenerTareaGeneral($id_tarea, $rol, $id_usuario);
             }
             return [];
         } catch (Exception $e) {
@@ -777,14 +778,14 @@ class TareaControlador
         }
     }
 
-    public function mostrarTarea($id_asignacion, $rol)
+    public function mostrarTarea($id_asignacion, $rol, $id_usuario)
     {
         global $conn;
         try {
             $tareas = new Tarea($conn);
             if (in_array($rol, ['investigador', 'estudiante', 'supervisor'])) {
                 $tareas->actualizarTareasVencidos();
-                $datos = $tareas->obtenerTareaAlumno($id_asignacion);
+                $datos = $tareas->obtenerTareaAlumno($id_asignacion, $id_usuario);
                 if (!is_array($datos) || empty($datos)) $datos = [];
                 return array_merge([
                     "id_tarea"           => null,

@@ -1,684 +1,331 @@
 <?php
+// Modelos/lineaInvestigacion.php
+
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseModelo.php';
 
-class Linea
+class Linea extends BaseModelo
 {
-    private $con;
 
-    public function __construct($conn)
+    // ─
+    // FILTROS / CONTEOS
+    // ─
+
+    public function obtenerDatosFiltro(string $rol): array
     {
-        $this->con = $conn;
-    }
-    /**
-     * Obtiene datos para filtros (totales, activos, terminados)
-     */
-    public function obtenerDatosFiltro($rol): array
-    {
-        if ($rol !== 'supervisor') {
-            return [];
-        }
+        if ($rol !== 'supervisor') return [];
 
-        $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
-                    COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
-                FROM lineas_investigacion";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerDatosFiltro): " . $this->con->error);
-        }
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerDatosFiltro): " . $stmt->error);
-        }
-
-        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close(); // liberar recurso
-
-        return $resultado;
+        return $this->ejecutar(
+            "SELECT
+                COUNT(*) AS Total,
+                COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
+                COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
+             FROM lineas_investigacion"
+        );
     }
 
-    /**
-     * Método base para construir WHERE dinámico (REUTILIZABLE)
-     */
-    private function construirWhere(&$params, &$types, $buscar, $filtro): string
+    /** Construye la cláusula WHERE dinámica reutilizable. */
+    private function construirWhere(array &$params, string &$types, ?string $buscar, int $filtro): string
     {
-        //$where = ["estado = 1"];
-
         $where = [];
-        // Filtro lógico
-        if ($filtro == 0) {
-            $where[] = "estado = 0";
-        }
-        if ($filtro == 1) {
-            $where[] = "estado = 1";
-        } elseif ($filtro == 2) {
-            $where[] = "estado IN (0,1)";
+
+        if ($filtro === 0) {
+            $where[] = 'estado = 0';
+        } elseif ($filtro === 1) {
+            $where[] = 'estado = 1';
+        } else {
+            $where[] = 'estado IN (0, 1)';
         }
 
-        // Búsqueda
         if (!empty($buscar)) {
-            $where[] = "(nombre LIKE ? OR descripcion LIKE ? OR fecha_creacion LIKE ?)";
+            $where[]  = '(nombre LIKE ? OR descripcion LIKE ? OR fecha_creacion LIKE ?)';
             $params[] = "%$buscar%";
             $params[] = "%$buscar%";
             $params[] = "%$buscar%";
-            $types .= "sss";
+            $types   .= 'sss';
         }
 
-        return " WHERE " . implode(" AND ", $where);
+        return ' WHERE ' . implode(' AND ', $where);
     }
 
-    /**
-     * Obtiene tabla principal con paginación
-     */
-    public function obtenerTablaFiltro($buscar, $filtro): array
+    // ─
+    // TABLA PRINCIPAL CON PAGINACIÓN
+    // ─
+
+    public function obtenerTablaFiltro(?string $buscar, int $filtro): array
     {
-        /**
-         * Evitamos dependencia directa de $_GET
-         */
-        $pagina = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
         $por_pagina = 6;
-        $desde = ($pagina - 1) * $por_pagina;
+        $pagina     = max(1, (int)($_GET['pagina'] ?? 1));
+        $desde      = ($pagina - 1) * $por_pagina;
+
+        $total         = $this->obtenerCantidadLinea($buscar, $filtro);
+        $total_paginas = max(1, (int)ceil($total / $por_pagina));
 
         $params = [];
-        $types = "";
+        $types  = '';
 
-        // Total optimizado
-        $total = $this->obtenerCantidadLinea($buscar, $filtro);
-        $total_paginas = ($total > 0) ? ceil($total / $por_pagina) : 1;
-
-        $sql = "SELECT 
+        $sql = "SELECT
                     id_linea,
                     nombre,
                     descripcion,
                     fecha_creacion AS crear,
-                    CASE 
-                        WHEN estado = 1 THEN 'Activo'        
+                    CASE
+                        WHEN estado = 1 THEN 'Activo'
                         WHEN estado = 0 THEN 'Desactivado'
                         ELSE 'Desconocido'
                     END AS estados
                 FROM lineas_investigacion";
 
-        $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
-
-        /**
-         * - Evitar inyección (LIMIT seguro con enteros)
-         */
-        $sql .= " ORDER BY id_linea ASC LIMIT ?, ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerTablaFiltro): " . $this->con->error);
-        }
-
-        // Agregar paginación como enteros
+        $sql     .= $this->construirWhere($params, $types, $buscar, $filtro);
+        $sql     .= ' ORDER BY id_linea ASC LIMIT ?, ?';
         $params[] = $desde;
         $params[] = $por_pagina;
-        $types .= "ii";
+        $types   .= 'ii';
 
-        $stmt->bind_param($types, ...$params);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerTablaFiltro): " . $stmt->error);
-        }
-
-        $data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close(); // liberar recurso
+        $data = $this->ejecutar($sql, $types, $params);
 
         return [
-            "linea" => $data,
-            "paginacion" => [
-                "total" => $total,
-                "por_pagina" => $por_pagina,
-                "pagina" => $pagina,
-                "total_paginas" => $total_paginas
-            ]
+            'linea'      => $data,
+            'paginacion' => [
+                'total'         => $total,
+                'por_pagina'    => $por_pagina,
+                'pagina'        => $pagina,
+                'total_paginas' => $total_paginas,
+            ],
         ];
     }
 
-    /**
-     * Obtiene total de registros con filtros
-     */
-    public function obtenerCantidadLinea($buscar = null, $filtro = 2): int
+    public function obtenerCantidadLinea(?string $buscar = null, int $filtro = 2): int
     {
         $params = [];
-        $types = "";
+        $types  = '';
+        $sql    = 'SELECT COUNT(*) AS total FROM lineas_investigacion';
+        $sql   .= $this->construirWhere($params, $types, $buscar, $filtro);
 
-        $sql = "SELECT COUNT(*) AS total FROM lineas_investigacion";
-        $sql .= $this->construirWhere($params, $types, $buscar, $filtro);
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerCantidadLinea): " . $this->con->error);
-        }
-
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerCantidadLinea): " . $stmt->error);
-        }
-
-        $resultado = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close();
-
+        $resultado = $this->ejecutar($sql, $types, $params, false);
         return (int)($resultado['total'] ?? 0);
     }
 
-    /**
-     * Obtiene datos para edición
-     */
-    public function obtenerEditar($id_linea): array
+    // ─
+    // OBTENER REGISTRO
+    // ─
+
+    public function obtenerEditar(int $id_linea): array
     {
-        $sql = "SELECT 
-                    id_linea, 
-                    nombre,
-                    descripcion,                    
-                    CASE 
-                        WHEN estado = 1 THEN 'Activo'
-                        WHEN estado = 0 THEN 'Desactivado'
-                        ELSE 'Desconocido'
-                    END AS estado
-                FROM lineas_investigacion
-                WHERE id_linea = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerEditar): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_linea);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerEditar): " . $stmt->error);
-        }
-
-        $linea = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close();
-
-        if (!$linea) {
-            throw new Exception("Línea de investigación no encontrada");
-        }
-
-        return $linea;
-    }
-
-    /**
-     * Obtiene datos para vista de detalles
-     */
-    public function obtenerDetalles($id_periodos): array
-    {
-        $sql = "SELECT 
-                    id_linea, 
-                    nombre,
-                    descripcion, 
-                    fecha_creacion, 
-                    fecha_modificacion,
-                    CASE 
-                        WHEN estado = 1 THEN 'Activo'
-                        WHEN estado = 0 THEN 'Desactivado'
-                        ELSE 'Desconocido'
-                    END AS estado
-                FROM lineas_investigacion
-                WHERE id_linea = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerDetalles): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_periodos);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerDetalles): " . $stmt->error);
-        }
-
-        $periodo = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close();
-
-        if (!$periodo) {
-            throw new Exception("Línea de investigación no encontrada");
-        }
-
-        return $periodo;
-    }
-
-    //Crea Línea de investigación
-    /**
-     * Registra una nueva línea de investigación.
-     * 
-     * REGLAS:
-     * - Se crea siempre como activo
-     * - No debe solaparse con otro activo
-     * - No debe duplicar nombre activo
-     * 
-     * IMPORTANTE:
-     * Este método DEBE ejecutarse dentro de una transacción desde el controlador.
-     *
-     * @param string $nombre
-     * @param string $descripcion
-     * @return int ID insertado
-     * @throws Exception
-     */
-    public function registrarLinea(string $nombre, string $descripcion): int
-    {
-
-        $validacion = $this->verificarLinea($nombre);
-
-        if ($validacion['activo']) {
-            throw new Exception("Conflicto: ya existe una línea de investigación activa con ese nombre.");
-        }
-
-
-        $sql = "INSERT INTO lineas_investigacion 
-            (nombre, descripcion, estado, fecha_creacion) 
-            VALUES (?, ?, 1, NOW())";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (registrarLinea): " . $this->con->error);
-        }
-
-        $stmt->bind_param("ss", $nombre, $descripcion);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (registrarLinea): " . $stmt->error);
-        }
-
-        $id = $stmt->insert_id;
-
-        $stmt->close(); // liberar recurso
-
-        return $id;
-    }
-
-        //Editar Línea de investigación
-    /**
-     * Editar una nueva línea de investigación.
-     * 
-     * REGLAS:
-     * - Se edita siempre como activo
-     * - No debe solaparse con otro activo
-     * - No debe duplicar nombre activo
-     * 
-     * IMPORTANTE:
-     * Este método DEBE ejecutarse dentro de una transacción desde el controlador.
-     *
-     * @param string $nombre
-     * @param string $descripcion
-     * @return int ID insertado
-     * @throws Exception
-     */
-    public function editarLinea(string $nombre, string $descripcion, int $id_linea): int
-    {
-
-        $sql = "UPDATE lineas_investigacion SET nombre = ?, descripcion = ?, fecha_modificacion = NOW() WHERE id_linea = ?";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (editarLinea): " . $this->con->error);
-        }
-
-        $stmt->bind_param("ssi", $nombre, $descripcion, $id_linea);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (editarLinea): " . $stmt->error);
-        }
-
-        $stmt->close(); // liberar recurso
-
-        return $id_linea;
-    }
-
-
-    /**
-     * Reactiva una línea de investigación previamente desactivado.
-     * 
-     * REGLAS:
-     * - No debe existir otra línea de investigación activa solapado
-     * - No debe duplicar nombre activo
-     * 
-     * IMPORTANTE:
-     * Ejecutar dentro de transacción.
-     *
-     * @param int $id
-     * @return void
-     * @throws Exception
-     */
-    public function reactivar(int $id_linea): void
-    {
-        /**
-         * 1. Obtener el periodo con bloqueo (evita concurrencia)
-         */
-        $periodo = $this->obtenerPorId($id_linea, true);
-
-        if (!$periodo) {
-            throw new Exception("Periodo no encontrado.");
-        }
-
-        /**
-         * 2. Obtener datos completos del periodo (necesarios para validar)
-         */
-        $sqlDatos = "SELECT nombre, descripcion 
-                 FROM lineas_investigacion
-                 WHERE id_linea = ?";
-
-        $stmtDatos = $this->con->prepare($sqlDatos);
-
-        if (!$stmtDatos) {
-            throw new Exception("Error en prepare (reactivar datos): " . $this->con->error);
-        }
-
-        $stmtDatos->bind_param("i", $id_linea);
-        $stmtDatos->execute();
-        $datos = $stmtDatos->get_result()->fetch_assoc();
-        $stmtDatos->close();
-
-        if (!$datos) {
-            throw new Exception("No se pudieron obtener datos de la línea de investigación.");
-        }
-
-        /**
-         * 3. Validar conflictos antes de reactivar
-         */
-        $validacion = $this->verificarLinea(
-            $datos['nombre']
+        $resultado = $this->ejecutar(
+            "SELECT
+                id_linea,
+                nombre,
+                descripcion,
+                CASE
+                    WHEN estado = 1 THEN 'Activo'
+                    WHEN estado = 0 THEN 'Desactivado'
+                    ELSE 'Desconocido'
+                END AS estado
+             FROM lineas_investigacion
+             WHERE id_linea = ?",
+            'i',
+            [$id_linea],
+            false
         );
 
-        if ($validacion['activo']) {
-            throw new Exception("Conflicto: ya existe una línea de investigación activa con mismo nombre");
-        }
-
-        /**
-         * 4. Reactivar
-         * - Solo si está desactivado
-         */
-        $sql = "UPDATE lineas_investigacion 
-            SET estado = 1, 
-                fecha_modificacion = NOW() 
-            WHERE id_linea = ? 
-              AND estado = 0";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (reactivarLinea): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_linea);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (reactivarLinea): " . $stmt->error);
-        }
-
-        if ($stmt->affected_rows === 0) {
-            throw new Exception("La línea de investigación ya estaba activa o no se pudo actualizar.");
-        }
-
-        $stmt->close();
+        if (!$resultado) throw new Exception('Línea de investigación no encontrada.');
+        return $resultado;
     }
-    /**
-     * Obtiene una línea de investigación por nombre (búsqueda exacta).
-     * Previene duplicados lógicos.
-     *
-     * @param string $nombre
-     * @return array|null
-     * @throws Exception
-     */
-    public function obtenerPorNombre(string $nombre): ?array
+
+    public function obtenerDetalles(int $id_linea): array
     {
-        $sql = "SELECT id_linea 
-                FROM lineas_investigacion
-                WHERE nombre = ? 
-                LIMIT 1";
+        $resultado = $this->ejecutar(
+            "SELECT
+                id_linea,
+                nombre,
+                descripcion,
+                fecha_creacion,
+                fecha_modificacion,
+                CASE
+                    WHEN estado = 1 THEN 'Activo'
+                    WHEN estado = 0 THEN 'Desactivado'
+                    ELSE 'Desconocido'
+                END AS estado
+             FROM lineas_investigacion
+             WHERE id_linea = ?",
+            'i',
+            [$id_linea],
+            false
+        );
 
-        $stmt = $this->con->prepare($sql);
+        if (!$resultado) throw new Exception('Línea de investigación no encontrada.');
+        return $resultado;
+    }
 
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerPorNombre): " . $this->con->error);
-        }
+    public function obtenerPorId(int $id_linea, bool $forUpdate = false): ?array
+    {
+        $sql = 'SELECT estado FROM lineas_investigacion WHERE id_linea = ?';
+        if ($forUpdate) $sql .= ' FOR UPDATE';
 
-        $stmt->bind_param("s", $nombre);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerPorNombre): " . $stmt->error);
-        }
-
-        $resultado = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
-
+        $resultado = $this->ejecutar($sql, 'i', [$id_linea], false);
         return $resultado ?: null;
     }
 
-    /**
-     * Bloquea únicamente los registros activos.
-     * IMPORTANTE: Debe ejecutarse dentro de una transacción.
-     *
-     * REQUIERE:
-     * - Motor InnoDB
-     * - Transacción activa
-     * @return void
-     * @throws Exception
-     */
-
-    public function bloquear_tabla(): void
+    public function obtenerPorNombre(string $nombre): ?array
     {
-        $sql = "SELECT id_linea 
-                FROM lineas_investigacion
-                WHERE estado = 1 
-                FOR UPDATE";
+        $resultado = $this->ejecutar(
+            'SELECT id_linea FROM lineas_investigacion WHERE nombre = ? LIMIT 1',
+            's',
+            [$nombre],
+            false
+        );
+        return $resultado ?: null;
+    }
 
-        $stmt = $this->con->prepare($sql);
+    // ─
+    // CRUD
+    // ─
 
-        if (!$stmt) {
-            throw new Exception("Error en prepare (bloquear_tabla): " . $this->con->error);
+    /**
+     * Registra una nueva línea de investigación (activo = 1).
+     * DEBE ejecutarse dentro de una transacción.
+     */
+    public function registrarLinea(string $nombre, string $descripcion): int
+    {
+        $validacion = $this->verificarLinea($nombre);
+        if ($validacion['activo']) {
+            throw new Exception('Ya existe una línea de investigación activa con ese nombre.');
         }
 
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (bloquear_tabla): " . $stmt->error);
-        }
-
-        // No necesitamos el resultado → solo provocar el bloqueo
-        $stmt->free_result();
-        $stmt->close();
+        $this->ejecutar(
+            "INSERT INTO lineas_investigacion (nombre, descripcion, estado, fecha_creacion)
+             VALUES (?, ?, 1, NOW())",
+            'ss',
+            [$nombre, $descripcion]
+        );
+        return (int)$this->conn->insert_id;
     }
 
     /**
-     * Eliminación lógica (soft delete) de un periodo.
-     *
-     * @param int $id_linea
-     * @return int Número de filas afectadas
-     * @throws Exception
+     * Edita una línea de investigación existente.
+     * DEBE ejecutarse dentro de una transacción.
+     */
+    public function editarLinea(string $nombre, string $descripcion, int $id_linea): int
+    {
+        $this->ejecutar(
+            "UPDATE lineas_investigacion
+             SET nombre = ?, descripcion = ?, fecha_modificacion = NOW()
+             WHERE id_linea = ?",
+            'ssi',
+            [$nombre, $descripcion, $id_linea]
+        );
+        return $id_linea;
+    }
+
+    /**
+     * Reactiva una línea de investigación desactivada.
+     * DEBE ejecutarse dentro de una transacción.
+     */
+    public function reactivar(int $id_linea): void
+    {
+        $registro = $this->obtenerPorId($id_linea, true);
+        if (!$registro) throw new Exception('Línea de investigación no encontrada.');
+
+        $datos = $this->ejecutar(
+            'SELECT nombre FROM lineas_investigacion WHERE id_linea = ?',
+            'i',
+            [$id_linea],
+            false
+        );
+        if (!$datos) throw new Exception('No se pudieron obtener datos de la línea de investigación.');
+
+        $validacion = $this->verificarLinea($datos['nombre']);
+        if ($validacion['activo']) {
+            throw new Exception('Ya existe una línea de investigación activa con el mismo nombre.');
+        }
+
+        $this->ejecutar(
+            "UPDATE lineas_investigacion
+             SET estado = 1, fecha_modificacion = NOW()
+             WHERE id_linea = ? AND estado = 0",
+            'i',
+            [$id_linea]
+        );
+
+        if ($this->conn->affected_rows === 0) {
+            throw new Exception('La línea ya estaba activa o no se pudo actualizar.');
+        }
+    }
+
+    /**
+     * Desactivación lógica (soft delete).
+     * Devuelve las filas afectadas.
      */
     public function eliminar_linea(int $id_linea): int
     {
-
-        $sql = "UPDATE lineas_investigacion 
-                SET estado = 0, 
-                    fecha_modificacion = NOW() 
-                WHERE id_linea = ? 
-                  AND estado <> 0";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (eliminar_linea): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_linea);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (eliminar_linea): " . $stmt->error);
-        }
-
-        $filas = $stmt->affected_rows;
-
-        $stmt->close(); // liberar recurso SIEMPRE
-
-        return $filas;
+        $this->ejecutar(
+            "UPDATE lineas_investigacion
+             SET estado = 0, fecha_modificacion = NOW()
+             WHERE id_linea = ? AND estado <> 0",
+            'i',
+            [$id_linea]
+        );
+        return $this->conn->affected_rows;
     }
 
-    //Busca duplicidad de líneas de investigación
-    /**
-     * Verifica duplicidad de líneas de investigación por:
-     * - Nombre duplicado
-     *
-     * IMPORTANTE:
-     * Este método DEBE ejecutarse dentro de una transacción si se usa para inserción/actualización crítica.
-     *
-     * @param string $nombre
-     * @return array
-     * @throws Exception
-     */
+    // ─
+    // VERIFICACIONES DE DUPLICIDAD
+    // ─
+
     public function verificarLinea(string $nombre): array
     {
+        $resultado = $this->ejecutar(
+            "SELECT
+                EXISTS(SELECT 1 FROM lineas_investigacion WHERE estado = 1 AND nombre = ?) AS activo,
+                EXISTS(SELECT 1 FROM lineas_investigacion WHERE estado = 0 AND nombre = ?) AS desactivado",
+            'ss',
+            [$nombre, $nombre],
+            false
+        );
+        return [
+            'activo'      => (int)($resultado['activo']      ?? 0),
+            'desactivado' => (int)($resultado['desactivado'] ?? 0),
+        ];
+    }
 
-        $sql = "SELECT
-
+    /**
+     * Verifica si existe otro registro con el mismo nombre, excluyendo el ID actual.
+     */
+    public function obtenerPorIdDiferente(int $id_linea, string $nombre): array
+    {
+        $resultado = $this->ejecutar(
+            "SELECT
                 EXISTS(
                     SELECT 1 FROM lineas_investigacion
-                    WHERE estado = 1 AND nombre = ?
+                    WHERE estado = 1 AND nombre = ? AND id_linea != ?
                 ) AS activo,
-
                 EXISTS(
                     SELECT 1 FROM lineas_investigacion
-                    WHERE estado = 0 AND nombre = ?
-                ) AS desactivado
-        ";
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (verificarLinea): " . $this->con->error);
-        }
-
-        $stmt->bind_param(
-            "ss",
-            $nombre,
-            $nombre
+                    WHERE estado = 0 AND nombre = ? AND id_linea != ?
+                ) AS desactivado",
+            'sisi',
+            [$nombre, $id_linea, $nombre, $id_linea],
+            false
         );
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (verificarLinea): " . $stmt->error);
-        }
-
-        $res = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
-
         return [
-            "activo" => (int)($res['activo']),
-            "desactivado" => (int)($res['desactivado'])
+            'activo'      => (int)($resultado['activo']      ?? 0),
+            'desactivado' => (int)($resultado['desactivado'] ?? 0),
         ];
     }
 
-    /**
-     * Obtiene una línea de investigación por ID.
-     * OPCIONAL: Permite bloqueo de fila para concurrencia.
-     *
-     * @param int $id
-     * @param bool $forUpdate
-     * @return array|null
-     * @throws Exception
-     */
-    public function obtenerPorId(int $id_linea, bool $forUpdate = false): ?array
-    {
-
-        $sql = "SELECT estado 
-                FROM lineas_investigacion 
-                WHERE id_linea = ?";
-
-        if ($forUpdate) {
-            $sql .= " FOR UPDATE";
-        }
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (obtenerPorId): " . $this->con->error);
-        }
-
-        $stmt->bind_param("i", $id_linea);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (obtenerPorId): " . $stmt->error);
-        }
-
-        $res = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
-
-        return $res ?: null;
-    }
+    // ─
+    // CONCURRENCIA
+    // ─
 
     /**
-     * Verificar el nombre una línea de investigación por ID diferente.
-     * OPCIONAL: Permite bloqueo de fila para concurrencia.
-     *
-     * @param int $id
-     * @param string $nombre
-     * @return array|null
-     * @throws Exception
+     * Bloquea los registros activos.
+     * DEBE ejecutarse dentro de una transacción (InnoDB).
      */
-    public function obtenerPorIdDiferente(int $id_linea, $nombre): ?array
+    public function bloquear_tabla(): void
     {
-
-        $sql = "SELECT
-    EXISTS(
-        SELECT 1 FROM lineas_investigacion
-        WHERE estado = 1 AND nombre = ? AND id_linea != ?
-    ) AS activo,
-
-    EXISTS(
-        SELECT 1 FROM lineas_investigacion
-        WHERE estado = 0 AND nombre = ? AND id_linea != ?
-    ) AS desactivado
-                FROM lineas_investigacion 
-                WHERE id_linea != ? AND nombre = ?";
-
-
-        $stmt = $this->con->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception("Error en prepare (verificarLinea): " . $this->con->error);
-        }
-
-        $stmt->bind_param(
-            "sisiis",
-            $nombre,
-            $id_linea,
-            $nombre,
-            $id_linea,
-            $id_linea,
-            $nombre
+        $this->ejecutar(
+            'SELECT id_linea FROM lineas_investigacion WHERE estado = 1 FOR UPDATE'
         );
-
-        if (!$stmt->execute()) {
-            throw new Exception("Error en execute (verificarLinea): " . $stmt->error);
-        }
-
-        $res = $stmt->get_result()->fetch_assoc();
-
-        $stmt->close(); // liberar recurso
-
-        return [
-            "activo" => (int)($res['activo']),
-            "desactivado" => (int)($res['desactivado'])
-        ];
     }
 }
