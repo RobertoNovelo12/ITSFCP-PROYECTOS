@@ -14,8 +14,9 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
-$id_proyecto = $_GET["id_proyectos"];
-$id_estudiante = $_GET["id_usuarios"];
+
+require_once '../../../publico/incluido/_validar_get.php';
+
 
 //Solo el investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
@@ -23,12 +24,27 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
+$id_proyecto = $_GET["id_proyectos"];
+
+//Validación de argumentos en url
+$id_validar = $id_proyecto;
+require_once '../../../publico/incluido/_validar_id.php';
+
+$id_estudiante = $_GET["id_usuarios"];
+
+//Validación de argumentos en url
+$id_validar = $id_estudiante;
+require_once '../../../publico/incluido/_validar_id.php';
+
 require_once '..\..\Controladores\proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
 $proyecto = $proyectoControlador->datosproyecto($id_proyecto);
 
+// Validación
+$registro = $proyecto;
+require_once '../../../publico/incluido/_validar_datos.php';
 
 $estudiante = $proyecto['investigador'] ?? [];
 $proyecto = $proyecto['area'] ?? [];

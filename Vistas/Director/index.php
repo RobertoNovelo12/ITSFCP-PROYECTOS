@@ -66,18 +66,15 @@ $_mapa  = [
     'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',    'mensaje' => 'No fue posible reactivar el director.'],
     'error_duplicado'     => ['tipo' => 'alerta', 'titulo_msg' => 'Registro duplicado',    'mensaje' => 'Ya existe un director con ese correo. Intenta con otro.'],
     'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',       'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'sin_permiso'         => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',    'mensaje' => 'No tienes permiso para ver este director.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+
 ];
 
 ob_start();
 ?>
-
-<!-- ALERTAS -->
-<?php if (isset($_mapa[$msg])):
-    extract($_mapa[$msg]);
-    include __DIR__ . '../../../publico/incluido/_mensaje.php';
-endif; ?>
 
 <div class="container-fluid py-4 ancho_container">
 
@@ -96,6 +93,12 @@ endif; ?>
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- ALERTAS -->
+    <?php if (isset($_mapa[$msg])):
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
 
     <!-- FILTROS Y BÚSQUEDA -->
     <div class="card border-0 shadow-sm mb-3">

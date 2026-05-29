@@ -60,8 +60,11 @@ $_mapa = [
     'exito_rechazo'       => ['tipo' => 'exito',  'titulo_msg' => 'Rechazo registrado',    'mensaje' => 'El rechazo fue registrado y el investigador fue notificado.'],
     'error_estado'        => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',       'mensaje' => 'No fue posible actualizar el estado de la solicitud.'],
     'error_rechazo'       => ['tipo' => 'error',  'titulo_msg' => 'Error en el rechazo',   'mensaje' => 'No fue posible registrar el rechazo. Verifica los datos e intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'sin_permiso'         => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',    'mensaje' => 'No tienes permiso para realizar esta acción.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
 ];
 
 ob_start();
@@ -78,7 +81,7 @@ ob_start();
         ?>
         <div class="col-md-6 text-md-end">
             <form class="d-inline-flex align-items-center gap-2" method="GET">
-                <input type="hidden" name="tipo"   value="<?= htmlspecialchars($tipo_filtro) ?>">
+                <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">
                 <input type="hidden" name="buscar" value="<?= htmlspecialchars($buscar) ?>">
                 <label class="mb-0 text-nowrap fw-semibold">Periodo:</label>
                 <select name="id_periodo" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -95,7 +98,9 @@ ob_start();
     </div>
 
     <!-- ALERTAS -->
-    <?php if (isset($_mapa[$msg])) : extract($_mapa[$msg]); include __DIR__ . '../../../publico/incluido/_mensaje.php'; endif; ?>
+    <?php if (isset($_mapa[$msg])) : extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
 
     <!-- TARJETAS RESUMEN -->
     <?php if ($rol === 'supervisor'): ?>
@@ -153,9 +158,9 @@ ob_start();
                 <div class="col-md-8 mb-1">
                     <label class="form-label mb-1 small fw-semibold">Buscar</label>
                     <form class="d-flex gap-2" method="GET">
-                        <input type="hidden" name="tipo"       value="<?= htmlspecialchars($tipo_filtro) ?>">
+                        <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo_filtro) ?>">
                         <input type="hidden" name="id_periodo" value="<?= $id_periodo ?>">
-                        <input type="text"   name="buscar" class="form-control"
+                        <input type="text" name="buscar" class="form-control"
                             placeholder="Buscar por título..."
                             value="<?= htmlspecialchars($buscar) ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
@@ -262,8 +267,8 @@ ob_start();
 
                 <?php if ($paginacion['total_paginas'] > 1):
                     $qBase  = 'tipo='       . urlencode($tipo_filtro)
-                            . '&id_periodo=' . urlencode($id_periodo)
-                            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+                        . '&id_periodo=' . urlencode($id_periodo)
+                        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
                     $entidad = 'solicitudes';
                     include __DIR__ . '../../../publico/incluido/_paginacion.php';
                 endif; ?>

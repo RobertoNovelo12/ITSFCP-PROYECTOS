@@ -10,15 +10,10 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: /ITSFCP-PROYECTOS/index.php");
     exit;
 }
+$id = intval($_SESSION['id_usuario']);
+$rol = strtolower($_SESSION['rol'] ?? '');
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
-
-$id_proyecto = $_GET['id_proyecto'] ?? null;
-$id_usuario = $_GET['id_usuario'] ?? null;
-
-if (!$id_proyecto || !$id_usuario) {
-    die("ERROR: Datos incompletos");
-}
+require_once '../../../publico/incluido/_validar_get.php';
 
 //Solo el investigador y supervisor puede acceder
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
@@ -26,11 +21,26 @@ if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
     exit;
 }
 
+$id_proyecto = $_GET['id_proyecto'] ?? null;
+$id_usuario = $_GET['id_usuario'] ?? null;
+
+$id_validar = $id_proyecto;
+require_once '../../../publico/incluido/_validar_id.php';
+
+$id_validar = $id_usuario;
+require_once '../../../publico/incluido/_validar_id.php';
+
+
 require_once '../../Controladores/proyectoControlador.php';
 
 $controlador = new ProyectoControlador();
 
-$resultado = $controlador->historial_estudiante_proyecto($id_proyecto, $id_usuario);
+$resultado = $controlador->historial_estudiante_proyecto($id_proyecto, $id_usuario, $id);
+
+// Validación
+$registro = $resultado;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 $historialAgrupado = $resultado['datos'] ?? [];
 $paginacion = $resultado['paginacion'] ?? [];

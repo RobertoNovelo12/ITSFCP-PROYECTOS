@@ -21,11 +21,21 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
+require_once '../../../publico/incluido/_validar_get.php';
+
 $id_solicitud = intval($_GET['id'] ?? 0);
-$tipo         = $_GET['tipo'] ?? ''; // 'correcciones' | 'rechazar'
+//Validación de argumentos en url
+$id_validar = $id_solicitud;
+require_once '../../../publico/incluido/_validar_id.php';
+
+$tipo = $_GET['tipo'] ?? ''; // 'correcciones' | 'rechazar'
+
+//Validación de argumentos en url
+$id_validar = $tipo;
+require_once '../../../publico/incluido/_validar_id.php';
 
 if (!$id_solicitud || !in_array($tipo, ['correcciones', 'rechazar'], true)) {
-    header("Location: tabla.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -47,12 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 //  Cargar datos para el contexto del formulario 
 $data = $ctrl->detallePagina($id_solicitud, $id_usuario, $rol);
+
+// Validación
+$registro = $data;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $sol  = $data['solicitud'];
 
-if (!$sol) {
-    header("Location: tabla.php?error=Solicitud+no+encontrada");
-    exit;
-}
+// Validación
+$registro = $sol;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 // Solo se puede actuar sobre solicitudes activas
 if (!in_array($sol['estado'], ['pendiente', 'en_revision', 'correcciones'])) {
@@ -64,7 +79,6 @@ $es_correcciones = ($tipo === 'correcciones');
 $msg_err         = htmlspecialchars($_GET['error'] ?? '');
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">

@@ -704,12 +704,12 @@ class ProyectoControlador extends BaseControlador
         return (new Proyectos($conn))->obtenerEstudianteProyecto($id_proyecto, $id_estudiante);
     }
 
-    public function historial_estudiante_proyecto(int $id_proyecto, int $id_usuario)
+    public function historial_estudiante_proyecto(int $id_proyecto, int $id_usuario, int $id)
     {
         global $conn;
         try {
             $pagina = max(1, (int)($_GET['pagina'] ?? 1));
-            return (new Proyectos($conn))->lineaTiempoProyectoUsuarios($id_proyecto, $id_usuario, $pagina);
+            return (new Proyectos($conn))->lineaTiempoProyectoUsuarios($id_proyecto, $id_usuario, $pagina, 5, $id);
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->redirigir('error_cargar', 'editar.php');

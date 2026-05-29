@@ -28,14 +28,14 @@ $pagina = intval($_GET['pagina'] ?? 1);
 
 $gradoacademicoControlador = new gradoacademicoControlador();
 
-// ── Acción: desactivar desde tabla ──
+//  Acción: desactivar desde tabla 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'desactivar_grados_academicos') {
     $id_grado = intval($_GET['id_grado'] ?? 0);
     $gradoacademicoControlador->eliminar($rol, $id_grado);
     // eliminar() ya redirige con msg; no llega aquí.
 }
 
-// ── Acción dinámica de filtro ──
+//  Acción dinámica de filtro 
 if (!method_exists($gradoacademicoControlador, $action)) {
     $action = 'index';
 }
@@ -53,7 +53,7 @@ $filtros     = $gradoacademicoControlador->filtros($rol);
 $encabezados = $gradoacademicoControlador->encabezadosPrincipal($rol);
 $opciones    = $gradoacademicoControlador->opciones($rol, $filtros);
 
-// ── Mapa de mensajes ──
+//  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'exito_crear'         => ['tipo' => 'exito',  'titulo_msg' => 'Grado creado',          'mensaje' => 'El grado académico fue registrado correctamente.'],
@@ -66,8 +66,10 @@ $_mapa = [
     'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',     'mensaje' => 'No fue posible reactivar el grado académico.'],
     'error_duplicado'     => ['tipo' => 'alerta', 'titulo_msg' => 'Registro duplicado',     'mensaje' => 'Ya existe un grado académico con ese nombre. Intenta con otro.'],
     'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'sin_permiso'         => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver este registro.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',    'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
 ];
 
 ob_start();

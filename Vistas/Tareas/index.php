@@ -14,12 +14,19 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $action     = $_GET['action'] ?? 'index_Principal';
-$id_proyecto = $_GET['id_proyectos'] ?? null;
+
+require_once '../../../publico/incluido/_validar_tareas.php';
 
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
     header('Location: /ITSFCP-PROYECTOS/index.php');
     exit;
 }
+
+$id_proyecto = $_GET['id_proyectos'] ?? null;
+
+//Validación de argumentos en url
+$id_validar = $id_proyecto;
+require_once '../../../publico/incluido/_validar_id.php';
 
 include "../../Controladores/tareasControlador.php";
 $tareaControlador = new TareaControlador();
@@ -32,13 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
     $tareaControlador->actualizarestado($id_proyecto, $rol, $_GET['tipo'], $id_proyecto);
 }
 
-$tarea      = $tareaControlador->$action($id_proyecto, $id_usuario, $rol);
-if (!is_array($tarea)) die("Error: La acción '$action' no devolvió un array válido.");
-
+$tarea = $tareaControlador->$action($id_proyecto, $id_usuario, $rol);
+if (!is_array($tarea)) {
+    header("Location: ../../Vistas/Proyectos/index.php?msg=sin_argumentos_url");
+    exit;
+}
 $encabezados = $tareaControlador->encabezadosPrincipal($rol);
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">

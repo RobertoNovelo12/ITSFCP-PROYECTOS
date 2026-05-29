@@ -59,19 +59,19 @@ $_mapa = [
     'exito_desactivar'    => ['tipo' => 'exito',  'titulo_msg' => 'Carrera desactivada',      'mensaje' => 'La carrera fue desactivada correctamente.'],
     'exito_reactivar'     => ['tipo' => 'exito',  'titulo_msg' => 'Carrera reactivada',       'mensaje' => 'La carrera fue reactivada correctamente.'],
     'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',           'mensaje' => 'No fue posible crear la carrera. Verifica los datos e intenta de nuevo.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'error_editar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',          'mensaje' => 'No fue posible editar la carrera. Verifica los datos e intenta de nuevo.'],
     'error_desactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',      'mensaje' => 'No fue posible desactivar la carrera.'],
     'error_reactivar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',       'mensaje' => 'No fue posible reactivar la carrera.'],
     'error_duplicado'     => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',       'mensaje' => 'Ya existe una carrera con ese nombre.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',      'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
+
 ];
 
 ob_start();
 ?>
-
-<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
-    include __DIR__ . '../../../publico/incluido/_mensaje.php';
-endif; ?>
 
 <div class="container-fluid py-4 ancho_container">
 
@@ -90,6 +90,10 @@ endif; ?>
             <?php endif; ?>
         </div>
     </div>
+
+    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
 
     <!-- FILTROS Y BÚSQUEDA -->
     <div class="card border-0 shadow-sm mb-3">

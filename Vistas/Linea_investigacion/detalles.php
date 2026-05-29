@@ -10,13 +10,19 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-require_once '../../Controladores/lineainvestigacionControlador.php';
+require_once '../../Controladores/lineaInvestigacionControlador.php';
 
-$lineaControlador = new lineaControlador();
+$lineaControlador = new lineaInvestigacioncontrolador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_linea = isset($_GET['id_linea']) ? intval($_GET['id_linea']) : 0;
+
+require_once '../../../publico/incluido/_validar_get.php';
+
+$id_linea = intval($_GET['id_linea']) ?? 0;
+
+$id_validar = $id_linea;
+require_once '../../../publico/incluido/_validar_id.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
@@ -28,9 +34,9 @@ if ($rol !== 'supervisor') {
 $linea = $lineaControlador->indexDetalles($rol, $id_linea);
 
 // Validación
-if (empty($linea)) {
-    die("No se encontró la línea de investigación.");
-}
+$registro = $linea;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 ob_start();
 ?>

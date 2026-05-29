@@ -10,18 +10,24 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol         = strtolower($_SESSION['rol'] ?? '');
 $id_usuario  = (int)$_SESSION['id_usuario'];
-$id_periodos = (int)($_GET['id_periodos'] ?? 0);
+
+require_once '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
+$id_periodos = (int)($_GET['id_periodos'] ?? 0);
+
+$id_validar = $id_periodos;
+require_once '../../../publico/incluido/_validar_id.php';
+
 require_once '../../Controladores/periodoControlador.php';
 
 $periodoControlador = new periodoControlador();
 
-// ── Acciones POST ────────────────────────────────────────────────────────────
+//  Acciones POST 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -36,18 +42,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── Cargar datos del periodo ─────────────────────────────────────────────────
+//  Cargar datos del periodo ─
 $datos = $periodoControlador->indexEditar($rol, $id_periodos);
 
-if (empty($datos)) {
-    header("Location: index.php?msg=error_cargar");
-    exit;
-}
+// Validación
+$registro = $datos;
+require_once '../../../publico/incluido/_validar_datos.php';
 
-// ── Error de rango de fecha (string en URL) ──────────────────────────────────
+
+//  Error de rango de fecha (string en URL) 
 $error_fecha = isset($_GET['error_fecha']) ? htmlspecialchars($_GET['error_fecha']) : null;
 
-// ── Mapa de mensajes ─────────────────────────────────────────────────────────
+//  Mapa de mensajes ─
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'exito_editar'        => ['tipo' => 'exito',  'titulo_msg' => 'Periodo actualizado',    'mensaje' => 'Las fechas del periodo fueron actualizadas correctamente.'],

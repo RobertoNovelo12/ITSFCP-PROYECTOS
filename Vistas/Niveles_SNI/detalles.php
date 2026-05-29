@@ -16,7 +16,8 @@ $nivelsniControlador = new nivelsniControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_nivel = isset($_GET['id_nivel']) ? intval($_GET['id_nivel']) : 0;
+
+require_once '../../../publico/incluido/_validar_get.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
@@ -24,11 +25,17 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
+$id_nivel = intval($_GET['id_nivel']) ?? 0;
+
+$id_validar = $id_nivel;
+require_once '../../../publico/incluido/_validar_id.php';
+
+
 $registro = $nivelsniControlador->indexDetalles($rol, $id_nivel);
 
-if (empty($registro)) {
-    die("No se encontró el Nivel SNI.");
-}
+// Validación
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 ob_start();
 ?>

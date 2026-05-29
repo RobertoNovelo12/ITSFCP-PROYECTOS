@@ -23,7 +23,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'estudiante') {
@@ -31,11 +31,13 @@ if ($rol !== 'estudiante') {
     exit;
 }
 
+require_once '../../../publico/incluido/_validar_get.php';
+
 $id_cierre_est = intval($_GET['id'] ?? 0);
-if (!$id_cierre_est) {
-    header('Location: index.php');
-    exit;
-}
+//Validación de argumentos en url
+$id_validar = $id_cierre_est;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 require_once '../../Controladores/seguimientoControlador.php';
 require_once '../../publico/config/conexion.php';
@@ -46,7 +48,12 @@ $ctrl = new SeguimientoControlador();
 require_once '../../Modelos/seguimiento.php';
 $modelo = new SeguimientoModelo($conn);
 
-$cierre      = $modelo->CierrePorId($id_cierre_est);
+$cierre = $modelo->CierrePorId($id_cierre_est);
+
+// Validación
+$registro = $cierre;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $comentarios = $modelo->ComentariosCierre($id_cierre_est);
 
 // Verificar que el cierre pertenece al estudiante
@@ -56,6 +63,10 @@ if (!$cierre || (int)$cierre['id_usuarios'] !== $id_usuario) {
 }
 
 $id_proyecto = (int)$cierre['id_proyectos'];
+
+//Validación de argumentos en url
+$id_validar = $id_proyecto;
+require_once '../../../publico/incluido/_validar_id.php';
 
 // El estudiante puede responder si está rechazado o en finalizacion_pendiente
 $estados_activos = ['rechazado', 'finalizacion_pendiente'];

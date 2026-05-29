@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'supervisor') {
@@ -22,17 +22,21 @@ require_once '../../Controladores/usuarioControlador.php';
 
 $controlador = new UsuariosControlador();
 
+require_once '../../../publico/incluido/_validar_get.php';
+
 $id_ver = isset($_GET['id_usuarios']) ? intval($_GET['id_usuarios']) : 0;
 
-if ($id_ver <= 0) {
-    die("ID de usuario no válido.");
-}
+//Validación de argumentos en url
+$id_validar = $id_ver;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 $usuario = $controlador->indexDetalles($rol, $id_ver);
 
-if (empty($usuario)) {
-    die("No se encontró el usuario.");
-}
+// Validación
+$registro = $usuario;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 ob_start();
 ?>

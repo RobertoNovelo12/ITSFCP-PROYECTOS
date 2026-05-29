@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'supervisor') {
@@ -28,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit; // rechazar() redirige
 }
 
+require_once '../../../publico/incluido/_validar_get.php';
+
 //  GET: mostrar formulario 
 $id_ver = isset($_GET['id_usuarios']) ? intval($_GET['id_usuarios']) : 0;
 
@@ -37,9 +39,10 @@ if ($id_ver <= 0) {
 
 $usuario = $controlador->indexDetalles($rol, $id_ver);
 
-if (empty($usuario)) {
-    die("No se encontró el usuario.");
-}
+//Validación de argumentos en url
+$id_validar = $usuario;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 // Solo se puede rechazar si está en espera
 if ($usuario['estado_usuario'] !== 'espera') {

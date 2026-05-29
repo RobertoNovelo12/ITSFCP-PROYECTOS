@@ -12,24 +12,30 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol               = strtolower($_SESSION['rol'] ?? '');
-$id_tipo_documento = (int)($_GET['id_tipo_documento'] ?? 0);
+$rol = strtolower($_SESSION['rol'] ?? '');
+
+require_once '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-if ($id_tipo_documento <= 0) {
-    header("Location: index.php?msg=error_cargar");
-    exit;
-}
+$id_tipo_documento = (int)($_GET['id_tipo_documento'] ?? 0);
+
+$id_validar = $id_tipo_documento;
+require_once '../../../publico/incluido/_validar_id.php';
 
 require_once '../../Controladores/plantilladocumentoControlador.php';
 
 $ctrl = new plantilladocumentoControlador();
 
-$resultado         = $ctrl->info_linea_tiempo($id_tipo_documento);
+$resultado = $ctrl->info_linea_tiempo($id_tipo_documento);
+
+// Validación
+$registro = $resultado;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $historialAgrupado = $resultado['datos']      ?? [];
 $paginacion        = $resultado['paginacion'] ?? [
     'total'         => 0,
@@ -48,7 +54,7 @@ foreach ($historialAgrupado as $items) {
     }
 }
 
-// ── Mapa de mensajes ──
+//  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',      'mensaje' => 'No fue posible cargar el historial. Intenta de nuevo.'],

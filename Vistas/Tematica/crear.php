@@ -36,8 +36,7 @@ if ($action === 'registrarArea_conocimineto') {
 }
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
+
 ?>
 
 

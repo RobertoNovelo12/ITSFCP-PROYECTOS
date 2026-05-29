@@ -14,12 +14,20 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol         = strtolower($_SESSION['rol'] ?? '');
 $id_usuario  = intval($_SESSION['id_usuario']);
-$id_director = $_GET['id_director'] ?? null;
+
+require_once '../../../publico/incluido/_validar_get.php';
+
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
+
+$id_director = $_GET['id_director'] ?? null;
+
+$id_validar = $id_director;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 require_once '../../Controladores/directorControlador.php';
 
@@ -27,10 +35,9 @@ $directorControlador = new directorControlador();
 $datos  = $directorControlador->indexEditar($rol, $id_director);
 $grados = $directorControlador->obtenerGrados($rol);
 
-if (empty($datos)) {
-    header("Location: index.php?msg=sin_permiso");
-    exit;
-}
+$registro = $datos;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 //  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';

@@ -16,12 +16,20 @@ $tematicaControlador = new TematicaControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_tematica = isset($_GET['id_tematica']) ? intval($_GET['id_tematica']) : 0;
+
+require_once '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
+
+$id_tematica = isset($_GET['id_tematica']) ? intval($_GET['id_tematica']) : 0;
+
+//Validación de argumentos en url
+$id_validar = $id_tematica;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 $datos = $tematicaControlador->indexEditar($rol, $id_tematica);
 
@@ -40,8 +48,6 @@ if ($action === 'Modificar') {
 }
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
 <div class="container-fluid py-4 ancho_container">
     <!-- ENCABEZADO -->

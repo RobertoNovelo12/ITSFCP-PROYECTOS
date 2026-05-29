@@ -11,11 +11,10 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 
-$id_proyecto = $_GET["id_proyectos"] ?? null;
-$action = $_POST['action'] ?? null;
+require_once '../../../publico/incluido/_validar_get.php';
 
 //Solo investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
@@ -23,20 +22,31 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
+$id_proyecto = $_GET["id_proyectos"] ?? null;
+
+$id_validar = $id_proyecto;
+require_once '../../../publico/incluido/_validar_id.php';
+
+
+$action = $_POST['action'] ?? null;
+
 require_once '../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
 $periodoActualProyectos = $proyectoControlador->periodoactual();
+
+// Validación
+$registro = $periodoActualProyectos;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $hoy = date('Y-m-d');
 $puedeEditar = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
     && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
 
-if (!$puedeEditar) {
-    header('Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
-    exit;
-}
-
+//Validación del periodo
+$puede = $puedeEditar;
+require_once '../../../publico/incluido/_validar_periodo.php';
 
 // DATOS
 $tematica = $proyectoControlador->tematica();

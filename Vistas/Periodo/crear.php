@@ -20,9 +20,15 @@ require_once '../../Controladores/periodoControlador.php';
 
 $periodoControlador = new periodoControlador();
 $estadoVista        = $periodoControlador->obtenerEstadoVista();
+
+// Validación
+$registro = $estadoVista;
+require_once '../../../publico/incluido/_validar_datos.php';
+
+
 $datos              = $estadoVista['datos'];
 
-// ── Acciones POST ────────────────────────────────────────────────────────────
+//  Acciones POST 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -37,14 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── Repoblar campos en caso de error de rango (redirección GET) ──────────────
+//  Repoblar campos en caso de error de rango (redirección GET) 
 $post_fip    = $_POST['fecha_inicio_proyectos']   ?? '';
 $post_ffp    = $_POST['fecha_fin_proyectos']       ?? '';
 $post_fii    = $_POST['fecha_inicio_solicitud']    ?? '';
 $post_ffi    = $_POST['fecha_fin_solicitud']       ?? '';
 $error_fecha = isset($_GET['error_fecha']) ? htmlspecialchars($_GET['error_fecha']) : null;
 
-// ── Mapa de mensajes ─────────────────────────────────────────────────────────
+//  Mapa de mensajes ─
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'exito_crear'         => ['tipo' => 'exito',  'titulo_msg' => 'Periodo creado',      'mensaje' => 'El periodo fue creado correctamente.'],

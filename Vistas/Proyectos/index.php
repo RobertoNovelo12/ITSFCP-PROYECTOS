@@ -77,11 +77,16 @@ $_mapa = [
     'exito_estado'       => ['tipo' => 'exito',  'titulo_msg' => 'Estado actualizado',     'mensaje' => 'El estado del proyecto fue actualizado correctamente.'],
     'exito_operacion'    => ['tipo' => 'exito',  'titulo_msg' => 'Operación completada',   'mensaje' => 'La operación sobre el estudiante fue realizada correctamente.'],
     'error_crear'        => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',         'mensaje' => 'No fue posible crear el proyecto. Verifica los datos e intenta de nuevo.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar el proyecto. Verifica los datos e intenta de nuevo.'],
     'error_estado'       => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',        'mensaje' => 'No fue posible actualizar el estado del proyecto.'],
     'error_operacion'    => ['tipo' => 'error',  'titulo_msg' => 'Error en la operación',  'mensaje' => 'No fue posible completar la operación sobre el estudiante.'],
     'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver este proyecto.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'periodo_vencido' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible al no estar en el periodo indicado para hacer correcciones o modificaciones al proyecto.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
+
 ];
 
 ob_start();

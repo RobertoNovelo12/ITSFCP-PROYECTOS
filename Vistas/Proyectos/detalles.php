@@ -8,14 +8,22 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol         = strtolower($_SESSION['rol'] ?? '');
-$id          = $_SESSION['id_usuario'];
-$id_proyecto = (int)($_GET['id_proyectos'] ?? 0);
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id = $_SESSION['id_usuario'];
+
+require_once '../../../publico/incluido/_validar_get.php';
+
 
 if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
+
+$id_proyecto = (int)($_GET['id_proyectos'] ?? 0);
+
+$id_validar = $id_proyecto;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 require_once '..\..\Controladores\proyectoControlador.php';
 
@@ -39,8 +47,23 @@ if (
 // CARGA DE DATOS
 // 
 $proyecto    = $proyectoControlador->datosproyecto($id_proyecto);
+
+// Validación
+$registro = $proyecto;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
+
+// Validación
+$registro = $investigador;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $subtematicas = $proyectoControlador->subtematicasProyecto($id_proyecto);
+
+// Validación
+$registro = $subtematicas;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 $dat_inv         = $investigador['investigador'] ?? [];
 $dat_area_inv    = $investigador['area']         ?? [];

@@ -21,18 +21,37 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
+require_once '../../../publico/incluido/_validar_get.php';
+
 $id_proyecto = intval($_GET['id_proyectos'] ?? 0);
-if (!$id_proyecto) {
-    header("Location: index.php");
-    exit;
-}
+
+//Validación de argumentos en url
+$id_validar = $id_proyecto;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 require_once '../../Controladores/solicitudes_proyectoControlador.php';
 $SolicitudesProyectoControlador = new SolicitudesProyectoControlador();
 
-$proyecto       = $SolicitudesProyectoControlador->datosproyecto($id_proyecto);
-$investigador   = $SolicitudesProyectoControlador->datosinvestigador($id_proyecto);
-$subtematicas   = $SolicitudesProyectoControlador->subtematicasProyecto($id_proyecto);
+$proyecto = $SolicitudesProyectoControlador->datosproyecto($id_proyecto);
+
+// Validación
+$registro = $proyecto;
+require_once '../../../publico/incluido/_validar_datos.php';
+
+$investigador = $SolicitudesProyectoControlador->datosinvestigador($id_proyecto);
+
+// Validación
+$registro = $investigador;
+require_once '../../../publico/incluido/_validar_datos.php';
+
+$subtematicas = $SolicitudesProyectoControlador->subtematicasProyecto($id_proyecto);
+
+// Validación
+$registro = $subtematicas;
+require_once '../../../publico/incluido/_validar_datos.php';
+
+
 $comentarios    = $SolicitudesProyectoControlador->comentarios($id_proyecto);
 $estudiantes    = $SolicitudesProyectoControlador->estudiantes($id_proyecto);
 
@@ -56,7 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 }
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">

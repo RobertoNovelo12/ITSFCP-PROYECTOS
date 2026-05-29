@@ -25,7 +25,7 @@ require_once '../../Controladores/plantilladocumentoControlador.php';
 $ctrl   = new plantilladocumentoControlador();
 $action = $_POST['action'] ?? null;
 
-// ── Mapa de mensajes del sistema $_mapa (errores que llegan tras redirect) ──
+//  Mapa de mensajes del sistema $_mapa (errores que llegan tras redirect) 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',      'mensaje' => 'No fue posible registrar la plantilla. Intenta de nuevo.'],
@@ -33,7 +33,7 @@ $_mapa = [
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',  'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 
-// ── Mapa de errores de validación de archivo (llegan por ?error=clave) ──
+//  Mapa de errores de validación de archivo (llegan por ?error=clave) 
 $errorMsgs = [
     'datos_invalidos'    => 'Faltan datos obligatorios. Intenta de nuevo.',
     'upload_1'           => 'El archivo supera el tamaño permitido por el servidor.',
@@ -48,7 +48,7 @@ $errorMsgs = [
 $errorCode = $_GET['error'] ?? null;
 $errorMsg  = $errorMsgs[$errorCode] ?? ($errorCode ? 'Error desconocido.' : null);
 
-// ── Procesar POST ──
+//  Procesar POST 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
 
     $id_tipo_documento = (int)($_POST['id_tipo_documento'] ?? 0);
@@ -141,8 +141,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
     }
 }
 
-// ── Datos para la vista ──
+//  Datos para la vista 
 $tipos = $ctrl->indexCrear($rol);
+
+// Validación
+$registro = $tipos;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 ob_start();
 ?>

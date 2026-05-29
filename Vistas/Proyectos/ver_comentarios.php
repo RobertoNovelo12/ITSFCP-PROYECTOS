@@ -21,6 +21,10 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
 
 $id_proyectos = $_GET['id_proyectos'] ?? null;
 
+//Validación de argumentos en url
+$id_validar = $id_proyectos;
+require_once '../../../publico/incluido/_validar_id.php';
+
 ob_start();
 ?>
 <div class="container-fluid py-4 ancho_container">

@@ -16,7 +16,9 @@ $gradoacademicoControlador = new gradoacademicoControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_grado = isset($_GET['id_grado']) ? intval($_GET['id_grado']) : 0;
+
+// Validación - Existencia de GET
+require_once '../../../publico/incluido/_validar_get.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
@@ -24,11 +26,15 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
+$id_grado = isset($_GET['id_grado']) ? intval($_GET['id_grado']) : 0;
+
+$id_validar = $id_grado;
+require_once '../../../publico/incluido/_validar_id.php';
+
+// Validación - Existencia de datos
 $registro = $gradoacademicoControlador->indexDetalles($rol, $id_grado);
 
-if (empty($registro)) {
-    die("No se encontró el Grado Académico.");
-}
+require_once '../../../publico/incluido/_validar_datos.php';
 
 ob_start();
 ?>

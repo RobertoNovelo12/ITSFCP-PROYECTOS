@@ -22,12 +22,12 @@ if ($rol !== 'estudiante') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
+require_once '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = intval($_GET['id'] ?? 0);
-if (!$id_solicitud) {
-    header('Location: index.php');
-    exit;
-}
+//Validación de argumentos en url
+$id_validar = $id_solicitud;
+require_once '../../../publico/incluido/_validar_id.php';
 
 require_once '../../Controladores/solicitudesControlador.php';
 $ctrl   = new solicitudesControlador();
@@ -38,6 +38,12 @@ require_once '../../Modelos/solicitudes.php';
 $modelo = new Solicitud($conn);
 
 $detalle     = $modelo->obtenerDetalle($id_solicitud);
+
+// Validación
+$registro = $detalle;
+require_once '../../../publico/incluido/_validar_datos.php';
+
+
 $comentarios = $modelo->obtenerComentarios($id_solicitud);
 
 // Verificar que la solicitud es del estudiante

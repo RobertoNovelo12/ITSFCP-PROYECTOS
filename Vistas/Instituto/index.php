@@ -24,27 +24,28 @@ require_once '../../Controladores/institutoControlador.php';
 
 $controlador = new institutoControlador();
 
-// ── Procesar POST antes de cargar datos ──
+//  Procesar POST antes de cargar datos 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $controlador->editar($rol, $_POST);
     // editar() siempre redirige; no llega aquí.
 }
 
-// ── Cargar datos ──
+//  Cargar datos 
 $instituto  = $controlador->indexDetalles($rol);
 $directores = $controlador->directores();
 
-if (empty($instituto)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+if (empty($datinstitutoos)) {
+    header("Location: index.php?msg=error_sin_registro");
     exit;
 }
 
-// ── Mapa de mensajes ──
+//  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'exito_editar'        => ['tipo' => 'exito',  'titulo_msg' => 'Instituto actualizado',  'mensaje' => 'Los datos del instituto fueron guardados correctamente.'],
     'error_editar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al guardar',        'mensaje' => 'No fue posible guardar los datos del instituto. Intenta de nuevo.'],
     'error_director'      => ['tipo' => 'alerta', 'titulo_msg' => 'Director no válido',      'mensaje' => 'El director seleccionado no está activo. Elige otro e intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo o actualizar la información del instituto.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',     'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 

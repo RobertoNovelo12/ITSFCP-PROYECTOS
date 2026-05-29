@@ -59,10 +59,13 @@ $_mapa = [
     'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Área actualizada',       'mensaje' => 'El área de conocimiento fue editada correctamente.'],
     'exito_desactivar'   => ['tipo' => 'exito',  'titulo_msg' => 'Área desactivada',       'mensaje' => 'El área de conocimiento fue desactivada correctamente.'],
     'error_crear'        => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',         'mensaje' => 'No fue posible crear el área. Verifica los datos e intenta de nuevo.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar el área. Verifica los datos e intenta de nuevo.'],
     'error_desactivar'   => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',    'mensaje' => 'No fue posible desactivar el área.'],
     'error_duplicado'    => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',     'mensaje' => 'Ya existe un área o subárea con ese nombre.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',    'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
 ];
 
 ob_start();

@@ -20,12 +20,12 @@ if ($rol !== 'estudiante') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
+require_once '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = (int)($_GET['id'] ?? 0);
-if (!$id_solicitud) {
-    header("Location: index.php");
-    exit;
-}
+$id_validar = $id_solicitud;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 require_once __DIR__ . '/../../Controladores/misSolicitudesControlador.php';
 $ctrl = new MisSolicitudesControlador();
@@ -46,10 +46,10 @@ $data      = $ctrl->detallePagina($id_solicitud, $id_usuario);
 $sol       = $data['solicitud'];
 $hilo      = $data['hilo'];
 
-if (!$sol) {
-    header("Location: index.php?msg=error&detalle=" . urlencode("Solicitud no encontrada."));
-    exit;
-}
+// Validación
+$registro = $data;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 $es_correcciones = ($sol['estado'] === 'correcciones');
 $ya_respondio    = (int)($sol['ya_respondio'] ?? 0) > 0;

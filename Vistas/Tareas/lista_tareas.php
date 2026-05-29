@@ -14,13 +14,25 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $action     = $_GET['action'] ?? 'index_Lista';
-$id_tarea   = $_GET['id_tarea'] ?? null;
-$id_proyectos = $_GET['id_proyectos'] ?? null;
+
+require_once '../../../publico/incluido/_validar_tareas.php';
 
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
     header('Location: /ITSFCP-PROYECTOS/index.php');
     exit;
 }
+
+$id_tarea = $_GET['id_tarea'] ?? null;
+
+//Validación de argumentos en url
+$id_validar = $id_tarea;
+require_once '../../../publico/incluido/_validar_id.php';
+
+$id_proyectos = $_GET['id_proyectos'] ?? null;
+
+//Validación de argumentos en url
+$id_validar = $id_proyectos;
+require_once '../../../publico/incluido/_validar_id.php';
 
 include "../../Controladores/tareasControlador.php";
 $tareaControlador = new TareaControlador();

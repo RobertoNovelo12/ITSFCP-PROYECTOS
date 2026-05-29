@@ -28,13 +28,13 @@ $buscar      = $_GET['buscar']     ?? '';
 $pagina      = max(1, (int)($_GET['pagina']     ?? 1));
 $id_periodo  = (int)($_GET['id_periodo'] ?? 0);
 
-// ── Acción: aprobar (GET desde botón tabla) ───────────────────────────────────
+//  Acción: aprobar (GET desde botón tabla) ─
 if (isset($_GET['action']) && $_GET['action'] === 'aprobar' && isset($_GET['id'])) {
     $ctrl->aprobarCarta((int)$_GET['id'], $id_usuario, $rol);
     // aprobarCarta() redirige; no llega aquí
 }
 
-// ── Cargar datos ──────────────────────────────────────────────────────────────
+//  Cargar datos 
 $periodos  = $ctrl->obtenerTodosPeriodos();
 $resumen   = $ctrl->resumenCartas($id_periodo);
 $resultado = $ctrl->listarCartas($tipo_filtro, $buscar, $pagina, $id_periodo);
@@ -47,13 +47,16 @@ $paginacion  = $resultado['paginacion']  ?? [
     'total_paginas' => 1,
 ];
 
-// ── Mensajes ──────────────────────────────────────────────────────────────────
+//  Mensajes 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'exito_aprobar'      => ['tipo' => 'exito',  'titulo_msg' => 'Carta aprobada',      'mensaje' => 'La carta de terminación fue aprobada. El estudiante ha concluido su participación.'],
     'exito_rechazar'     => ['tipo' => 'exito',  'titulo_msg' => 'Carta rechazada',     'mensaje' => 'La carta de terminación fue rechazada. El estudiante fue notificado para reenviarla.'],
     'error_aprobar'      => ['tipo' => 'error',  'titulo_msg' => 'Error al aprobar',    'mensaje' => 'No fue posible aprobar la carta de terminación. Intenta de nuevo.'],
     'error_rechazar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al rechazar',   'mensaje' => 'No fue posible rechazar la carta de terminación. Intenta de nuevo.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida', 'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 

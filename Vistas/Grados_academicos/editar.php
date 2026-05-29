@@ -14,10 +14,21 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_grado   = $_GET['id_grado'] ?? null;
+
+if (empty($_GET)) {
+    header("Location: index.php?msg=sin_argumentos_url");
+    exit;
+}
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    exit;
+}
+
+$id_grado   = $_GET['id_grado'] ?? null;
+
+if ($id_grado <= 0) {
+    header("Location: index.php?msg=error_cargar");
     exit;
 }
 
@@ -27,11 +38,11 @@ $gradoacademicoControlador = new gradoacademicoControlador();
 $datos = $gradoacademicoControlador->indexEditar($rol, $id_grado);
 
 if (empty($datos)) {
-    header("Location: index.php?msg=sin_permiso");
+    header("Location: index.php?msg=error_sin_registro");
     exit;
 }
 
-// ── Mapa de mensajes ──
+//  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'exito_editar'        => ['tipo' => 'exito',  'titulo_msg' => 'Grado actualizado',   'mensaje' => 'El grado académico fue editado correctamente.'],
@@ -44,7 +55,7 @@ $_mapa = [
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',  'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 
-// ── Procesar POST ──
+//  Procesar POST 
 $action = $_POST['action'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

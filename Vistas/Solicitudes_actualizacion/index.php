@@ -12,7 +12,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'supervisor') {
@@ -54,6 +54,9 @@ $_mapa = [
     'exito_rechazar'     => ['tipo' => 'exito',  'titulo_msg' => 'Solicitud rechazada',   'mensaje' => 'La solicitud fue rechazada y se notificó al investigador.'],
     'error_aprobar'      => ['tipo' => 'error',  'titulo_msg' => 'Error al aprobar',      'mensaje' => 'No fue posible aprobar la solicitud. Intenta de nuevo.'],
     'error_rechazar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al rechazar',     'mensaje' => 'No fue posible rechazar la solicitud. Intenta de nuevo.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 

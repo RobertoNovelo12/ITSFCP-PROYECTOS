@@ -13,7 +13,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 //Solo el investigador puede acceder
@@ -23,31 +23,52 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
 }
 
 $id_seg   = intval($_GET['id_seg']  ?? 0);
+
+//Validación de argumentos en url
+$id_validar = $id_seg;
+require_once '../../../publico/incluido/_validar_id.php';
+
+
 $id_sol   = intval($_GET['id_sol']  ?? 0);
+
+//Validación de argumentos en url
+$id_validar = $id_sol;
+require_once '../../../publico/incluido/_validar_id.php';
+
 $estado   = $_GET['estado']         ?? ''; // 'completado' | 'correcciones' | 'rechazado'
 
+//Validación de argumentos en url
+$id_validar = $estado;
+require_once '../../../publico/incluido/_validar_id.php';
+
+
 if (!$id_seg || !$id_sol || !in_array($estado, ['completado', 'correcciones', 'rechazado'], true)) {
-    header("Location: tabla.php");
+    header("Location: index.php");
     exit;
 }
 
 require_once '../../Controladores/solicitudesControlador.php';
 $ctrl = new solicitudesControlador();
 
-//  Procesar POST ─
+//  Procesar POST index.php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ctrl->responderCierre($id_seg, $id_sol, $id_usuario, $rol);
     // responderCierre() redirige internamente
 }
 
-//  Datos de contexto ─
+//  Datos de contexto index.php
 $data = $ctrl->detallePagina($id_sol, $id_usuario, $rol);
+
+// Validación
+$registro = $data;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $sol  = $data['solicitud'];
 
-if (!$sol) {
-    header("Location: tabla.php?error=Solicitud+no+encontrada");
-    exit;
-}
+// Validación
+$registro = $sol;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 $msg_err = htmlspecialchars($_GET['error'] ?? '');
 

@@ -18,7 +18,13 @@ $periodoControlador = new periodoControlador();
 
 $rol         = strtolower($_SESSION['rol'] ?? '');
 $id_usuario  = intval($_SESSION['id_usuario']);
-$id_periodo  = isset($_GET['id_periodos']) ? intval($_GET['id_periodos']) : 0;
+
+require_once '../../../publico/incluido/_validar_get.php';
+
+$id_periodo  = intval($_GET['id_periodos']) ?? 0;
+
+$id_validar = $id_periodo;
+require_once '../../../publico/incluido/_validar_id.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
@@ -29,9 +35,10 @@ if ($rol !== 'supervisor') {
 /* Obtener datos */
 $periodo = $periodoControlador->indexDetalles($rol, $id_periodo);
 
-if (empty($periodo)) {
-    die("No se encontró el periodo.");
-}
+// Validación
+$registro = $periodo;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 /* Pequeño helper para mostrar fecha o "No definida" */
 function mostrarFecha(?string $fecha, string $formato = "d/m/Y"): string

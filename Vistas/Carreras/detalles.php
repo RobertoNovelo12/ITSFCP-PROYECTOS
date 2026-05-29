@@ -16,7 +16,8 @@ $carreraControlador = new carreraControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_carrera = isset($_GET['id_carrera']) ? intval($_GET['id_carrera']) : 0;
+
+require_once '../../../publico/incluido/_validar_get.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
@@ -24,13 +25,19 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
+$id_carrera = (int)($_GET['id_carrera'] ?? 0);
+
+$id_validar = $id_carrera;
+require_once '../../../publico/incluido/_validar_id.php';
+
+
 // Obtener datos
 $carrera = $carreraControlador->indexDetalles($rol, $id_carrera);
 
 // Validación
-if (empty($carrera)) {
-    die("No se encontró la carrera.");
-}
+$registro = $carrera;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 ob_start();
 ?>

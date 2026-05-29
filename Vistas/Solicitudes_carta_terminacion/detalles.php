@@ -21,20 +21,22 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
+require_once '../../../publico/incluido/_validar_get.php';
+
 $id_cierre_est = intval($_GET['id'] ?? 0);
-if (!$id_cierre_est) {
-    header("Location: index.php");
-    exit;
-}
+//Validación de argumentos en url
+$id_validar = $id_cierre_est;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 require_once '../../Controladores/solicitudes_carta_terminacionControlador.php';
 $ctrl   = new solicitudes_carta_terminacionControlador();
 $carta  = $ctrl->detalleCarta($id_cierre_est);
 
-if (!$carta) {
-    header("Location: index.php?error=Solicitud+no+encontrada");
-    exit;
-}
+// Validación
+$registro = $carta;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 $historial = $ctrl->historialProceso($carta['id_proyectos'], $carta['id_usuarios']);
 

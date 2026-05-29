@@ -14,17 +14,21 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_nivel   = (int)($_GET['id_nivel'] ?? 0);
+
+require_once '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
     exit;
 }
 
-if (!$id_nivel) {
-    header('Location: index.php?msg=accion_no_permitida');
-    exit;
-}
+$id_nivel   = (int)($_GET['id_nivel'] ?? 0);
+
+
+
+$id_validar = $id_nivel;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 require_once '../../Controladores/nivelsniControlador.php';
 
@@ -33,10 +37,10 @@ $action  = $_POST['action'] ?? null;
 $datos   = $ctrl->indexEditar($rol, $id_nivel);
 $mensaje = '';
 
-if (empty($datos)) {
-    header('Location: index.php?msg=accion_no_permitida');
-    exit;
-}
+// Validación
+$registro = $datos;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 //  Procesar acción POST 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {

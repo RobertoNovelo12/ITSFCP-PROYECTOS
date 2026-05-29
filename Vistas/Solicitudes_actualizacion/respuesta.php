@@ -25,26 +25,34 @@ require_once '../../Controladores/solicitudActualizacionControlador.php';
 
 $ctrl = new SolicitudActualizacionControlador();
 
-//  POST: confirmar rechazo ─
+//  POST: confirmar rechazo 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ctrl->rechazar($_POST, $id_usuario);
     // rechazar() redirige; no llega aquí
 }
 
-//  GET: mostrar formulario ─
+//  GET: mostrar formulario 
+
+require_once '../../../publico/incluido/_validar_get.php';
+
 $id_solicitud = (int)($_GET['id_solicitud'] ?? 0);
-if ($id_solicitud <= 0) {
-    header('Location: index.php');
-    exit;
-}
+//Validación de argumentos en url
+$id_validar = $id_solicitud;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 $datos     = $ctrl->detalle($id_solicitud);
+
+// Validación
+$registro = $datos;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $solicitud = $datos['solicitud'];
 
-if (empty($solicitud)) {
-    header('Location: index.php?msg=error_rechazar');
-    exit;
-}
+// Validación
+$registro = $solicitud;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 
 if ($solicitud['estado'] !== 'pendiente') {
     header('Location: detalles.php?id_solicitud=' . $id_solicitud);

@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 //Solo supervisor accede
@@ -21,15 +21,27 @@ if ($rol !== 'supervisor') {
 require_once '../../Controladores/solicitudActualizacionControlador.php';
 
 $controlador  = new SolicitudActualizacionControlador();
+
+require_once '../../../publico/incluido/_validar_get.php';
+
 $id_solicitud = intval($_GET['id_solicitud'] ?? 0);
 
-if ($id_solicitud <= 0) die("ID de solicitud no válido.");
+//Validación de argumentos en url
+$id_validar = $id_solicitud;
+require_once '../../../publico/incluido/_validar_id.php';
 
 $datos     = $controlador->detalle($id_solicitud);
+
+// Validación
+$registro = $datos;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $solicitud = $datos['solicitud'];
 $historial = $datos['historial'];
 
-if (empty($solicitud)) die("No se encontró la solicitud.");
+// Validación
+$registro = $solicitud;
+require_once '../../../publico/incluido/_validar_datos.php';
 
 ob_start();
 ?>

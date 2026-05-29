@@ -10,7 +10,18 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
+
+if (empty($_GET)) {
+    header("Location: index.php?msg=sin_argumentos_url");
+    exit;
+}
+
 $id_carrera = (int)($_GET['id_carrera'] ?? 0);
+
+if ($id_carrera <= 0) {
+    header("Location: index.php?msg=error_cargar");
+    exit;
+}
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");

@@ -28,13 +28,13 @@ require_once '../../Controladores/nivelsniControlador.php';
 
 $ctrl = new NivelsniControlador();
 
-// ── Acción: desactivar desde enlace GET ──────────────────────────────────────
+//  Acción: desactivar desde enlace GET 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'desactivar_nivel_sni') {
     $ctrl->eliminar($rol, (int)($_GET['id_nivel'] ?? 0));
     // eliminar() ya redirige; no continúa.
 }
 
-// ── Obtener registros por acción ─────────────────────────────────────────────
+//  Obtener registros por acción ─
 $accionesValidas = ['index', 'Total', 'Activo', 'Desactivado'];
 if (!in_array($action, $accionesValidas, true)) {
     $action = 'index';
@@ -53,7 +53,7 @@ $filtros     = $ctrl->filtros($rol);
 $encabezados = $ctrl->encabezadosPrincipal($rol);
 $opciones    = $ctrl->opciones($rol, $filtros);
 
-// ── Mensajes ─────────────────────────────────────────────────────────────────
+//  Mensajes ─
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     'exito_crear'        => ['tipo' => 'exito',  'titulo_msg' => 'Nivel SNI creado',       'mensaje' => 'El Nivel SNI fue creado correctamente.'],
@@ -65,6 +65,9 @@ $_mapa = [
     'error_desactivar'   => ['tipo' => 'error',  'titulo_msg' => 'Error al desactivar',    'mensaje' => 'No fue posible desactivar el Nivel SNI.'],
     'error_reactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',     'mensaje' => 'No fue posible reactivar el Nivel SNI.'],
     'error_duplicado'    => ['tipo' => 'alerta', 'titulo_msg' => 'Registro duplicado',     'mensaje' => 'Ya existe un Nivel SNI con ese nombre.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',    'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 

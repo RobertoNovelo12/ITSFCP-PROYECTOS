@@ -1,10 +1,7 @@
 <?php
-// 
+//
 //  tarea.php
-// 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+//
 
 session_start();
 
@@ -13,50 +10,63 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol           = strtolower($_SESSION['rol'] ?? '');
-$id            = (int) $_SESSION['id_usuario'];
-$id_proyecto   = $_GET['id_proyectos']  ?? null;
-$id_asignacion = $_GET['id_asignacion'] ?? null;
-$id_tarea      = $_GET['id_tarea']      ?? null;
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id  = (int)$_SESSION['id_usuario'];
+
+// ── Validar GET no vacío (reutilizable _validar_tareas.php) ──
+require_once '../../../publico/incluido/_validar_tareas.php';
 
 // Solo investigador y estudiante pueden acceder
-if (!in_array($rol, ['investigador', 'estudiante'])) {
+if (!in_array($rol, ['investigador', 'estudiante'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
+
+// ── Validar IDs de URL ───
+$id_proyecto   = (int)($_GET['id_proyectos']  ?? 0);
+$id_validar    = $id_proyecto;
+require_once '../../../publico/incluido/_validar_id.php';
+
+$id_asignacion = (int)($_GET['id_asignacion'] ?? 0);
+$id_validar    = $id_asignacion;
+require_once '../../../publico/incluido/_validar_id.php';
+
+$id_tarea      = (int)($_GET['id_tarea']      ?? 0);
+$id_validar    = $id_tarea;
+require_once '../../../publico/incluido/_validar_id.php';
 
 require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
 // Límites de caracteres para el contenido del estudiante
-const MAX_CONTENIDO    = 8000;
-const MAX_COMENTARIOS  = 1500;
+const MAX_CONTENIDO   = 8000;
+const MAX_COMENTARIOS = 1500;
 
-// 
+// ──
 //  MANEJO DEL POST
 //  Acciones:
-//    1. guardar_borrador       → guarda contenido/archivo, estado = 8
-//    2. editarTareaEstudiante  → guarda contenido/archivo y cambia estado (Revisar)
-//    3. editarTareaRevisar     → investigador cambia estado (Aprobar / Corregir)
-//
+//    1. guardar_borrador      → guarda contenido/archivo, estado = 8
+//    2. editarTareaEstudiante → guarda contenido/archivo y cambia estado (Revisar)
+//    3. editarTareaRevisar    → investigador cambia estado (Aprobar / Corregir)
+// ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 
     $action     = $_POST['action'];
-    $id_datos   = (int) ($_POST['id_tarea']      ?? 0);
-    $id_asig    = (int) ($_POST['id_asignacion'] ?? 0);
-    $idproy     = (int) ($_POST['id_proyectos']  ?? 0);
-    $tipo       = trim($_POST['tipo']            ?? '');
-    $comentario = $_POST['comentarios']          ?? '';
-    $contenido  = $_POST['contenido']            ?? '';
+    $id_datos   = (int)($_POST['id_tarea']      ?? 0);
+    $id_asig    = (int)($_POST['id_asignacion'] ?? 0);
+    $idproy     = (int)($_POST['id_proyectos']  ?? 0);
+    $tipo       = trim($_POST['tipo']           ?? '');
+    $comentario = $_POST['comentarios']         ?? '';
+    $contenido  = $_POST['contenido']           ?? '';
 
     // Validación de límites en servidor
-    $lenContenido   = mb_strlen(strip_tags($contenido),   'UTF-8');
-    $lenComentarios = mb_strlen(strip_tags($comentario),  'UTF-8');
+    $lenContenido   = mb_strlen(strip_tags($contenido),  'UTF-8');
+    $lenComentarios = mb_strlen(strip_tags($comentario), 'UTF-8');
 
-    if ($action === 'guardar_borrador' || $action === 'editarTareaEstudiante') {
+    if (in_array($action, ['guardar_borrador', 'editarTareaEstudiante'], true)) {
         if ($lenContenido > MAX_CONTENIDO || $lenComentarios > MAX_COMENTARIOS) {
-            $excedido = $lenContenido > MAX_CONTENIDO ? 'contenido' : 'comentarios';
-            header("Location: tarea.php?id_tarea={$id_datos}&id_proyectos={$idproy}&id_asignacion={$id_asig}&error=limite_{$excedido}");
+            $excedido = $lenContenido > MAX_CONTENIDO ? 'limite_contenido' : 'limite_comentarios';
+            header("Location: tarea.php?id_tarea={$id_datos}&id_proyectos={$idproy}&id_asignacion={$id_asig}&msg={$excedido}");
             exit;
         }
     }
@@ -71,36 +81,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
             $contenido,
             $comentario
         );
-        // guardar_borrador hace header() + exit() internamente
+        // guardar_borrador() redirige internamente
     }
 
     // 2 — Enviar tarea / cambiar estado (estudiante)
     if ($action === 'editarTareaEstudiante') {
         if (empty($tipo)) {
-            header("Location: tarea.php?id_tarea={$id_datos}&id_proyectos={$idproy}&id_asignacion={$id_asig}&error=tipo_vacio");
+            header("Location: tarea.php?id_tarea={$id_datos}&id_proyectos={$idproy}&id_asignacion={$id_asig}&msg=error_tipo_invalido");
             exit;
         }
         $tareaControlador->editar($_POST, $rol, $idproy, $id_asig, $id);
-        // editar() hace su propio header() + exit()
+        // editar() redirige internamente
     }
 
     // 3 — Revisar / Aprobar / Corregir (investigador / profesor)
     if ($action === 'editarTareaRevisar') {
         if (empty($tipo)) {
-            header("Location: tarea.php?id_tarea={$id_datos}&id_proyectos={$idproy}&id_asignacion={$id_asig}&error=tipo_vacio");
+            header("Location: tarea.php?id_tarea={$id_datos}&id_proyectos={$idproy}&id_asignacion={$id_asig}&msg=error_tipo_invalido");
             exit;
         }
         $tareaControlador->editar($_POST, $rol, $idproy, $id_asig, $id);
-        // editar() hace su propio header() + exit()
+        // editar() redirige internamente
     }
 }
 
-// 
-//  DATOS PARA LA VISTA
-// 
-$datos     = $tareaControlador->mostrarTarea($id_asignacion, $rol, $id);
-$resultado = $tareaControlador->info_linea_tiempo($id_asignacion);
+// ── Datos para la vista ──
+$datos = $tareaControlador->mostrarTarea($id_asignacion, $rol, $id, $id_proyecto);
 
+// Validar que se encontró el registro (reutilizable _validar_datos.php)
+$registro = $datos;
+require_once '../../../publico/incluido/_validar_datos.php';
+
+$resultado         = $tareaControlador->info_linea_tiempo($id_asignacion);
 $historialAgrupado = $resultado['datos'];
 $paginacion        = $resultado['paginacion'];
 
@@ -120,73 +132,34 @@ $estadoLabel = [
 $esBorrador = (($datos['id_estadoT'] ?? 0) == 8);
 
 // Longitudes actuales (texto plano, sin etiquetas HTML)
-$lenContenidoActual   = mb_strlen(strip_tags($datos['contenido']    ?? ''), 'UTF-8');
-$lenComentariosActual = mb_strlen(strip_tags($datos['comentarios']  ?? ''), 'UTF-8');
+$lenContenidoActual   = mb_strlen(strip_tags($datos['contenido']   ?? ''), 'UTF-8');
+$lenComentariosActual = mb_strlen(strip_tags($datos['comentarios'] ?? ''), 'UTF-8');
 
-// Alerta de éxito / error desde redirección
-$mensaje = $_GET['mensaje'] ?? null;
-$error   = $_GET['error']   ?? null;
+// ── Mapa de mensajes (patrón $_mapa estándar) 
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    // Éxitos
+    'exito_estado'            => ['tipo' => 'exito',  'titulo_msg' => 'Estado actualizado',     'mensaje' => 'El estado de la tarea fue actualizado correctamente.'],
+    'exito_borrador'          => ['tipo' => 'exito',  'titulo_msg' => 'Borrador guardado',       'mensaje' => 'El borrador fue guardado correctamente.'],
+    // Errores de acción
+    'error_estado'            => ['tipo' => 'error',  'titulo_msg' => 'Error al actualizar',     'mensaje' => 'No fue posible actualizar el estado. Intenta de nuevo.'],
+    'error_borrador'          => ['tipo' => 'error',  'titulo_msg' => 'Error al guardar',        'mensaje' => 'No fue posible guardar el borrador. Intenta de nuevo.'],
+    'error_tipo_invalido'     => ['tipo' => 'error',  'titulo_msg' => 'Acción no válida',        'mensaje' => 'No se pudo procesar la acción: falta el tipo de estado. Intenta de nuevo.'],
+    // Límites de caracteres
+    'limite_contenido'        => ['tipo' => 'error',  'titulo_msg' => 'Límite excedido',         'mensaje' => 'El contenido supera el límite de ' . number_format(MAX_CONTENIDO, 0, '.', ',') . ' caracteres permitidos. Reduce el texto antes de guardar.'],
+    'limite_comentarios'      => ['tipo' => 'error',  'titulo_msg' => 'Límite excedido',         'mensaje' => 'Los comentarios superan el límite de ' . number_format(MAX_COMENTARIOS, 0, '.', ',') . ' caracteres permitidos. Reduce el texto antes de guardar.'],
+    // Acceso / datos
+    'accion_no_permitida'     => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',     'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'error_cargar'            => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',         'mensaje' => 'No se encontró la tarea solicitada.'],
+    'error_sin_registro'      => ['tipo' => 'error',  'titulo_msg' => 'Sin datos',               'mensaje' => 'No se encontró información para esta tarea.'],
+    'sin_argumentos_url'      => ['tipo' => 'error',  'titulo_msg' => 'Parámetros faltantes',    'mensaje' => 'Faltan parámetros en la URL. Accede a la tarea desde el listado.'],
+    'periodo_vencido'         => ['tipo' => 'alerta', 'titulo_msg' => 'Periodo vencido',         'mensaje' => 'El periodo asociado a esta tarea ya venció.'],
+];
 
 ob_start();
 ?>
 
 <div class="container-fluid py-4 ancho_container">
-
-    <!-- Alertas de feedback (PRG) -->
-    <?php if ($mensaje === 'ok'): ?>
-        <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16">
-                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477
-                         9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0
-                         1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-            </svg>
-            Estado actualizado correctamente.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($mensaje === 'borrador'): ?>
-        <div class="alert alert-info alert-dismissible fade show py-2" role="alert">
-            Borrador guardado correctamente.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($error === 'tipo_vacio'): ?>
-        <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
-            No se pudo procesar la acción: falta el tipo de estado. Intenta de nuevo.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($error === 'limite_contenido'): ?>
-        <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                class="bi bi-exclamation-triangle-fill me-1" viewBox="0 0 16 16">
-                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98
-                         1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35
-                         3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0
-                         2 1 1 0 0 1 0-2" />
-            </svg>
-            El contenido supera el límite de <?= number_format(MAX_CONTENIDO, 0, '.', ',') ?> caracteres permitidos. Reduce el texto antes de guardar.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($error === 'limite_comentarios'): ?>
-        <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                class="bi bi-exclamation-triangle-fill me-1" viewBox="0 0 16 16">
-                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98
-                         1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35
-                         3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0
-                         2 1 1 0 0 1 0-2" />
-            </svg>
-            Los comentarios superan el límite de <?= number_format(MAX_COMENTARIOS, 0, '.', ',') ?> caracteres permitidos. Reduce el texto antes de guardar.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
 
     <!-- Cabecera -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
@@ -194,7 +167,7 @@ ob_start();
             <h4 class="mb-0 fw-semibold">
                 <?= htmlspecialchars($datos['tipo_tarea'] ?? 'Tarea') ?>
             </h4>
-            <small class="text-muted">ID asignación: <?= (int) $id_asignacion ?></small>
+            <small class="text-muted">ID asignación: <?= $id_asignacion ?></small>
         </div>
         <div class="d-flex align-items-center gap-2">
             <?php
@@ -220,17 +193,20 @@ ob_start();
                 </span>
             <?php endif; ?>
 
-            <?php if (in_array($rol, ['investigador', 'supervisor'])): ?>
-                <a href="lista_tareas.php?id_tarea=<?= (int) $id_tarea ?>&id_proyectos=<?= (int) $id_proyecto ?>"
+            <?php if (in_array($rol, ['investigador', 'supervisor'], true)): ?>
+                <a href="lista_tareas.php?id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>"
                     class="btn btn-secondary btn-sm px-3">← Regresar</a>
-            <?php elseif (in_array($rol, ['estudiante', 'alumno'])): ?>
-                <a href="tareas_estudiante.php?id_asignacion=<?= (int) $id_asignacion ?>&id_tarea=<?= (int) $id_tarea ?>&id_proyectos=<?= (int) $id_proyecto ?>"
+            <?php elseif (in_array($rol, ['estudiante', 'alumno'], true)): ?>
+                <a href="tareas_estudiante.php?id_asignacion=<?= $id_asignacion ?>&id_tarea=<?= $id_tarea ?>&id_proyectos=<?= $id_proyecto ?>"
                     class="btn btn-secondary btn-sm px-3">
                     <i class="bi bi-arrow-left"></i> Regresar
                 </a>
             <?php endif; ?>
         </div>
     </div>
+
+        <!-- ── Mensajes de feedback (patrón $_mapa) ── -->
+    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); include __DIR__ . '/../../../publico/incluido/_mensaje.php'; endif; ?>
 
     <!-- Alerta: tarea modificada por investigador -->
     <?php if (!empty($datos['fecha_modificacion'])): ?>
@@ -299,19 +275,11 @@ ob_start();
                              6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5
                              0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z" />
                     <path fill-rule="evenodd" d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0
-                             1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2zM4.165
-                             13.668c.09.18.23.343.438.419.207.075.412.04.58-.03.318-.13.635-.436.926-.786.333-.401.683-.927
-                             1.021-1.51a11.7 11.7 0 0 1 1.997-.406c.3.383.61.713.91.95.28.22.603.403.934.417a.86.86
-                             0 0 0 .51-.138c.155-.101.27-.247.354-.416.09-.181.145-.37.138-.563a.84.84 0 0
-                             0-.2-.518c-.226-.27-.596-.4-.96-.465a5.8 5.8 0 0 0-1.335-.05 11 11 0 0
-                             1-.98-1.686c.25-.66.437-1.284.52-1.794.036-.218.055-.426.048-.614a1.24 1.24 0
-                             0 0-.127-.538.7.7 0 0 0-.477-.365c-.202-.043-.41 0-.601.077-.377.15-.576.47-.651.823-.073.34-.04.736.046
-                             1.136.088.406.238.848.43 1.295a20 20 0 0 1-1.062 2.227 7.7 7.7 0 0
-                             0-1.482.645c-.37.22-.699.48-.897.787-.21.326-.275.714-.08 1.103" />
+                             1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2z" />
                 </svg>
                 <div class="flex-grow-1">
                     <span class="tarea-seccion-label d-block mb-0">Archivo de guía</span>
-                    <a href="descargar_guia.php?id=<?= (int) $datos['id_tarea'] ?>" class="small">
+                    <a href="descargar_guia.php?id=<?= $id_tarea ?>" class="small">
                         <?= htmlspecialchars($datos['guia_nombre']) ?>
                     </a>
                 </div>
@@ -345,22 +313,20 @@ ob_start();
             <div class="card-body">
 
                 <?php
-                /*
-                 *  NOTA DE LÍMITES (solo estudiante en estados editables) 
-                 * Se muestra antes del formulario para que el estudiante sepa las restricciones
-                 * antes de empezar a escribir.
-                 */
-                if ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3])):
+                // NOTA DE LÍMITES (solo estudiante en estados editables)
+                if ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3], true)):
                 ?>
                     <div class="nota-explicacion mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20" class="flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+                            viewBox="0 0 20 20" class="flex-shrink-0">
                             <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
                             <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                             <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
                         </svg>
                         <span>
                             El <strong>contenido de tu entrega</strong> tiene un máximo de
-                            <strong><?= number_format(MAX_CONTENIDO, 0, '.', ',') ?> caracteres</strong> (texto plano, sin contar etiquetas HTML).
+                            <strong><?= number_format(MAX_CONTENIDO, 0, '.', ',') ?> caracteres</strong>
+                            (texto plano, sin contar etiquetas HTML).
                             Los <strong>comentarios</strong> tienen un máximo de
                             <strong><?= number_format(MAX_COMENTARIOS, 0, '.', ',') ?> caracteres</strong>.
                             Los contadores se actualizan en tiempo real mientras escribes.
@@ -375,38 +341,19 @@ ob_start();
 
                     <input type="hidden" name="action"
                         value="<?= $rol === 'estudiante' ? 'editarTareaEstudiante' : 'editarTareaRevisar' ?>">
-                    <input type="hidden" name="id_tarea"
-                        value="<?= (int) $datos['id_tarea'] ?>">
-                    <input type="hidden" name="id_proyectos"
-                        value="<?= (int) $datos['id_proyectos'] ?>">
-                    <input type="hidden" name="id_asignacion"
-                        value="<?= (int) $datos['id_asignacion'] ?>">
-
+                    <input type="hidden" name="id_tarea"       value="<?= (int)$datos['id_tarea'] ?>">
+                    <input type="hidden" name="id_proyectos"   value="<?= (int)$datos['id_proyectos'] ?>">
+                    <input type="hidden" name="id_asignacion"  value="<?= (int)$datos['id_asignacion'] ?>">
                     <input type="hidden" name="tipo" id="campo-tipo" value="">
 
-                    <?php
-                    /*
-                     * tareas() renderiza los campos del formulario (textarea.editor, textarea[name="comentarios"], etc.)
-                     * El controlador es quien define los IDs reales de esos elementos;
-                     * los contadores JS los rastrean por nombre de campo, no por ID fijo.
-                     */
-                    ?>
                     <?= $tareaControlador->tareas($datos['tipo_tarea'], $rol, $datos) ?? '' ?>
 
-                    <?php
-                    /*
-                     *  CONTADORES DE CARACTERES (solo estudiante en estados editables) ──
-                     * Se insertan inmediatamente después del área de contenido generada por
-                     * el controlador, de modo que quedan visualmente asociados a cada campo.
-                     */
-                    if ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3])):
-                    ?>
+                    <?php if ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3], true)): ?>
                         <!-- Contador: contenido principal -->
                         <div class="char-counter mt-1 mb-3" id="counter-contenido">
                             <span id="counter-contenido-val"><?= $lenContenidoActual ?></span>
                             / <?= number_format(MAX_CONTENIDO, 0, '.', ',') ?> caracteres
                         </div>
-
                         <!-- Contador: comentarios -->
                         <div class="char-counter mt-1 mb-2" id="counter-comentarios">
                             <span id="counter-comentarios-val"><?= $lenComentariosActual ?></span>
@@ -424,21 +371,20 @@ ob_start();
                     </div>
                 </form>
 
-                <?php if ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3])): ?>
-
+                <?php if ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3], true)): ?>
                     <form id="form-borrador"
                         action="tarea.php"
                         method="POST"
                         enctype="multipart/form-data"
                         class="d-none">
 
-                        <input type="hidden" name="action" value="guardar_borrador">
-                        <input type="hidden" name="id_tarea" value="<?= (int) $datos['id_tarea'] ?>">
-                        <input type="hidden" name="id_proyectos" value="<?= (int) $datos['id_proyectos'] ?>">
-                        <input type="hidden" name="id_asignacion" value="<?= (int) $datos['id_asignacion'] ?>">
+                        <input type="hidden" name="action"       value="guardar_borrador">
+                        <input type="hidden" name="id_tarea"     value="<?= (int)$datos['id_tarea'] ?>">
+                        <input type="hidden" name="id_proyectos" value="<?= (int)$datos['id_proyectos'] ?>">
+                        <input type="hidden" name="id_asignacion" value="<?= (int)$datos['id_asignacion'] ?>">
                         <!-- Rellenados por JS justo antes del submit -->
-                        <input type="hidden" name="contenido" id="borrador-contenido">
-                        <input type="hidden" name="comentarios" id="borrador-comentarios">
+                        <input type="hidden" name="contenido"    id="borrador-contenido">
+                        <input type="hidden" name="comentarios"  id="borrador-comentarios">
                     </form>
                 <?php endif; ?>
 
@@ -505,15 +451,13 @@ ob_start();
 
                 <!-- Paginación -->
                 <?php if ($paginacion['total_paginas'] > 1):
-                    $qBase   = http_build_query([
-                        'id_asignacion' => (int) $id_asignacion,
-                        'id_tarea'      => (int) $id_tarea,
-                        'id_proyectos'  => (int) $id_proyecto,
+                    $qBase = http_build_query([
+                        'id_asignacion' => $id_asignacion,
+                        'id_tarea'      => $id_tarea,
+                        'id_proyectos'  => $id_proyecto,
                     ]);
-                    // No necesita $entidad si no muestra contador (este módulo no lo tenía)
-                    include __DIR__ . '../../publico/incluido/_paginacion.php'; ?>
-
-                <?php endif; ?>
+                    include __DIR__ . '/../../publico/incluido/_paginacion.php';
+                endif; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -524,7 +468,6 @@ ob_start();
 <script src="https://cdn.tiny.cloud/1/0ro7u4jwmnmqkovrjmi7cc1w5kk7tzragurlph7foryy7xbv/tinymce/6/tinymce.min.js"></script>
 
 <style>
-    /* ── Nota explicativa (idéntica a editar.php) ─ */
     .nota-explicacion {
         display: flex;
         align-items: flex-start;
@@ -537,92 +480,47 @@ ob_start();
         color: #374151;
         line-height: 1.5;
     }
+    .nota-explicacion svg { color: #3b82f6; margin-top: .1rem; }
 
-    .nota-explicacion svg {
-        color: #3b82f6;
-        margin-top: .1rem;
-    }
-
-    /* ── Contador de caracteres (idéntico a editar.php) ─ */
     .char-counter {
         font-size: .78rem;
         color: #6b7280;
         text-align: right;
         transition: color .2s;
     }
-
-    .char-counter.near-limit {
-        color: #d97706;
-        /* amber-600 */
-        font-weight: 600;
-    }
-
-    .char-counter.over-limit {
-        color: #dc2626;
-        /* red-600 */
-        font-weight: 700;
-    }
+    .char-counter.near-limit { color: #d97706; font-weight: 600; }
+    .char-counter.over-limit { color: #dc2626; font-weight: 700; }
 </style>
 
 <script>
     (function() {
         'use strict';
 
-        // ── Variables globales ──
-        const esSoloLectura = <?= (in_array($rol, ['investigador', 'supervisor'])) ? 'true' : 'false' ?>;
-        const esEstudianteEdit = <?= ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3])) ? 'true' : 'false' ?>;
+        const esSoloLectura  = <?= in_array($rol, ['investigador', 'supervisor'], true) ? 'true' : 'false' ?>;
+        const esEstudianteEdit = <?= ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3], true)) ? 'true' : 'false' ?>;
 
-        // Límites (deben coincidir con las constantes PHP)
-        const LIMITE_CONTENIDO = <?= MAX_CONTENIDO ?>;
+        const LIMITE_CONTENIDO   = <?= MAX_CONTENIDO ?>;
         const LIMITE_COMENTARIOS = <?= MAX_COMENTARIOS ?>;
 
-        // ── Helpers de contador ─
-
-        /**
-         * Obtiene el texto plano de un elemento TinyMCE o un textarea nativo.
-         * @param {string} editorId  – id del elemento textarea
-         * @returns {string}
-         */
         function obtenerTextoPlano(editorId) {
             const inst = tinymce.get(editorId);
-            if (inst) {
-                return inst.getContent({
-                    format: 'text'
-                });
-            }
+            if (inst) return inst.getContent({ format: 'text' });
             const el = document.getElementById(editorId);
             return el ? el.value : '';
         }
 
-        /**
-         * Actualiza el contador de un campo concreto.
-         * @param {string} contadorId  – id del div.char-counter
-         * @param {string} valorId     – id del <span> con el número
-         * @param {number} len         – longitud actual
-         * @param {number} max         – límite máximo
-         */
         function actualizarContador(contadorId, valorId, len, max) {
             const counter = document.getElementById(contadorId);
-            const valEl = document.getElementById(valorId);
+            const valEl   = document.getElementById(valorId);
             if (!counter || !valEl) return;
-
             valEl.textContent = len.toLocaleString('es-MX');
-
             counter.classList.remove('near-limit', 'over-limit');
-            if (len > max) {
-                counter.classList.add('over-limit');
-            } else if (len >= max * 0.9) {
-                counter.classList.add('near-limit');
-            }
+            if (len > max)           counter.classList.add('over-limit');
+            else if (len >= max * .9) counter.classList.add('near-limit');
         }
 
-        /**
-         * Refresca ambos contadores leyendo los editores en ese momento.
-         */
         function refrescarContadores() {
             if (!esEstudianteEdit) return;
-
-            // Contenido principal: el editor con class="editor" dentro de #form-principal
             const formPpal = document.getElementById('form-principal');
             if (!formPpal) return;
 
@@ -632,62 +530,38 @@ ob_start();
                 actualizarContador('counter-contenido', 'counter-contenido-val', len, LIMITE_CONTENIDO);
             }
 
-            // Comentarios: textarea[name="comentarios"] dentro del form principal
             const taComentarios = formPpal.querySelector('[name="comentarios"]');
             if (taComentarios) {
-                // Si TinyMCE lo tomó, usar inst; si no, usar .value directamente
                 const instCom = tinymce.get(taComentarios.id);
-                const texto = instCom ?
-                    instCom.getContent({
-                        format: 'text'
-                    }) :
-                    taComentarios.value;
-                const len = [...texto].length;
-                actualizarContador('counter-comentarios', 'counter-comentarios-val', len, LIMITE_COMENTARIOS);
+                const texto   = instCom ? instCom.getContent({ format: 'text' }) : taComentarios.value;
+                actualizarContador('counter-comentarios', 'counter-comentarios-val', [...texto].length, LIMITE_COMENTARIOS);
             }
         }
 
-        /**
-         * Valida ambos límites antes del submit.
-         * @returns {boolean} true si todo está dentro del límite.
-         */
         function validarLimites() {
             if (!esEstudianteEdit) return true;
-
             const formPpal = document.getElementById('form-principal');
             if (!formPpal) return true;
 
-            // -- Contenido
             const editorContenido = formPpal.querySelector('.editor');
             if (editorContenido) {
                 const len = [...obtenerTextoPlano(editorContenido.id)].length;
                 if (len > LIMITE_CONTENIDO) {
                     const exceso = len - LIMITE_CONTENIDO;
-                    alert(
-                        `"Contenido de tu entrega" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\n` +
-                        `Por favor reduce el texto antes de enviar.`
-                    );
+                    alert(`"Contenido de tu entrega" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\nPor favor reduce el texto antes de enviar.`);
                     tinymce.get(editorContenido.id)?.focus();
                     return false;
                 }
             }
 
-            // -- Comentarios
             const taComentarios = formPpal.querySelector('[name="comentarios"]');
             if (taComentarios) {
                 const instCom = tinymce.get(taComentarios.id);
-                const texto = instCom ?
-                    instCom.getContent({
-                        format: 'text'
-                    }) :
-                    taComentarios.value;
-                const len = [...texto].length;
+                const texto   = instCom ? instCom.getContent({ format: 'text' }) : taComentarios.value;
+                const len     = [...texto].length;
                 if (len > LIMITE_COMENTARIOS) {
                     const exceso = len - LIMITE_COMENTARIOS;
-                    alert(
-                        `"Comentarios" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\n` +
-                        `Por favor reduce el texto antes de enviar.`
-                    );
+                    alert(`"Comentarios" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\nPor favor reduce el texto antes de enviar.`);
                     if (instCom) instCom.focus();
                     return false;
                 }
@@ -696,7 +570,6 @@ ob_start();
             return true;
         }
 
-        // ── Inicialización TinyMCE ─
         document.addEventListener('DOMContentLoaded', function() {
 
             tinymce.init({
@@ -706,60 +579,40 @@ ob_start();
                 menubar: !esSoloLectura,
                 plugins: 'lists link table code wordcount charmap insertdatetime',
                 toolbar: esSoloLectura ? false : `
-                undo redo |
-                bold italic underline |
-                alignleft aligncenter alignright |
-                bullist numlist |
-                link table |
-                charmap |
-                insertdatetime |
-                code
-            `,
+                    undo redo |
+                    bold italic underline |
+                    alignleft aligncenter alignright |
+                    bullist numlist |
+                    link table |
+                    charmap |
+                    insertdatetime |
+                    code
+                `,
                 toolbar_mode: 'sliding',
                 branding: false,
                 statusbar: true,
-
                 setup(editor) {
-                    // Conteo inicial al cargar el editor
-                    editor.on('init', function() {
-                        refrescarContadores();
-                    });
-
-                    // Actualizar en tiempo real con cada cambio
-                    editor.on('input keyup change SetContent', function() {
-                        refrescarContadores();
-                    });
+                    editor.on('init',                     () => refrescarContadores());
+                    editor.on('input keyup change SetContent', () => refrescarContadores());
                 },
             });
 
             // ── Form principal ──
             const formPrincipal = document.getElementById('form-principal');
-            const campoTipo = document.getElementById('campo-tipo');
+            const campoTipo     = document.getElementById('campo-tipo');
 
             if (formPrincipal && campoTipo) {
-
-                // Paso 1: capturar qué botón fue clickeado → guardarlo en el hidden
-                formPrincipal.querySelectorAll('button[type="submit"][name="tipo"]').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        campoTipo.value = this.value;
-                    });
+                formPrincipal.querySelectorAll('button[type="submit"][name="tipo"]').forEach(btn => {
+                    btn.addEventListener('click', function() { campoTipo.value = this.value; });
                 });
 
-                // Paso 2: en el submit, validar límites, luego sincronizar TinyMCE → textarea
                 formPrincipal.addEventListener('submit', function(e) {
-                    // Fallback: si el tipo sigue vacío, leer el primer botón
                     if (!campoTipo.value) {
                         const primerBoton = formPrincipal.querySelector('button[type="submit"][name="tipo"]');
                         if (primerBoton) campoTipo.value = primerBoton.value;
                     }
+                    if (!validarLimites()) { e.preventDefault(); return; }
 
-                    // Validar límites de caracteres
-                    if (!validarLimites()) {
-                        e.preventDefault();
-                        return;
-                    }
-
-                    // Sincronizar TinyMCE → textarea (necesario para que PHP reciba el contenido)
                     const editorEl = formPrincipal.querySelector('.editor');
                     if (editorEl) {
                         const inst = tinymce.get(editorEl.id);
@@ -768,46 +621,36 @@ ob_start();
                 });
             }
 
-            // ── Form borrador 
+            // ── Form borrador ──
             const formBorrador = document.getElementById('form-borrador');
             if (formBorrador) {
                 formBorrador.addEventListener('submit', function(e) {
+                    if (!validarLimites()) { e.preventDefault(); return; }
 
-                    // Validar límites también al guardar borrador
-                    if (!validarLimites()) {
-                        e.preventDefault();
-                        return;
-                    }
-
-                    // TinyMCE → hidden del borrador (contenido principal)
-                    const editorEl = formPrincipal ?
-                        formPrincipal.querySelector('.editor') :
-                        document.querySelector('.editor');
+                    const editorEl = formPrincipal
+                        ? formPrincipal.querySelector('.editor')
+                        : document.querySelector('.editor');
 
                     if (editorEl) {
                         const inst = tinymce.get(editorEl.id);
-                        if (inst) {
-                            document.getElementById('borrador-contenido').value = inst.getContent();
-                        }
+                        if (inst) document.getElementById('borrador-contenido').value = inst.getContent();
                     }
 
-                    // Fallback: textarea plano
                     if (!document.getElementById('borrador-contenido').value) {
-                        const ta = formPrincipal ?
-                            formPrincipal.querySelector('textarea[name="contenido"]') :
-                            document.querySelector('textarea[name="contenido"]');
+                        const ta = formPrincipal
+                            ? formPrincipal.querySelector('textarea[name="contenido"]')
+                            : document.querySelector('textarea[name="contenido"]');
                         if (ta) document.getElementById('borrador-contenido').value = ta.value;
                     }
 
-                    // Comentarios
-                    const com = formPrincipal ?
-                        formPrincipal.querySelector('[name="comentarios"]') :
-                        document.querySelector('[name="comentarios"]');
+                    const com = formPrincipal
+                        ? formPrincipal.querySelector('[name="comentarios"]')
+                        : document.querySelector('[name="comentarios"]');
                     if (com) {
                         const instCom = tinymce.get(com.id);
-                        document.getElementById('borrador-comentarios').value = instCom ?
-                            instCom.getContent() :
-                            com.value;
+                        document.getElementById('borrador-comentarios').value = instCom
+                            ? instCom.getContent()
+                            : com.value;
                     }
                 });
             }
@@ -818,9 +661,8 @@ ob_start();
 </script>
 
 <?php
-// Layout
-$page_content   = ob_get_clean();
-$titulo         = 'Revisar Tarea';
-$contenido      = $page_content;   // layout.php espera $contenido
+$page_content = ob_get_clean();
+$titulo       = 'Revisar Tarea';
+$contenido    = $page_content;
 include __DIR__ . '/../../layout.php';
 ?>

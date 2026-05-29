@@ -21,12 +21,15 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
 require_once '../../Controladores/solicitudesControlador.php';
 
 $ctrl         = new solicitudesControlador();
+
+require_once '../../../publico/incluido/_validar_get.php';
+
 $id_solicitud = intval($_GET['id'] ?? 0);
 
-if (!$id_solicitud) {
-    header("Location: tabla.php");
-    exit;
-}
+//Validación de argumentos en url
+$id_validar = $id_solicitud;
+require_once '../../../publico/incluido/_validar_id.php';
+
 
 //  Acción directa: aceptar desde esta página ─
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'aceptar') {
@@ -34,7 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'acept
     // aceptar() redirige internamente
 }
 
-$data        = $ctrl->detallePagina($id_solicitud, $id_usuario, $rol);
+$data = $ctrl->detallePagina($id_solicitud, $id_usuario, $rol);
+
+// Validación
+$registro = $data;
+require_once '../../../publico/incluido/_validar_datos.php';
+
 $sol         = $data['solicitud'];
 $comentarios = $data['comentarios'];
 

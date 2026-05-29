@@ -16,18 +16,25 @@ $directorControlador = new directorControlador();
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$id_director = isset($_GET['id_director']) ? intval($_GET['id_director']) : 0;
+
+require_once '../../../publico/incluido/_validar_get.php';
+
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
+$id_director = (int)($_GET['id_director']) ?? 0;
+
+$id_validar = $id_director;
+require_once '../../../publico/incluido/_validar_id.php';
+
+
 $director = $directorControlador->indexDetalles($rol, $id_director);
 
-if (empty($director)) {
-    die("No se encontró el director.");
-}
+$registro = $director;
+require_once '../../../publico/incluido/_validar_datos.php';
 
 ob_start();
 ?>

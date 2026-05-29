@@ -38,7 +38,7 @@ $filtros = $ajustesTiposDocumentoscontrolador->filtros($rol);
 $encabezados = $ajustesTiposDocumentoscontrolador->encabezadosPrincipal($rol);
 $opciones = $ajustesTiposDocumentoscontrolador->opciones($rol, $filtros);
 
-include __DIR__ . '/../../mensaje.php';
+include __DIR__ . '/../../_mensaje.php';
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     // Éxitos
@@ -51,8 +51,10 @@ $_mapa = [
     'error_reactivar'    => ['tipo' => 'error',  'titulo_msg' => 'Error al reactivar',      'mensaje' => 'No fue posible reactivar el tipo de documento.'],
     'error_duplicado'    => ['tipo' => 'error',  'titulo_msg' => 'Registro duplicado',      'mensaje' => 'Ya existe un tipo de documento con esos datos.'],
     'error_cargar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',         'mensaje' => 'No fue posible cargar la información. Intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     // Permisos
     'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',      'mensaje' => 'No tienes permiso para ver esta sección.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',     'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 ob_start();
@@ -85,7 +87,7 @@ ob_start();
             <div class="row g-2">
 
                 <div class="col-md-4 mb-1">
-                                        <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
                     <select class="form-select"
                         onchange="location.href='index.php?action=' + this.value;">
                         <?php foreach ($opciones as $key => $label): ?>

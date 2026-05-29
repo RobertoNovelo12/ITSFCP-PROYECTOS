@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Solo supervisores
@@ -65,8 +65,6 @@ $opciones    = $controlador->opciones($rol, $filtros);
 $msg = $_GET['msg'] ?? '';
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
-include __DIR__ . '/../../error.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
@@ -84,7 +82,7 @@ include __DIR__ . '/../../error.php';
         </div>
     </div>
 
-    <!-- ALERTAS -->
+    <!-- ALERTAS - ACTUALIZAR A COMO ESTÁN LOS DEMÁS MSG -->
     <?php if ($msg === 'aprobado') {
         $mensaje = ' Usuario aprobado correctamente.';
         include __DIR__ . '../../../publico/incluido/_mensaje_exito.php';

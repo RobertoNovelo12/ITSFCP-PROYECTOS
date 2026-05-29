@@ -19,9 +19,22 @@ if (!in_array($rol, ['investigador', 'profesor'])) {
     exit;
 }
 
-$id_tarea     = $_GET['id_tarea']    ?? null;
+require_once '../../../publico/incluido/_validar_tareas.php';
+
+$id_tarea = $_GET['id_tarea'] ?? null;
+
+//Validación de argumentos en url
+$id_validar = $id_tarea;
+require_once '../../../publico/incluido/_validar_id.php';
+
 $id_proyectos = $_GET['id_proyectos'] ?? $_POST['id_proyectos'] ?? null;
-$action       = $_POST['action']     ?? $_GET['action'] ?? null;
+
+//Validación de argumentos en url
+$id_validar = $id_proyectos;
+require_once '../../../publico/incluido/_validar_id.php';
+
+$action = $_POST['action'] ?? $_GET['action'] ?? null;
+
 
 // Límites de caracteres
 const MAX_DESCRIPCION   = 5000;

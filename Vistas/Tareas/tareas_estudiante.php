@@ -23,7 +23,14 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol          = strtolower($_SESSION['rol'] ?? '');
 $id_usuario   = $_SESSION['id_usuario'];
+
+require_once '../../../publico/incluido/_validar_tareas.php';
+
 $id_proyectos = $_GET['id_proyectos'] ?? $_POST['id_proyectos'] ?? null;
+
+//Validación de argumentos en url
+$id_validar = $id_proyectos;
+require_once '../../../publico/incluido/_validar_id.php';
 
 require_once '../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
@@ -112,9 +119,9 @@ ob_start();
         ?>
 
         <div class="col-6 col-md-6 text-md-end">
-                <a href="../../Vistas/Proyectos/index.php" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left me-1"></i>Regresar
-                </a>
+            <a href="../../Vistas/Proyectos/index.php" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Regresar
+            </a>
         </div>
     </div>
     <div class="act-page">
