@@ -765,7 +765,7 @@ class Tarea extends BaseModelo
              LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
              WHERE a.id_asignacion = ? AND proy.id_proyectos = ?
              LIMIT 1",
-                    'iii',
+                    'ii',
                     [$id_asignacion, $id_proyecto],
                     false
                 ) ?: null;

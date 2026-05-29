@@ -58,6 +58,7 @@ class UsuariosControlador
         return $usuario->obtenerUsuarios('cancelado', $buscar, $tipo);
     }
 
+
     // 
     //  OPCIONES DEL SELECT DE FILTRO
     // 

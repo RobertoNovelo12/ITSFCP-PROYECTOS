@@ -85,7 +85,7 @@ ob_start();
     <!-- Datos de la tarea -->
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-header">
-            <b>Información de la tarea</b>
+            <i class="bi bi-info-circle me-2"></i> <b>Información de la tarea</b>
         </div>
         <div class="card-body">
             <div class="mb-4">
@@ -101,6 +101,9 @@ ob_start();
 
     <!-- Fecha y archivo -->
     <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header">
+            <i class="bi bi-file-text me-2"></i> <b>Información adicional</b>
+        </div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
@@ -130,8 +133,12 @@ ob_start();
     </div>
 
     <!-- Historial de ediciones -->
-    <?php if (!empty($ediciones)): ?>
-        <div class="card border-0 shadow-sm">
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header">
+            <i class="bi bi-clock-history me-2"></i> <b>Historial de la tarea</b>
+        </div>
+        <?php if (!empty($ediciones)): ?>
             <div class="card-body">
                 <p class="tarea-seccion-label mb-3">Historial de cambios</p>
                 <?php foreach ($ediciones as $ed): ?>
@@ -159,12 +166,12 @@ ob_start();
                     </div>
                 <?php endforeach; ?>
             </div>
-        </div>
-    <?php else: ?>
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center text-muted small py-4">Sin historial de ediciones registrado.</div>
-        </div>
-    <?php endif; ?>
+    </div>
+<?php else: ?>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center text-muted small py-4">Sin historial de ediciones registrado.</div>
+    </div>
+<?php endif; ?>
 
 </div>
 

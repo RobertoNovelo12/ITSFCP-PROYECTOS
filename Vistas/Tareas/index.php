@@ -61,8 +61,8 @@ ob_start();
         ?>
 
         <div class="col-6 col-md-6 text-md-end">
-                <a href="../Proyectos/index.php" class="btn btn-secondary btn-sm px-4">
-                    <i class="bi bi-arrow-left"></i> Regresar</a>
+            <a href="../Proyectos/index.php" class="btn btn-secondary btn-sm px-4">
+                <i class="bi bi-arrow-left"></i> Regresar</a>
         </div>
     </div>
 
@@ -71,11 +71,11 @@ ob_start();
         <div class="card shadow-sm d-none d-md-block">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle mb-0" id="tabla_informacion">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
                             <tr>
                                 <?php foreach ($encabezados as $enc): ?>
-                                    <th class="px-3 py-3 text-muted small fw-semibold text-uppercase"><?= $enc ?></th>
+                                    <th><?= $enc ?></th>
                                 <?php endforeach; ?>
                             </tr>
                         </thead>

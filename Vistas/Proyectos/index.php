@@ -79,13 +79,12 @@ $_mapa = [
     'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar el proyecto. Verifica los datos e intenta de nuevo.'],
     'error_estado'       => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',        'mensaje' => 'No fue posible actualizar el estado del proyecto.'],
     'error_operacion'    => ['tipo' => 'error',  'titulo_msg' => 'Error en la operación',  'mensaje' => 'No fue posible completar la operación sobre el estudiante.'],
-    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver este proyecto.'],
-    'sin_permiso_tarea'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver las tareas del proyecto.'],
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver la información del proyecto.'],
+    'sin_permiso_tarea'   => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver las tareas del proyecto.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
     'periodo_vencido' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible al no estar en el periodo indicado para hacer correcciones o modificaciones al proyecto.'],
     'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
-
 ];
 
 ob_start();
@@ -140,55 +139,43 @@ ob_start();
                     <label class="form-label mb-1 small fw-semibold">
                         Estado
                     </label>
-
                     <select class="form-select"
                         onchange="location.href='?action=' + this.value + '&buscar=<?= urlencode($buscar) ?>'">
-
                         <?php foreach ($opciones as $key => $label): ?>
                             <option value="<?= htmlspecialchars($key) ?>"
                                 <?= ($action === $key) ? 'selected' : '' ?>>
 
                                 <?= htmlspecialchars($label) ?>
-
                             </option>
                         <?php endforeach; ?>
-
                     </select>
                 </div>
-
                 <!-- BUSCADOR -->
                 <div class="col-md-8 mb-1">
                     <label class="form-label mb-1 small fw-semibold">
                         Buscar
                     </label>
-
                     <form class="d-flex gap-2" method="GET">
-
                         <input type="hidden"
                             name="action"
                             value="<?= htmlspecialchars($action) ?>">
-
                         <input type="text"
                             name="buscar"
                             class="form-control"
                             placeholder="Por nombre..."
                             value="<?= htmlspecialchars($buscar) ?>">
-
                         <button type="submit" class="btn btn-primary">
                             Buscar
                         </button>
-
                         <?php if (!empty($buscar)): ?>
                             <a href="?action=<?= urlencode($action) ?>"
                                 class="btn btn-secondary"
                                 title="Limpiar búsqueda">
-
                                 <i class="bi bi-x-lg"></i>
                             </a>
                         <?php endif; ?>
                     </form>
                 </div>
-
             </div>
         </div>
     </div>

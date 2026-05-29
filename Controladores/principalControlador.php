@@ -143,7 +143,7 @@ class principalControlador extends BaseControlador
         $proyecto = $modelo->obtenerDetalle($id_proyecto);
 
         if ($proyecto === null) {
-            return ['proyecto' => null];
+            $this->redirigir('error_cargar');
         }
 
         $es_integrante = ($rol === 'estudiante')

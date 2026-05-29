@@ -54,11 +54,12 @@ ob_start();
     <div class="row mb-4 align-items-center">
         <?php
         $titulo      = 'Detalle de solicitud';
-        $descripcion = 'ID #<?= $id_solicitud ?> &bull;
-                <?= $controlador->etiquetaTipo($solicitud["tipo"]) ?>&bull Recibida el <?= date("d/m/Y H:i", strtotime($solicitud["fecha_solicitud"])) ?>';
+        $descripcion = 'ID #' . $id_solicitud .
+            ' • ' . $controlador->etiquetaTipo($solicitud['tipo']) .
+            ' • Recibida el ' . date('d/m/Y H:i', strtotime($solicitud['fecha_solicitud']));
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
-        <div class="col-6 col-md-4 text-md-end mt-2 mt-md-0">
+        <div class="col-6 col-md-6 text-md-end mt-2 mt-md-0">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Regresar
             </a>

@@ -267,7 +267,9 @@ ob_start();
     <!-- COMENTARIOS PREVIOS -->
     <?php if (!empty($comentarios)): ?>
         <div class="card mb-4 shadow-sm">
-            <div class="card-header fw-semibold">Historial de observaciones</div>
+            <div class="card-header fw-semibold">
+                <i class="bi bi-clock-history me-2"></i> <b>Historial de observaciones</b>
+            </div>
             <div class="card-body">
                 <?php foreach ($comentarios as $com): ?>
                     <div class="border-start border-danger border-3 ps-3 mb-3">

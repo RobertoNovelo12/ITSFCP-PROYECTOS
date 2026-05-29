@@ -168,7 +168,7 @@ ob_start();
                             value="<?= htmlspecialchars($buscar) ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
                      <?php if (!empty($buscar)): ?>
-                        <a href="?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo_filtro) ?>&id_period= <?= urldecode($id_periodo) ?>"
+                        <a href="?id_periodo=<?= urlencode($id_periodo) ?>&tipo=<?= urlencode($tipo_filtro) ?>&id_period= <?= urldecode($id_periodo) ?>"
                             class="btn btn-secondary"
                             title="Limpiar búsqueda">
 

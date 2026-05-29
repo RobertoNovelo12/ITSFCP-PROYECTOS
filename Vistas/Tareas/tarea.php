@@ -17,7 +17,7 @@ $id  = (int)$_SESSION['id_usuario'];
 include __DIR__ .  '../../../publico/incluido/_validar_tareas.php';
 
 // Solo investigador y estudiante pueden acceder
-if (!in_array($rol, ['investigador', 'estudiante'], true)) {
+if (!in_array($rol, ['investigador', 'estudiante', 'supervisor'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }

@@ -164,6 +164,14 @@ ob_start();
                             placeholder="Buscar por título de proyecto..."
                             value="<?= htmlspecialchars($buscar) ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
+                        <?php if (!empty($buscar)): ?>
+                            <a href="?id_periodo=<?= urlencode($id_periodo) ?>&tipo=<?= urlencode($tipo_filtro) ?>&id_period= <?= urldecode($id_periodo) ?>"
+                                class="btn btn-secondary"
+                                title="Limpiar búsqueda">
+
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        <?php endif; ?>
                     </form>
                 </div>
 

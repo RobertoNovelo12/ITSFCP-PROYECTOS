@@ -74,7 +74,6 @@ $titulo = "Detalles del Proyecto - " . htmlspecialchars($proyecto['titulo']);
 
 //  Construcción del HTML del contenido 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
