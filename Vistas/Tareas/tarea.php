@@ -13,7 +13,7 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id  = (int)$_SESSION['id_usuario'];
 
-// ── Validar GET no vacío (reutilizable _validar_tareas.php) ──
+// include __DIR__ .  ' Validar GET no vacío (reutilizable _validar_tareas.php) include __DIR__ .  '
 include __DIR__ .  '../../../publico/incluido/_validar_tareas.php';
 
 // Solo investigador y estudiante pueden acceder
@@ -22,7 +22,7 @@ if (!in_array($rol, ['investigador', 'estudiante'], true)) {
     exit;
 }
 
-// ── Validar IDs de URL ───
+// include __DIR__ .  ' Validar IDs de URL include __DIR__ .  '─
 $id_proyecto   = (int)($_GET['id_proyectos']  ?? 0);
 $id_validar    = $id_proyecto;
 include __DIR__ .  '../../../publico/incluido/_validar_id.php';
@@ -42,13 +42,13 @@ $tareaControlador = new TareaControlador();
 const MAX_CONTENIDO   = 8000;
 const MAX_COMENTARIOS = 1500;
 
-// ──
+// include __DIR__ .  '
 //  MANEJO DEL POST
 //  Acciones:
 //    1. guardar_borrador      → guarda contenido/archivo, estado = 8
 //    2. editarTareaEstudiante → guarda contenido/archivo y cambia estado (Revisar)
 //    3. editarTareaRevisar    → investigador cambia estado (Aprobar / Corregir)
-// ──
+// include __DIR__ .  '
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 
     $action     = $_POST['action'];
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
     }
 }
 
-// ── Datos para la vista ──
+// include __DIR__ .  ' Datos para la vista include __DIR__ .  '
 $datos = $tareaControlador->mostrarTarea($id_asignacion, $rol, $id, $id_proyecto);
 
 // Validar que se encontró el registro (reutilizable _validar_datos.php)
@@ -135,7 +135,7 @@ $esBorrador = (($datos['id_estadoT'] ?? 0) == 8);
 $lenContenidoActual   = mb_strlen(strip_tags($datos['contenido']   ?? ''), 'UTF-8');
 $lenComentariosActual = mb_strlen(strip_tags($datos['comentarios'] ?? ''), 'UTF-8');
 
-// ── Mapa de mensajes (patrón $_mapa estándar) 
+// include __DIR__ .  ' Mapa de mensajes (patrón $_mapa estándar) 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     // Éxitos
@@ -205,7 +205,7 @@ ob_start();
         </div>
     </div>
 
-        <!-- ── Mensajes de feedback (patrón $_mapa) ── -->
+        <!-- include __DIR__ .  ' Mensajes de feedback (patrón $_mapa) include __DIR__ .  ' -->
     <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); include __DIR__ . '/../../../publico/incluido/_mensaje.php'; endif; ?>
 
     <!-- Alerta: tarea modificada por investigador -->
@@ -597,7 +597,7 @@ ob_start();
                 },
             });
 
-            // ── Form principal ──
+            // include __DIR__ .  ' Form principal include __DIR__ .  '
             const formPrincipal = document.getElementById('form-principal');
             const campoTipo     = document.getElementById('campo-tipo');
 
@@ -621,7 +621,7 @@ ob_start();
                 });
             }
 
-            // ── Form borrador ──
+            // include __DIR__ .  ' Form borrador include __DIR__ .  '
             const formBorrador = document.getElementById('form-borrador');
             if (formBorrador) {
                 formBorrador.addEventListener('submit', function(e) {

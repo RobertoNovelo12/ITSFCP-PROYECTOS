@@ -15,7 +15,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $action = $_GET['action'] ?? 'index_Lista';
 
-require_once __DIR__ . '/../../../publico/incluido/_validar_tareas.php';
+include __DIR__ . '../../../publico/incluido/_validar_tareas.php';
 
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
     header('Location: /ITSFCP-PROYECTOS/index.php');
@@ -45,11 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
     $tareaControlador->actualizarestado($id_tarea, $rol, $_GET['tipo'], $id_proyectos);
 }
 
-$tarea      = $tareaControlador->$action($id_tarea, $rol);
+$tarea = $tareaControlador->$action($id_tarea, $rol);
 if (!is_array($tarea)) die("Error: La acción '$action' no devolvió un array válido.");
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 
 // Totales rápidos
 $total     = count($tarea);

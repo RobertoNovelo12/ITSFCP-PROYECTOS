@@ -669,7 +669,6 @@ class Tarea extends BaseModelo
                 t.fecha_modificacion,
                 tt.descripcion_tipo         AS tipo_tarea,
                 a.contenido,
-                a.comentarios,
                 ds_rec.nombre               AS guia_nombre,
                 ds_rec.ruta                 AS guia_ruta
              FROM tareas_usuarios a
@@ -680,7 +679,7 @@ class Tarea extends BaseModelo
              INNER JOIN estados_tarea esta   ON esta.id_estadoT  = a.id_estadoT
              LEFT  JOIN documentos_subidos ds_ent ON ds_ent.id_documento = a.id_documento_entrega
              LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
-             WHERE a.id_asignacion = ? AND a.id_usuarios = ? AND proy.id_proyectos = ?
+             WHERE a.id_asignacion = ? AND proy.id_investigador = ? AND proy.id_proyectos = ?
              LIMIT 1",
             'iii',
             [$id_asignacion, $id_usuario, $id_proyecto],

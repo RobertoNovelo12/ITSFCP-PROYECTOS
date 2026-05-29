@@ -19,7 +19,11 @@ class TareaControlador extends BaseControlador
             $tareas = new Tarea($conn);
             $tareas->actualizarTareasVencidos();
             $tareas->actualizarTareasConcluidas();
-            return $tareas->obtenerTareas($id_proyecto, $id_usuario, $rol);
+            $resultado = $tareas->obtenerTareas($id_proyecto, $id_usuario, $rol);
+            if (!$resultado) {
+                $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+            }
+            return $resultado;
         } catch (\Exception $e) {
             error_log('TareaControlador::index_Principal() — ' . $e->getMessage());
             return [];
@@ -189,7 +193,7 @@ class TareaControlador extends BaseControlador
     {
         return match ($tipo) {
             'Ver Tarea' =>
-                '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos=' . $id3 . '&id_tarea=' . $id4 . '&estado=' . $estado . '"
+            '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos=' . $id3 . '&id_tarea=' . $id4 . '&estado=' . $estado . '"
                     class="btn btn-sm btn-primary" title="Ver tarea">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
                       <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
@@ -197,7 +201,7 @@ class TareaControlador extends BaseControlador
                     </svg> Ver</a>',
 
             'Ver lista' =>
-                '<a href="lista_tareas.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
+            '<a href="lista_tareas.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
                     class="btn btn-sm btn-secondary" title="Ver lista de estudiantes"
                     data-bs-toggle="tooltip" data-bs-placement="top"
                     data-bs-custom-class="custom-tooltip" data-bs-title="Ver lista de alumnos">
@@ -206,7 +210,7 @@ class TareaControlador extends BaseControlador
                     </svg></a>',
 
             'Editar Tarea' =>
-                '<a href="editar.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
+            '<a href="editar.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
                     class="btn btn-sm btn-warning" title="Editar tarea"
                     data-bs-toggle="tooltip" data-bs-placement="top"
                     data-bs-custom-class="custom-tooltip" data-bs-title="Editar tarea">
@@ -215,7 +219,7 @@ class TareaControlador extends BaseControlador
                     </svg></a>',
 
             'Detalles' =>
-                '<a href="detalles.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
+            '<a href="detalles.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
                     class="btn btn-sm btn-primary" title="Ver detalles"
                     data-bs-toggle="tooltip" data-bs-placement="top"
                     data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles">
@@ -236,12 +240,12 @@ class TareaControlador extends BaseControlador
             'ReenviarTarea'      => '<button type="submit" name="tipo" value="Revisar"   class="btn btn-primary btn-sm">Volver a enviar</button>',
             'Solicitar Corregir' => '<button type="submit" name="tipo" value="Corregir"  class="btn btn-warning btn-sm">Solicitar corrección</button>',
             'Guardar'            =>
-                '<button type="submit" form="form-borrador" class="btn btn-outline-secondary btn-sm">
+            '<button type="submit" form="form-borrador" class="btn btn-outline-secondary btn-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-floppy me-1" viewBox="0 0 16 16">
                       <path d="M11 2H9v3h2z"/><path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zm6 6.5v3h-4v-3h4a.5.5 0 0 1 0 0"/>
                     </svg> Guardar borrador</button>',
             'Activar' =>
-                '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente"
+            '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente"
                     class="btn btn-success btn-sm">Activar tarea</a>',
             default => '',
         };
@@ -250,10 +254,6 @@ class TareaControlador extends BaseControlador
     /**
      * Botones de acción en la tabla principal (index.php).
      *
-     * CORRECCIÓN: el caso 'estudiante' pasaba solo $id a obtenerbotones('Ver Tarea'),
-     * pero ese botón requiere 5 parámetros (id_asignacion, tipo, id_proyecto,
-     * id_tarea, estado). La tabla del estudiante sí incluye esos campos, por lo
-     * que se reciben como parámetros adicionales opcionales.
      *
      * @param int         $id           id_tarea (investigador/supervisor) o id_asignacion (estudiante)
      * @param string      $rol
@@ -356,36 +356,60 @@ class TareaControlador extends BaseControlador
     public function notaAccionTarea(string $rol, string $estado, string $tipo_tarea = ''): string
     {
         if ($rol === 'investigador' && $estado === 'Sin activar') {
-            return $this->_nota('advertencia', 'Importante',
-                'Al activar la tarea, se asignará automáticamente a <strong>todos los estudiantes activos</strong> del proyecto. Una vez activada, no es posible revertirla al estado <em>Sin activar</em>.');
+            return $this->_nota(
+                'advertencia',
+                'Importante',
+                'Al activar la tarea, se asignará automáticamente a <strong>todos los estudiantes activos</strong> del proyecto. Una vez activada, no es posible revertirla al estado <em>Sin activar</em>.'
+            );
         }
         if ($rol === 'investigador' && in_array($estado, ['Revisar', 'Corregir'], true)) {
-            return $this->_nota('info', 'Nota',
-                'Puedes <strong>aprobar</strong> la entrega o solicitar <strong>corrección</strong> al estudiante. La decisión quedará registrada en el historial.');
+            return $this->_nota(
+                'info',
+                'Nota',
+                'Puedes <strong>aprobar</strong> la entrega o solicitar <strong>corrección</strong> al estudiante. La decisión quedará registrada en el historial.'
+            );
         }
         if ($estado === 'Concluido') {
-            return $this->_nota('exito', 'Tarea concluida',
-                'Todos los estudiantes activos tienen esta actividad <strong>aprobada</strong>. No admite más cambios de estado.');
+            return $this->_nota(
+                'exito',
+                'Tarea concluida',
+                'Todos los estudiantes activos tienen esta actividad <strong>aprobada</strong>. No admite más cambios de estado.'
+            );
         }
         if ($rol === 'estudiante' && in_array($estado, ['Pendiente', 'Borrador'], true)) {
-            return $this->_nota('info', 'Nota',
-                'Puedes <strong>guardar un borrador</strong> y continuar después, o <strong>enviar tu tarea</strong> cuando esté lista para revisión.');
+            return $this->_nota(
+                'info',
+                'Nota',
+                'Puedes <strong>guardar un borrador</strong> y continuar después, o <strong>enviar tu tarea</strong> cuando esté lista para revisión.'
+            );
         }
         if ($rol === 'estudiante' && $estado === 'Corregir') {
-            return $this->_nota('advertencia', 'Corrección solicitada',
-                'El investigador ha solicitado cambios en tu entrega. Revisa los comentarios del historial y vuelve a enviar.');
+            return $this->_nota(
+                'advertencia',
+                'Corrección solicitada',
+                'El investigador ha solicitado cambios en tu entrega. Revisa los comentarios del historial y vuelve a enviar.'
+            );
         }
         if ($rol === 'estudiante' && $estado === 'Revisar') {
-            return $this->_nota('info', 'En revisión',
-                'Tu entrega está siendo revisada por el investigador. Puedes guardar cambios pero <strong>no reenviar</strong> hasta recibir retroalimentación.');
+            return $this->_nota(
+                'info',
+                'En revisión',
+                'Tu entrega está siendo revisada por el investigador. Puedes guardar cambios pero <strong>no reenviar</strong> hasta recibir retroalimentación.'
+            );
         }
         if ($rol === 'estudiante' && $estado === 'Aprobado') {
-            return $this->_nota('exito', 'Aprobado',
-                'El investigador ha aprobado tu entrega. Esta actividad está <strong>finalizada</strong>.');
+            return $this->_nota(
+                'exito',
+                'Aprobado',
+                'El investigador ha aprobado tu entrega. Esta actividad está <strong>finalizada</strong>.'
+            );
         }
         if ($estado === 'Vencido') {
-            return $this->_nota('advertencia', 'Tarea vencida',
-                'La fecha de entrega ha pasado. Contacta al investigador si tienes dudas sobre esta actividad.');
+            return $this->_nota(
+                'advertencia',
+                'Tarea vencida',
+                'La fecha de entrega ha pasado. Contacta al investigador si tienes dudas sobre esta actividad.'
+            );
         }
         return '';
     }
@@ -821,17 +845,17 @@ class TareaControlador extends BaseControlador
         }
 
         return $tarea->registrarDocumento(
-            nombre:         basename($file['name']),
+            nombre: basename($file['name']),
             nombre_archivo: $nombreFinal,
-            ruta:           $base . $nombreFinal,
-            tipo_mime:      $file['type'],
-            extension:      $extension,
-            tamano_bytes:   $file['size'],
-            tipo:           $tipo,
-            visibilidad:    'privado',
-            id_usuario:     $id_usuario,
-            id_proyecto:    $id_proyecto,
-            etapa:          $etapa
+            ruta: $base . $nombreFinal,
+            tipo_mime: $file['type'],
+            extension: $extension,
+            tamano_bytes: $file['size'],
+            tipo: $tipo,
+            visibilidad: 'privado',
+            id_usuario: $id_usuario,
+            id_proyecto: $id_proyecto,
+            etapa: $etapa
         );
     }
 }
