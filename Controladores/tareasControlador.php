@@ -702,7 +702,7 @@ class TareaControlador extends BaseControlador
     // MOSTRAR TAREA GENERAL (editar / detalles)
     // 
 
-    public function mostrarEditarTarea(int $id_tarea, string $rol, int $id_usuario): array
+    public function mostrarEditarTarea(int $id_tarea, string $rol, int $id_usuario)
     {
         global $conn;
         try {
@@ -712,11 +712,11 @@ class TareaControlador extends BaseControlador
             return $tareas->obtenerTareaGeneral($id_tarea, $rol, $id_usuario) ?? [];
         } catch (\Exception $e) {
             error_log('TareaControlador::mostrarEditarTarea() — ' . $e->getMessage());
-            return [];
+            $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
         }
     }
 
-    public function mostrarTarea(int $id_asignacion, string $rol, int $id_usuario, int $id_proyecto): array
+    public function mostrarTarea(int $id_asignacion, string $rol, int $id_usuario, int $id_proyecto)
     {
         global $conn;
         $defaults = [
@@ -738,11 +738,22 @@ class TareaControlador extends BaseControlador
             if (!in_array($rol, ['investigador', 'estudiante', 'supervisor', 'profesor'], true)) return $defaults;
             $tareas = new Tarea($conn);
             $tareas->actualizarTareasVencidos();
-            $datos = $tareas->obtenerTareaAlumno($id_asignacion, $id_usuario, $id_proyecto);
+
+            //Revisa si el estudiante o investigador les pertenezca la tarea
+            if (in_array($rol, ['investigador', 'estudiante'])) {
+                $verificar = $tareas->VerificarTareaProyecto($id_asignacion, $id_usuario, $id_proyecto, $rol);
+
+                //Si es que si, manda 1 y se omite el if, si no se redirige
+                if (empty($verificar)) {
+                    $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+                }
+            }
+
+            $datos = $tareas->obtenerTareaAlumno($id_asignacion, $id_usuario, $id_proyecto, $rol);
             return array_merge($defaults, is_array($datos) && !empty($datos) ? $datos : []);
         } catch (\Exception $e) {
             error_log('TareaControlador::mostrarTarea() — ' . $e->getMessage());
-            return $defaults;
+            $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
         }
     }
 

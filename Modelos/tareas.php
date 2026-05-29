@@ -380,9 +380,18 @@ class Tarea extends BaseModelo
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())",
             'sssssiissiii',
             [
-                $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
-                $tamano_bytes, $tipo, $visibilidad, $id_usuario,
-                $id_proyecto, $etapa, $version,
+                $nombre,
+                $nombre_archivo,
+                $ruta,
+                $tipo_mime,
+                $extension,
+                $tamano_bytes,
+                $tipo,
+                $visibilidad,
+                $id_usuario,
+                $id_proyecto,
+                $etapa,
+                $version,
             ]
         );
 
@@ -650,10 +659,49 @@ class Tarea extends BaseModelo
     // OBTENER TAREA ALUMNO
     // 
 
-    public function obtenerTareaAlumno(int $id_asignacion, int $id_usuario, int $id_proyecto): ?array
+    public function obtenerTareaAlumno(int $id_asignacion, int $id_usuario, int $id_proyecto, string $rol)
     {
-        return $this->ejecutar(
-            "SELECT
+        switch ($rol) {
+            case "estudiante":
+                return $this->ejecutar(
+                    "SELECT
+                a.id_asignacion,
+                a.id_tarea,
+                tbse.id_proyectos,
+                ds_ent.nombre               AS archivo_nombre,
+                ds_ent.ruta                 AS archivo_ruta,
+                ds_ent.tipo_mime            AS archivo_tipo,
+                ds_ent.extension            AS archivo_extension,
+                esta.nombre                 AS estado,
+                a.id_estadoT,
+                t.descripcion,
+                t.instrucciones,
+                t.fecha_entrega,
+                t.fecha_modificacion,
+                tt.descripcion_tipo         AS tipo_tarea,
+                a.contenido,
+                ds_rec.nombre               AS guia_nombre,
+                ds_rec.ruta                 AS guia_ruta
+             FROM tareas_usuarios a
+             INNER JOIN tareas t             ON t.id_tarea       = a.id_tarea
+             INNER JOIN tbl_seguimiento tbse ON t.id_avances     = tbse.id_avances
+             INNER JOIN proyectos proy       ON proy.id_proyectos = tbse.id_proyectos
+             INNER JOIN tipo_tarea tt        ON tt.id_tareatipo  = t.id_tareatipo
+             INNER JOIN estados_tarea esta   ON esta.id_estadoT  = a.id_estadoT
+             LEFT  JOIN documentos_subidos ds_ent ON ds_ent.id_documento = a.id_documento_entrega
+             LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
+             WHERE a.id_asignacion = ? AND a.id_usuarios = ? AND proy.id_proyectos = ?
+             LIMIT 1",
+                    'iii',
+                    [$id_asignacion, $id_usuario, $id_proyecto],
+                    false
+                ) ?: null;
+                break;
+
+            case "investigador":
+
+                return $this->ejecutar(
+                    "SELECT
                 a.id_asignacion,
                 a.id_tarea,
                 tbse.id_proyectos,
@@ -681,10 +729,89 @@ class Tarea extends BaseModelo
              LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
              WHERE a.id_asignacion = ? AND proy.id_investigador = ? AND proy.id_proyectos = ?
              LIMIT 1",
-            'iii',
-            [$id_asignacion, $id_usuario, $id_proyecto],
-            false
-        ) ?: null;
+                    'iii',
+                    [$id_asignacion, $id_usuario, $id_proyecto],
+                    false
+                ) ?: null;
+                break;
+            case "supervisor":
+
+                return $this->ejecutar(
+                    "SELECT
+                a.id_asignacion,
+                a.id_tarea,
+                tbse.id_proyectos,
+                ds_ent.nombre               AS archivo_nombre,
+                ds_ent.ruta                 AS archivo_ruta,
+                ds_ent.tipo_mime            AS archivo_tipo,
+                ds_ent.extension            AS archivo_extension,
+                esta.nombre                 AS estado,
+                a.id_estadoT,
+                t.descripcion,
+                t.instrucciones,
+                t.fecha_entrega,
+                t.fecha_modificacion,
+                tt.descripcion_tipo         AS tipo_tarea,
+                a.contenido,
+                ds_rec.nombre               AS guia_nombre,
+                ds_rec.ruta                 AS guia_ruta
+             FROM tareas_usuarios a
+             INNER JOIN tareas t             ON t.id_tarea       = a.id_tarea
+             INNER JOIN tbl_seguimiento tbse ON t.id_avances     = tbse.id_avances
+             INNER JOIN proyectos proy       ON proy.id_proyectos = tbse.id_proyectos
+             INNER JOIN tipo_tarea tt        ON tt.id_tareatipo  = t.id_tareatipo
+             INNER JOIN estados_tarea esta   ON esta.id_estadoT  = a.id_estadoT
+             LEFT  JOIN documentos_subidos ds_ent ON ds_ent.id_documento = a.id_documento_entrega
+             LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
+             WHERE a.id_asignacion = ? AND proy.id_proyectos = ?
+             LIMIT 1",
+                    'iii',
+                    [$id_asignacion, $id_proyecto],
+                    false
+                ) ?: null;
+                break;
+        }
+    }
+
+    public function VerificarTareaProyecto(int $id_asignacion, int $id_usuario, int $id_proyecto, string $rol)
+    {
+        switch ($rol) {
+            case "estudiante":
+                return $this->ejecutar(
+                    "SELECT
+                1               
+             FROM tareas_usuarios a
+             INNER JOIN tareas t             ON t.id_tarea       = a.id_tarea
+             INNER JOIN tbl_seguimiento tbse ON t.id_avances     = tbse.id_avances
+             INNER JOIN proyectos proy       ON proy.id_proyectos = tbse.id_proyectos
+             INNER JOIN tipo_tarea tt        ON tt.id_tareatipo  = t.id_tareatipo
+             INNER JOIN estados_tarea esta   ON esta.id_estadoT  = a.id_estadoT
+             WHERE a.id_asignacion = ? AND a.id_usuarios = ? AND proy.id_proyectos = ?
+             LIMIT 1",
+                    'iii',
+                    [$id_asignacion, $id_usuario, $id_proyecto],
+                    false
+                ) ?: null;
+                break;
+
+            case "investigador":
+
+                return $this->ejecutar(
+                    "SELECT
+                1
+             FROM tareas_usuarios a
+             INNER JOIN tareas t             ON t.id_tarea       = a.id_tarea
+             INNER JOIN tbl_seguimiento tbse ON t.id_avances     = tbse.id_avances
+             INNER JOIN proyectos proy       ON proy.id_proyectos = tbse.id_proyectos
+             INNER JOIN tipo_tarea tt        ON tt.id_tareatipo  = t.id_tareatipo
+             WHERE a.id_asignacion = ? AND proy.id_investigador = ? AND proy.id_proyectos = ?
+             LIMIT 1",
+                    'iii',
+                    [$id_asignacion, $id_usuario, $id_proyecto],
+                    false
+                ) ?: null;
+                break;
+        }
     }
 
     // 
