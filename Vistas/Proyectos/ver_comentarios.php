@@ -14,16 +14,12 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 //Solo investigador puede acceder
-if (!in_array($rol, ['investigador', 'profesor'], true)) {
+if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
 $id_proyectos = $_GET['id_proyectos'] ?? null;
-
-//Validación de argumentos en url
-$id_validar = $id_proyectos;
-require_once __DIR__ .  '/../../../publico/incluido/_validar_id.php';
 
 ob_start();
 ?>

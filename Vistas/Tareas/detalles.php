@@ -20,7 +20,7 @@ if (!in_array($rol, ['investigador', 'supervisor', 'estudiante'])) {
     exit;
 }
 
-require_once '../../../publico/incluido/_validar_tareas.php';
+include __DIR__ . '../../../publico/incluido/_validar_tareas.php';
 
 $id_tarea = $_GET["id_tarea"] ?? null;
 
