@@ -31,28 +31,28 @@ if ($rol !== 'estudiante') {
     exit;
 }
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
 $id_cierre_est = intval($_GET['id'] ?? 0);
 //Validación de argumentos en url
 $id_validar = $id_cierre_est;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
 
-require_once '../../Controladores/seguimientoControlador.php';
-require_once '../../publico/config/conexion.php';
+require_once __DIR__ .  '/../../Controladores/seguimientoControlador.php';
+include __DIR__ . '../../publico/config/conexion.php';
 
 $ctrl = new SeguimientoControlador();
 
 // Usar el modelo directamente para obtener datos del cierre y comentarios
-require_once '../../Modelos/seguimiento.php';
+require_once __DIR__ . '/../../Modelos/seguimiento.php';
 $modelo = new SeguimientoModelo($conn);
 
 $cierre = $modelo->CierrePorId($id_cierre_est);
 
 // Validación
 $registro = $cierre;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 $comentarios = $modelo->ComentariosCierre($id_cierre_est);
 
@@ -66,7 +66,7 @@ $id_proyecto = (int)$cierre['id_proyectos'];
 
 //Validación de argumentos en url
 $id_validar = $id_proyecto;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
 // El estudiante puede responder si está rechazado o en finalizacion_pendiente
 $estados_activos = ['rechazado', 'finalizacion_pendiente'];

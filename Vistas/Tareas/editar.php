@@ -19,19 +19,19 @@ if (!in_array($rol, ['investigador', 'profesor'])) {
     exit;
 }
 
-require_once '../../../publico/incluido/_validar_tareas.php';
+include __DIR__ .  '../../../publico/incluido/_validar_tareas.php';
 
 $id_tarea = $_GET['id_tarea'] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_tarea;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $id_proyectos = $_GET['id_proyectos'] ?? $_POST['id_proyectos'] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_proyectos;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 
@@ -40,7 +40,7 @@ $action = $_POST['action'] ?? $_GET['action'] ?? null;
 const MAX_DESCRIPCION   = 5000;
 const MAX_INSTRUCCIONES = 1500;
 
-require_once '../../Controladores/tareasControlador.php';
+require_once __DIR__ . '/../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
 if ($action === 'editarTarea') {

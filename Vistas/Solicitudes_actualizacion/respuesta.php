@@ -33,25 +33,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 //  GET: mostrar formulario 
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = (int)($_GET['id_solicitud'] ?? 0);
 //Validación de argumentos en url
 $id_validar = $id_solicitud;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
 
 $datos     = $ctrl->detalle($id_solicitud);
 
 // Validación
 $registro = $datos;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 $solicitud = $datos['solicitud'];
 
 // Validación
 $registro = $solicitud;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 
 if ($solicitud['estado'] !== 'pendiente') {

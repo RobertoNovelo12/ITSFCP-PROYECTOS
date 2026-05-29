@@ -18,30 +18,32 @@ if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
-require_once '../../Controladores/solicitudActualizacionControlador.php';
 
-$controlador  = new SolicitudActualizacionControlador();
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = intval($_GET['id_solicitud'] ?? 0);
 
 //Validación de argumentos en url
 $id_validar = $id_solicitud;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
-$datos     = $controlador->detalle($id_solicitud);
+require_once __DIR__ .  '/../../Controladores/solicitudActualizacionControlador.php';
+
+$controlador  = new SolicitudActualizacionControlador();
+
+$datos = $controlador->detalle($id_solicitud);
 
 // Validación
 $registro = $datos;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 $solicitud = $datos['solicitud'];
 $historial = $datos['historial'];
 
 // Validación
 $registro = $solicitud;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 ob_start();
 ?>

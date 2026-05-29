@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/lineaInvestigacionControlador.php';
+require_once __DIR__ .  '/../../Controladores/lineaInvestigacionControlador.php';
 
 $ctrl        = new LineaInvestigacionControlador();
 $action      = $_POST['action'] ?? null;

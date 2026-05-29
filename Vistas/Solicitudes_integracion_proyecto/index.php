@@ -19,7 +19,7 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
-require_once '../../Controladores/solicitudesControlador.php';
+require_once __DIR__ .  '/../../Controladores/solicitudesControlador.php';
 $ctrl = new solicitudesControlador();
 
 //  Procesar acciones POST directas desde index ─
@@ -41,8 +41,21 @@ $filtros     = $resultado['filtros']     ?? [];
 $paginacion  = $resultado['paginacion']  ?? [];
 $periodos    = $resultado['periodos']    ?? [];
 
+//  Mensajes 
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_aprobar'      => ['tipo' => 'exito',  'titulo_msg' => 'Carta aprobada',      'mensaje' => 'La carta de terminación fue aprobada. El estudiante ha concluido su participación.'],
+    'exito_rechazar'     => ['tipo' => 'exito',  'titulo_msg' => 'Carta rechazada',     'mensaje' => 'La carta de terminación fue rechazada. El estudiante fue notificado para reenviarla.'],
+    'error_aprobar'      => ['tipo' => 'error',  'titulo_msg' => 'Error al aprobar',    'mensaje' => 'No fue posible aprobar la carta de terminación. Intenta de nuevo.'],
+    'error_rechazar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al rechazar',   'mensaje' => 'No fue posible rechazar la carta de terminación. Intenta de nuevo.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_sin_registro'  => ['tipo' => 'error',  'titulo_msg' => 'Error al no tener registro',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver esta solicitud.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida', 'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 <div class="container-fluid py-4 ancho_container">
 
@@ -85,7 +98,13 @@ include __DIR__ . '/../../mensaje.php';
         </div>
     </div>
 
-
+    <!-- ALERTAS -->
+    <?php
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    }
+    ?>
 
     <!-- RESUMEN -->
     <div class="row g-3 mb-4">

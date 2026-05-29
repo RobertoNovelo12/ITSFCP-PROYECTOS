@@ -10,14 +10,10 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-require_once '../../Controladores/directorControlador.php';
-
-$directorControlador = new directorControlador();
-
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 
 if ($rol !== 'supervisor') {
@@ -28,13 +24,16 @@ if ($rol !== 'supervisor') {
 $id_director = (int)($_GET['id_director']) ?? 0;
 
 $id_validar = $id_director;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
+require_once __DIR__ .  '/../../Controladores/directorControlador.php';
+
+$directorControlador = new directorControlador();
 
 $director = $directorControlador->indexDetalles($rol, $id_director);
 
 $registro = $director;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 ob_start();
 ?>

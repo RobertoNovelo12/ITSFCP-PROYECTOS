@@ -11,7 +11,7 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
 
 if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
@@ -22,10 +22,10 @@ if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], tr
 $id_proyecto = (int)($_GET['id_proyectos'] ?? 0);
 
 $id_validar = $id_proyecto;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
 
-require_once '..\..\Controladores\proyectoControlador.php';
+require_once __DIR__ .  '/../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
@@ -40,29 +40,28 @@ if (
     in_array($rol, ['investigador', 'profesor'], true)
 ) {
     $proyectoControlador->accionEstudiante($_POST);
-    // accionEstudiante() siempre llama a redirigir() → exit, nunca llega aquí.
 }
 
 // 
 // CARGA DE DATOS
 // 
-$proyecto    = $proyectoControlador->datosproyecto($id_proyecto);
+$proyecto = $proyectoControlador->datosproyecto($id_proyecto);
 
 // Validación
 $registro = $proyecto;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
 
 // Validación
 $registro = $investigador;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 $subtematicas = $proyectoControlador->subtematicasProyecto($id_proyecto);
 
 // Validación
 $registro = $subtematicas;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 
 $dat_inv         = $investigador['investigador'] ?? [];

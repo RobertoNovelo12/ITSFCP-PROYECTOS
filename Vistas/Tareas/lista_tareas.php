@@ -11,11 +11,11 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
-$action     = $_GET['action'] ?? 'index_Lista';
+$action = $_GET['action'] ?? 'index_Lista';
 
-require_once '../../../publico/incluido/_validar_tareas.php';
+require_once __DIR__ . '/../../../publico/incluido/_validar_tareas.php';
 
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
     header('Location: /ITSFCP-PROYECTOS/index.php');
@@ -26,13 +26,13 @@ $id_tarea = $_GET['id_tarea'] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_tarea;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $id_proyectos = $_GET['id_proyectos'] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_proyectos;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 include "../../Controladores/tareasControlador.php";
 $tareaControlador = new TareaControlador();
@@ -42,7 +42,7 @@ if (!method_exists($tareaControlador, $action)) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
-    $tareaControlador->actualizarestado($id_tarea, $rol, $_GET['tipo'], $id_proyectos, null, null, null);
+    $tareaControlador->actualizarestado($id_tarea, $rol, $_GET['tipo'], $id_proyectos);
 }
 
 $tarea      = $tareaControlador->$action($id_tarea, $rol);

@@ -14,7 +14,7 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $rol = strtolower($_SESSION['rol'] ?? '');
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -24,9 +24,9 @@ if ($rol !== 'supervisor') {
 $id_tipo_documento = (int)($_GET['id_tipo_documento'] ?? 0);
 
 $id_validar = $id_tipo_documento;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-require_once '../../Controladores/plantilladocumentoControlador.php';
+require_once __DIR__ .  '/../../Controladores/plantilladocumentoControlador.php';
 
 $ctrl = new plantilladocumentoControlador();
 
@@ -34,7 +34,7 @@ $resultado = $ctrl->info_linea_tiempo($id_tipo_documento);
 
 // Validación
 $registro = $resultado;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $historialAgrupado = $resultado['datos']      ?? [];
 $paginacion        = $resultado['paginacion'] ?? [
@@ -71,7 +71,7 @@ ob_start();
         <?php
         $titulo      = 'Historial de Plantilla';
         $descripcion = 'Versiones anteriores de la plantilla';
-        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        require_once __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
             <a href="index.php" class="btn btn-secondary">
@@ -82,7 +82,7 @@ ob_start();
     <!-- ALERTAS -->
     <?php if (isset($_mapa[$msg])):
         extract($_mapa[$msg]);
-        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+        require_once __DIR__ . '../../../publico/incluido/_mensaje.php';
     endif; ?>
 
 
@@ -192,7 +192,7 @@ ob_start();
         <?php if ($paginacion['total_paginas'] > 1):
             $qBase   = 'id_tipo_documento=' . $id_tipo_documento;
             $entidad = 'eventos';
-            include __DIR__ . '../../../publico/incluido/_paginacion.php';
+            require_once __DIR__ . '../../../publico/incluido/_paginacion.php';
         endif; ?>
 
     <?php endif; ?>

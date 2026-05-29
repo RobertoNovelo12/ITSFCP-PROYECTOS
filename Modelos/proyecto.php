@@ -1118,9 +1118,7 @@ class Proyectos extends BaseModelo
         int $id_proyecto,
         int $id_usuario,
         int $pagina = 1,
-        int $por_pagina = 5,
-        int $id
-    ): array {
+        int $por_pagina = 5    ): array {
         $pagina        = max(1, $pagina);
         $desde         = ($pagina - 1) * $por_pagina;
 

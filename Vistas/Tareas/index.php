@@ -15,7 +15,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $action     = $_GET['action'] ?? 'index_Principal';
 
-require_once '../../../publico/incluido/_validar_tareas.php';
+include __DIR__ .  '../../../publico/incluido/_validar_tareas.php';
 
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
     header('Location: /ITSFCP-PROYECTOS/index.php');
@@ -26,9 +26,9 @@ $id_proyecto = $_GET['id_proyectos'] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_proyecto;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-include "../../Controladores/tareasControlador.php";
+require_once __DIR__ . "/../../Controladores/tareasControlador.php";
 $tareaControlador = new TareaControlador();
 
 if (!method_exists($tareaControlador, $action)) {

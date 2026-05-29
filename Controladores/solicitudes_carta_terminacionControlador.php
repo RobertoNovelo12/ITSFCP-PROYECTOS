@@ -1,7 +1,7 @@
 <?php
 // Controladores/solicitudesCartaTerminacionControlador.php
 
-require_once __DIR__ . '/../Modelos/solicitudesCartaTerminacion.php';
+require_once __DIR__ . '/../Modelos/solicitudes_carta_terminacion.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
 

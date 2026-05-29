@@ -21,7 +21,7 @@ if ($rol !== 'supervisor') {
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 
-include "../../Controladores/ajustesTiposDocumentoscontrolador.php";
+require_once __DIR__ . "/../../Controladores/ajustesTiposDocumentoscontrolador.php";
 
 $ajustesTiposDocumentoscontrolador = new ajustesTiposDocumentoscontrolador();
 
@@ -38,7 +38,6 @@ $filtros = $ajustesTiposDocumentoscontrolador->filtros($rol);
 $encabezados = $ajustesTiposDocumentoscontrolador->encabezadosPrincipal($rol);
 $opciones = $ajustesTiposDocumentoscontrolador->opciones($rol, $filtros);
 
-include __DIR__ . '/../../_mensaje.php';
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
     // Éxitos

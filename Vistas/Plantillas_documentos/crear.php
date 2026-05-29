@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/plantilladocumentoControlador.php';
+require_once __DIR__ .  '/../../Controladores/plantilladocumentoControlador.php';
 
 $ctrl   = new plantilladocumentoControlador();
 $action = $_POST['action'] ?? null;
@@ -146,7 +146,7 @@ $tipos = $ctrl->indexCrear($rol);
 
 // Validación
 $registro = $tipos;
-require_once '../../../publico/incluido/_validar_datos.php';
+require_once __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 ob_start();
@@ -155,7 +155,7 @@ ob_start();
 <!-- ALERTAS del sistema de mensajes ($msg por redirect) -->
 <?php if (isset($_mapa[$msg])):
     extract($_mapa[$msg]);
-    include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    require_once __DIR__ . '../../../publico/incluido/_mensaje.php';
 endif; ?>
 
 
@@ -166,7 +166,7 @@ endif; ?>
         <?php
         $titulo      = 'Nueva Plantilla';
         $descripcion = 'Registro de una nueva plantilla de documento';
-        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        require_once __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 text-end">
             <a href="index.php" class="btn btn-secondary">

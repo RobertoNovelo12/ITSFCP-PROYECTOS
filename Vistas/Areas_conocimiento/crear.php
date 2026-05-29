@@ -16,7 +16,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/AreaConocimientoControlador.php';
+require_once __DIR__ .  '/../../Controladores/AreaConocimientoControlador.php';
 
 //  Acción POST: registrar área 
 // registrarArea() valida método, rol y redirige internamente con ?msg=.

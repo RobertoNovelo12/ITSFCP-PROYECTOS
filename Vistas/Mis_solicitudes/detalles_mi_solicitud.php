@@ -20,14 +20,14 @@ if ($rol !== 'estudiante') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = (int)($_GET['id'] ?? 0);
 $id_validar = $id_solicitud;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
-require_once __DIR__ . '/../../Controladores/misSolicitudesControlador.php';
+require_once __DIR__ .  '/../../Controladores/misSolicitudesControlador.php';
 $ctrl = new MisSolicitudesControlador();
 
 //  POST: responder correcciones 
@@ -48,7 +48,7 @@ $hilo      = $data['hilo'];
 
 // Validación
 $registro = $data;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 $es_correcciones = ($sol['estado'] === 'correcciones');

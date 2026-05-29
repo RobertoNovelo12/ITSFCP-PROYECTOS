@@ -11,7 +11,7 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -21,11 +21,11 @@ if ($rol !== 'supervisor') {
 $id_area    = (int)($_GET['id_area'] ?? 0);
 
 $id_validar = $id_area;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 
-require_once '../../Controladores/AreaConocimientoControlador.php';
+require_once __DIR__ .  '/../../Controladores/AreaConocimientoControlador.php';
 
 $areaControlador = new AreaConocimientoControlador();
 
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'Modif
 //  Cargar datos actuales del área ─
 $datos   = $areaControlador->indexEditar($rol, $id_area);
 $registro = $datos;
-require_once '../../../publico/incluido/_validar_datos.php';
+require_once __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 $area    = $datos['area']    ?? [];
@@ -64,7 +64,7 @@ $_mapa = [
 ob_start();
 ?>
 
-<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); include __DIR__ . '../../../publico/incluido/_mensaje.php'; endif; ?>
+<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); require_once __DIR__ . '/../../../publico/incluido/_mensaje.php'; endif; ?>
 
 <div class="container-fluid py-4 ancho_container">
 

@@ -12,7 +12,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 //Solo el investigador puede acceder
@@ -21,25 +21,25 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = intval($_GET['id'] ?? 0);
 //Validación de argumentos en url
 $id_validar = $id_solicitud;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $tipo = $_GET['tipo'] ?? ''; // 'correcciones' | 'rechazar'
 
 //Validación de argumentos en url
 $id_validar = $tipo;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 if (!$id_solicitud || !in_array($tipo, ['correcciones', 'rechazar'], true)) {
     header("Location: index.php");
     exit;
 }
 
-require_once '../../Controladores/solicitudesControlador.php';
+require_once __DIR__ .  '/../../Controladores/solicitudesControlador.php';
 $ctrl = new solicitudesControlador();
 
 //  Procesar POST ─
@@ -60,13 +60,13 @@ $data = $ctrl->detallePagina($id_solicitud, $id_usuario, $rol);
 
 // Validación
 $registro = $data;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $sol  = $data['solicitud'];
 
 // Validación
 $registro = $sol;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 // Solo se puede actuar sobre solicitudes activas

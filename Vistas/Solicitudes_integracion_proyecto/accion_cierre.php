@@ -26,20 +26,20 @@ $id_seg   = intval($_GET['id_seg']  ?? 0);
 
 //Validación de argumentos en url
 $id_validar = $id_seg;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 $id_sol   = intval($_GET['id_sol']  ?? 0);
 
 //Validación de argumentos en url
 $id_validar = $id_sol;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $estado   = $_GET['estado']         ?? ''; // 'completado' | 'correcciones' | 'rechazado'
 
 //Validación de argumentos en url
 $id_validar = $estado;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 if (!$id_seg || !$id_sol || !in_array($estado, ['completado', 'correcciones', 'rechazado'], true)) {
@@ -47,7 +47,7 @@ if (!$id_seg || !$id_sol || !in_array($estado, ['completado', 'correcciones', 'r
     exit;
 }
 
-require_once '../../Controladores/solicitudesControlador.php';
+require_once __DIR__ .  '/../../Controladores/solicitudesControlador.php';
 $ctrl = new solicitudesControlador();
 
 //  Procesar POST index.php
@@ -61,13 +61,13 @@ $data = $ctrl->detallePagina($id_sol, $id_usuario, $rol);
 
 // Validación
 $registro = $data;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $sol  = $data['solicitud'];
 
 // Validación
 $registro = $sol;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 $msg_err = htmlspecialchars($_GET['error'] ?? '');

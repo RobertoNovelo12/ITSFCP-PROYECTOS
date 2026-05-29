@@ -18,17 +18,17 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
-require_once '../../Controladores/solicitudesControlador.php';
+require_once __DIR__ .  '/../../Controladores/solicitudesControlador.php';
 
 $ctrl         = new solicitudesControlador();
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = intval($_GET['id'] ?? 0);
 
 //Validación de argumentos en url
 $id_validar = $id_solicitud;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 //  Acción directa: aceptar desde esta página ─
@@ -41,7 +41,7 @@ $data = $ctrl->detallePagina($id_solicitud, $id_usuario, $rol);
 
 // Validación
 $registro = $data;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $sol         = $data['solicitud'];
 $comentarios = $data['comentarios'];

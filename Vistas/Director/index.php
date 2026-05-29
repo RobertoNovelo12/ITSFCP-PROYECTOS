@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-include "../../Controladores/directorControlador.php";
+require_once __DIR__ . "/../../Controladores/directorControlador.php";
 
 $action = $_GET['action'] ?? 'index';
 $buscar = $_GET['buscar'] ?? '';

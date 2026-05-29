@@ -18,7 +18,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/usuarioControlador.php';
+require_once __DIR__ . '/../../Controladores/usuarioControlador.php';
 
 $controlador = new UsuariosControlador();
 
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit; // rechazar() redirige
 }
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 //  GET: mostrar formulario 
 $id_ver = isset($_GET['id_usuarios']) ? intval($_GET['id_usuarios']) : 0;
@@ -41,7 +41,7 @@ $usuario = $controlador->indexDetalles($rol, $id_ver);
 
 //Validación de argumentos en url
 $id_validar = $usuario;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 // Solo se puede rechazar si está en espera

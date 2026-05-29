@@ -14,7 +14,7 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 //Solo investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
@@ -25,12 +25,12 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
 $id_proyecto = $_GET["id_proyectos"] ?? null;
 
 $id_validar = $id_proyecto;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 $action = $_POST['action'] ?? null;
 
-require_once '../../Controladores/proyectoControlador.php';
+require_once __DIR__ .  '/../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
@@ -38,7 +38,7 @@ $periodoActualProyectos = $proyectoControlador->periodoactual();
 
 // Validación
 $registro = $periodoActualProyectos;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $hoy = date('Y-m-d');
 $puedeEditar = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
@@ -46,7 +46,7 @@ $puedeEditar = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
 
 //Validación del periodo
 $puede = $puedeEditar;
-require_once '../../../publico/incluido/_validar_periodo.php';
+include __DIR__ .  '../../../publico/incluido/_validar_periodo.php';
 
 // DATOS
 $tematica = $proyectoControlador->tematica();

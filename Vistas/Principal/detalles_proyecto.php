@@ -13,7 +13,7 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $id_usuario = (int)$_SESSION['id_usuario'];
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 
 //Todos los roles pueden acceder
 if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
@@ -21,24 +21,26 @@ if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], tr
     exit;
 }
 
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
+
 // Validar parámetro de ruta
 $id_proyecto = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ($id_proyecto <= 0) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
-    exit;
-}
+
+//Validación de argumentos en url
+$id_validar = $id_proyecto;
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
+
 
 //  Controlador 
-require_once __DIR__ . '/../../Controladores/principalControlador.php';
+require_once __DIR__ .  '/../../Controladores/principalControlador.php';
 
 $controlador = new principalControlador();
 $datos       = $controlador->obtenerDatos($id_proyecto, $id_usuario, $rol);
 
 // Si el proyecto no existe, redirigir
-if ($datos['proyecto'] === null) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
-    exit;
-}
+$registro = $datos;
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
+
 
 // Extraer variables para la vista (evitar $datos['x'] en el HTML)
 $proyecto        = $datos['proyecto'];

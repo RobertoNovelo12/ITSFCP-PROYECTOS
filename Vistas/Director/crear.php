@@ -12,7 +12,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'supervisor') {
@@ -20,13 +20,13 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/directorControlador.php';
+require_once __DIR__ .  '/../../Controladores/directorControlador.php';
 
 $directorControlador = new directorControlador();
 $grados              = $directorControlador->obtenerGrados($rol);
 
 //  Mapa de mensajes 
-$msg   = $_GET['msg'] ?? '';
+$msg = $_GET['msg'] ?? '';
 $_mapa = [
     'error_duplicado'     => ['tipo' => 'alerta', 'titulo_msg' => 'Registro duplicado',  'mensaje' => 'Ya existe un director con ese correo. Intenta con otro.'],
     'error_crear'         => ['tipo' => 'error',  'titulo_msg' => 'Error al crear',       'mensaje' => 'No fue posible registrar el director. Verifica los datos e intenta de nuevo.'],

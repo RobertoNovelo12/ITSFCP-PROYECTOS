@@ -19,7 +19,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/usuarioControlador.php';
+require_once __DIR__ . '/../../Controladores/usuarioControlador.php';
 
 $controlador = new UsuariosControlador();
 

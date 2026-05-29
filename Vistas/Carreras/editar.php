@@ -11,24 +11,21 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
-if (empty($_GET)) {
-    header("Location: index.php?msg=sin_argumentos_url");
-    exit;
-}
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
+
 
 $id_carrera = (int)($_GET['id_carrera'] ?? 0);
 
-if ($id_carrera <= 0) {
-    header("Location: index.php?msg=error_cargar");
-    exit;
-}
+$id_validar = $id_carrera;
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
+
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
-require_once '../../Controladores/carreraControlador.php';
+require_once __DIR__ .  '/../../Controladores/carreraControlador.php';
 
 $carreraControlador = new carreraControlador();
 
@@ -50,10 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 //  Cargar datos actuales de la carrera 
 $datos = $carreraControlador->indexEditar($rol, $id_carrera);
 
-if (empty($datos)) {
-    header("Location: index.php?msg=error_cargar");
-    exit;
-}
+// Validación
+$registro = $datos;
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
+
 
 //  Mapa de mensajes ─
 $msg   = $_GET['msg'] ?? '';

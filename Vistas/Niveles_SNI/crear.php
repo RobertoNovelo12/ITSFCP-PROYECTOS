@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/nivelsniControlador.php';
+require_once __DIR__ .  '/../../Controladores/nivelsniControlador.php';
 
 $ctrl        = new NivelsniControlador();
 $action      = $_POST['action'] ?? null;

@@ -14,14 +14,14 @@ if (!isset($_SESSION['id_usuario'])) {
 //  AJAX: subtémáticas dependientes ─
 // Se atiende antes de cualquier HTML para no contaminar la respuesta JSON
 if (isset($_GET['action']) && $_GET['action'] === 'subtematicas') {
-    require_once '../../Controladores/principalControlador.php';
+    require_once __DIR__ .  '/../../Controladores/principalControlador.php';
     $c = new principalControlador();
     $c->subtematicasPorTematica(); // hace header + echo + exit internamente
 }
 
-require_once '../../Controladores/principalControlador.php';
+require_once __DIR__ .  '/../../Controladores/principalControlador.php';
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 //Todos los roles pueden acceder

@@ -15,19 +15,19 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_linea   = (int)($_GET['id_linea'] ?? 0);
 
 $id_validar = $id_linea;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 if ($rol !== 'supervisor') {
     header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
     exit;
 }
 
-require_once '../../Controladores/lineaInvestigacionControlador.php';
+require_once __DIR__ .  '/../../Controladores/lineaInvestigacionControlador.php';
 
 $ctrl    = new LineaInvestigacionControlador();
 $action  = $_POST['action'] ?? null;
@@ -36,7 +36,7 @@ $mensaje = '';
 
 // Validación
 $registro = $datos;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 //  Procesar acción POST 

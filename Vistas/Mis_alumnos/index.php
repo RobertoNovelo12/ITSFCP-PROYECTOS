@@ -26,7 +26,7 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
-require_once '../../Controladores/misAlumnosControlador.php';
+require_once __DIR__ .  '/../../Controladores/misAlumnosControlador.php';
 
 $ctrl = new misalumnosControlador();
 $data = $ctrl->index();

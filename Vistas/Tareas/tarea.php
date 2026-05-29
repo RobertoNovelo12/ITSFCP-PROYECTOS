@@ -14,7 +14,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id  = (int)$_SESSION['id_usuario'];
 
 // ── Validar GET no vacío (reutilizable _validar_tareas.php) ──
-require_once '../../../publico/incluido/_validar_tareas.php';
+include __DIR__ .  '../../../publico/incluido/_validar_tareas.php';
 
 // Solo investigador y estudiante pueden acceder
 if (!in_array($rol, ['investigador', 'estudiante'], true)) {
@@ -25,17 +25,17 @@ if (!in_array($rol, ['investigador', 'estudiante'], true)) {
 // ── Validar IDs de URL ───
 $id_proyecto   = (int)($_GET['id_proyectos']  ?? 0);
 $id_validar    = $id_proyecto;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $id_asignacion = (int)($_GET['id_asignacion'] ?? 0);
 $id_validar    = $id_asignacion;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $id_tarea      = (int)($_GET['id_tarea']      ?? 0);
 $id_validar    = $id_tarea;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-require_once '../../Controladores/tareasControlador.php';
+require_once __DIR__ .  '/../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
 // Límites de caracteres para el contenido del estudiante
@@ -110,7 +110,7 @@ $datos = $tareaControlador->mostrarTarea($id_asignacion, $rol, $id, $id_proyecto
 
 // Validar que se encontró el registro (reutilizable _validar_datos.php)
 $registro = $datos;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $resultado         = $tareaControlador->info_linea_tiempo($id_asignacion);
 $historialAgrupado = $resultado['datos'];

@@ -23,7 +23,7 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 $buscar = $_GET['buscar'] ?? '';
 $pagina = intval($_GET['pagina'] ?? 1);
 
-include "../../Controladores/tematicaControlador.php";
+require_once __DIR__ . "/../../Controladores/tematicaControlador.php";
 
 $tematicaControlador = new tematicaControlador();
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'desactivar_tematica') {

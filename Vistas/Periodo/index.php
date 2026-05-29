@@ -8,7 +8,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'supervisor') {
@@ -16,7 +16,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/periodoControlador.php';
+require_once __DIR__ .  '/../../Controladores/periodoControlador.php';
 
 $periodoControlador = new periodoControlador();
 

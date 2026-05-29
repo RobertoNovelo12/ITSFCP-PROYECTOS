@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/solicitudActualizacionControlador.php';
+require_once __DIR__ .  '/../../Controladores/solicitudActualizacionControlador.php';
 
 $ctrl   = new SolicitudActualizacionControlador();
 $action = $_GET['action'] ?? 'index';

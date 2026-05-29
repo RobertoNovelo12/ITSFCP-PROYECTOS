@@ -26,16 +26,16 @@ $id_tarea = $_GET["id_tarea"] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_tarea;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 $id_proyectos = $_GET["id_proyectos"] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_proyectos;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-require_once '../../Controladores/tareasControlador.php';
+require_once __DIR__ . '/../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
 $tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id_usuario);

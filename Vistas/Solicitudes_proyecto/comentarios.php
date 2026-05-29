@@ -19,13 +19,13 @@ $id_proyectos = $_GET['id_proyectos'] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_proyectos;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $motivo = $_GET['motivo']       ?? null;
 
 //Validación de argumentos en url
 $id_validar = $motivo;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -43,7 +43,7 @@ $texto_motivo = match ($motivo) {
     default              => 'Rechazo',
 };
 
-require_once '../../Controladores/solicitudes_proyectoControlador.php';
+require_once __DIR__ . '/../../Controladores/solicitudes_proyectoControlador.php';
 $SolicitudesProyectoControlador = new SolicitudesProyectoControlador();
 
 // 

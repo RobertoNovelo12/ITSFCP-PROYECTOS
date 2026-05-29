@@ -24,15 +24,15 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol          = strtolower($_SESSION['rol'] ?? '');
 $id_usuario   = $_SESSION['id_usuario'];
 
-require_once '../../../publico/incluido/_validar_tareas.php';
+include __DIR__ .  '../../../publico/incluido/_validar_tareas.php';
 
 $id_proyectos = $_GET['id_proyectos'] ?? $_POST['id_proyectos'] ?? null;
 
 //Validación de argumentos en url
 $id_validar = $id_proyectos;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-require_once '../../Controladores/tareasControlador.php';
+require_once __DIR__ . '/../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
 $tareas          = $tareaControlador->listarTareasEstudiante($id_usuario, $id_proyectos);

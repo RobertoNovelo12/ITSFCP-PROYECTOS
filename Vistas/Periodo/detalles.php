@@ -12,19 +12,16 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-require_once '../../Controladores/periodoControlador.php';
-
-$periodoControlador = new periodoControlador();
 
 $rol         = strtolower($_SESSION['rol'] ?? '');
 $id_usuario  = intval($_SESSION['id_usuario']);
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_periodo  = intval($_GET['id_periodos']) ?? 0;
 
 $id_validar = $id_periodo;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
@@ -32,12 +29,17 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
+require_once __DIR__ .  '/../../Controladores/periodoControlador.php';
+
+
+$periodoControlador = new periodoControlador();
+
 /* Obtener datos */
 $periodo = $periodoControlador->indexDetalles($rol, $id_periodo);
 
 // Validación
 $registro = $periodo;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 /* Pequeño helper para mostrar fecha o "No definida" */

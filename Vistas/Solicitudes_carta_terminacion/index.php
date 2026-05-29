@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/solicitudesCartaTerminacionControlador.php';
+require_once __DIR__ .  '/../../Controladores/solicitudes_carta_terminacionControlador.php';
 
 $ctrl        = new solicitudes_carta_terminacionControlador();
 $tipo_filtro = $_GET['tipo']       ?? 'Todas';

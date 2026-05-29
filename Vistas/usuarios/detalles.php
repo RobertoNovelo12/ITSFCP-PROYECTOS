@@ -18,24 +18,24 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/usuarioControlador.php';
+require_once __DIR__ . '/../../Controladores/usuarioControlador.php';
 
 $controlador = new UsuariosControlador();
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_ver = isset($_GET['id_usuarios']) ? intval($_GET['id_usuarios']) : 0;
 
 //Validación de argumentos en url
 $id_validar = $id_ver;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 $usuario = $controlador->indexDetalles($rol, $id_ver);
 
 // Validación
 $registro = $usuario;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 ob_start();

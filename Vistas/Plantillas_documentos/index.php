@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/plantilladocumentoControlador.php';
+require_once __DIR__ .  '/../../Controladores/plantilladocumentoControlador.php';
 
 $ctrl   = new plantilladocumentoControlador();
 $action = $_GET['action'] ?? 'index';
@@ -89,7 +89,7 @@ ob_start();
         <?php
         $titulo      = 'Plantillas de Documentos';
         $descripcion = 'Gestión de plantillas para generación de documentos';
-        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        require_once __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-12 col-md-6 text-md-end">
             <a href="crear.php" class="btn btn-primary">
@@ -100,7 +100,7 @@ ob_start();
     <!-- ALERTAS -->
     <?php if (isset($_mapa[$msg])):
         extract($_mapa[$msg]);
-        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+        require_once __DIR__ . '../../../publico/incluido/_mensaje.php';
     endif; ?>
 
 
@@ -274,7 +274,7 @@ ob_start();
             $qBase   = 'action=' . urlencode($action)
                 . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
             $entidad = 'plantillas';
-            include __DIR__ . '../../../publico/incluido/_paginacion.php';
+            require_once __DIR__ . '../../../publico/incluido/_paginacion.php';
         endif; ?>
 
     <?php else: ?>

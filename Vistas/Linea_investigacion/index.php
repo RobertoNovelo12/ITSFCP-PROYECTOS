@@ -24,7 +24,7 @@ $action = $_GET['action'] ?? 'index';
 $buscar = $_GET['buscar'] ?? '';
 $pagina = intval($_GET['pagina'] ?? 1);
 
-require_once '../../Controladores/lineaInvestigacionControlador.php';
+require_once __DIR__ .  '/../../Controladores/lineaInvestigacionControlador.php';
 
 $ctrl = new LineaInvestigacionControlador();
 

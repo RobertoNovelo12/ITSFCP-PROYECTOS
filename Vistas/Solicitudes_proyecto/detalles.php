@@ -21,35 +21,35 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_proyecto = intval($_GET['id_proyectos'] ?? 0);
 
 //Validación de argumentos en url
 $id_validar = $id_proyecto;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
-require_once '../../Controladores/solicitudes_proyectoControlador.php';
+require_once __DIR__ . '/../../Controladores/solicitudes_proyectoControlador.php';
 $SolicitudesProyectoControlador = new SolicitudesProyectoControlador();
 
 $proyecto = $SolicitudesProyectoControlador->datosproyecto($id_proyecto);
 
 // Validación
 $registro = $proyecto;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $investigador = $SolicitudesProyectoControlador->datosinvestigador($id_proyecto);
 
 // Validación
 $registro = $investigador;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $subtematicas = $SolicitudesProyectoControlador->subtematicasProyecto($id_proyecto);
 
 // Validación
 $registro = $subtematicas;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 $comentarios    = $SolicitudesProyectoControlador->comentarios($id_proyecto);

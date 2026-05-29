@@ -10,13 +10,10 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-include "../../Controladores/areaconocimientoControlador.php";
-$areaControlador = new AreaConocimientoControlador();
-
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 
 //Solo supervisor
@@ -28,12 +25,15 @@ if ($rol !== 'supervisor') {
 $id_area = isset($_GET['id_area']) ? intval($_GET['id_area']) : 0;
 
 $id_validar = $id_area;
-require_once '../../../publico/incluido/_validar_id.php';
+include  __DIR__ .  '../../../publico/incluido/_validar_id.php';
+
+require_once __DIR__ .  "/../../Controladores/areaconocimientoControlador.php";
+$areaControlador = new AreaConocimientoControlador();
 
 $datos = $areaControlador->indexDetalles($rol, $id_area);
 
 $registro = $datos;
-require_once '../../../publico/incluido/_validar_datos.php';
+include  __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 $area = $datos['area'];

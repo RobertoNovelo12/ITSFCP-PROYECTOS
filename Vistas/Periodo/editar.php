@@ -8,10 +8,10 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol         = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario  = (int)$_SESSION['id_usuario'];
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -21,9 +21,9 @@ if ($rol !== 'supervisor') {
 $id_periodos = (int)($_GET['id_periodos'] ?? 0);
 
 $id_validar = $id_periodos;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-require_once '../../Controladores/periodoControlador.php';
+require_once __DIR__ .  '/../../Controladores/periodoControlador.php';
 
 $periodoControlador = new periodoControlador();
 
@@ -47,7 +47,7 @@ $datos = $periodoControlador->indexEditar($rol, $id_periodos);
 
 // Validación
 $registro = $datos;
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 //  Error de rango de fecha (string en URL) 

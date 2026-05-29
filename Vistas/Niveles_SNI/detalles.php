@@ -10,14 +10,10 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-require_once '../../Controladores/nivelsniControlador.php';
-
-$nivelsniControlador = new nivelsniControlador();
-
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
@@ -28,13 +24,17 @@ if ($rol !== 'supervisor') {
 $id_nivel = intval($_GET['id_nivel']) ?? 0;
 
 $id_validar = $id_nivel;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
+
+require_once __DIR__ .  '/../../Controladores/nivelsniControlador.php';
+
+$nivelsniControlador = new nivelsniControlador();
 
 $registro = $nivelsniControlador->indexDetalles($rol, $id_nivel);
 
 // Validación
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 ob_start();

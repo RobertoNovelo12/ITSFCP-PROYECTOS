@@ -13,7 +13,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'estudiante') {

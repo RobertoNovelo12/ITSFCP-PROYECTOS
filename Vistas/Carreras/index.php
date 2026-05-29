@@ -16,7 +16,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/carreraControlador.php';
+require_once __DIR__ .  '/../../Controladores/carreraControlador.php';
 
 $carreraControlador = new carreraControlador();
 

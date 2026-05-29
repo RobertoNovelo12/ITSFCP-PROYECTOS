@@ -14,7 +14,7 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $id_usuario  = (int)$_SESSION['id_usuario'];
-$rol         = strtolower($_SESSION['rol'] ?? '');
+$rol  = strtolower($_SESSION['rol'] ?? '');
 
 // Solo estudiantes pueden ver este formulario
 if ($rol !== 'estudiante') {
@@ -76,8 +76,6 @@ $titulo = "Solicitud de Integración — " . htmlspecialchars($proyecto['titulo'
 //  Inicio del buffer de salida 
 ob_start();
 ?>
-
-
 
 <!-- 
      CONTENIDO

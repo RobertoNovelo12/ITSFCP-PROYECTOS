@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
 }
 
 /* CONTROLADOR */
-require_once '../../Controladores/tematicaControlador.php';
+require_once __DIR__ . '/../../Controladores/tematicaControlador.php';
 
 $action = $_POST['action'] ?? null;
 

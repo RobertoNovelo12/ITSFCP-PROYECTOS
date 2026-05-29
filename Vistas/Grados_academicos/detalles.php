@@ -10,15 +10,11 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-require_once '../../Controladores/gradoacademicoControlador.php';
-
-$gradoacademicoControlador = new gradoacademicoControlador();
-
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 // Validación - Existencia de GET
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
@@ -29,12 +25,15 @@ if ($rol !== 'supervisor') {
 $id_grado = isset($_GET['id_grado']) ? intval($_GET['id_grado']) : 0;
 
 $id_validar = $id_grado;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
+require_once __DIR__ .  '/../../Controladores/gradoacademicoControlador.php';
+
+$gradoacademicoControlador = new gradoacademicoControlador();
 // Validación - Existencia de datos
 $registro = $gradoacademicoControlador->indexDetalles($rol, $id_grado);
 
-require_once '../../../publico/incluido/_validar_datos.php';
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 ob_start();
 ?>

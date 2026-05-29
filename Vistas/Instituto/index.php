@@ -12,7 +12,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol        = strtolower($_SESSION['rol'] ?? '');
+$rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'supervisor') {
@@ -20,7 +20,7 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once '../../Controladores/institutoControlador.php';
+require_once __DIR__ . '/../../Controladores/institutoControlador.php';
 
 $controlador = new institutoControlador();
 
@@ -34,10 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $instituto  = $controlador->indexDetalles($rol);
 $directores = $controlador->directores();
 
-if (empty($datinstitutoos)) {
-    header("Location: index.php?msg=error_sin_registro");
-    exit;
-}
+//Validación de argumentos en url
+$id_validar = $instituto;
+include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
 //  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';

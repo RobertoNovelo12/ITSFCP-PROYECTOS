@@ -22,14 +22,14 @@ if ($rol !== 'estudiante') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
-require_once '../../../publico/incluido/_validar_get.php';
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = intval($_GET['id'] ?? 0);
 //Validación de argumentos en url
 $id_validar = $id_solicitud;
-require_once '../../../publico/incluido/_validar_id.php';
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-require_once '../../Controladores/solicitudesControlador.php';
+require_once __DIR__ .  '/../../Controladores/solicitudesControlador.php';
 $ctrl   = new solicitudesControlador();
 
 // Verificar que esta solicitud pertenece al estudiante

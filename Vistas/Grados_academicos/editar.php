@@ -15,10 +15,8 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-if (empty($_GET)) {
-    header("Location: index.php?msg=sin_argumentos_url");
-    exit;
-}
+include __DIR__ .  '../../../publico/incluido/_validar_get.php';
+
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -27,20 +25,19 @@ if ($rol !== 'supervisor') {
 
 $id_grado   = $_GET['id_grado'] ?? null;
 
-if ($id_grado <= 0) {
-    header("Location: index.php?msg=error_cargar");
-    exit;
-}
+//Validación de argumentos en url
+$id_validar = $id_grado;
+include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-require_once '../../Controladores/gradoacademicoControlador.php';
+
+require_once __DIR__ .  '/../../Controladores/gradoacademicoControlador.php';
 
 $gradoacademicoControlador = new gradoacademicoControlador();
 $datos = $gradoacademicoControlador->indexEditar($rol, $id_grado);
 
-if (empty($datos)) {
-    header("Location: index.php?msg=error_sin_registro");
-    exit;
-}
+$registro = $datos;
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
+
 
 //  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';
