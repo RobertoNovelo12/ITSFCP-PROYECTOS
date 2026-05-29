@@ -104,23 +104,6 @@ class plantilladocumento extends BaseModelo
     }
 
     /**
-     * Totales para los filtros de estado (Total / Activo / Desactivado).
-     */
-    public function obtenerDatosFiltro(): array
-    {
-        return $this->ejecutar(
-            "SELECT
-                COUNT(*)                     AS Total,
-                COALESCE(SUM(activo = 1), 0) AS Activo,
-                COALESCE(SUM(activo = 0), 0) AS Desactivado
-             FROM plantillas_documentos",
-            '',
-            [],
-            false
-        ) ?? [];
-    }
-
-    /**
      * Tipos de documento activos para el select del formulario de creación.
      */
     public function obtenerTipos_documentos(): array

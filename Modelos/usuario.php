@@ -11,23 +11,6 @@ class Usuarios
     }
 
     // 
-    //  DATOS DE FILTROS (conteos por estado)
-    // 
-    public function obtenerUsuariosDatosFiltro()
-    {
-        $sql = "SELECT
-                    COUNT(*)                                                      AS Total,
-                    SUM(CASE WHEN u.estado_usuario = 'espera'    THEN 1 ELSE 0 END) AS Espera,                    SUM(CASE WHEN u.estado_usuario = 'activo'    THEN 1 ELSE 0 END) AS Activo,
-                    SUM(CASE WHEN u.estado_usuario = 'cancelado' THEN 1 ELSE 0 END) AS Cancelado
-                FROM usuarios u";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) die("Error prepare filtros: " . $this->con->error);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
-    }
-
-    // 
     //  CONTAR USUARIOS (para paginación)
     // 
     public function obtenerCantidadUsuarios($estado = null, $buscar = null, $tipo = null)

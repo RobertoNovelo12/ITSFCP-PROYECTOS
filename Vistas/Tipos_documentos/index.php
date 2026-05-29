@@ -34,9 +34,8 @@ if (is_string($documentos)) {
     $documentos = json_decode($documentos, true);
 }
 
-$filtros = $ajustesTiposDocumentoscontrolador->filtros($rol);
 $encabezados = $ajustesTiposDocumentoscontrolador->encabezadosPrincipal($rol);
-$opciones = $ajustesTiposDocumentoscontrolador->opciones($rol, $filtros);
+$opciones = $ajustesTiposDocumentoscontrolador->opciones();
 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
@@ -84,7 +83,6 @@ ob_start();
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-2">
             <div class="row g-2">
-
                 <div class="col-md-4 mb-1">
                     <label class="form-label mb-1 small fw-semibold">Estado</label>
                     <select class="form-select"

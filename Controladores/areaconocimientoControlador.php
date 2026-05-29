@@ -49,22 +49,6 @@ class AreaConocimientoControlador extends BaseControlador
     }
 
 
-    // 
-    // FILTROS DE TABLA
-    // 
-
-    public function filtros(string $rol): array
-    {
-        global $conn;
-        try {
-            $this->validarAcceso($rol, ['supervisor']);
-            return (new AreaConocimiento($conn))->obtenerAreasDatosFiltro($rol);
-        } catch (Throwable $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
-
     public function Total(string $rol, ?string $buscar = null): array
     {
         global $conn;
@@ -121,14 +105,12 @@ class AreaConocimientoControlador extends BaseControlador
         ];
     }
 
-    public function opciones(string $rol, array $filtros): array
+    public function opciones(): array
     {
-        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
-
         return [
-            'Total'       => "Total ({$filtros[0]['Total']} en total)",
-            'Activo'      => "Activos ({$filtros[0]['Activo']} en total)",
-            'Desactivado' => "Desactivados ({$filtros[0]['Desactivado']} en total)",
+            'Total'       => "Total",
+            'Activo'      => "Activos",
+            'Desactivado' => "Desactivados",
         ];
     }
 

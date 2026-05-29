@@ -67,27 +67,16 @@ class SolicitudActualizacionControlador extends BaseControlador
     }
 
     // ─
-    //  FILTROS Y ENCABEZADOS
+    //  ENCABEZADOS
     // ─
 
-    public function filtros(): array
-    {
-        global $conn;
-        try {
-            return (new SolicitudActualizacion($conn))->conteosFiltros();
-        } catch (Exception $e) {
-            error_log('SolicitudActualizacionControlador::filtros() — ' . $e->getMessage());
-            return ['Total' => 0, 'Pendiente' => 0, 'Aprobado' => 0, 'Rechazado' => 0];
-        }
-    }
-
-    public function opciones(array $filtros): array
+    public function opciones(): array
     {
         return [
-            'index'     => "Todas ({$filtros['Total']})",
-            'Pendiente' => "Pendientes ({$filtros['Pendiente']})",
-            'Aprobado'  => "Aprobadas ({$filtros['Aprobado']})",
-            'Rechazado' => "Rechazadas ({$filtros['Rechazado']})",
+            'index'     => "Todas",
+            'Pendiente' => "Pendientes",
+            'Aprobado'  => "Aprobadas",
+            'Rechazado' => "Rechazadas",
         ];
     }
 

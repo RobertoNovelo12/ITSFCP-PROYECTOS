@@ -57,9 +57,8 @@ $paginacion = $resultado['paginacion'] ?? [
 ];
 
 //  Datos para filtros y tabla ─
-$filtros     = $controlador->filtros($rol);
 $encabezados = $controlador->encabezados($rol);
-$opciones    = $controlador->opciones($rol, $filtros);
+$opciones    = $controlador->opciones();
 
 //  Mensaje de éxito/error ─
 $msg = $_GET['msg'] ?? '';
@@ -101,17 +100,29 @@ ob_start();
     ?>
 
     <!-- FILTROS -->
+    <!-- FILTROS Y BÚSQUEDA -->
     <div class="card border-0 shadow-sm mb-3">
-        <div class="card-body py-2">
-            <div class="row g-2 align-items-end">
 
-                <!-- Select estado -->
+        <div class="card-body py-2">
+
+            <!-- TOTAL REGISTROS -->
+            <?php
+            include __DIR__ . '../../../publico/incluido/_total_registros.php';
+            ?>
+
+            <div class="row g-2 align-items-end">
+                <!-- FILTRO ESTADO -->
                 <div class="col-md-3 mb-1">
-                    <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <label class="form-label mb-1 small fw-semibold">
+                        Estado
+                    </label>
                     <select class="form-select"
-                        onchange="location.href='index.php?action=' + this.value
-                        + '&buscar=<?= urlencode($buscar) ?>&tipo=<?= urlencode($tipo) ?>';">
+                        onchange="location.href='?action=' + this.value
+                    + '&buscar=<?= urlencode($buscar) ?>'
+                    + '&tipo=<?= urlencode($tipo) ?>'">
+
                         <?php foreach ($opciones as $key => $label): ?>
+
                             <option value="<?= htmlspecialchars($key) ?>"
                                 <?= ($action === $key) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($label) ?>
@@ -119,42 +130,64 @@ ob_start();
                         <?php endforeach; ?>
                     </select>
                 </div>
-
-                <!-- Select tipo de usuario -->
+                <!-- FILTRO TIPO -->
                 <div class="col-md-3 mb-1">
-                    <label class="form-label mb-1 small fw-semibold">Tipo</label>
+                    <label class="form-label mb-1 small fw-semibold">
+                        Tipo
+                    </label>
                     <select class="form-select"
-                        onchange="location.href='index.php?action=<?= urlencode($action) ?>&buscar=<?= urlencode($buscar) ?>&tipo=' + this.value;">
-                        <option value="" <?= ($tipo === '')               ? 'selected' : '' ?>>Todos los tipos</option>
-                        <option value="estudiante" <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
-                        <option value="investigador" <?= ($tipo === 'investigador') ? 'selected' : '' ?>>Investigador</option>
-                        <option value="supervisor" <?= ($tipo === 'supervisor')   ? 'selected' : '' ?>>Supervisor</option>
+                        onchange="location.href='?action=<?= urlencode($action) ?>'
+                    + '&buscar=<?= urlencode($buscar) ?>'
+                    + '&tipo=' + this.value">
+                        <option value=""
+                            <?= ($tipo === '') ? 'selected' : '' ?>>
+                            Todos los tipos
+                        </option>
+                        <option value="estudiante"
+                            <?= ($tipo === 'estudiante') ? 'selected' : '' ?>>
+                            Estudiante
+                        </option>
+                        <option value="investigador"
+                            <?= ($tipo === 'investigador') ? 'selected' : '' ?>>
+                            Investigador
+                        </option>
+                        <option value="supervisor"
+                            <?= ($tipo === 'supervisor') ? 'selected' : '' ?>>
+                            Supervisor
+                        </option>
                     </select>
                 </div>
-
-                <!-- Búsqueda por nombre -->
+                <!-- BUSCADOR -->
                 <div class="col-md-6 mb-1">
-                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
-                    <form class="d-flex gap-2" method="GET" action="index.php">
-                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                        <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo) ?>">
+                    <label class="form-label mb-1 small fw-semibold">
+                        Buscar
+                    </label>
+                    <form class="d-flex gap-2" method="GET">
+                        <input type="hidden"
+                            name="action"
+                            value="<?= htmlspecialchars($action) ?>">
+                        <input type="hidden"
+                            name="tipo"
+                            value="<?= htmlspecialchars($tipo) ?>">
                         <input type="text"
                             name="buscar"
                             class="form-control"
                             placeholder="Buscar por nombre..."
                             value="<?= htmlspecialchars($buscar) ?>">
+
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i>
                         </button>
                         <?php if (!empty($buscar)): ?>
-                            <a href="index.php?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
-                                class="btn btn-secondary" title="Limpiar búsqueda">
+                            <a href="?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
+                                class="btn btn-secondary"
+                                title="Limpiar búsqueda">
+
                                 <i class="bi bi-x-lg"></i>
                             </a>
                         <?php endif; ?>
                     </form>
                 </div>
-
             </div>
         </div>
     </div>

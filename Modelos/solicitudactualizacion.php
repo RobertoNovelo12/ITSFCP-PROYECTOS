@@ -6,24 +6,7 @@ require_once __DIR__ . '/BaseModelo.php';
 
 class SolicitudActualizacion extends BaseModelo
 {
-    // ─
-    //  FILTROS / CONTEOS
-    // ─
 
-    public function conteosFiltros(): array
-    {
-        return $this->ejecutar(
-            "SELECT
-                COUNT(*) AS Total,
-                SUM(CASE WHEN estado = 'pendiente'  THEN 1 ELSE 0 END) AS Pendiente,
-                SUM(CASE WHEN estado = 'aprobado'   THEN 1 ELSE 0 END) AS Aprobado,
-                SUM(CASE WHEN estado = 'rechazado'  THEN 1 ELSE 0 END) AS Rechazado
-             FROM solicitudes_actualizacion",
-            '',
-            [],
-            false
-        );
-    }
 
     // ─
     //  WHERE DINÁMICO (reutilizable)

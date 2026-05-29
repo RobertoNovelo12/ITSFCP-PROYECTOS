@@ -117,19 +117,6 @@ class periodoControlador extends BaseControlador
         }
     }
 
-    public function filtros(string $rol): array
-    {
-        global $conn;
-        try {
-            $this->validarAcceso($rol, ['supervisor']);
-            return (new Periodo($conn))->obtenerPeriodoDatosFiltro($rol);
-        } catch (Throwable $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
-
-
     // ─
     // OPCIONES / ENCABEZADOS
     // ─
@@ -149,17 +136,14 @@ class periodoControlador extends BaseControlador
         ];
     }
 
-    public function opciones(string $rol, array $filtros): array
+    public function opciones(): array
     {
-        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) return [];
-
-        $data = $filtros[0];
 
         return [
-            'Total'       => "Total ("        . ($data['Total']       ?? 0) . " en total)",
-            'Activo'      => "Activos ("       . ($data['Activo']      ?? 0) . " en total)",
-            'Terminado'   => "Terminados ("    . ($data['Terminado']   ?? 0) . " en total)",
-            'Desactivado' => "Desactivados ("  . ($data['Desactivado'] ?? 0) . " en total)",
+            'Total'       => "Total",
+            'Activo'      => "Activos",
+            'Terminado'   => "Terminados",
+            'Desactivado' => "Desactivados",
         ];
     }
 

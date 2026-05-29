@@ -9,7 +9,7 @@ require_once __DIR__ . '/BaseControlador.php';
 class ProyectoControlador extends BaseControlador
 {
 
-  // Solo esto es específico de Proyectos
+    // Solo esto es específico de Proyectos
     private function rolValido(string $rol): bool
     {
         return in_array($rol, ['investigador', 'estudiante', 'supervisor', 'profesor'], true);
@@ -29,9 +29,6 @@ class ProyectoControlador extends BaseControlador
             $modelo->actualizarProyectosVencidos();
             $modelo->actualizarEstadoEstudiantesVencidos();
 
-            if ($tipo === 'filtro') {
-                return $modelo->obtenerProyectosDatosFiltro($id, $rol);
-            }
 
             // tipo === 'tabla'
             $resultado = $modelo->obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar);
@@ -50,11 +47,6 @@ class ProyectoControlador extends BaseControlador
     public function index(int $id, string $rol, ?string $buscar = null): array
     {
         return $this->obtenerDatos($id, $rol, $buscar, 0, 'tabla');
-    }
-
-    public function filtros(int $id, string $rol): array
-    {
-        return $this->obtenerDatos($id, $rol, null, null, 'filtro');
     }
 
     public function Total(int $id, string $rol, ?string $buscar = null): array
@@ -147,37 +139,39 @@ class ProyectoControlador extends BaseControlador
     // OPCIONES DE FILTRO (select de la tabla de proyectos)
     // 
 
-    public function opcionesProyectos(string $rol, array $filtros): array
+    public function opcionesProyectos(string $rol): array
     {
-        if (empty($filtros)) return [];
 
         $base = [
-            'Total'   => "Total ({$filtros[0]['Total']})",
-            'Activos' => "Activos ({$filtros[0]['Activos']})",
+            'Total'   => "Total",
+            'Activos' => "Activos",
         ];
 
         if ($rol === 'estudiante') {
+
             return $base + [
-                'Cierre'    => "Cierre ({$filtros[0]['Cierre']})",
-                'PorCerrar' => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-                'Vencido'   => "Vencidos ({$filtros[0]['Vencido']})",
+                'Cierre'    => "Cierre",
+                'PorCerrar' => "Por Cerrar",
+                'Vencido'   => "Vencidos",
             ];
         }
 
         if (in_array($rol, ['investigador', 'profesor'], true)) {
+
             return $base + [
-                'Rechazados' => "Rechazados ({$filtros[0]['Rechazados']})",
-                'Cierre'     => "Cierre ({$filtros[0]['Cierre']})",
-                'PorCerrar'  => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-                'Vencido'    => "Vencidos ({$filtros[0]['Vencido']})",
+                'Rechazados' => "Rechazados",
+                'Cierre'     => "Cierre",
+                'PorCerrar'  => "Por Cerrar",
+                'Vencido'    => "Vencidos",
             ];
         }
 
+
         if ($rol === 'supervisor') {
             return $base + [
-                'PorCerrar' => "Por Cerrar ({$filtros[0]['PorCerrar']})",
-                'Cierre'    => "Cierre ({$filtros[0]['Cierre']})",
-                'Vencido'   => "Vencidos ({$filtros[0]['Vencido']})",
+                'PorCerrar' => "Por Cerrar",
+                'Cierre'    => "Cierre",
+                'Vencido'   => "Vencidos",
             ];
         }
 
@@ -520,7 +514,6 @@ class ProyectoControlador extends BaseControlador
             }
 
             $this->redirigir('exito_crear');
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             // Si el error viene de validarAcceso usamos su clave directamente,
@@ -569,7 +562,6 @@ class ProyectoControlador extends BaseControlador
             }
 
             $this->redirigir('exito_editar', 'index.php', "&id_proyectos={$id_proyecto}");
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_editar';
@@ -606,7 +598,6 @@ class ProyectoControlador extends BaseControlador
             $modelo->actualizarestado($id_proyecto, $estado, $porcentaje);
 
             $this->redirigir('exito_estado');
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_estado';
@@ -760,7 +751,6 @@ class ProyectoControlador extends BaseControlador
             };
 
             $this->redirigir('exito_operacion', 'detalles.php', "&id_proyectos={$id_proyecto}");
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->redirigir('error_operacion', 'detalles.php', "&id_proyectos={$id_proyecto}");

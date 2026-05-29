@@ -78,17 +78,6 @@ class plantilladocumentoControlador extends BaseControlador
         }
     }
 
-    public function filtros(string $rol): array
-    {
-        if (!$this->esSupervisor($rol)) return [];
-        try {
-            return $this->modelo()->obtenerDatosFiltro();
-        } catch (Throwable $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
-
     // 
     //  PRESENTACIÓN / UI
     // 
@@ -99,13 +88,12 @@ class plantilladocumentoControlador extends BaseControlador
         return ['Plantilla', 'Versión', 'Creación', 'Modificación', 'Archivo', 'Estado', 'Acciones'];
     }
 
-    public function opciones(string $rol, array $filtros): array
+    public function opciones(): array
     {
-        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
         return [
-            'Total'       => "Total ("        . ($filtros['Total']       ?? 0) . " en total)",
-            'Activo'      => "Activos ("      . ($filtros['Activo']      ?? 0) . " en total)",
-            'Desactivado' => "Desactivados (" . ($filtros['Desactivado'] ?? 0) . " en total)",
+            'Total'       => "Total",
+            'Activo'      => "Activos",
+            'Desactivado' => "Desactivados",
         ];
     }
 

@@ -374,26 +374,6 @@ WHERE tema.estado = ?";
         }
     }
 
-    //FILTROS DATOS GENERAL
-    //DATOS DEL FILTRO
-    public function obtenerTematicasDatosFiltro($rol)
-    {
-        switch ($rol) {
-            case 'supervisor':
-                $sql = "SELECT DISTINCT 
-  COUNT(*) AS Total,
-  COALESCE(SUM(CASE WHEN estado= 1 THEN 1 ELSE 0 END),0) AS Activo,
-  COALESCE(SUM(CASE WHEN estado= 0 THEN 1 ELSE 0 END),0) AS Desactivado
-FROM gestion_proyectos.tematica AS tema;";
-                $stmt = $this->con->prepare($sql);
-                break;
-            default:
-                return []; // Retorna un array vacío si el rol no es válido
-        }
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
     public function registrarTematica($nombre, $descripcion)
     {
         $sql = "INSERT INTO tematica (nombre_tematica, descripcion_tematica, estado) VALUES (?, ?, 1);";

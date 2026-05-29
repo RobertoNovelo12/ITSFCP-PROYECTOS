@@ -137,6 +137,9 @@ ob_start();
     <!-- FILTROS DE TIPO + BÚSQUEDA -->
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-2">
+            <?php
+            include __DIR__ . '../../../publico/incluido/_total_registros.php';
+            ?>
             <div class="row g-2 align-items-end">
 
                 <div class="col-md-4 mb-1">

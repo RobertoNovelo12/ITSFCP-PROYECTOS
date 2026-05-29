@@ -38,18 +38,6 @@ class ajustesTiposDocumentosControlador extends BaseControlador
         }
     }
 
-    public function filtros(string $rol): array
-    {
-        global $conn;
-        try {
-            $this->validarAcceso($rol, ['supervisor']);
-            return (new ajustesdocumentos($conn))->obtenerDatosFiltro($rol);
-        } catch (Throwable $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
-
 
     // 
     // FILTROS DE TABLA
@@ -94,9 +82,8 @@ class ajustesTiposDocumentosControlador extends BaseControlador
         return ['Nombre', 'Categoría', 'Descripción', 'Orden', 'Estado', 'Acciones'];
     }
 
-    public function opciones(string $rol, array $filtros): array
+    public function opciones(): array
     {
-        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
 
         return [
             'Todos'   => 'Todos',

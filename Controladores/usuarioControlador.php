@@ -59,27 +59,15 @@ class UsuariosControlador
     }
 
     // 
-    //  DATOS PARA LOS BOTONES DE FILTRO
-    // 
-    public function filtros($rol)
-    {
-        if ($rol !== 'supervisor') return [];
-        global $conn;
-        $usuario = new Usuarios($conn);
-        return $usuario->obtenerUsuariosDatosFiltro();
-    }
-
-    // 
     //  OPCIONES DEL SELECT DE FILTRO
     // 
-    public function opciones($rol, $filtros)
+    public function opciones()
     {
-        if ($rol !== 'supervisor') return [];
         return [
-            'index'     => "Todos ({$filtros['Total']})",
-            'Espera'    => "En espera ({$filtros['Espera']})",
-            'Activo'    => "Activos ({$filtros['Activo']})",
-            'Cancelado' => "Cancelados ({$filtros['Cancelado']})",
+            'index'     => "Todos",
+            'Espera'    => "En espera",
+            'Activo'    => "Activos",
+            'Cancelado' => "Cancelados",
         ];
     }
 

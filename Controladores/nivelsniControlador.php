@@ -56,18 +56,6 @@ class NivelsniControlador extends BaseControlador
         }
     }
 
-    /** Datos para los contadores de filtro. */
-    public function filtros(string $rol): array
-    {
-        global $conn;
-        try {
-            if (!$this->esSupervisor($rol)) return [];
-            return (new NivelSNI($conn))->obtenerDatosFiltro($rol);
-        } catch (Throwable $e) {
-            error_log('NivelsniControlador::filtros — ' . $e->getMessage());
-            return [];
-        }
-    }
 
     // ─
     // FILTROS POR ESTADO (usados desde index.php vía $action)
@@ -273,14 +261,12 @@ class NivelsniControlador extends BaseControlador
         return ['Nivel SNI', 'Fecha Creación', 'Hora Creación', 'Estado', 'Acciones'];
     }
 
-    public function opciones(string $rol, array $filtros): array
+    public function opciones(): array
     {
-        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) return [];
-        $data = $filtros[0];
         return [
-            'Total'       => 'Total ('       . ($data['Total']       ?? 0) . ' en total)',
-            'Activo'      => 'Activos ('     . ($data['Activo']      ?? 0) . ' en total)',
-            'Desactivado' => 'Desactivados (' . ($data['Desactivado'] ?? 0) . ' en total)',
+            'Total'       => 'Total',
+            'Activo'      => 'Activos',
+            'Desactivado' => 'Desactivados',
         ];
     }
 

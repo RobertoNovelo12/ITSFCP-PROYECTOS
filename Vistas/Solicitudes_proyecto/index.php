@@ -143,6 +143,9 @@ ob_start();
     <!-- FILTROS -->
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-2">
+            <?php
+            include __DIR__ . '../../../publico/incluido/_total_registros.php';
+            ?>
             <div class="row g-2 align-items-end">
                 <div class="col-md-4 mb-1">
                     <label class="form-label mb-1 small fw-semibold">Tipo</label>
@@ -164,6 +167,14 @@ ob_start();
                             placeholder="Buscar por título..."
                             value="<?= htmlspecialchars($buscar) ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
+                     <?php if (!empty($buscar)): ?>
+                        <a href="?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo_filtro) ?>&id_period= <?= urldecode($id_periodo) ?>"
+                            class="btn btn-secondary"
+                            title="Limpiar búsqueda">
+
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    <?php endif; ?>
                     </form>
                 </div>
             </div>

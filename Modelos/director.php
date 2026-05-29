@@ -7,22 +7,6 @@ require_once __DIR__ . '/BaseModelo.php';
 class Director extends BaseModelo
 {
 
-    // ─
-    //  FILTROS / CONTEOS
-    // ─
-
-    public function obtenerDatosFiltro(): array
-    {
-        $this->desactivarDirectoresVencidos();
-
-        return $this->ejecutar(
-            "SELECT
-                COUNT(*) AS Total,
-                COALESCE(SUM(CASE WHEN d.estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
-                COALESCE(SUM(CASE WHEN d.estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
-            FROM director d"
-        );
-    }
 
     // ─
     //  TABLA PRINCIPAL CON PAGINACIÓN

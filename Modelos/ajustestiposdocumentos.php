@@ -12,30 +12,6 @@ class ajustesdocumentos extends BaseModelo
     }
 
 
-    // 
-    // FILTROS / CONTEOS
-    // 
-
-    /**
-     * Obtiene totales por categoría para los botones de filtro.
-     * Solo accesible al supervisor.
-     */
-    public function obtenerDatosFiltro(string $rol): array
-    {
-        if ($rol !== 'supervisor') {
-            return [];
-        }
-
-        return $this->ejecutar(
-            "SELECT 
-                COUNT(*) AS Todos,
-                CASE WHEN categoria = 'proceso' THEN 'Proceso' END AS Proceso,
-                CASE WHEN categoria = 'final'   THEN 'Final'   END AS Final
-             FROM tipo_documento
-             GROUP BY categoria"
-        );
-    }
-
 
     // 
     // TABLA PRINCIPAL

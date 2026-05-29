@@ -53,22 +53,6 @@ class carreraControlador extends BaseControlador
     }
 
 
-    // ─
-    // FILTROS DE TABLA
-    // ─
-
-    public function filtros(string $rol): array
-    {
-        global $conn;
-        try {
-            $this->validarAcceso($rol, ['supervisor']);
-            return (new Carrera($conn))->obtenerDatosFiltro($rol);
-        } catch (Throwable $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
-
     private function obtenerPorFiltro(string $rol, int $tipoFiltro, ?string $buscar = null): array
     {
         global $conn;
@@ -108,16 +92,13 @@ class carreraControlador extends BaseControlador
         return ['Carrera', 'Fecha Creación', 'Hora Creación', 'Estado', 'Acciones'];
     }
 
-    public function opciones(string $rol, array $filtros): array
+    public function opciones(): array
     {
-        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) return [];
-
-        $data = $filtros[0];
 
         return [
-            'Total'       => "Total ("       . ($data['Total']       ?? 0) . " en total)",
-            'Activo'      => "Activos ("      . ($data['Activo']      ?? 0) . " en total)",
-            'Desactivado' => "Desactivados (" . ($data['Desactivado'] ?? 0) . " en total)",
+            'Total'       => "Total",
+            'Activo'      => "Activos",
+            'Desactivado' => "Desactivados",
         ];
     }
 

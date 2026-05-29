@@ -47,9 +47,8 @@ $paginacion = $resultado['paginacion'] ?? [
     'total_paginas' => max(1, (int)ceil(count($carreras) / 6)),
 ];
 
-$filtros     = $carreraControlador->filtros($rol);
 $encabezados = $carreraControlador->encabezadosPrincipal($rol);
-$opciones    = $carreraControlador->opciones($rol, $filtros);
+$opciones    = $carreraControlador->opciones();
 
 //  Mapa de mensajes ─
 $msg   = $_GET['msg'] ?? '';
@@ -99,6 +98,9 @@ ob_start();
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-2">
             <div class="row g-2 align-items-end">
+                <?php
+                include __DIR__ . '../../../publico/incluido/_total_registros.php';
+                ?>
                 <div class="col-md-4 mb-1">
                     <label class="form-label mb-1 small fw-semibold">Estado</label>
                     <select class="form-select"
@@ -121,6 +123,14 @@ ob_start();
                             placeholder="Buscar..."
                             value="<?= htmlspecialchars($buscar) ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
+                        <?php if (!empty($buscar)): ?>
+                            <a href="?action=<?= urlencode($action) ?>"
+                                class="btn btn-secondary"
+                                title="Limpiar búsqueda">
+
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        <?php endif; ?>
                     </form>
                 </div>
             </div>

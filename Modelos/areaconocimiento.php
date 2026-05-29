@@ -13,26 +13,6 @@ class AreaConocimiento extends BaseModelo
 
 
     // 
-    // FILTROS / CONTEOS
-    // 
-
-    public function obtenerAreasDatosFiltro(string $rol): array
-    {
-        if ($rol !== 'supervisor') {
-            return [];
-        }
-
-        return $this->ejecutar(
-            "SELECT
-                COUNT(*) AS Total,
-                COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
-                COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
-             FROM areas_conocimiento"
-        );
-    }
-
-
-    // 
     // TABLA PRINCIPAL
     // 
 

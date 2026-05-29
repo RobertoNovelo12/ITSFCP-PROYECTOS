@@ -43,8 +43,7 @@ $resultado   = $ctrl->$action($buscar ?: null, $tipo ?: null);
 $solicitudes = $resultado['solicitudes'] ?? [];
 $paginacion  = $resultado['paginacion']  ?? ['total' => 0, 'por_pagina' => 8, 'pagina' => 1, 'total_paginas' => 1];
 
-$filtros     = $ctrl->filtros();
-$opciones    = $ctrl->opciones($filtros);
+$opciones    = $ctrl->opciones();
 $encabezados = $ctrl->encabezados();
 
 //  Mensajes 
@@ -85,8 +84,10 @@ ob_start();
     <!-- FILTROS -->
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-2">
+            <?php
+            include __DIR__ . '../../../publico/incluido/_total_registros.php';
+            ?>
             <div class="row g-2 align-items-end">
-
                 <!-- Select estado -->
                 <div class="col-md-3 mb-1">
                     <label class="form-label mb-1 small fw-semibold">Estado</label>

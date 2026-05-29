@@ -50,9 +50,8 @@ $paginacion = $resultado['paginacion'] ?? [
     'total_paginas' => max(1, (int)ceil(count($registros) / 6)),
 ];
 
-$filtros     = $gradoacademicoControlador->filtros($rol);
 $encabezados = $gradoacademicoControlador->encabezadosPrincipal($rol);
-$opciones    = $gradoacademicoControlador->opciones($rol, $filtros);
+$opciones    = $gradoacademicoControlador->opciones();
 
 //  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';
@@ -102,30 +101,57 @@ ob_start();
     endif; ?>
     <!-- FILTROS Y BÚSQUEDA -->
     <div class="card border-0 shadow-sm mb-3">
+
         <div class="card-body py-2">
+
+            <!-- TOTAL REGISTROS -->
+            <?php
+            include __DIR__ . '../../../publico/incluido/_total_registros.php';
+            ?>
+
             <div class="row g-2 align-items-end">
+                <!-- FILTRO -->
                 <div class="col-md-4 mb-1">
-                    <label class="form-label mb-1 small fw-semibold">Estado</label>
+                    <label class="form-label mb-1 small fw-semibold">
+                        Estado
+                    </label>
                     <select class="form-select"
-                        onchange="location.href='index.php?action=' + this.value;">
+                        onchange="location.href='?action=' + this.value + '&buscar=<?= urlencode($buscar) ?>'">
                         <?php foreach ($opciones as $key => $label): ?>
                             <option value="<?= htmlspecialchars($key) ?>"
                                 <?= ($action === $key) ? 'selected' : '' ?>>
+
                                 <?= htmlspecialchars($label) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <!-- BUSCADOR -->
                 <div class="col-md-8 mb-1">
-                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
-                    <form class="d-flex gap-2" method="GET" action="index.php">
-                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                    <label class="form-label mb-1 small fw-semibold">
+                        Buscar
+                    </label>
+                    <form class="d-flex gap-2" method="GET">
+                        <input type="hidden"
+                            name="action"
+                            value="<?= htmlspecialchars($action) ?>">
                         <input type="text"
                             name="buscar"
                             class="form-control"
                             placeholder="Por nombre..."
                             value="<?= htmlspecialchars($buscar) ?>">
-                        <button type="submit" class="btn btn-primary">Buscar</button>
+
+                        <button type="submit" class="btn btn-primary">
+                            Buscar
+                        </button>
+                        <?php if (!empty($buscar)): ?>
+                            <a href="?action=<?= urlencode($action) ?>"
+                                class="btn btn-secondary"
+                                title="Limpiar búsqueda">
+
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        <?php endif; ?>
                     </form>
                 </div>
             </div>

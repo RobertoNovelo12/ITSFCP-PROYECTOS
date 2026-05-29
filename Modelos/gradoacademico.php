@@ -11,29 +11,6 @@ class GradoAcademico
     }
 
     /**
-     * Obtiene datos para filtros (totales, activos, desactivados)
-     */
-    public function obtenerDatosFiltro($rol): array
-    {
-        if ($rol !== 'supervisor') {
-            return [];
-        }
-
-        $sql = "SELECT 
-                    COUNT(*) AS Total,
-                    COALESCE(SUM(CASE WHEN estado = 1 THEN 1 ELSE 0 END), 0) AS Activo,
-                    COALESCE(SUM(CASE WHEN estado = 0 THEN 1 ELSE 0 END), 0) AS Desactivado
-                FROM grados_academicos";
-
-        $stmt = $this->con->prepare($sql);
-        if (!$stmt) throw new Exception("Error en prepare (obtenerDatosFiltro): " . $this->con->error);
-        if (!$stmt->execute()) throw new Exception("Error en execute (obtenerDatosFiltro): " . $stmt->error);
-        $resultado = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-        return $resultado;
-    }
-
-    /**
      * Método base para construir WHERE dinámico (REUTILIZABLE)
      */
     private function construirWhere(&$params, &$types, $buscar, $filtro): string

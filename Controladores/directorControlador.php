@@ -51,18 +51,6 @@ class directorControlador extends BaseControlador
         return $this->obtenerPorFiltro($rol, 0, $buscar);
     }
 
-    public function filtros(string $rol): array
-    {
-        global $conn;
-        try {
-            $this->validarAcceso($rol, ['supervisor']);
-            return (new Director($conn))->obtenerDatosFiltro();
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
-
     public function numerofiltro(string $action): int
     {
         return match ($action) {
@@ -314,14 +302,12 @@ class directorControlador extends BaseControlador
         return ['Nombre', 'Apellidos', 'Correo', 'Teléfono', 'Grado Académico', 'Estado', 'Acciones'];
     }
 
-    public function opciones(string $rol, array $filtros): array
+    public function opciones(): array
     {
-        if (!$this->esSupervisor($rol) || empty($filtros[0])) return [];
-        $data = $filtros[0];
         return [
-            'Total'       => "Total ("       . ($data['Total']       ?? 0) . ")",
-            'Activo'      => "Activos ("     . ($data['Activo']      ?? 0) . ")",
-            'Desactivado' => "Desactivados (" . ($data['Desactivado'] ?? 0) . ")",
+            'Total'       => "Total",
+            'Activo'      => "Activos",
+            'Desactivado' => "Desactivados",
         ];
     }
 

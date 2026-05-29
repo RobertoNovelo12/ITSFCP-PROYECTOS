@@ -123,14 +123,12 @@ class gradoacademicoControlador
     /**
      * Genera las opciones de filtro con conteo.
      */
-    public function opciones($rol, $filtros): array
+    public function opciones(): array
     {
-        if (!$this->esSupervisor($rol) || empty($filtros) || !isset($filtros[0])) return [];
-        $data = $filtros[0];
         return [
-            'Total' => "Total (" . ($data['Total'] ?? 0) . " en total)",
-            'Activo' => "Activos (" . ($data['Activo'] ?? 0) . " en total)",
-            'Desactivado' => "Desactivados (" . ($data['Desactivado'] ?? 0) . " en total)"
+            'Total' => "Total",
+            'Activo' => "Activos",
+            'Desactivado' => "Desactivados"
         ];
     }
 
@@ -147,21 +145,6 @@ class gradoacademicoControlador
         };
     }
 
-    /**
-     * Obtiene datos para filtros.
-     */
-    public function filtros($rol): array
-    {
-        global $conn;
-        try {
-            if (!$this->esSupervisor($rol)) return [];
-            $obj = new GradoAcademico($conn);
-            return $obj->obtenerDatosFiltro($rol);
-        } catch (Throwable $e) {
-            error_log("Error en filtros(): " . $e->getMessage());
-            return [];
-        }
-    }
 
     /**
      * Método base para evitar duplicación de lógica en filtros.

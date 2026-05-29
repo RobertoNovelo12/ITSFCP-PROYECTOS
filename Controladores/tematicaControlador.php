@@ -97,14 +97,13 @@ class tematicaControlador
         ] : [];
     }
 
-    public function opciones($rol, $filtros)
+    public function opciones()
     {
-        if (!$this->esSupervisor($rol) || empty($filtros)) return [];
 
         return [
-            'Total' => "Total ({$filtros[0]['Total']} en total)",
-            'Activo' => "Activos ({$filtros[0]['Activo']} en total)",
-            'Desactivado' => "Desactivados ({$filtros[0]['Desactivado']} en total)"
+            'Total' => "Total",
+            'Activo' => "Activos",
+            'Desactivado' => "Desactivados"
         ];
     }
 
@@ -119,21 +118,6 @@ class tematicaControlador
         };
     }
 
-    //Datos filtros GENERAL
-    public function filtros($rol)
-    {
-        global $conn;
-        try {
-            if (!$this->esSupervisor($rol)) return [];
-
-            $tematica = new Tematica($conn);
-            return $tematica->obtenerTematicasDatosFiltro($rol);
-
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            return [];
-        }
-    }
 
     //Datos tabla por filtro
     //Total
