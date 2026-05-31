@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../Modelos/tareas.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 class TareaControlador extends BaseControlador
 {
@@ -191,42 +192,42 @@ class TareaControlador extends BaseControlador
 
     public function obtenerbotones(string $tipo, $id1 = null, $id2 = null, $id3 = null, $id4 = null, $estado = null): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         return match ($tipo) {
-            'Ver Tarea' =>
-            '<a href="tarea.php?id_asignacion=' . $id1 . '&tipo=' . $id2 . '&id_proyectos=' . $id3 . '&id_tarea=' . $id4 . '&estado=' . $estado . '"
-                    class="btn btn-sm btn-primary" title="Ver tarea">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                      <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                      <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                    </svg> Ver</a>',
 
-            'Ver lista' =>
-            '<a href="lista_tareas.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
-                    class="btn btn-sm btn-secondary" title="Ver lista de estudiantes"
-                    data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver lista de alumnos">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
-                      <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
-                    </svg></a>',
+            'Ver Tarea' => Botones::botonTexto(
+                'tarea.php?id_asignacion=' . $id1
+                    . '&tipo=' . $id2
+                    . '&id_proyectos=' . $id3
+                    . '&id_tarea=' . $id4
+                    . '&estado=' . $estado,
+                'primary',
+                $iconos['tabla']['ver'],
+                'Ver',
+                'Ver tarea'
+            ),
 
-            'Editar Tarea' =>
-            '<a href="editar.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
-                    class="btn btn-sm btn-warning" title="Editar tarea"
-                    data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-custom-class="custom-tooltip" data-bs-title="Editar tarea">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-                    </svg></a>',
+            'Ver lista' => Botones::botonIcono(
+                'lista_tareas.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2,
+                'secondary',
+                $iconos['tabla']['lista_alumnos'],
+                'Ver lista de alumnos'
+            ),
 
-            'Detalles' =>
-            '<a href="detalles.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '"
-                    class="btn btn-sm btn-primary" title="Ver detalles"
-                    data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-custom-class="custom-tooltip" data-bs-title="Ver detalles">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
-                      <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
-                      <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
-                    </svg></a>',
+            'Editar Tarea' => Botones::botonIcono(
+                'editar.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2,
+                'warning',
+                $iconos['tabla']['editar'],
+                'Editar tarea'
+            ),
+
+            'Detalles' => Botones::botonIcono(
+                'detalles.php?id_tarea=' . $id1 . '&id_proyectos=' . $id2,
+                'primary',
+                $iconos['tabla']['ver'],
+                'Ver detalles'
+            ),
 
             default => '',
         };
@@ -234,19 +235,41 @@ class TareaControlador extends BaseControlador
 
     public function obtenerbotonesTarea(string $tipo, $id1 = null, $id2 = null): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         return match ($tipo) {
-            'Aprobar'            => '<button type="submit" name="tipo" value="Aprobado"  class="btn btn-success btn-sm">Aprobar</button>',
-            'EnviarTarea'        => '<button type="submit" name="tipo" value="Revisar"   class="btn btn-primary btn-sm">Enviar tarea</button>',
-            'ReenviarTarea'      => '<button type="submit" name="tipo" value="Revisar"   class="btn btn-primary btn-sm">Volver a enviar</button>',
-            'Solicitar Corregir' => '<button type="submit" name="tipo" value="Corregir"  class="btn btn-warning btn-sm">Solicitar corrección</button>',
-            'Guardar'            =>
-            '<button type="submit" form="form-borrador" class="btn btn-outline-secondary btn-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-floppy me-1" viewBox="0 0 16 16">
-                      <path d="M11 2H9v3h2z"/><path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zm6 6.5v3h-4v-3h4a.5.5 0 0 1 0 0"/>
-                    </svg> Guardar borrador</button>',
+
+            'Aprobar' =>
+                '<button type="submit" name="tipo" value="Aprobado" class="btn btn-success btn-sm">
+                    <i class="' . $iconos['tabla']['aprobar'] . ' me-1"></i>Aprobar
+                </button>',
+
+            'EnviarTarea' =>
+                '<button type="submit" name="tipo" value="Revisar" class="btn btn-primary btn-sm">
+                    <i class="' . $iconos['tabla']['subir'] . ' me-1"></i>Enviar tarea
+                </button>',
+
+            'ReenviarTarea' =>
+                '<button type="submit" name="tipo" value="Revisar" class="btn btn-primary btn-sm">
+                    <i class="' . $iconos['tabla']['volver_enviar'] . ' me-1"></i>Volver a enviar
+                </button>',
+
+            'Solicitar Corregir' =>
+                '<button type="submit" name="tipo" value="Corregir" class="btn btn-warning btn-sm">
+                    <i class="' . $iconos['tabla']['editar'] . ' me-1"></i>Solicitar corrección
+                </button>',
+
+            'Guardar' =>
+                '<button type="submit" form="form-borrador" class="btn btn-outline-secondary btn-sm">
+                    <i class="' . $iconos['tabla']['guardar'] . ' me-1"></i>Guardar borrador
+                </button>',
+
             'Activar' =>
-            '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente"
-                    class="btn btn-success btn-sm">Activar tarea</a>',
+                '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente"
+                    class="btn btn-success btn-sm">
+                    <i class="' . $iconos['tabla']['aprobar'] . ' me-1"></i>Activar tarea
+                </a>',
+
             default => '',
         };
     }

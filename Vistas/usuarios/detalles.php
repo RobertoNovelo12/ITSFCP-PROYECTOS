@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
+$rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'supervisor') {
@@ -22,21 +22,22 @@ require_once __DIR__ . '/../../Controladores/usuarioControlador.php';
 
 $controlador = new UsuariosControlador();
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
+//  Validaciones de URL 
+include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
 $id_ver = isset($_GET['id_usuarios']) ? intval($_GET['id_usuarios']) : 0;
 
-//Validación de argumentos en url
 $id_validar = $id_ver;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
+include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
-
+//  Cargar datos ─
 $usuario = $controlador->indexDetalles($rol, $id_ver);
 
-// Validación
 $registro = $usuario;
-include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
+//  Iconos reutilizables ─
+include __DIR__ . '/../../publico/incluido/_iconos.php';
 
 ob_start();
 ?>
@@ -45,17 +46,16 @@ ob_start();
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-
         <?php
         $titulo      = 'Detalle de Usuario';
         $descripcion = 'Información del usuario seleccionado';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
-
         <div class="col-6 col-md-6 text-md-end">
-            <?php if ($rol == "supervisor"): ?>
-                <a href="index.php" class="btn btn-secondary btn-sm px-4">
-                    <i class="bi bi-arrow-left"></i> Regresar</a>
+            <?php if ($rol === 'supervisor'): ?>
+                <a href="index.php" class="btn btn-secondary btn-sm px-4"><i class="bi bi-arrow-left me-1"></i> 
+                    <i class="<?= $iconos['tabla']['regresar'] ?>"></i> Regresar
+                </a>
             <?php endif; ?>
         </div>
     </div>
@@ -63,19 +63,21 @@ ob_start();
     <!-- INFORMACIÓN GENERAL -->
     <div class="card shadow-sm mb-4">
         <div class="card-header">
-            <h5 class="mb-0"></i>Información general</h5>
+            <h5 class="mb-0">
+               <i class="bi bi-person-circle me-2"></i> <i class="<?= $iconos['detalles']['informacion'] ?> me-2"></i>Información general
+            </h5>
         </div>
         <div class="card-body">
+
             <div class="row">
                 <div class="col-md-6">
                     <dl>
                         <dt>Nombre completo</dt>
                         <dd><?= htmlspecialchars(
-                                $usuario['nombre'] . ' ' .
-                                    $usuario['apellido_paterno'] . ' ' .
-                                    $usuario['apellido_materno']
-                            ) ?>
-                        </dd>
+                            $usuario['nombre'] . ' ' .
+                            $usuario['apellido_paterno'] . ' ' .
+                            $usuario['apellido_materno']
+                        ) ?></dd>
                     </dl>
                 </div>
                 <div class="col-md-6">
@@ -126,8 +128,7 @@ ob_start();
                         <dt>Fecha de nacimiento</dt>
                         <dd><?= !empty($usuario['fecha_nacimiento'])
                                 ? date("d/m/Y", strtotime($usuario['fecha_nacimiento']))
-                                : '—' ?>
-                        </dd>
+                                : '—' ?></dd>
                     </dl>
                 </div>
                 <div class="col-md-6">
@@ -150,6 +151,7 @@ ob_start();
                     </dl>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -157,7 +159,9 @@ ob_start();
     <?php if (!empty($usuario['matricula'])): ?>
         <div class="card shadow-sm mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Datos de estudiante</h5>
+                <h5 class="mb-0">
+                    <i class="<?= $iconos['detalles']['subinformacion'] ?> me-2"></i>Datos de estudiante
+                </h5>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -182,7 +186,9 @@ ob_start();
     <?php if (!empty($usuario['rfc'])): ?>
         <div class="card shadow-sm mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Datos de investigador</h5>
+                <h5 class="mb-0">
+                   <i class="bi bi-person-circle me-2"></i> <i class="<?= $iconos['detalles']['subinformacion'] ?> me-2"></i>Datos de investigador
+                </h5>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -209,23 +215,25 @@ ob_start();
         </div>
     <?php endif; ?>
 
-    <!-- ACCIONES -->
+    <!-- ACCIONES DE APROBACIÓN (solo si está en espera) -->
     <?php if ($usuario['estado_usuario'] === 'espera'): ?>
         <div class="card shadow-sm mb-4 border-warning">
             <div class="card-header bg-opacity-25">
-                <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Acciones de aprobación</h5>
+                <h5 class="mb-0">
+                    <i class="<?= $iconos['detalles']['espera'] ?> me-2"></i>Acciones de aprobación
+                </h5>
             </div>
             <div class="card-body">
                 <p class="text-muted">Este usuario está en espera de aprobación. Elige una acción:</p>
                 <div class="d-flex gap-2 flex-wrap">
                     <a href="index.php?action=aprobar&id_usuarios=<?= $usuario['id_usuarios'] ?>"
-                        class="btn btn-success"
-                        onclick="return confirm('¿Aprobar el acceso de este usuario?')">
-                        <i class="bi bi-check-circle-fill me-1"></i> Aprobar
+                       class="btn btn-success"
+                       onclick="return confirm('¿Aprobar el acceso de este usuario?')">
+                        <i class="<?= $iconos['detalles']['exito_verificado'] ?> me-1"></i> Aprobar
                     </a>
                     <a href="respuesta.php?id_usuarios=<?= $usuario['id_usuarios'] ?>"
-                        class="btn btn-danger">
-                        <i class="bi bi-x-circle-fill me-1"></i> Rechazar
+                       class="btn btn-danger">
+                        <i class="<?= $iconos['tabla']['solicitar_cierre'] ?> me-1"></i> Rechazar
                     </a>
                 </div>
             </div>

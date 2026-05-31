@@ -1,6 +1,10 @@
 <?php
+// Controladores/usuarioControlador.php
+
 require_once __DIR__ . '/../Modelos/usuario.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 // PHPMailer (instalado vía Composer)
 use PHPMailer\PHPMailer\PHPMailer;
@@ -10,100 +14,114 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require_once __DIR__ . '/../vendor/autoload.php';
 }
 
-class UsuariosControlador
+class UsuariosControlador extends BaseControlador
 {
-    // 
-    //  LISTADO PRINCIPAL (acción por defecto: index)
-    // 
-    public function index($rol, $buscar = null, $tipo = null)
+
+    // ─
+    // LISTADO PRINCIPAL Y FILTROS
+    // ─
+
+    public function index(string $rol, ?string $buscar = null, ?string $tipo = null): array
     {
-        if ($rol !== 'supervisor') return json_encode(["usuarios" => [], "paginacion" => []]);
         global $conn;
-        $usuario = new Usuarios($conn);
-        return $usuario->obtenerUsuarios(null, $buscar, $tipo);
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            $resultado = (new Usuarios($conn))->obtenerUsuarios(null, $buscar, $tipo);
+            return is_string($resultado) ? json_decode($resultado, true) : $resultado;
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return ['usuarios' => [], 'paginacion' => []];
+        }
     }
 
-    // 
-    //  FILTROS POR ESTADO
-    // 
-    public function Espera($rol, $buscar = null, $tipo = null)
+    private function obtenerPorFiltro(string $rol, ?string $estado, ?string $buscar, ?string $tipo): array
     {
-        if ($rol !== 'supervisor') return json_encode(["usuarios" => [], "paginacion" => []]);
         global $conn;
-        $usuario = new Usuarios($conn);
-        return $usuario->obtenerUsuarios('espera', $buscar, $tipo);
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            $resultado = (new Usuarios($conn))->obtenerUsuarios($estado, $buscar, $tipo);
+            return is_string($resultado) ? json_decode($resultado, true) : $resultado;
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return ['usuarios' => [], 'paginacion' => []];
+        }
     }
 
-    /*public function Aprobado($rol, $buscar = null, $tipo = null)
+    public function Espera(string $rol, ?string $buscar = null, ?string $tipo = null): array
     {
-        if ($rol !== 'supervisor') return json_encode(["usuarios" => [], "paginacion" => []]);
-        global $conn;
-        $usuario = new Usuarios($conn);
-        return $usuario->obtenerUsuarios('aprobado', $buscar, $tipo);
-    }*/
-
-    public function Activo($rol, $buscar = null, $tipo = null)
-    {
-        if ($rol !== 'supervisor') return json_encode(["usuarios" => [], "paginacion" => []]);
-        global $conn;
-        $usuario = new Usuarios($conn);
-        return $usuario->obtenerUsuarios('activo', $buscar, $tipo);
+        return $this->obtenerPorFiltro($rol, 'espera', $buscar, $tipo);
     }
 
-    public function Cancelado($rol, $buscar = null, $tipo = null)
+    public function Activo(string $rol, ?string $buscar = null, ?string $tipo = null): array
     {
-        if ($rol !== 'supervisor') return json_encode(["usuarios" => [], "paginacion" => []]);
-        global $conn;
-        $usuario = new Usuarios($conn);
-        return $usuario->obtenerUsuarios('cancelado', $buscar, $tipo);
+        return $this->obtenerPorFiltro($rol, 'activo', $buscar, $tipo);
+    }
+
+    public function Cancelado(string $rol, ?string $buscar = null, ?string $tipo = null): array
+    {
+        return $this->obtenerPorFiltro($rol, 'cancelado', $buscar, $tipo);
     }
 
 
-    // 
-    //  OPCIONES DEL SELECT DE FILTRO
-    // 
-    public function opciones()
+    // ─
+    // DETALLE DE USUARIO
+    // ─
+
+    public function indexDetalles(string $rol, int $id_usuario): ?array
+    {
+        global $conn;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+            return (new Usuarios($conn))->obtenerUsuario($id_usuario);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            return null;
+        }
+    }
+
+
+    // ─
+    // OPCIONES Y ENCABEZADOS
+    // ─
+
+    public function opciones(): array
     {
         return [
-            'index'     => "Todos",
-            'Espera'    => "En espera",
-            'Activo'    => "Activos",
-            'Cancelado' => "Cancelados",
+            'index'     => 'Todos',
+            'Espera'    => 'En espera',
+            'Activo'    => 'Activos',
+            'Cancelado' => 'Cancelados',
         ];
     }
 
-    // 
-    //  ENCABEZADOS DE LA TABLA
-    // 
-    public function encabezados($rol)
+    public function encabezados(string $rol): array
     {
-        if ($rol !== 'supervisor') return [];
+        if (!$this->esSupervisor($rol)) return [];
         return ['Nombre completo', 'Correo', 'Teléfono', 'Tipo', 'Fecha registro', 'Estado', 'Acciones'];
     }
 
-    // 
-    //  DETALLE DE USUARIO
-    // 
-    public function indexDetalles($rol, $id_usuario)
-    {
-        if ($rol !== 'supervisor') return [];
-        global $conn;
-        $usuario = new Usuarios($conn);
-        return $usuario->obtenerUsuario($id_usuario);
-    }
 
-    // 
-    //  APROBAR USUARIO (GET con action=aprobar)
-    // 
-    public function aprobar($id_usuario, $rol)
-    {
-        if ($rol !== 'supervisor') die("Sin permiso.");
-        global $conn;
-        $modelo = new Usuarios($conn);
+    // ─
+    // APROBAR USUARIO (GET)
+    // ─
 
-        $ok = $modelo->actualizarEstado($id_usuario, 'activo');
-        if ($ok) {
-            // Enviar correo de aprobación
+    public function aprobar(int $id_usuario, string $rol): void
+    {
+        global $conn;
+        try {
+            $this->validarAcceso($rol, ['supervisor']);
+
+            if ($id_usuario <= 0) {
+                throw new Exception('error_operacion');
+            }
+
+            $modelo = new Usuarios($conn);
+            $ok     = $modelo->actualizarEstado($id_usuario, 'activo');
+
+            if (!$ok) {
+                throw new Exception('error_operacion');
+            }
+
             $datos = $modelo->obtenerCorreo($id_usuario);
             if ($datos) {
                 $this->enviarCorreo(
@@ -113,29 +131,43 @@ class UsuariosControlador
                     ''
                 );
             }
+
+            $this->redirigir('exito_operacion', 'index.php');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_operacion'])
+                ? $e->getMessage()
+                : 'error_operacion';
+            $this->redirigir($msg, 'index.php');
         }
-        header("Location: index.php?msg=activo");
-        exit;
     }
 
-    // 
-    //  RECHAZAR USUARIO CON COMENTARIO (POST)
-    // 
-    public function rechazar($data, $rol)
+
+    // ─
+    // RECHAZAR USUARIO CON COMENTARIO (POST)
+    // ─
+
+    public function rechazar(array $data, string $rol): void
     {
-        if ($rol !== 'supervisor') die("Sin permiso.");
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') die("Método no permitido.");
-
-        $id_usuario = intval($data['id_usuario'] ?? 0);
-        $comentario = trim($data['comentario'] ?? '');
-
-        if ($id_usuario <= 0) die("ID inválido.");
-
         global $conn;
-        $modelo = new Usuarios($conn);
-        $ok = $modelo->rechazarUsuario($id_usuario, $comentario);
+        try {
+            $this->validarMetodo('POST');
+            $this->validarAcceso($rol, ['supervisor']);
 
-        if ($ok) {
+            $id_usuario = (int)($data['id_usuario'] ?? 0);
+            $comentario = $this->limpiar($data['comentario'] ?? '');
+
+            if ($id_usuario <= 0) {
+                throw new Exception('error_operacion');
+            }
+
+            $modelo = new Usuarios($conn);
+            $ok     = $modelo->rechazarUsuario($id_usuario, $comentario);
+
+            if (!$ok) {
+                throw new Exception('error_operacion');
+            }
+
             $datos = $modelo->obtenerCorreo($id_usuario);
             if ($datos) {
                 $this->enviarCorreo(
@@ -145,42 +177,105 @@ class UsuariosControlador
                     $comentario
                 );
             }
+
+            $this->redirigir('exito_operacion', 'index.php');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            $msg = in_array($e->getMessage(), ['accion_no_permitida', 'error_operacion'])
+                ? $e->getMessage()
+                : 'error_operacion';
+            $this->redirigir($msg, 'index.php');
         }
-        header("Location: index.php?msg=rechazado");
-        exit;
     }
 
-    // 
-    //  ENVÍO DE CORREO CON PHPMAILER
-    //  SE DEBE ACTUALIZAR CON LA INFORMACIÓN DEL INSTITUTO
-    // 
-    private function enviarCorreo($destinatario, $nombre, $estado, $comentario)
+
+    // ─
+    // ESTILO DE BADGE POR ESTADO
+    // ─
+
+    public function EstiloEstado(string $estado): string
     {
-        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) return; // PHPMailer no instalado
+        return match (strtolower(trim($estado))) {
+            'espera'    => 'warning',
+            'activo'    => 'success',
+            'cancelado' => 'danger',
+            default     => 'secondary',
+        };
+    }
+
+
+    // ─
+    // BOTONES DE ACCIÓN POR ESTADO
+    // Usa iconos de _iconos.php['tabla']
+    // ─
+
+    public function botonesAccion(int $id, string $rol, string $estado): string
+    {
+        if (!$this->esSupervisor($rol)) return '';
+
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
+        // Botón "Ver detalles" siempre presente
+        $html = Botones::botonIcono(
+            'detalles.php?id_usuarios=' . $id,
+            'primary',
+            $iconos['tabla']['ver'],
+            'Ver detalles'
+        );
+
+        if (strtolower($estado) === 'espera') {
+
+            $html .= Botones::botonConfirmacion(
+                'index.php?action=aprobar&id_usuarios=' . $id,
+                'success',
+                $iconos['detalles']['exito_verificado'],
+                'Aprobar acceso',
+                '¿Aprobar este usuario?'
+            );
+
+            $html .= Botones::botonIcono(
+                'respuesta.php?id_usuarios=' . $id,
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Rechazar solicitud'
+            );
+        }
+
+        return $html;
+    }
+
+
+
+    // ─
+    // ENVÍO DE CORREO CON PHPMAILER
+    // ACTUALIZAR CON LA INFORMACIÓN DEL INSTITUTO
+    // ─
+
+    private function enviarCorreo(string $destinatario, string $nombre, string $estado, string $comentario): void
+    {
+        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) return;
 
         $mail = new PHPMailer(true);
         try {
-            // Configuración SMTP — ajusta según tu servidor
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';       // Cambia según proveedor
+            $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'luismarioiretaxiu1110@gmail.com';  // Correo remitente - Cambiar a institucional
-            $mail->Password   = 'alsu vdxr vbpb tgkr';    // Contraseña de aplicación
+            $mail->Username   = 'luismarioiretaxiu1110@gmail.com'; // Cambiar a institucional
+            $mail->Password   = 'alsu vdxr vbpb tgkr';                   // Contraseña de aplicación
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
 
             $mail->setFrom('luismarioiretaxiu1110@gmail.com', 'Sistema de Proyectos ITSFCP');
             $mail->addAddress($destinatario, $nombre);
-
             $mail->isHTML(true);
             $mail->Subject = 'Resultado de tu solicitud en el sistema de proyectos';
 
-            $estadoTexto = ($estado === 'activo') ? 'Activo' : 'Cancelado / Rechazado';
-            $colorEstado = ($estado === 'activo') ? '#198754' : '#dc3545';
+            $estadoTexto    = ($estado === 'activo') ? 'Activo' : 'Cancelado / Rechazado';
+            $colorEstado    = ($estado === 'activo') ? '#198754' : '#dc3545';
             $comentarioHtml = !empty($comentario)
-                ? "<p><strong>Comentario del supervisor:</strong><br>" . nl2br(htmlspecialchars($comentario)) . "</p>"
-                : "";
+                ? '<p><strong>Comentario del supervisor:</strong><br>' . nl2br(htmlspecialchars($comentario)) . '</p>'
+                : '';
 
             $mail->Body = "
             <!DOCTYPE html>
@@ -209,68 +304,5 @@ class UsuariosControlador
         } catch (Exception $e) {
             error_log("Error enviando correo: " . $mail->ErrorInfo);
         }
-    }
-
-    // 
-    //  ESTILOS DE BADGE POR ESTADO
-    // 
-    public function EstiloEstado($estado)
-    {
-        switch (strtolower($estado)) {
-            case 'espera':
-                return 'warning';
-            case 'activo':
-                return 'success';
-            case 'cancelado':
-                return 'danger';
-            default:
-                return 'secondary';
-        }
-    }
-
-    // Helper: badge por estado de usuario
-    function badgeEstadoUsuario(string $estado): string
-    {
-        $e = strtolower(trim($estado));
-        return match ($e) {
-            'activo'    => '<span class="badge-inst badge-activo">Activo</span>',
-            'espera'    => '<span class="badge-inst badge-warning-i">En espera</span>',
-            'cancelado' => '<span class="badge-inst badge-danger-i">Cancelado</span>',
-            default     => '<span class="badge-inst badge-secondary-i">' . htmlspecialchars(ucfirst($estado)) . '</span>',
-        };
-    }
-
-    // 
-    //  BOTONES DE ACCIÓN POR ESTADO
-    // 
-    public function botonesAccion($id, $rol, $estado)
-    {
-        if ($rol !== 'supervisor') return '';
-        $html = '';
-
-        // Botón ver detalles — siempre visible
-        $html .= '<a href="detalles.php?id_usuarios=' . $id . '"
-                     class="btn btn-sm btn-primary"
-                     data-bs-toggle="tooltip" title="Ver detalles">
-                    <i class="bi bi-eye-fill"></i>
-                  </a> ';
-
-        if ($estado === 'espera') {
-            // Aprobar
-            $html .= '<a href="index.php?action=aprobar&id_usuarios=' . $id . '"
-                         class="btn btn-sm btn-success"
-                         data-bs-toggle="tooltip" title="Aprobar acceso"
-                         onclick="return confirm(\'¿Aprobar este usuario?\')">
-                        <i class="bi bi-check-circle-fill"></i>
-                      </a> ';
-            // Rechazar
-            $html .= '<a href="respuesta.php?id_usuarios=' . $id . '"
-                         class="btn btn-sm btn-danger"
-                         data-bs-toggle="tooltip" title="Rechazar solicitud">
-                        <i class="bi bi-x-circle-fill"></i>
-                      </a>';
-        }
-
-        return $html;
     }
 }

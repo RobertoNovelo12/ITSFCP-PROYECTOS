@@ -9,6 +9,7 @@
 require_once __DIR__ . '/../Modelos/solicitudes.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 class solicitudesControlador extends BaseControlador
 {
@@ -71,15 +72,15 @@ class solicitudesControlador extends BaseControlador
 
         global $conn;
         return (new Solicitud($conn))->registrarDocumento(
-            nombre:         basename($file['name']),
+            nombre: basename($file['name']),
             nombre_archivo: $nombreFinal,
-            ruta:           $base . $nombreFinal,
-            tipo_mime:      $mime_real,
-            extension:      $ext,
-            tamano_bytes:   $file['size'],
-            tipo:           'recurso',
-            visibilidad:    'privado',
-            id_usuario:     $id_usuario
+            ruta: $base . $nombreFinal,
+            tipo_mime: $mime_real,
+            extension: $ext,
+            tamano_bytes: $file['size'],
+            tipo: 'recurso',
+            visibilidad: 'privado',
+            id_usuario: $id_usuario
         );
     }
 
@@ -145,19 +146,19 @@ class solicitudesControlador extends BaseControlador
 
         global $conn;
         return (new Solicitud($conn))->registrarDocumento(
-            nombre:         basename($file['name']),
+            nombre: basename($file['name']),
             nombre_archivo: $nombreFinal,
-            ruta:           $rutaBD,
-            tipo_mime:      $mime_real,
-            extension:      $ext,
-            tamano_bytes:   $file['size'],
-            tipo:           'etapa',
-            visibilidad:    'privado',
-            id_usuario:     $id_estudiante,
-            id_proyecto:    $id_proyecto,
-            id_etapa:       1,
-            version:        1,
-            id_plantilla:   $id_plantilla,
+            ruta: $rutaBD,
+            tipo_mime: $mime_real,
+            extension: $ext,
+            tamano_bytes: $file['size'],
+            tipo: 'etapa',
+            visibilidad: 'privado',
+            id_usuario: $id_estudiante,
+            id_proyecto: $id_proyecto,
+            id_etapa: 1,
+            version: 1,
+            id_plantilla: $id_plantilla,
             id_seguimiento: $id_seguimiento
         );
     }
@@ -196,15 +197,15 @@ class solicitudesControlador extends BaseControlador
 
         global $conn;
         return (new Solicitud($conn))->registrarDocumento(
-            nombre:         basename($file['name']),
+            nombre: basename($file['name']),
             nombre_archivo: $nombreFinal,
-            ruta:           $base . $nombreFinal,
-            tipo_mime:      $mime_real,
-            extension:      $ext,
-            tamano_bytes:   $file['size'],
-            tipo:           'recurso',
-            visibilidad:    'privado',
-            id_usuario:     $id_usuario
+            ruta: $base . $nombreFinal,
+            tipo_mime: $mime_real,
+            extension: $ext,
+            tamano_bytes: $file['size'],
+            tipo: 'recurso',
+            visibilidad: 'privado',
+            id_usuario: $id_usuario
         );
     }
 
@@ -277,7 +278,6 @@ class solicitudesControlador extends BaseControlador
                     'total_paginas' => max(1, (int)ceil($total / $por_pagina)),
                 ],
             ];
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             return ['solicitudes' => [], 'resumen' => [], 'proyectos' => [], 'periodos' => [], 'filtros' => [], 'paginacion' => []];
@@ -319,7 +319,6 @@ class solicitudesControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_aceptar', "detalles_solicitud.php?id={$id_solicitud}");
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -355,7 +354,6 @@ class solicitudesControlador extends BaseControlador
                 : "accion_solicitud.php?id={$id_solicitud}&tipo=correcciones";
 
             $this->redirigir($msg, $destino);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->redirigir('error_correcciones', "accion_solicitud.php?id={$id_solicitud}&tipo=correcciones");
@@ -390,7 +388,6 @@ class solicitudesControlador extends BaseControlador
                 : "accion_solicitud.php?id={$id_solicitud}&tipo=rechazar";
 
             $this->redirigir($msg, $destino);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->redirigir('error_rechazo', "accion_solicitud.php?id={$id_solicitud}&tipo=rechazar");
@@ -433,7 +430,6 @@ class solicitudesControlador extends BaseControlador
                 : "accion_cierre.php?id_seg={$id_seg}&id_sol={$id_sol}&estado={$estado}";
 
             $this->redirigir($msg, $destino);
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->redirigir('error_cierre', "accion_cierre.php?id_seg={$id_seg}&id_sol={$id_sol}&estado={$estado}");
@@ -465,7 +461,6 @@ class solicitudesControlador extends BaseControlador
                 );
             }
             $conn->commit();
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -501,7 +496,6 @@ class solicitudesControlador extends BaseControlador
                 'solicitud'   => $solicitud,
                 'comentarios' => $comentarios,
             ];
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->redirigir('error_cargar');
@@ -516,36 +510,54 @@ class solicitudesControlador extends BaseControlador
 
     public function botonesAccion(int $id_solicitud, string $estado, int $id_proyecto, array $filtros = []): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         $estado = strtolower(trim($estado));
 
-        $btns = "<a href='detalles_solicitud.php?id={$id_solicitud}'
-                    class='btn btn-primary btn-sm' title='Ver solicitud'>
-                    <i class='bi bi-file-text-fill'></i>
-                 </a>";
+        // Botón "Ver solicitud" siempre presente
+        $btns = Botones::botonIcono(
+            'detalles_solicitud.php?id=' . $id_solicitud,
+            'primary',
+            $iconos['detalles']['subinformacion'],
+            'Ver solicitud'
+        );
 
         if (in_array($estado, ['pendiente', 'en_revision', 'correcciones'], true)) {
-            $btns .= "<form method='POST' action='index.php' style='display:inline'
-                      onsubmit='return confirm(\"¿Aceptar esta solicitud? El estudiante quedará integrado al proyecto.\")'>\r\n
-                    <input type='hidden' name='accion'       value='aceptar'>
-                    <input type='hidden' name='id_solicitud' value='{$id_solicitud}'>
-                    <button type='submit' class='btn btn-success btn-sm' title='Aceptar solicitud'>
-                        <i class='bi bi-check-circle-fill'></i>
-                    </button>
-                </form>";
 
-            $btns .= "<a href='accion_solicitud.php?id={$id_solicitud}&tipo=correcciones'
-                         class='btn btn-warning btn-sm' title='Pedir correcciones'>
-                         <i class='bi bi-pencil-fill'></i>
-                      </a>";
+            // Aceptar — formulario POST con confirm
+            $btns .= '
+            <form method="POST" action="index.php" style="display:inline"
+                  onsubmit="return confirm(\'¿Aceptar esta solicitud? El estudiante quedará integrado al proyecto.\')">
+                <input type="hidden" name="accion"       value="aceptar">
+                <input type="hidden" name="id_solicitud" value="' . $id_solicitud . '">
+                <button type="submit"
+                        class="btn btn-success btn-sm"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-custom-class="custom-tooltip"
+                        data-bs-title="Aceptar solicitud">
+                    <i class="' . $iconos['tabla']['aprobar'] . '"></i>
+                </button>
+            </form>';
 
-            $btns .= "<a href='accion_solicitud.php?id={$id_solicitud}&tipo=rechazar'
-                         class='btn btn-danger btn-sm' title='Rechazar solicitud'>
-                         <i class='bi bi-ban'></i>
-                      </a>";
+            $btns .= Botones::botonIcono(
+                'accion_solicitud.php?id=' . $id_solicitud . '&tipo=correcciones',
+                'warning',
+                $iconos['tabla']['editar'],
+                'Pedir correcciones'
+            );
+
+            $btns .= Botones::botonIcono(
+                'accion_solicitud.php?id=' . $id_solicitud . '&tipo=rechazar',
+                'danger',
+                $iconos['tabla']['rechazar'],
+                'Rechazar solicitud'
+            );
         }
 
         return $btns;
     }
+
 
     public function periodoactualSolicitud()
     {
@@ -595,7 +607,6 @@ class solicitudesControlador extends BaseControlador
             $ok  = (new Solicitud($conn))->cancelarSolicitud($id_solicitud, $id_usuario);
             $msg = $ok ? 'exito_cancelar' : 'error_cancelar';
             $this->redirigir($msg, "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php");
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->redirigir('error_cancelar', "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php");
@@ -643,7 +654,6 @@ class solicitudesControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_correcciones_enviadas', "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php?id={$id_solicitud}");
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log("[enviarCorrecciones estudiante] " . $e->getMessage());
@@ -760,13 +770,13 @@ class solicitudesControlador extends BaseControlador
             $conn->begin_transaction();
 
             $id_solicitud = $S->crearSolicitud(
-                id_proyecto:   $id_proyecto,
+                id_proyecto: $id_proyecto,
                 id_estudiante: $id_usuario,
-                id_periodo:    $id_periodo,
-                promedio:      $promedio,
-                motivacion:    $motivacion,
-                experiencia:   $experiencia,
-                semestre:      $semestre
+                id_periodo: $id_periodo,
+                promedio: $promedio,
+                motivacion: $motivacion,
+                experiencia: $experiencia,
+                semestre: $semestre
             );
 
             $id_doc_cv = $this->procesarCvEstudiante($id_solicitud, $id_usuario);
@@ -775,17 +785,17 @@ class solicitudesControlador extends BaseControlador
             }
 
             $id_seguimiento = $S->crearSeguimientoCartaCompromiso(
-                id_proyecto:   $id_proyecto,
+                id_proyecto: $id_proyecto,
                 id_estudiante: $id_usuario,
-                estado:        'proceso'
+                estado: 'proceso'
             );
 
             $id_doc_carta = $this->procesarCartaCompromiso(
-                campo_file:     'carta_compromiso',
-                id_proyecto:    $id_proyecto,
-                id_estudiante:  $id_usuario,
+                campo_file: 'carta_compromiso',
+                id_proyecto: $id_proyecto,
+                id_estudiante: $id_usuario,
                 id_seguimiento: $id_seguimiento,
-                id_plantilla:   $id_plantilla
+                id_plantilla: $id_plantilla
             );
 
             if (!$id_doc_carta) {
@@ -799,17 +809,17 @@ class solicitudesControlador extends BaseControlador
 
             $S->insertarNotificacion(
                 id_usuario: $id_usuario,
-                titulo:     'Solicitud enviada',
-                contenido:  "Has enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>. En espera de revisión.",
-                enlace:     $enlace
+                titulo: 'Solicitud enviada',
+                contenido: "Has enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>. En espera de revisión.",
+                enlace: $enlace
             );
 
             foreach ($S->obtenerSupervisoresActivos() as $sup) {
                 $S->insertarNotificacion(
                     id_usuario: (int)$sup['id_usuarios'],
-                    titulo:     'Nueva solicitud de integración',
-                    contenido:  "Un estudiante ha enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>.",
-                    enlace:     $enlace
+                    titulo: 'Nueva solicitud de integración',
+                    contenido: "Un estudiante ha enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>.",
+                    enlace: $enlace
                 );
             }
 
@@ -819,7 +829,6 @@ class solicitudesControlador extends BaseControlador
                 'exito_solicitud_enviada',
                 "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}"
             );
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log("[enviarSolicitud] " . $e->getMessage());

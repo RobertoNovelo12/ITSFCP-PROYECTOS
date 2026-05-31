@@ -1,9 +1,10 @@
 <?php
 // Controladores/solicitudActualizacionControlador.php
 
-require_once __DIR__ . '/../Modelos/solicitudActualizacion.php';
+require_once __DIR__ . '/../Modelos/solicitudactualizacion.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -221,27 +222,37 @@ class SolicitudActualizacionControlador extends BaseControlador
 
     public function botonesAccion(int $id_solicitud, string $estado): string
     {
-        $html = '<a href="detalles.php?id_solicitud=' . $id_solicitud . '"
-                    class="btn btn-sm btn-primary"
-                    data-bs-toggle="tooltip" title="Ver detalles">
-                    <i class="bi bi-eye-fill"></i>
-                 </a> ';
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
+        // Botón "Ver detalles" siempre presente
+        $html = Botones::botonIcono(
+            'detalles.php?id_solicitud=' . $id_solicitud,
+            'primary',
+            $iconos['tabla']['ver'],
+            'Ver detalles'
+        );
 
         if ($estado === 'pendiente') {
-            $html .= '<a href="index.php?action=aprobar&id_solicitud=' . $id_solicitud . '"
-                         class="btn btn-sm btn-success"
-                         data-bs-toggle="tooltip" title="Aprobar"
-                         onclick="return confirm(\'¿Aprobar esta solicitud?\')">
-                         <i class="bi bi-check-circle-fill"></i>
-                      </a> ';
-            $html .= '<a href="respuesta.php?id_solicitud=' . $id_solicitud . '"
-                         class="btn btn-sm btn-danger"
-                         data-bs-toggle="tooltip" title="Rechazar">
-                         <i class="bi bi-x-circle-fill"></i>
-                      </a>';
+
+            $html .= Botones::botonConfirmacion(
+                'index.php?action=aprobar&id_solicitud=' . $id_solicitud,
+                'success',
+                $iconos['tabla']['aprobar'],
+                'Aprobar',
+                '¿Aprobar esta solicitud?'
+            );
+
+            $html .= Botones::botonIcono(
+                'respuesta.php?id_solicitud=' . $id_solicitud,
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Rechazar'
+            );
         }
+
         return $html;
     }
+
 
     // ─
     //  CORREO (PHPMailer)

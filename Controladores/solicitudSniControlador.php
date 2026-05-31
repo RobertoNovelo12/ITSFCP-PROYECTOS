@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../Modelos/solicitudSniModelo.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -170,9 +171,9 @@ class SolicitudSniControlador
                     ''
                 );
             }
-            header("Location: tabla_sni.php?msg=aprobado");
+            header("Location: index_sni.php?msg=aprobado");
         } else {
-            header("Location: tabla_sni.php?error=" . urlencode($resultado['msg']));
+            header("Location: index_sni.php?error=" . urlencode($resultado['msg']));
         }
         exit;
     }
@@ -205,7 +206,7 @@ class SolicitudSniControlador
                     $comentario
                 );
             }
-            header("Location: tabla_sni.php?msg=rechazado");
+            header("Location: index_sni.php?msg=rechazado");
         } else {
             header("Location: respuesta_sni.php?id_solicitud=" . $id_solicitud . "&error=" . urlencode($resultado['msg']));
         }
@@ -245,7 +246,7 @@ class SolicitudSniControlador
                   </a> ';
 
         if ($estado === 'pendiente') {
-            $html .= '<a href="tabla_sni.php?action=aprobar&id_solicitud=' . $id_solicitud . '"
+            $html .= '<a href="index_sni.php?action=aprobar&id_solicitud=' . $id_solicitud . '"
                          class="btn btn-sm btn-success"
                          data-bs-toggle="tooltip" title="Aprobar"
                          onclick="return confirm(\'¿Aprobar esta solicitud de nivel SNI?\')">

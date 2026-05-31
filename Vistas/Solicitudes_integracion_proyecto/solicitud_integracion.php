@@ -100,10 +100,7 @@ ob_start();
 
         <?php if ($error_msg): ?>
             <div class="nota-solicitud nota-error mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
-                    <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
-                    <path d="M7 7l6 6M13 7l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                </svg>
+                <i class="bi bi-info-circle"></i>
                 <span><?= $error_msg ?></span>
             </div>
         <?php endif; ?>
@@ -237,10 +234,7 @@ ob_start();
                                         id="documento"
                                         accept=".pdf,.doc,.docx">
                                     <label for="documento" class="file-upload-label">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                            <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z" />
-                                        </svg>
+                                        <i class="bi bi-file-earmark-text"></i>
                                         <span id="cv-nombre">Seleccionar archivo</span>
                                     </label>
                                     <small class="carta-formatos">PDF, DOC o DOCX · Máx. 8 MB</small>
@@ -259,11 +253,7 @@ ob_start();
 
                             <!-- Nota explicativa -->
                             <div class="nota-solicitud mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
-                                    <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
-                                    <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                                    <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
-                                </svg>
+                                <i class="bi bi-info-circle"></i>
                                 <span>
                                     La carta compromiso es un documento <strong>obligatorio</strong>.
                                     Descarga la plantilla, fírmala y súbela en formato PDF, DOCX o PNG.
@@ -281,10 +271,7 @@ ob_start();
                                 <div class="plantilla-bloque">
                                     <div class="plantilla-info">
                                         <div class="plantilla-icono">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3 0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21 21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0 1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44 0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278 6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5 0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z" />
-                                                <path fill-rule="evenodd" d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2z" />
-                                            </svg>
+                                            <i class="bi bi-file-earmark-text"></i>
                                         </div>
                                         <div class="plantilla-meta">
                                             <span><?= htmlspecialchars($plantilla['plantilla_nombre']) ?></span>
@@ -294,20 +281,13 @@ ob_start();
                                     <a href="/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/descargar_plantilla.php?id_plantilla=<?= (int)$plantilla['id_plantilla'] ?>"
                                         class="btn-descargar-plantilla"
                                         target="_blank">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                        </svg>
+                                        <i class="bi bi-file-earmark-text"></i>
                                         Descargar plantilla
                                     </a>
                                 </div>
                             <?php else: ?>
                                 <div class="nota-solicitud nota-warn mb-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
-                                        <path d="M9.13 3.4L2.2 15.1A1 1 0 0 0 3.07 16.6h13.86a1 1 0 0 0 .87-1.5L10.87 3.4a1 1 0 0 0-1.74 0z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-                                        <path d="M10 8.5v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                                        <circle cx="10" cy="13.8" r="0.75" fill="currentColor" />
-                                    </svg>
+                                    <i class="bi bi-info-circle"></i>
                                     <span>La plantilla de carta compromiso <strong>aún no está disponible</strong>. Contacta al coordinador del programa.</span>
                                 </div>
                             <?php endif; ?>
@@ -326,15 +306,11 @@ ob_start();
                                     accept=".pdf,.docx,.png"
                                     required>
                                 <label for="carta_compromiso" class="carta-upload-label">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
-                                    </svg>
+                                    <i class="bi bi-upload"></i>
                                     <span id="carta-label-text">Selecciona la carta compromiso firmada…</span>
                                 </label>
                                 <div class="carta-nombre-archivo" id="carta-nombre-preview">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1L14 5.5z" />
-                                    </svg>
+                                    <i class="bi bi-file-earmark-text"></i>
                                     <span id="carta-nombre-texto"></span>
                                 </div>
                                 <small class="carta-formatos">PDF, DOCX o PNG · Máx. 10 MB</small>
@@ -362,10 +338,7 @@ ob_start();
                                     Cancelar
                                 </button>
                                 <button type="submit" class="btn-enviar-solicitud-form">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.109" />
-                                    </svg>
-                                    Enviar solicitud
+                                    <i class="bi bi-send-fill me-1"></i>Enviar solicitud
                                 </button>
                             </div>
 

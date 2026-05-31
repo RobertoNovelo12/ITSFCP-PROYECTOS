@@ -140,9 +140,7 @@ ob_start();
                 <!-- Botones -->
                 <div class="col-12 col-sm-auto d-flex gap-2">
                     <button type="submit" class="btn-filtrar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="me-1" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11" />
-                        </svg>
+                        <i class="bi bi-funnel-fill me-1"></i>
                         Buscar
                     </button>
                     <a href="?" class="btn-limpiar">Limpiar</a>
@@ -174,14 +172,7 @@ ob_start();
 
             <div class="nota-explicacion">
                 <!-- ícono info -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                    fill="none" viewBox="0 0 20 20" aria-hidden="true">
-                    <circle cx="10" cy="10" r="8.5"
-                        stroke="currentColor" stroke-width="1.4" />
-                    <path d="M10 9v5" stroke="currentColor"
-                        stroke-width="1.5" stroke-linecap="round" />
-                    <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
-                </svg>
+                <i class="bi bi-info-circle"></i>
 
                 <?php if ($disponibles === 0): ?>
                     <span>
@@ -218,15 +209,7 @@ ob_start();
 
             <div class="nota-explicacion nota-explicacion--alerta">
                 <!-- ícono advertencia -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                    fill="none" viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M9.13 3.4L2.2 15.1A1 1 0 0 0 3.07 16.6h13.86a1 1 0 0 0
-                     .87-1.5L10.87 3.4a1 1 0 0 0-1.74 0z"
-                        stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-                    <path d="M10 8.5v3.5" stroke="currentColor"
-                        stroke-width="1.5" stroke-linecap="round" />
-                    <circle cx="10" cy="13.8" r="0.75" fill="currentColor" />
-                </svg>
+                <i class="bi bi-info-circle"></i>
 
                 <span>
                     El periodo de <strong>solicitud de integración está cerrado</strong>.
@@ -357,10 +340,7 @@ ob_start();
                     <div class="card-footer-inner">
                         <a href="detalles_proyecto.php?id=<?= (int)$p['id_proyectos'] ?>"
                             class="btn-ver-detalle">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z" />
-                                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0" />
-                            </svg>
+                            <i class="bi bi-funnel-fill me-1"></i>
                             Ver detalle
                         </a>
                     </div>
@@ -377,10 +357,7 @@ ob_start();
     <?php else: ?>
         <!-- Estado vacío -->
         <div class="vacio-wrap">
-            <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 0v12h8V2z" />
-                <path d="M4 6h8v1H4zm0 2.5h8v1H4zm0 2.5h5v1H4z" />
-            </svg>
+            <i class="bi bi-funnel-fill me-1"></i>
             <p class="fw-semibold">No se encontraron proyectos con los criterios seleccionados.</p>
             <a href="?" style="font-size:13px;color:var(--tecnm-blue);">Limpiar filtros</a>
         </div>

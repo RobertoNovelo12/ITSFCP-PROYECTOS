@@ -27,14 +27,14 @@ require_once __DIR__ . "/../../Controladores/tematicaControlador.php";
 
 $tematicaControlador = new tematicaControlador();
 
-//  ACCIÓN: DESACTIVAR ─
+//  ACCIÓN: DESACTIVAR 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'desactivar_tematica') {
     $id_tematica = intval($_GET['id_tematica'] ?? 0);
     $tematicaControlador->desactivarTematica($id_tematica, $rol);
     // desactivarTematica ya redirige internamente
 }
 
-//  ACCIÓN: CARGAR TABLA ─
+//  ACCIÓN: CARGAR TABLA 
 if (!method_exists($tematicaControlador, $action)) {
     die("Error: La acción '$action' no existe en el controlador.");
 }
@@ -56,7 +56,7 @@ $paginacion = $resultado['paginacion'] ?? [
 $encabezados = $tematicaControlador->encabezadosPrincipal($rol);
 $opciones    = $tematicaControlador->opciones();
 
-//  MENSAJES ─
+//  MENSAJES 
 $msg = $_GET['msg'] ?? '';
 
 $_mapa = [

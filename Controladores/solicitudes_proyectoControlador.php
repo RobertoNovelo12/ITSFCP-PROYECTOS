@@ -8,6 +8,7 @@
 require_once __DIR__ . '/../Modelos/solicitudes_proyecto.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 class SolicitudesProyectoControlador extends BaseControlador
 {
@@ -38,54 +39,61 @@ class SolicitudesProyectoControlador extends BaseControlador
         string $tipo_solicitud,
         string $estado_proyecto
     ): string {
-        $botones = '<a href="detalles.php?id_proyectos=' . $id_proyecto . '"
-            class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-title="Ver detalle de solicitud">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-                 class="bi bi-eye-fill" viewBox="0 0 16 16">
-                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
-                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
-            </svg></a>';
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
+        // Botón "Ver detalle" siempre presente
+        $botones = Botones::botonIcono(
+            'detalles.php?id_proyectos=' . $id_proyecto,
+            'primary',
+            $iconos['tabla']['ver'],
+            'Ver detalle de solicitud'
+        );
 
         if ($rol !== 'supervisor') {
             return $botones;
         }
 
+        // Creación pendiente de aprobación
         if ($tipo_solicitud === 'creacion' && $estado_proyecto === 'Por aprobar') {
-            $botones .= '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos"
-                class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar proyecto"
-                onclick="return confirm(\'¿Aprobar este proyecto?\')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-                     class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                </svg></a>';
 
-            $botones .= '<a href="comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=creacion_rechazada&desde=solicitudes"
-                class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-title="Rechazar proyecto">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-                     class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-                </svg></a>';
+            $botones .= Botones::botonConfirmacion(
+                'index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Activos',
+                'success',
+                $iconos['tabla']['aprobar'],
+                'Aprobar proyecto',
+                '¿Aprobar este proyecto?'
+            );
+
+            $botones .= Botones::botonIcono(
+                'comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=creacion_rechazada&desde=solicitudes',
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Rechazar proyecto'
+            );
         }
 
+        // Cierre pendiente de aprobación
         if ($tipo_solicitud === 'cierre' && $estado_proyecto === 'Por cerrar') {
-            $botones .= '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre"
-                class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Aprobar cierre"
-                onclick="return confirm(\'¿Aprobar el cierre de este proyecto?\')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                     class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                </svg></a>';
 
-            $botones .= '<a href="comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=cierre_rechazado&desde=solicitudes"
-                class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-title="Rechazar cierre">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                     class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-                </svg></a>';
+            $botones .= Botones::botonConfirmacion(
+                'index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=Cierre',
+                'success',
+                $iconos['tabla']['aprobar'],
+                'Aprobar cierre',
+                '¿Aprobar el cierre de este proyecto?'
+            );
+
+            $botones .= Botones::botonIcono(
+                'comentarios.php?id_proyectos=' . $id_proyecto . '&motivo=cierre_rechazado&desde=solicitudes',
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Rechazar cierre'
+            );
         }
 
         return $botones;
     }
+
 
     // 
     // RESUMEN (tarjetas del dashboard)

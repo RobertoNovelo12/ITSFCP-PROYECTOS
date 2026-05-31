@@ -64,7 +64,7 @@ ob_start();
     <div class="card shadow-sm mb-4">
 
         <div class="card-header">
-            <h5 class="mb-0">Información de la Carrera</h5>
+            <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i> Información de la Carrera</h5>
         </div>
 
         <div class="card-body">

@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../Modelos/misSolicitudes.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 class MisSolicitudesControlador extends BaseControlador
 {
@@ -126,7 +127,6 @@ class MisSolicitudesControlador extends BaseControlador
             $ok = (new MisSolicitudes($conn))->cancelarSolicitud($id_solicitud, $id_estudiante);
 
             $this->redirigir($ok ? 'exito_cancelar' : 'error_cancelar');
-
         } catch (Exception $e) {
             error_log('MisSolicitudesControlador::cancelar() — ' . $e->getMessage());
             $this->redirigir('error_cancelar');
@@ -186,35 +186,46 @@ class MisSolicitudesControlador extends BaseControlador
 
     public function botonesAccion(int $id_solicitud, string $estado): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         $base = self::BASE_URL;
 
-        $btns = "<a href='{$base}/detalles_mi_solicitud.php?id={$id_solicitud}'
-                    class='ms-btn-accion btn btn-sm btn-primary' title='Ver detalle'>
-                    <svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='currentColor'
-                         class='bi bi-eye-fill' viewBox='0 0 16 16'>
-                      <path d='M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0'/>
-                      <path d='M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7'/>
-                    </svg>
-                 </a>";
+        // Botón "Ver detalle" siempre presente
+        $btns = Botones::botonIcono(
+            $base . '/detalles_mi_solicitud.php?id=' . $id_solicitud,
+            'primary',
+            $iconos['tabla']['ver'],
+            'Ver detalle'
+        );
 
+        // Botón "Responder correcciones" — solo si estado = correcciones
         if ($estado === 'correcciones') {
-            $btns .= " <a href='{$base}/detalles_mi_solicitud.php?id={$id_solicitud}#form-responder'
-                          class='ms-btn-accion btn-sm ms-btn-resp' title='Responder correcciones'>
-                          <i class='bi bi-reply-fill'></i> Responder
-                       </a>";
+            $btns .= Botones::botonTexto(
+                $base . '/detalles_mi_solicitud.php?id=' . $id_solicitud . '#form-responder',
+                'secondary',
+                $iconos['tabla']['responder'],
+                'Responder',
+                'Responder correcciones'
+            );
         }
 
+        // Botón "Cancelar solicitud" — pendiente, en_revision o correcciones
         if (in_array($estado, ['pendiente', 'en_revision', 'correcciones'], true)) {
-            $btns .= " <button type='button'
-                               class='ms-btn-accion btn-sm ms-btn-cancel'
-                               title='Cancelar solicitud'
-                               onclick=\"abrirModalCancelar({$id_solicitud}, 'esta solicitud')\">
-                           <i class='bi bi-x-circle-fill'></i> Cancelar
-                       </button>";
+            $btns .= Botones::botonData(
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Cancelar solicitud',
+                [
+                    'onclick' => "abrirModalCancelar({$id_solicitud}, 'esta solicitud')",
+                ],
+                'sm',
+                'Cancelar'
+            );
         }
 
         return $btns;
     }
+
 
     // ─
     //  HELPER PRIVADO: archivo adjunto

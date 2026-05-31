@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../Modelos/solicitudGradoModelo.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -170,9 +171,9 @@ class SolicitudGradoControlador
                     ''
                 );
             }
-            header("Location: tabla_grado.php?msg=aprobado");
+            header("Location: index_grado.php?msg=aprobado");
         } else {
-            header("Location: tabla_grado.php?error=" . urlencode($resultado['msg']));
+            header("Location: index_grado.php?error=" . urlencode($resultado['msg']));
         }
         exit;
     }
@@ -205,7 +206,7 @@ class SolicitudGradoControlador
                     $comentario
                 );
             }
-            header("Location: tabla_grado.php?msg=rechazado");
+            header("Location: index_grado.php?msg=rechazado");
         } else {
             header("Location: respuesta_grado.php?id_solicitud=" . $id_solicitud . "&error=" . urlencode($resultado['msg']));
         }
@@ -245,7 +246,7 @@ class SolicitudGradoControlador
                   </a> ';
 
         if ($estado === 'pendiente') {
-            $html .= '<a href="tabla_grado.php?action=aprobar&id_solicitud=' . $id_solicitud . '"
+            $html .= '<a href="index_grado.php?action=aprobar&id_solicitud=' . $id_solicitud . '"
                          class="btn btn-sm btn-success"
                          data-bs-toggle="tooltip" title="Aprobar"
                          onclick="return confirm(\'¿Aprobar esta solicitud de grado académico?\')">

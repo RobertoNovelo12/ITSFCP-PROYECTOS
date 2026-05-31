@@ -182,7 +182,7 @@ class Tematica extends BaseModelo
             ]);
         }
 
-        //  SQL BASE ─
+        // ── SQL BASE ─
         $sql = "SELECT
                     tema.id_tematica,
                     tema.nombre_tematica      AS tematica,

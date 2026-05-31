@@ -180,16 +180,7 @@ ob_start();
 
             <?php if ($esBorrador && $rol === 'estudiante'): ?>
                 <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
-                        class="bi bi-pencil me-1" viewBox="0 0 16 16">
-                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0
-                                 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207
-                                 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5
-                                 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1
-                                 .5.5v.207zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0
-                                 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5
-                                 0 0 1-.468-.325z" />
-                    </svg>Borrador sin enviar
+                    <i class="bi bi-pencil"></i>Borrador sin enviar
                 </span>
             <?php endif; ?>
 
@@ -211,15 +202,7 @@ ob_start();
     <!-- Alerta: tarea modificada por investigador -->
     <?php if (!empty($datos['fecha_modificacion'])): ?>
         <div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3" role="alert">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                class="bi bi-pencil-fill flex-shrink-0" viewBox="0 0 16 16">
-                <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0
-                         0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5
-                         0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207zm-7.468
-                         7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0
-                         1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5 0 0 1-.175-.032l-.179.178a.5.5
-                         0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11z" />
-            </svg>
+            <i class="bi bi-pencil-fill"></i>
             <span class="small">El investigador actualizó esta tarea el
                 <strong><?= date('d/m/Y', strtotime($datos['fecha_modificacion'])) ?></strong>.
                 Revisa las instrucciones.
@@ -230,19 +213,7 @@ ob_start();
     <!-- Alerta: borrador visible para el investigador -->
     <?php if ($esBorrador && $rol === 'investigador'): ?>
         <div class="alert alert-info d-flex align-items-center gap-2 py-2 mb-3" role="alert">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                class="bi bi-clock-history flex-shrink-0" viewBox="0 0 16 16">
-                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0
-                         0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8
-                         8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0
-                         0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8
-                         8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0
-                         0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.99.128a8 8
-                         0 0 1-.198 1.006l-.95-.313q.08-.252.077-.505M8 1a7 7 0 1 0 4.95
-                         11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
-                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5
-                         0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
-            </svg>
+            <i class="bi bi-clock-history"></i>
             <span class="small">El estudiante tiene un <strong>borrador guardado</strong> que aún no ha
                 sido enviado para revisión.</span>
         </div>
@@ -265,18 +236,7 @@ ob_start();
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header"><b>Archivo guía</b></div>
             <div class="card-body py-2 d-flex align-items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#dc3545"
-                    class="bi bi-file-earmark-pdf-fill flex-shrink-0" viewBox="0 0 16 16">
-                    <path d="M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3
-                             0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21
-                             21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0
-                             1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44
-                             0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278
-                             6.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5
-                             0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z" />
-                    <path fill-rule="evenodd" d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0
-                             1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2z" />
-                </svg>
+                <i class="bi bi-file-earmark-pdf-fill"></i>
                 <div class="flex-grow-1">
                     <span class="tarea-seccion-label d-block mb-0">Archivo de guía</span>
                     <a href="descargar_guia.php?id=<?= $id_tarea ?>" class="small">
@@ -294,18 +254,7 @@ ob_start();
                 <b><?= $rol === 'estudiante' ? 'Tu entrega' : 'Revisión del investigador' ?></b>
                 <?php if ($esBorrador && $rol === 'estudiante'): ?>
                     <span class="badge bg-warning text-dark small">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor"
-                            class="bi bi-floppy me-1" viewBox="0 0 16 16">
-                            <path d="M11 2H9v3h2z" />
-                            <path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16
-                                     2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0
-                                     14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5
-                                     1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0
-                                     .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086
-                                     1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5
-                                     0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zm6 6.5v3h-4v-3h4a.5.5
-                                     0 0 1 0 0" />
-                        </svg>Borrador guardado — no enviado aún
+                        <i class="bi bi-floppy"></i>Borrador guardado — no enviado aún
                     </span>
                 <?php endif; ?>
             </div>
@@ -317,12 +266,7 @@ ob_start();
                 if ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3], true)):
                 ?>
                     <div class="nota-explicacion mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
-                            viewBox="0 0 20 20" class="flex-shrink-0">
-                            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
-                            <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                            <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
-                        </svg>
+                        <i class="bi bi-info-circle"></i>
                         <span>
                             El <strong>contenido de tu entrega</strong> tiene un máximo de
                             <strong><?= number_format(MAX_CONTENIDO, 0, '.', ',') ?> caracteres</strong>
@@ -407,7 +351,7 @@ ob_start();
 
     <!-- Línea de tiempo (historial de estados) -->
     <div class="card border-0 shadow-sm">
-        <div class="card-header"><b>Historial de estados</b></div>
+        <div class="card-header"><i class="bi bi-clock-history me-2"></i><b>Historial de estados</b></div>
         <div class="card-body">
             <?php if (empty($historialAgrupado)): ?>
                 <p class="text-muted small text-center py-3 mb-0">Sin historial de estados aún.</p>

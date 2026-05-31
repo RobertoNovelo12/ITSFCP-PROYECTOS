@@ -188,11 +188,7 @@ ob_start();
 
         <button
             type="submit"
-            class="btn btn-guardar-tematica">
-
-            Guardar cambios
-
-        </button>
+            class="btn btn-guardar-tematica"><i class="bi bi-floppy me-1"></i> Guardar cambios</button>
 
     </form>
 </div>

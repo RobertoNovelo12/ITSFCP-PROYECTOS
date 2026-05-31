@@ -53,7 +53,7 @@ ob_start();
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 text-end">
-            <a href="index.php" class="btn btn-danger">Regresar</a>
+            <a href="index.php" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i> Regresar</a>
         </div>
     </div>
     <!-- ALERTAS -->
@@ -70,7 +70,7 @@ ob_start();
             <input type="text" name="Nombre" class="form-control" required>
         </div>
 
-        <button type="submit" class="btn btn-guardar">Guardar cambios</button>
+        <button type="submit" class="btn btn-guardar"><i class="bi bi-floppy me-1"></i> Guardar cambios</button>
     </form>
 
 </div>

@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../Modelos/ajustestiposdocumentos.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 class ajustesTiposDocumentosControlador extends BaseControlador
 {
@@ -113,13 +114,29 @@ class ajustesTiposDocumentosControlador extends BaseControlador
 
     public function obtenerbotonesEditar(string $tipo): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         return match ($tipo) {
-            'Desactivar' => '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>',
-            'Reactivar'  => '<button type="submit" name="action" value="Reactivar"  class="btn btn-sm btn-warning">Reactivar</button>',
-            'Guardar'    => '<button type="submit" name="action" value="Guardar"    class="btn btn-sm btn-guardar">Guardar cambios</button>',
-            default      => '',
+
+            'Desactivar' =>
+            '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">
+                    <i class="' . $iconos['tabla']['solicitar_cierre'] . ' me-1"></i>Desactivar
+                </button>',
+
+            'Reactivar' =>
+            '<button type="submit" name="action" value="Reactivar" class="btn btn-sm btn-warning">
+                    <i class="' . $iconos['editar']['reactivar'] . ' me-1"></i>Reactivar
+                </button>',
+
+            'Guardar' =>
+            '<button type="submit" name="action" value="Guardar" class="btn btn-sm btn-guardar">
+                    <i class="' . $iconos['editar']['guardar'] . ' me-1"></i>Guardar cambios
+                </button>',
+
+            default => '',
         };
     }
+
 
     public function botonesAccionEditar(string $rol, ?string $estado = null): string
     {
@@ -158,13 +175,11 @@ class ajustesTiposDocumentosControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_editar');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_editar';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -203,7 +218,6 @@ class ajustesTiposDocumentosControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_desactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -239,13 +253,11 @@ class ajustesTiposDocumentosControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_reactivar');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_reactivar';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());

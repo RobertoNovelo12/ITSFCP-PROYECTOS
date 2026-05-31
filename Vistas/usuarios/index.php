@@ -10,10 +10,9 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
+$rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-// Solo supervisores
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
@@ -23,22 +22,23 @@ require_once __DIR__ . '/../../Controladores/usuarioControlador.php';
 
 $controlador = new UsuariosControlador();
 
-//  Parámetros GET ─
-$action = isset($_GET['action']) ? $_GET['action'] : 'index';
+//  Parámetros GET 
+$action = $_GET['action'] ?? 'index';
 $buscar = trim($_GET['buscar'] ?? '');
-$tipo   = trim($_GET['tipo']   ?? '');  // estudiante | investigador | supervisor | (vacío = todos)
+$tipo   = trim($_GET['tipo']   ?? '');
 $pagina = max(1, intval($_GET['pagina'] ?? 1));
 
-//  Acciones directas (aprobar desde tabla) 
+//  Acción directa: aprobar desde tabla ─
 if ($action === 'aprobar' && isset($_GET['id_usuarios'])) {
     $controlador->aprobar(intval($_GET['id_usuarios']), $rol);
-    exit; // aprobar() redirige
+    exit;
 }
 
-//  Validar que la acción exista en el controlador ─
-$accionesPermitidas = ['index', 'Espera', 'Aprobado', 'Activo', 'Cancelado'];
-if (!in_array($action, $accionesPermitidas)) {
+//  Validar acción permitida ─
+$accionesPermitidas = ['index', 'Espera', 'Activo', 'Cancelado'];
+if (!in_array($action, $accionesPermitidas, true)) {
     header("Location: index.php?msg=accion_no_permitida");
+    exit;
 }
 
 //  Ejecutar acción 
@@ -53,76 +53,64 @@ $paginacion = $resultado['paginacion'] ?? [
     'total'        => 0,
     'por_pagina'   => 6,
     'pagina'       => $pagina,
-    'total_paginas' => 1
+    'total_paginas'=> 1,
 ];
 
-//  Datos para filtros y tabla ─
 $encabezados = $controlador->encabezados($rol);
 $opciones    = $controlador->opciones();
 
-//  Mensaje de éxito/error ─
-$msg = $_GET['msg'] ?? '';
+//  Mensajes ─
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_operacion'    => ['tipo' => 'exito',  'titulo_msg' => 'Operación completada',   'mensaje' => 'La operación sobre el usuario fue realizada correctamente.'],
+    'error_operacion'    => ['tipo' => 'error',  'titulo_msg' => 'Error en la operación',  'mensaje' => 'No fue posible completar la operación. Intenta de nuevo.'],
+    'error_cargar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_sin_registro' => ['tipo' => 'error',  'titulo_msg' => 'Sin registro',           'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver esta sección.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'Parámetros faltantes',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
+    'accion_no_permitida'=> ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',    'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
 
 ob_start();
 ?>
 
 <div class="container-fluid py-4 ancho_container">
 
-    <!-- TÍTULO -->
+    <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-
         <?php
         $titulo      = 'Usuarios';
         $descripcion = 'Gestión de cuentas del sistema';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
-
-        <div class="col-6 col-md-6 text-md-end">
-        </div>
+        <div class="col-6 col-md-6 text-md-end"></div>
     </div>
 
-    <!-- ALERTAS - ACTUALIZAR A COMO ESTÁN LOS DEMÁS MSG -->
-    <?php if ($msg === 'aprobado') {
-        $mensaje = ' Usuario aprobado correctamente.';
-        include __DIR__ . '../../../publico/incluido/_mensaje_exito.php';
-
-    ?>
-
-    <?php } elseif ($msg === 'rechazado') {
-        $mensaje = ' Solicitud rechazada y notificación enviada.';
-        include __DIR__ . '../../../publico/incluido/_mensaje_error.php';
-
-    ?>
-    <?php } elseif ($msg === 'accion_no_permitida') {
-        $mensaje = ' Acción no reconocida.';
-        include __DIR__ . '../../../publico/incluido/_mensaje_alerta.php';
+    <!-- ALERTAS -->
+    <?php
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
     }
     ?>
 
-    <!-- FILTROS -->
     <!-- FILTROS Y BÚSQUEDA -->
     <div class="card border-0 shadow-sm mb-3">
-
         <div class="card-body py-2">
 
             <!-- TOTAL REGISTROS -->
-            <?php
-            include __DIR__ . '../../../publico/incluido/_total_registros.php';
-            ?>
+            <?php include __DIR__ . '../../../publico/incluido/_total_registros.php'; ?>
 
             <div class="row g-2 align-items-end">
+
                 <!-- FILTRO ESTADO -->
                 <div class="col-md-3 mb-1">
-                    <label class="form-label mb-1 small fw-semibold">
-                        Estado
-                    </label>
+                    <label class="form-label mb-1 small fw-semibold">Estado</label>
                     <select class="form-select"
                         onchange="location.href='?action=' + this.value
-                    + '&buscar=<?= urlencode($buscar) ?>'
-                    + '&tipo=<?= urlencode($tipo) ?>'">
-
+                            + '&buscar=<?= urlencode($buscar) ?>'
+                            + '&tipo=<?= urlencode($tipo) ?>'">
                         <?php foreach ($opciones as $key => $label): ?>
-
                             <option value="<?= htmlspecialchars($key) ?>"
                                 <?= ($action === $key) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($label) ?>
@@ -130,64 +118,44 @@ ob_start();
                         <?php endforeach; ?>
                     </select>
                 </div>
+
                 <!-- FILTRO TIPO -->
                 <div class="col-md-3 mb-1">
-                    <label class="form-label mb-1 small fw-semibold">
-                        Tipo
-                    </label>
+                    <label class="form-label mb-1 small fw-semibold">Tipo</label>
                     <select class="form-select"
                         onchange="location.href='?action=<?= urlencode($action) ?>'
-                    + '&buscar=<?= urlencode($buscar) ?>'
-                    + '&tipo=' + this.value">
-                        <option value=""
-                            <?= ($tipo === '') ? 'selected' : '' ?>>
-                            Todos los tipos
-                        </option>
-                        <option value="estudiante"
-                            <?= ($tipo === 'estudiante') ? 'selected' : '' ?>>
-                            Estudiante
-                        </option>
-                        <option value="investigador"
-                            <?= ($tipo === 'investigador') ? 'selected' : '' ?>>
-                            Investigador
-                        </option>
-                        <option value="supervisor"
-                            <?= ($tipo === 'supervisor') ? 'selected' : '' ?>>
-                            Supervisor
-                        </option>
+                            + '&buscar=<?= urlencode($buscar) ?>'
+                            + '&tipo=' + this.value">
+                        <option value="" <?= ($tipo === '') ? 'selected' : '' ?>>Todos los tipos</option>
+                        <option value="estudiante"   <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
+                        <option value="investigador" <?= ($tipo === 'investigador') ? 'selected' : '' ?>>Investigador</option>
+                        <option value="supervisor"   <?= ($tipo === 'supervisor')   ? 'selected' : '' ?>>Supervisor</option>
                     </select>
                 </div>
+
                 <!-- BUSCADOR -->
                 <div class="col-md-6 mb-1">
-                    <label class="form-label mb-1 small fw-semibold">
-                        Buscar
-                    </label>
+                    <label class="form-label mb-1 small fw-semibold">Buscar</label>
                     <form class="d-flex gap-2" method="GET">
-                        <input type="hidden"
-                            name="action"
-                            value="<?= htmlspecialchars($action) ?>">
-                        <input type="hidden"
-                            name="tipo"
-                            value="<?= htmlspecialchars($tipo) ?>">
+                        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+                        <input type="hidden" name="tipo"   value="<?= htmlspecialchars($tipo) ?>">
                         <input type="text"
                             name="buscar"
                             class="form-control"
                             placeholder="Buscar por nombre..."
                             value="<?= htmlspecialchars($buscar) ?>">
-
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i>
                         </button>
                         <?php if (!empty($buscar)): ?>
                             <a href="?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
-                                class="btn btn-secondary"
-                                title="Limpiar búsqueda">
-
+                               class="btn btn-secondary" title="Limpiar búsqueda">
                                 <i class="bi bi-x-lg"></i>
                             </a>
                         <?php endif; ?>
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
@@ -278,13 +246,12 @@ ob_start();
 
     <!-- PAGINACIÓN -->
     <?php if ($paginacion['total_paginas'] > 1):
-        $qBase = 'action=' . urlencode($action)
+        $qBase   = 'action=' . urlencode($action)
             . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
             . (!empty($tipo)   ? '&tipo='   . urlencode($tipo)   : '');
         $entidad = 'usuarios';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
-
-    <?php endif; ?>
+        include __DIR__ . '../../../publico/incluido/_paginacion.php';
+    endif; ?>
 
 </div>
 

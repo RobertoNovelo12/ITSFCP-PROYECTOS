@@ -67,7 +67,7 @@ endif; ?>
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 text-end">
-            <a href="index.php" class="btn btn-danger">Regresar</a>
+            <a href="index.php" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i> Regresar</a>
         </div>
     </div>
 
@@ -117,7 +117,7 @@ endif; ?>
             <input type="date" name="Fecha_final" class="form-control">
         </div>
 
-        <button type="submit" class="btn btn-guardar">Guardar cambios</button>
+        <button type="submit" class="btn btn-guardar"><i class="bi bi-floppy me-1"></i> Guardar cambios</button>
     </form>
 
 </div>

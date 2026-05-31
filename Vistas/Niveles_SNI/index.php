@@ -75,14 +75,6 @@ ob_start();
 
 <div class="container-fluid py-4 ancho_container">
 
-    <!-- ALERTAS -->
-    <?php
-    if (isset($_mapa[$msg])) {
-        extract($_mapa[$msg]);
-        include __DIR__ . '../../../publico/incluido/_mensaje.php';
-    }
-    ?>
-
     <!-- TÍTULO -->
     <div class="row mb-4 align-items-center">
         <?php
@@ -96,6 +88,14 @@ ob_start();
             </a>
         </div>
     </div>
+
+        <!-- ALERTAS -->
+    <?php
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    }
+    ?>
 
     <!-- FILTROS Y BÚSQUEDA -->
     <div class="card border-0 shadow-sm mb-3">

@@ -85,7 +85,7 @@ ob_start();
         <input type="hidden" name="action" value="editarProyecto">
         <input type="hidden" name="id_proyectos" value="<?= $p['id_proyectos']; ?>">
 
-        <h5>Información del proyecto <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($p['estado_proyecto']); ?>"><?= htmlspecialchars($proyecto['estado_proyecto'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></h5>
+        <h5><i class="bi-folder2-open me-2"></i>Información del proyecto <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($p['estado_proyecto']); ?>"><?= htmlspecialchars($proyecto['estado_proyecto'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></h5>
 
         <div class="mb-3">
             <label>Nombre del proyecto</label>

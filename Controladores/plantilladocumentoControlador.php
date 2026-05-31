@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../Modelos/plantilladocumento.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 class plantilladocumentoControlador extends BaseControlador
 {
@@ -132,53 +133,45 @@ class plantilladocumentoControlador extends BaseControlador
 
     private function botonHistorial(int $id_tipo_documento): string
     {
-        return '<a href="historial.php?id_tipo_documento=' . $id_tipo_documento . '"
-                   class="btn btn-sm btn-primary"
-                   data-bs-toggle="tooltip" data-bs-placement="top"
-                   data-bs-title="Ver historial de plantilla">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                        class="bi bi-eye-fill" viewBox="0 0 16 16">
-                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
-                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
-                    </svg>
-                </a>';
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
+        return Botones::botonIcono(
+            'historial.php?id_tipo_documento=' . $id_tipo_documento,
+            'primary',
+            $iconos['tabla']['ver'],
+            'Ver historial de plantilla'
+        );
     }
 
     private function botonDesactivar(int $id_plantilla, int $id_tipo_documento): string
     {
-        return '<a href="index.php?id_plantilla=' . $id_plantilla
-            . '&id_tipo_documento=' . $id_tipo_documento
-            . '&action=desactivar"
-                   class="btn btn-sm btn-danger"
-                   data-bs-toggle="tooltip" data-bs-placement="top"
-                   data-bs-title="Desactivar plantilla"
-                   onclick="return confirm(\'¿Desactivar esta plantilla?\')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                        class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647
-                                 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707
-                                 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-                    </svg>
-                </a>';
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
+        return Botones::botonConfirmacion(
+            'index.php?id_plantilla=' . $id_plantilla
+                . '&id_tipo_documento=' . $id_tipo_documento
+                . '&action=desactivar',
+            'danger',
+            $iconos['tabla']['solicitar_cierre'],
+            'Desactivar plantilla',
+            '¿Desactivar esta plantilla?'
+        );
     }
 
     private function botonReactivar(int $id_plantilla, int $id_tipo_documento): string
     {
-        return '<a href="index.php?id_plantilla=' . $id_plantilla
-            . '&id_tipo_documento=' . $id_tipo_documento
-            . '&action=reactivar"
-                   class="btn btn-sm btn-success"
-                   data-bs-toggle="tooltip" data-bs-placement="top"
-                   data-bs-title="Reactivar plantilla">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                        class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd"
-                              d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/>
-                        <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36
-                                 1.966A.25.25 0 0 0 8 4.466"/>
-                    </svg>
-                </a>';
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
+        return Botones::botonIcono(
+            'index.php?id_plantilla=' . $id_plantilla
+                . '&id_tipo_documento=' . $id_tipo_documento
+                . '&action=reactivar',
+            'success',
+            $iconos['tabla']['reactivar'],
+            'Reactivar plantilla'
+        );
     }
+
 
     public function botonesAccionPrincipal(
         int    $id_plantilla,
@@ -278,16 +271,16 @@ class plantilladocumentoControlador extends BaseControlador
             $version = $obj->obtenerSiguienteVersion($id_tipo_documento);
 
             $id_documento = $obj->registrarDocumento(
-                nombre:        $nombre,
+                nombre: $nombre,
                 nombre_archivo: $nombre_archivo,
-                ruta:           $ruta,
-                tipo_mime:      $tipo_mime,
-                extension:      $extension,
-                tamano_bytes:   $tamano_bytes,
-                tipo:           'plantilla',
-                visibilidad:    'privado',
-                id_usuario:     $id_usuario,
-                version:        $version
+                ruta: $ruta,
+                tipo_mime: $tipo_mime,
+                extension: $extension,
+                tamano_bytes: $tamano_bytes,
+                tipo: 'plantilla',
+                visibilidad: 'privado',
+                id_usuario: $id_usuario,
+                version: $version
             );
 
             $id_plantilla = $obj->registrar($id_tipo_documento, $nombre, $version, $id_documento);
@@ -298,13 +291,11 @@ class plantilladocumentoControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_crear');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() === 1062) ? 'error_duplicado' : 'error_crear';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             // Sólo hacer rollback si la transacción fue iniciada correctamente
             if (isset($conn) && $conn->errno === 0) {
@@ -358,7 +349,6 @@ class plantilladocumentoControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_desactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) {
                 $conn->rollback();
@@ -403,7 +393,6 @@ class plantilladocumentoControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_reactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) {
                 $conn->rollback();

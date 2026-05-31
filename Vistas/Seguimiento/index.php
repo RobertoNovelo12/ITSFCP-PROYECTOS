@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Vistas/Seguimiento/seguimiento.php
+ * Vistas/Seguimiento/index.php
  *
  * Panel de seguimiento de documentación del estudiante.
  */
@@ -20,7 +20,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $action     = $_GET['action'] ?? 'index';
 
-//Solo estudiante accede
+// Solo estudiante accede
 if ($rol !== 'estudiante') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
@@ -28,7 +28,7 @@ if ($rol !== 'estudiante') {
 
 $id_proyecto = isset($_GET['id_proyectos']) ? intval($_GET['id_proyectos']) : 0;
 
-require_once "../../Controladores/seguimientoControlador.php";
+require_once __DIR__ . '/../../Controladores/seguimientoControlador.php';
 $seguimientoControlador = new SeguimientoControlador();
 
 /* Procesar acciones POST (AJAX) antes de cargar la vista */
@@ -67,19 +67,21 @@ $fase3_ok = $proyecto
     ? $seguimientoControlador->todasSeccionesAprobadas($id_proyecto, $id_estudiante)
     : false;
 
+/* Iconos reutilizables */
+include __DIR__ . '../../../publico/incluido/_iconos.php';
+
 /* Mapa de estados → clases CSS y textos */
-/* Mapa de estados → clases CSS y textos — AGREGAR los nuevos al array existente */
 $estados = [
-    'pendiente'              => ['clase' => 'pendiente',  'badge' => 'badge-pend',      'texto' => 'Pendiente'],
-    'proceso'                => ['clase' => 'proceso',    'badge' => 'badge-proc',      'texto' => 'En revisión'],
-    'completado'             => ['clase' => 'completado', 'badge' => 'badge-comp',      'texto' => 'Completado'],
-    'rechazado'              => ['clase' => 'rechazado',  'badge' => 'badge-rech',      'texto' => 'Correcciones requeridas'],
-    'correcciones'           => ['clase' => 'rechazado',  'badge' => 'badge-rech',      'texto' => 'Correcciones requeridas'],
-    'finalizacion_pendiente' => ['clase' => 'proceso',    'badge' => 'badge-pend-val',  'texto' => 'Terminación pendiente de validación'],
-    //  estados de baja 
-    'baja_incompleta'        => ['clase' => 'rechazado',  'badge' => 'badge-baja',      'texto' => 'No completada'],
-    'bloqueado'              => ['clase' => 'pendiente',  'badge' => 'badge-pend',      'texto' => 'Bloqueada'],
-    'esperando_cierre'       => ['clase' => 'proceso',    'badge' => 'badge-proc',      'texto' => 'Esperando cierre'],
+    'pendiente'              => ['clase' => 'pendiente',  'badge' => 'badge-pend',     'texto' => 'Pendiente'],
+    'proceso'                => ['clase' => 'proceso',    'badge' => 'badge-proc',     'texto' => 'En revisión'],
+    'completado'             => ['clase' => 'completado', 'badge' => 'badge-comp',     'texto' => 'Completado'],
+    'rechazado'              => ['clase' => 'rechazado',  'badge' => 'badge-rech',     'texto' => 'Correcciones requeridas'],
+    'correcciones'           => ['clase' => 'rechazado',  'badge' => 'badge-rech',     'texto' => 'Correcciones requeridas'],
+    'finalizacion_pendiente' => ['clase' => 'proceso',    'badge' => 'badge-pend-val', 'texto' => 'Terminación pendiente de validación'],
+    // estados de baja
+    'baja_incompleta'        => ['clase' => 'rechazado',  'badge' => 'badge-baja',     'texto' => 'No completada'],
+    'bloqueado'              => ['clase' => 'pendiente',  'badge' => 'badge-pend',     'texto' => 'Bloqueada'],
+    'esperando_cierre'       => ['clase' => 'proceso',    'badge' => 'badge-proc',     'texto' => 'Esperando cierre'],
 ];
 
 ob_start();
@@ -96,7 +98,7 @@ ob_start();
         ?>
         <div class="col-md-6 text-md-end">
             <a href="../Proyectos/index.php" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Regresar
+                <i class="<?= $iconos['tabla']['regresar'] ?>"></i> Regresar
             </a>
         </div>
     </div>
@@ -144,9 +146,9 @@ ob_start();
                     $estado = $etapa['estado'] ?? 'pendiente';
                     $cfg    = $estados[$estado] ?? $estados['pendiente'];
 
-                    if ($orden === 1)     $bloqueada = false;
-                    elseif ($orden === 2) $bloqueada = !$fase2_ok;
-                    else                  $bloqueada = !$fase3_ok;
+                    if ($orden === 1)      $bloqueada = false;
+                    elseif ($orden === 2)  $bloqueada = !$fase2_ok;
+                    else                   $bloqueada = !$fase3_ok;
 
                     $activa = in_array($estado, ['proceso', 'finalizacion_pendiente']) ? 'active' : '';
                 ?>
@@ -171,7 +173,7 @@ ob_start();
                         <!-- Comentario del revisor -->
                         <?php if (!empty($etapa['comentario_supervisor'])): ?>
                             <div class="observacion">
-                                <i class="bi bi-chat-left-text me-1"></i>
+                                <i class="<?= $iconos['tabla']['comentarios'] ?>"></i>
                                 <?= htmlspecialchars($etapa['comentario_supervisor']) ?>
                             </div>
                         <?php endif; ?>
@@ -179,60 +181,56 @@ ob_start();
                         <!-- ACCIONES POR ETAPA -->
                         <div class="docs-adjuntos">
                             <?php
-                            //  Detectar si esta etapa viene del flujo de baja 
+                            // Detectar si esta etapa viene del flujo de baja
                             $es_baja = isset($etapa['estado_baja']);
                             ?>
 
                             <?php if ($es_baja && $orden === 2 && $estado === 'baja_incompleta'): ?>
                                 <!-- ETAPA 2 — Estudiante dado de baja sin completar -->
-                                <div class="docs-adjuntos">
-                                    <div class="alert-etapa alert-etapa-danger">
-                                        <i class="bi bi-x-circle-fill me-2"></i>
-                                        <span>
-                                            <strong>No completaste esta etapa.</strong>
-                                            <?php if ($etapa['es_vencido']): ?>
-                                                El proyecto venció
-                                                <?= $etapa['fecha_baja'] ? 'el ' . date('d/m/Y', strtotime($etapa['fecha_baja'])) : '' ?>
-                                                antes de que terminaras todas tus actividades.
-                                            <?php else: ?>
-                                                Tu participación finalizó: <em><?= htmlspecialchars($etapa['motivo_baja']) ?></em>.
-                                            <?php endif; ?>
+                                <div class="alert-etapa alert-etapa-danger">
+                                    <i class="<?= $iconos['tabla']['solicitar_cierre'] ?>"></i>
+                                    <span>
+                                        <strong>No completaste esta etapa.</strong>
+                                        <?php if ($etapa['es_vencido']): ?>
+                                            El proyecto venció
+                                            <?= $etapa['fecha_baja'] ? 'el ' . date('d/m/Y', strtotime($etapa['fecha_baja'])) : '' ?>
+                                            antes de que terminaras todas tus actividades.
+                                        <?php else: ?>
+                                            Tu participación finalizó: <em><?= htmlspecialchars($etapa['motivo_baja']) ?></em>.
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+                                <?php if (($etapa['tareas_total'] ?? 0) > 0): ?>
+                                    <div class="tareas-progreso mt-2">
+                                        <span class="tareas-label">
+                                            Actividades aprobadas al momento de la baja:
+                                            <strong><?= $etapa['tareas_aprobadas'] ?> / <?= $etapa['tareas_total'] ?></strong>
                                         </span>
-                                    </div>
-                                    <?php if (($etapa['tareas_total'] ?? 0) > 0): ?>
-                                        <div class="tareas-progreso mt-2">
-                                            <span class="tareas-label">
-                                                Actividades aprobadas al momento de la baja:
-                                                <strong><?= $etapa['tareas_aprobadas'] ?> / <?= $etapa['tareas_total'] ?></strong>
-                                            </span>
-                                            <div class="tareas-track">
-                                                <div class="tareas-fill"
-                                                    style="width:<?= round(($etapa['tareas_aprobadas'] / $etapa['tareas_total']) * 100) ?>%; background: #c41230;">
-                                                </div>
+                                        <div class="tareas-track">
+                                            <div class="tareas-fill"
+                                                style="width:<?= round(($etapa['tareas_aprobadas'] / $etapa['tareas_total']) * 100) ?>%; background: #c41230;">
                                             </div>
                                         </div>
-                                    <?php else: ?>
-                                        <p class="text-muted small mt-2 mb-0">
-                                            <i class="bi bi-info-circle me-1"></i>
-                                            No se registraron actividades asignadas.
-                                        </p>
-                                    <?php endif; ?>
-                                </div>
+                                    </div>
+                                <?php else: ?>
+                                    <p class="text-muted small mt-2 mb-0">
+                                        <i class="<?= $iconos['detalles']['Informacion'] ?>"></i>
+                                        No se registraron actividades asignadas.
+                                    </p>
+                                <?php endif; ?>
 
                             <?php elseif ($es_baja && $orden === 3 && $estado === 'baja_incompleta'): ?>
                                 <!-- ETAPA 3 — Nunca alcanzada -->
-                                <div class="docs-adjuntos">
-                                    <div class="alert-etapa alert-etapa-danger">
-                                        <i class="bi bi-x-circle-fill me-2"></i>
-                                        <span>
-                                            <strong>Etapa no alcanzada.</strong>
-                                            <?php if ($etapa['es_vencido']): ?>
-                                                El proyecto venció antes de que pudieras iniciar el cierre.
-                                            <?php else: ?>
-                                                Tu participación concluyó antes de llegar a esta etapa.
-                                            <?php endif; ?>
-                                        </span>
-                                    </div>
+                                <div class="alert-etapa alert-etapa-danger">
+                                    <i class="<?= $iconos['tabla']['solicitar_cierre'] ?>"></i>
+                                    <span>
+                                        <strong>Etapa no alcanzada.</strong>
+                                        <?php if ($etapa['es_vencido']): ?>
+                                            El proyecto venció antes de que pudieras iniciar el cierre.
+                                        <?php else: ?>
+                                            Tu participación concluyó antes de llegar a esta etapa.
+                                        <?php endif; ?>
+                                    </span>
                                 </div>
 
                             <?php elseif ($bloqueada): ?>
@@ -248,7 +246,7 @@ ob_start();
                             <?php elseif ($orden === 1): ?>
                                 <!-- ETAPA 1 — Carta Compromiso -->
                                 <div class="alert-etapa alert-etapa-success">
-                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <i class="<?= $iconos['detalles']['exito'] ?>"></i>
                                     <span><strong>¡Solicitud aceptada!</strong> Tu carta compromiso fue recibida y aceptada. Formas parte del proyecto.</span>
                                 </div>
 
@@ -256,13 +254,13 @@ ob_start();
                                     <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
                                         target="_blank"
                                         class="btn-doc-descarga">
-                                        <i class="bi bi-file-earmark-arrow-down"></i>
+                                        <i class="<?= $iconos['tabla']['descargar'] ?>"></i>
                                         <span>Descargar mi carta compromiso</span>
                                         <span class="doc-ext"><?= strtoupper($etapa['documento_subido']['extension'] ?? '') ?></span>
                                     </a>
                                 <?php else: ?>
                                     <span class="text-muted small">
-                                        <i class="bi bi-info-circle me-1"></i>
+                                        <i class="<?= $iconos['detalles']['informacion'] ?>"></i>
                                         No hay documento disponible para descarga.
                                     </span>
                                 <?php endif; ?>
@@ -276,12 +274,12 @@ ob_start();
 
                                 <?php if ($estado === 'completado'): ?>
                                     <div class="alert-etapa alert-etapa-success">
-                                        <i class="bi bi-check2-all me-2"></i>
+                                        <i class="<?= $iconos['detalles']['exito_todos'] ?>"></i>
                                         <span><strong>¡Etapa completada!</strong> Todas tus actividades han sido revisadas y aprobadas.</span>
                                     </div>
                                 <?php else: ?>
                                     <div class="alert-etapa alert-etapa-info">
-                                        <i class="bi bi-hourglass-split me-2"></i>
+                                        <i class="<?= $iconos['detalles']['espera'] ?>"></i>
                                         <span>Esta etapa está en revisión. Las actividades se registran en el módulo de avances del proyecto.</span>
                                     </div>
                                     <?php if ($total_t > 0): ?>
@@ -304,14 +302,14 @@ ob_start();
 
                                 <?php if ($estado === 'completado'): ?>
                                     <div class="alert-etapa alert-etapa-success">
-                                        <i class="bi bi-patch-check-fill me-2"></i>
+                                        <i class="<?= $iconos['detalles']['exito_verificado'] ?>"></i>
                                         <span><strong>¡Etapa completada!</strong> Tu carta de terminación fue aprobada. Tu participación ha concluido oficialmente.</span>
                                     </div>
                                     <?php if (!empty($etapa['documento_subido'])): ?>
                                         <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
                                             target="_blank"
                                             class="btn-doc-descarga">
-                                            <i class="bi bi-file-earmark-arrow-down"></i>
+                                            <i class="<?= $iconos['detalles']['descargar'] ?>"></i>
                                             <span>Descargar mi carta de terminación</span>
                                             <span class="doc-ext"><?= strtoupper($etapa['documento_subido']['extension'] ?? '') ?></span>
                                         </a>
@@ -319,14 +317,14 @@ ob_start();
 
                                 <?php elseif ($estado === 'finalizacion_pendiente'): ?>
                                     <div class="alert-etapa alert-etapa-warning">
-                                        <i class="bi bi-hourglass-split me-2"></i>
+                                        <i class="<?= $iconos['detalles']['espera'] ?>"></i>
                                         <span><strong>Terminación pendiente de validación.</strong> Tu carta fue enviada y está esperando la revisión del supervisor.</span>
                                     </div>
                                     <?php if (!empty($etapa['documento_subido'])): ?>
                                         <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
                                             target="_blank"
                                             class="btn-doc-descarga btn-doc-secondary">
-                                            <i class="bi bi-file-earmark-text"></i>
+                                            <i class="<?= $iconos['detalles']['subinformacion'] ?>"></i>
                                             <span>Ver carta enviada</span>
                                             <span class="doc-ext"><?= strtoupper($etapa['documento_subido']['extension'] ?? '') ?></span>
                                         </a>
@@ -334,7 +332,7 @@ ob_start();
 
                                 <?php elseif ($estado === 'rechazado' || $estado === 'correcciones'): ?>
                                     <div class="alert-etapa alert-etapa-danger">
-                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        <i class="<?= $iconos['detalles']['advertencia'] ?>"></i>
                                         <span>
                                             <strong>El supervisor solicitó correcciones.</strong>
                                             <?php if (!empty($etapa['comentario_supervisor'])): ?>
@@ -348,14 +346,14 @@ ob_start();
                                     <?php if ($etapa['plantilla'] == 1 && !empty($etapa['id_plantilla'])): ?>
                                         <a href="descargar_plantilla.php?id_plantilla=<?= $etapa['id_plantilla'] ?>"
                                             class="doc-descargar">
-                                            <i class="bi bi-download me-1"></i> Descargar plantilla
+                                            <i class="<?= $iconos['detalles']['bajar'] ?>"></i> Descargar plantilla
                                         </a>
                                     <?php endif; ?>
 
                                     <?php if (!empty($etapa['cierre']['id_cierre_est'])): ?>
                                         <a href="correcciones_carta.php?id=<?= $etapa['cierre']['id_cierre_est'] ?>"
                                             class="btn btn-sm btn-outline-danger mt-2 me-2">
-                                            <i class="bi bi-chat-text me-1"></i>
+                                            <i class="<?= $iconos['detalles']['comentarios'] ?>"></i>
                                             Ver comentarios y responder
                                         </a>
                                     <?php endif; ?>
@@ -367,7 +365,7 @@ ob_start();
                                         data-etapa="3">
                                         <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
                                         <label class="btn btn-sm btn-warning">
-                                            <i class="bi bi-upload me-1"></i> Reenviar carta corregida
+                                            <i class="<?= $iconos['detalles']['subir'] ?>"></i> Reenviar carta corregida
                                             <input type="file" name="documento" hidden accept=".pdf,.docx"
                                                 onchange="subirDocumentoEtapa(this, 3)">
                                         </label>
@@ -382,7 +380,7 @@ ob_start();
                                     <?php if ($etapa['plantilla'] == 1 && !empty($etapa['id_plantilla'])): ?>
                                         <a href="descargar_plantilla.php?id_plantilla=<?= $etapa['id_plantilla'] ?>"
                                             class="doc-descargar">
-                                            <i class="bi bi-download me-1"></i> Descargar plantilla
+                                            <i class="<?= $iconos['detalles']['bajar'] ?>"></i> Descargar plantilla
                                         </a>
                                     <?php elseif ($etapa['plantilla'] == 1): ?>
                                         <span class="text-muted small">Sin plantilla disponible</span>
@@ -398,7 +396,7 @@ ob_start();
                                         data-etapa="3">
                                         <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
                                         <label class="btn btn-sm btn-success">
-                                            <i class="bi bi-upload me-1"></i> Subir carta de terminación firmada
+                                            <i class="<?= $iconos['detalles']['subir'] ?>"></i> Subir carta de terminación firmada
                                             <input type="file" name="documento" hidden accept=".pdf,.docx"
                                                 onchange="subirDocumentoEtapa(this, 3)">
                                         </label>
@@ -421,7 +419,7 @@ ob_start();
 
         <?php else: ?>
             <div class="alert alert-info m-4">
-                <i class="bi bi-info-circle me-2"></i>
+                <i class="<?= $iconos['detalles']['informacion'] ?>"></i>
                 <?= htmlspecialchars($mensaje ?? 'No se encontró información del proyecto.') ?>
             </div>
         <?php endif; ?>
@@ -433,25 +431,22 @@ ob_start();
 <!-- JavaScript para subida AJAX sin reload -->
 <script>
     function subirDocumentoEtapa(inputEl, numEtapa) {
-        const form = inputEl.closest('form');
+        const form    = inputEl.closest('form');
         const spinner = document.getElementById('spinner-etapa-' + numEtapa);
-        const msgEl = document.getElementById('msg-etapa-' + numEtapa);
-        const card = form.closest('.etapa-card');
+        const msgEl   = document.getElementById('msg-etapa-' + numEtapa);
+        const card    = form.closest('.etapa-card');
 
         if (!inputEl.files || !inputEl.files[0]) return;
 
         spinner?.classList.remove('d-none');
         if (msgEl) {
-            msgEl.className = 'msg-etapa d-none';
+            msgEl.className  = 'msg-etapa d-none';
             msgEl.textContent = '';
         }
 
         const fd = new FormData(form);
 
-        fetch(form.action, {
-                method: 'POST',
-                body: fd
-            })
+        fetch(form.action, { method: 'POST', body: fd })
             .then(r => r.json())
             .then(data => {
                 spinner?.classList.add('d-none');
@@ -466,14 +461,14 @@ ob_start();
                         </div>`;
                         const badge = card.querySelector('.etapa-badge');
                         if (badge) {
-                            badge.className = 'etapa-badge badge-pend-val';
+                            badge.className   = 'etapa-badge badge-pend-val';
                             badge.textContent = 'Terminación pendiente de validación';
                         }
                     }
                 } else {
                     if (msgEl) {
                         msgEl.textContent = data.msg || 'Error al enviar.';
-                        msgEl.className = 'msg-etapa alert alert-danger py-1 px-2 mt-2 small';
+                        msgEl.className   = 'msg-etapa alert alert-danger py-1 px-2 mt-2 small';
                     }
                     inputEl.value = '';
                 }
@@ -482,7 +477,7 @@ ob_start();
                 spinner?.classList.add('d-none');
                 if (msgEl) {
                     msgEl.textContent = 'Error de conexión: ' + err.message;
-                    msgEl.className = 'msg-etapa alert alert-danger py-1 px-2 mt-2 small';
+                    msgEl.className   = 'msg-etapa alert alert-danger py-1 px-2 mt-2 small';
                 }
                 inputEl.value = '';
             });

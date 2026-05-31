@@ -106,9 +106,7 @@ ob_start();
             </div>
         <?php endif; ?>
 
-        <button type="submit" name="action" value="Registrar" class="btn btn-guardar">
-            Guardar cambios
-        </button>
+        <button type="submit" name="action" value="Registrar" class="btn btn-guardar"><i class="bi bi-floppy me-1"></i> Guardar cambios</button>
     </form>
 
 </div>

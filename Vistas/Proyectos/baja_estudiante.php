@@ -94,11 +94,9 @@ ob_start();
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <a href="editar.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary">
-                        Cancelar
-                    </a>
+                    <a href="editar.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i> Cancelar</a>
 
-                    <button class="btn btn-danger">
+                    <button class="btn btn-danger"><i class="bi bi-x-circle-fill me-1"></i> 
                         Confirmar baja
                     </button>
                 </div>

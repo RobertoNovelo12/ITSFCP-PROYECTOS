@@ -96,7 +96,7 @@ ob_start();
     <!-- INFORMACIÓN DEL PERIODO (solo lectura) -->
     <div class="card mb-4 shadow-sm">
         <div class="card-header">
-            <h5 class="mb-0">Información del periodo <span class="text-muted fs-6 fw-normal">(generado automáticamente)</span></h5>
+            <h5 class="mb-0"><i class="bi-info-circle me-2"></i>Información del periodo <span class="text-muted fs-6 fw-normal">(generado automáticamente)</span></h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
@@ -136,7 +136,7 @@ ob_start();
             <!-- FECHAS DE PROYECTOS E INTEGRACIÓN -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">Fechas de proyectos e integración</h5>
+                    <h5 class="mb-0"><i class="bi-calendar3 me-2"></i>Fechas de proyectos e integración</h5>
                 </div>
                 <div class="card-body">
 
@@ -211,7 +211,7 @@ ob_start();
                         <i class="bi bi-plus-lg me-1"></i> Crear Periodo
                     </button>
                 <?php endif; ?>
-                <a href="index.php" class="btn btn-secondary">Cancelar</a>
+                <a href="index.php" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i> Cancelar</a>
             </div>
 
         </form>

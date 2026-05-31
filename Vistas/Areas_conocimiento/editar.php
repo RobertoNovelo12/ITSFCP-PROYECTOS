@@ -166,9 +166,7 @@ ob_start();
 
         <hr>
 
-        <button type="submit" class="btn btn-guardar-area">
-            Guardar cambios
-        </button>
+        <button type="submit" class="btn btn-guardar-area"><i class="bi bi-floppy me-1"></i> Guardar cambios</button>
 
     </form>
 </div>

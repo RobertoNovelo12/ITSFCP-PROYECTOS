@@ -4,8 +4,7 @@
  * Vistas/Seguimiento/correcciones_carta.php
  *
  * Vista para el estudiante cuando su carta de terminación fue rechazada
- * por el supervisor. Muestra el hilo de comentarios (igual que correcciones.php
- * para solicitudes) y permite:
+ * por el supervisor. Muestra el hilo de comentarios y permite:
  *   1. Enviar un comentario de corrección (AJAX, sin reload).
  *   2. Adjuntar un archivo de apoyo opcional.
  *   3. Reenviar una carta completamente nueva en PDF/DOCX.
@@ -23,7 +22,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
+$rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'estudiante') {
@@ -31,16 +30,16 @@ if ($rol !== 'estudiante') {
     exit;
 }
 
-include __DIR__ . '../../../publico/incluido/_validar_get.php';
+include __DIR__ . '/../../../publico/incluido/_validar_get.php';
 
 $id_cierre_est = intval($_GET['id'] ?? 0);
-//Validación de argumentos en url
+
+// Validación de argumentos en url
 $id_validar = $id_cierre_est;
 include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
-
-require_once __DIR__ .  '/../../Controladores/seguimientoControlador.php';
-include __DIR__ . '../../publico/config/conexion.php';
+require_once __DIR__ . '/../../Controladores/seguimientoControlador.php';
+require_once __DIR__ . '/../../publico/config/conexion.php';
 
 $ctrl = new SeguimientoControlador();
 
@@ -50,34 +49,37 @@ $modelo = new SeguimientoModelo($conn);
 
 $cierre = $modelo->CierrePorId($id_cierre_est);
 
-// Validación
+// Validación de registro encontrado
 $registro = $cierre;
-include __DIR__ . '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '/../../../publico/incluido/_validar_datos.php';
 
 $comentarios = $modelo->ComentariosCierre($id_cierre_est);
 
 // Verificar que el cierre pertenece al estudiante
-if (!$cierre || (int)$cierre['id_usuarios'] !== $id_usuario) {
+if ((int)$cierre['id_usuarios'] !== $id_usuario) {
     header('Location: index.php');
     exit;
 }
 
 $id_proyecto = (int)$cierre['id_proyectos'];
 
-//Validación de argumentos en url
+// Validación de id_proyecto
 $id_validar = $id_proyecto;
-include __DIR__ . '../../../publico/incluido/_validar_id.php';
+include __DIR__ . '/../../../publico/incluido/_validar_id.php';
 
 // El estudiante puede responder si está rechazado o en finalizacion_pendiente
 $estados_activos = ['rechazado', 'finalizacion_pendiente'];
 $puede_responder = in_array($cierre['estado'], $estados_activos, true);
 
+// Iconos reutilizables
+include __DIR__ . '../../../publico/incluido/_iconos.php';
+
 // Mapa visual de estados
 $estado_labels = [
-    'pendiente'              => ['texto' => 'Pendiente',                          'clase' => 'est-proceso'],
+    'pendiente'              => ['texto' => 'Pendiente',                           'clase' => 'est-proceso'],
     'finalizacion_pendiente' => ['texto' => 'Terminación pendiente de validación', 'clase' => 'est-proceso'],
-    'aprobado'               => ['texto' => 'Aprobada',                           'clase' => 'est-aceptado'],
-    'rechazado'              => ['texto' => 'Correcciones requeridas',             'clase' => 'est-correcciones'],
+    'aprobado'               => ['texto' => 'Aprobada',                            'clase' => 'est-aceptado'],
+    'rechazado'              => ['texto' => 'Correcciones requeridas',              'clase' => 'est-correcciones'],
 ];
 $estado_vis = $estado_labels[$cierre['estado']] ?? ['texto' => $cierre['estado'], 'clase' => ''];
 
@@ -85,23 +87,24 @@ ob_start();
 ?>
 
 <div class="container-fluid py-4 ancho_container">
+
     <!-- ENCABEZADO -->
     <div class="row mb-3">
         <?php
-        $titulo      = 'Carta de terminación #<?= $id_cierre_est ?>';
-        $descripcion = 'Registro de una nueva plantilla de documento';
-
+        $titulo      = 'Carta de terminación #' . $id_cierre_est;
+        $descripcion = 'Revisión y correcciones de la carta de terminación';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 text-end">
             <span class="estado-pill <?= $estado_vis['clase'] ?>">
                 <?= htmlspecialchars($estado_vis['texto']) ?>
             </span>
-            <a href="seguimiento.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Regresar al seguimiento
+            <a href="index.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary ms-2">
+                <i class="<?= $iconos['regresar'] ?>"></i> Regresar al seguimiento
             </a>
         </div>
     </div>
+
     <div class="hilo-wrap">
 
         <!-- Info del proyecto y documento enviado -->
@@ -130,7 +133,7 @@ ob_start();
         <!-- Hilo de comentarios -->
         <div class="mb-4" id="hiloComentarios">
             <?php if (empty($comentarios)): ?>
-                <!-- Sin comentarios previos: mostrar el comentario del supervisor desde cierres_estudiante -->
+                <!-- Sin comentarios en el hilo: mostrar comentario de rechazo directo del cierre -->
                 <?php if (!empty($cierre['comentarios'])): ?>
                     <div class="msg-burbuja msg-inv">
                         <div><?= nl2br(htmlspecialchars($cierre['comentarios'])) ?></div>
@@ -157,7 +160,7 @@ ob_start();
                         </div>
                     </div>
                 <?php endif; ?>
-                <!-- Luego el hilo de comentarios de correcciones -->
+                <!-- Hilo de correcciones -->
                 <?php foreach ($comentarios as $c): ?>
                     <div class="msg-burbuja <?= $c['tipo'] === 'supervisor' ? 'msg-inv' : 'msg-est' ?>">
                         <div><?= nl2br(htmlspecialchars($c['comentario'])) ?></div>
@@ -179,14 +182,14 @@ ob_start();
             <?php endif; ?>
         </div>
 
-        <!-- ── Formulario de respuesta (solo si puede responder) ── -->
+        <!-- Formulario de respuesta (solo si puede responder) -->
         <?php if ($puede_responder): ?>
 
             <!-- Sección 1: Enviar comentario de correcciones -->
             <div class="card border shadow-sm mb-3">
                 <div class="card-header bg-white">
                     <h6 class="mb-0">
-                        <i class="bi bi-reply-fill me-2 text-danger"></i>
+                        <i class="<?= $iconos['volver_enviar'] ?>"></i>
                         Responder al supervisor
                     </h6>
                 </div>
@@ -211,7 +214,7 @@ ob_start();
                     </div>
                     <div id="mensajeEnvio" class="alert d-none mb-3"></div>
                     <div class="d-flex justify-content-end gap-2">
-                        <a href="seguimiento.php?id_proyectos=<?= $id_proyecto ?>"
+                        <a href="index.php?id_proyectos=<?= $id_proyecto ?>"
                             class="btn btn-outline-secondary btn-sm">Cancelar</a>
                         <button type="button" class="btn btn-danger btn-sm" id="btnEnviarCorrecciones">
                             <i class="bi bi-send-fill me-1"></i>Enviar correcciones
@@ -225,7 +228,7 @@ ob_start();
             <div class="card border shadow-sm">
                 <div class="card-header bg-white">
                     <h6 class="mb-0">
-                        <i class="bi bi-upload me-2 text-warning"></i>
+                        <i class="<?= $iconos['subir'] ?>"></i>
                         Reenviar carta de terminación corregida
                     </h6>
                 </div>
@@ -235,14 +238,14 @@ ob_start();
                         firmada en PDF o DOCX. Esto reemplazará la carta anterior.
                     </p>
                     <form method="POST"
-                        action="seguimiento.php?action=subirCartaTerminacion&id_proyectos=<?= $id_proyecto ?>"
+                        action="index.php?action=subirCartaTerminacion&id_proyectos=<?= $id_proyecto ?>"
                         enctype="multipart/form-data"
                         class="form-subida"
                         data-etapa="3r">
                         <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
                         <div class="d-flex align-items-center gap-3 flex-wrap">
                             <label class="btn btn-sm btn-warning mb-0">
-                                <i class="bi bi-upload me-1"></i> Seleccionar carta corregida (PDF/DOCX)
+                                <i class="<?= $iconos['subir'] ?>"></i> Seleccionar carta corregida (PDF/DOCX)
                                 <input type="file" name="documento" hidden accept=".pdf,.docx"
                                     onchange="subirCartaCorregida(this)">
                             </label>
@@ -258,7 +261,7 @@ ob_start();
 
         <?php elseif ($cierre['estado'] === 'finalizacion_pendiente'): ?>
             <div class="alert alert-warning text-center">
-                <i class="bi bi-hourglass-split me-2"></i>
+                <i class="<?= $iconos['espera'] ?>"></i>
                 <strong>Terminación pendiente de validación.</strong><br>
                 Tu carta fue enviada y está esperando la revisión del supervisor.
                 Recibirás una notificación cuando sea procesada.
@@ -266,19 +269,19 @@ ob_start();
 
         <?php elseif ($cierre['estado'] === 'aprobado'): ?>
             <div class="alert alert-success text-center">
-                <i class="bi bi-patch-check-fill me-2"></i>
+                <i class="<?= $iconos['exito_verificado'] ?>"></i>
                 Tu carta de terminación fue <strong>aprobada</strong>.
                 Tu participación en el proyecto ha concluido oficialmente.
                 <br>
-                <a href="seguimiento.php?id_proyectos=<?= $id_proyecto ?>"
+                <a href="index.php?id_proyectos=<?= $id_proyecto ?>"
                     class="btn btn-sm btn-success mt-2">
-                    Ver mi seguimiento →
+                    <i class="<?= $iconos['ver'] ?>"></i> Ver mi seguimiento
                 </a>
             </div>
 
         <?php else: ?>
             <div class="alert alert-info text-center">
-                <i class="bi bi-clock me-2"></i>
+                <i class="<?= $iconos['espera'] ?>"></i>
                 Tu carta está siendo revisada. Recibirás una respuesta próximamente.
             </div>
         <?php endif; ?>
@@ -286,7 +289,7 @@ ob_start();
     </div><!-- /.hilo-wrap -->
 </div>
 
-<!-- ── Estilos del hilo (espejo de correcciones.php) ── -->
+<!-- Estilos del hilo -->
 <style>
     .hilo-wrap {
         max-width: 820px;
@@ -320,7 +323,6 @@ ob_start();
         border: 1px solid var(--badge-porcerrar-border);
     }
 
-    /* Burbujas del hilo */
     .msg-burbuja {
         padding: .75rem 1rem;
         border-radius: 10px;
@@ -351,19 +353,19 @@ ob_start();
     }
 </style>
 
-<!-- ── JavaScript del hilo ── -->
+<!-- JavaScript del hilo -->
 <script>
     // Enviar comentario de correcciones (sin reload)
     document.getElementById('btnEnviarCorrecciones')?.addEventListener('click', function() {
         const comentario = document.getElementById('txtComentario').value.trim();
-        const archivo = document.getElementById('fileArchivo').files[0] || null;
-        const mensajeEl = document.getElementById('mensajeEnvio');
-        const spinner = document.getElementById('spinnerEnvio');
-        const hilo = document.getElementById('hiloComentarios');
+        const archivo    = document.getElementById('fileArchivo').files[0] || null;
+        const mensajeEl  = document.getElementById('mensajeEnvio');
+        const spinner    = document.getElementById('spinnerEnvio');
+        const hilo       = document.getElementById('hiloComentarios');
 
         if (!comentario) {
             mensajeEl.textContent = 'Por favor escribe una explicación de las correcciones.';
-            mensajeEl.className = 'alert alert-warning mb-3';
+            mensajeEl.className   = 'alert alert-warning mb-3';
             return;
         }
 
@@ -376,7 +378,7 @@ ob_start();
         fd.append('comentario', comentario);
         if (archivo) fd.append('archivo', archivo);
 
-        fetch('seguimiento.php?action=enviarCorreccionesCarta&id_proyectos=<?= $id_proyecto ?>', {
+        fetch('index.php?action=enviarCorreccionesCarta&id_proyectos=<?= $id_proyecto ?>', {
                 method: 'POST',
                 body: fd
             })
@@ -384,62 +386,56 @@ ob_start();
             .then(data => {
                 spinner.classList.add('d-none');
                 if (data.ok) {
-                    // Agregar burbuja al hilo sin recargar
-                    const now = new Date();
+                    const now  = new Date();
                     const hora = now.toLocaleDateString('es-MX') + ' ' + now.toLocaleTimeString('es-MX', {
-                        hour: '2-digit',
-                        minute: '2-digit'
+                        hour: '2-digit', minute: '2-digit'
                     });
                     const burbuja = document.createElement('div');
                     burbuja.className = 'msg-burbuja msg-est';
                     burbuja.innerHTML = `
-                <div>${comentario.replace(/\n/g,'<br>')}</div>
-                ${archivo ? `<div class="mt-1"><i class="bi bi-paperclip me-1 text-primary"></i><span class="small text-primary">${archivo.name}</span></div>` : ''}
-                <div class="msg-meta"><strong>Tú</strong> · Corrección · ${hora}</div>
-            `;
+                        <div>${comentario.replace(/\n/g,'<br>')}</div>
+                        ${archivo ? `<div class="mt-1"><i class="bi bi-paperclip me-1 text-primary"></i><span class="small text-primary">${archivo.name}</span></div>` : ''}
+                        <div class="msg-meta"><strong>Tú</strong> · Corrección · ${hora}</div>
+                    `;
                     hilo.appendChild(burbuja);
 
-                    // Limpiar formulario
                     document.getElementById('txtComentario').value = '';
-                    document.getElementById('fileArchivo').value = '';
+                    document.getElementById('fileArchivo').value   = '';
 
                     mensajeEl.textContent = '✓ Correcciones enviadas. El supervisor será notificado.';
-                    mensajeEl.className = 'alert alert-success mb-3';
+                    mensajeEl.className   = 'alert alert-success mb-3';
                     this.disabled = false;
                 } else {
                     mensajeEl.textContent = data.msg || 'Error al enviar.';
-                    mensajeEl.className = 'alert alert-danger mb-3';
+                    mensajeEl.className   = 'alert alert-danger mb-3';
                     this.disabled = false;
                 }
             })
             .catch(e => {
                 spinner.classList.add('d-none');
                 mensajeEl.textContent = 'Error de conexión: ' + e.message;
-                mensajeEl.className = 'alert alert-danger mb-3';
+                mensajeEl.className   = 'alert alert-danger mb-3';
                 this.disabled = false;
             });
     });
 
-    // Reenviar carta corregida (sustituye el archivo, muestra estado permanente)
+    // Reenviar carta corregida (sustituye el archivo)
     function subirCartaCorregida(inputEl) {
-        const form = inputEl.closest('form');
+        const form    = inputEl.closest('form');
         const spinner = document.getElementById('spinner-etapa-3r');
-        const msgEl = document.getElementById('msg-etapa-3r');
+        const msgEl   = document.getElementById('msg-etapa-3r');
 
         if (!inputEl.files || !inputEl.files[0]) return;
 
         spinner?.classList.remove('d-none');
         if (msgEl) {
-            msgEl.className = 'msg-etapa d-none';
+            msgEl.className   = 'msg-etapa d-none';
             msgEl.textContent = '';
         }
 
         const fd = new FormData(form);
 
-        fetch(form.action, {
-                method: 'POST',
-                body: fd
-            })
+        fetch(form.action, { method: 'POST', body: fd })
             .then(r => r.json())
             .then(data => {
                 spinner?.classList.add('d-none');
@@ -453,13 +449,13 @@ ob_start();
                         </div>`;
                         msgEl.className = 'msg-etapa';
                     }
-                    // Deshabilitar el form de reenvío para evitar duplicados
-                    form.querySelector('label').classList.add('disabled');
-                    form.querySelector('label').setAttribute('style', 'pointer-events:none;opacity:.6');
+                    const lbl = form.querySelector('label');
+                    lbl?.classList.add('disabled');
+                    lbl?.setAttribute('style', 'pointer-events:none;opacity:.6');
                 } else {
                     if (msgEl) {
                         msgEl.textContent = data.msg || 'Error al enviar la carta.';
-                        msgEl.className = 'msg-etapa alert alert-danger py-1 px-2 small';
+                        msgEl.className   = 'msg-etapa alert alert-danger py-1 px-2 small';
                     }
                     inputEl.value = '';
                 }
@@ -468,7 +464,7 @@ ob_start();
                 spinner?.classList.add('d-none');
                 if (msgEl) {
                     msgEl.textContent = 'Error de conexión: ' + err.message;
-                    msgEl.className = 'msg-etapa alert alert-danger py-1 px-2 small';
+                    msgEl.className   = 'msg-etapa alert alert-danger py-1 px-2 small';
                 }
                 inputEl.value = '';
             });

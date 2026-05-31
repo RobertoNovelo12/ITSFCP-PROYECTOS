@@ -96,7 +96,7 @@ ob_start();
 
     <!-- RESUMEN -->
     <div class="card shadow-sm p-3 mb-4">
-        <h5 class="mb-3"><b>Resumen</b></h5>
+        <h5 class="mb-3"><i class="bi-bar-chart-fill me-2"></i><b>Resumen</b></h5>
 
         <div class="row">
             <div class="col-md-4">

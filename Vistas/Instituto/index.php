@@ -161,7 +161,7 @@ ob_start();
         </div>
 
         <div class="text-center mt-3">
-            <button type="submit" class="btn btn-guardar">Guardar cambios</button>
+            <button type="submit" class="btn btn-guardar"><i class="bi bi-floppy me-1"></i> Guardar cambios</button>
         </div>
 
     </form>

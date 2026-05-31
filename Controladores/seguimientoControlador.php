@@ -4,22 +4,22 @@
  * Controladores/seguimientoControlador.php
  *
  * Rutas vía ?action= :
- *   GET  index                  → Estudiante: timeline de sus 3 etapas
- *   POST subirDocumento         → Estudiante: sube Carta Compromiso (Etapa 1)
- *   POST subirCartaTerminacion  → Estudiante: sube Carta de Terminación firmada (Etapa 3)
+ *   GET  index                   → Estudiante: timeline de sus 3 etapas
+ *   POST subirDocumento          → Estudiante: sube Carta Compromiso (Etapa 1)
+ *   POST subirCartaTerminacion   → Estudiante: sube Carta de Terminación firmada (Etapa 3)
  *   POST enviarCorreccionesCarta → Estudiante: reenvía correcciones al supervisor (AJAX JSON)
- *   POST actualizarEstado       → Investigador: aprueba/rechaza/corrige seguimiento_documento (AJAX JSON)
+ *   POST actualizarEstado        → Investigador: aprueba/rechaza/corrige seguimiento_documento (AJAX JSON)
  *
  *   - subirCartaTerminacion(): estado inicial 'finalizacion_pendiente' en cierres_estudiante.
- *   - enviarCorreccionesCarta(): nuevo método para que el estudiante responda al supervisor
- *     desde correcciones_carta.php (espejo de correcciones.php para solicitudes).
+ *   - enviarCorreccionesCarta(): el estudiante responde al supervisor desde correcciones_carta.php.
  *   - badgeEstado(): incluye 'finalizacion_pendiente' como estado visual.
  */
 
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/../Modelos/seguimiento.php';
+require_once __DIR__ . '/BaseControlador.php';
 
-class SeguimientoControlador
+class SeguimientoControlador extends BaseControlador
 {
     private SeguimientoModelo $modelo;
     private mysqli $conn;
@@ -32,7 +32,7 @@ class SeguimientoControlador
     }
 
     // 
-    //  HELPERS PRIVADOS
+    //  HELPERS PRIVADOS DE ROL
     // 
 
     private function esEstudiante(string $rol): bool
@@ -43,14 +43,6 @@ class SeguimientoControlador
     private function esInvestigador(string $rol): bool
     {
         return in_array($rol, ['investigador', 'profesor'], true);
-    }
-
-    private function json(array $data, int $status = 200): void
-    {
-        http_response_code($status);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data, JSON_UNESCAPED_UNICODE);
-        exit;
     }
 
     private function idUsuario(): int
@@ -121,8 +113,8 @@ class SeguimientoControlador
 
     public function subirDocumento(): void
     {
-        $id_usuario        = $this->idUsuario();
-        $rol               = $this->rol();
+        $id_usuario = $this->idUsuario();
+        $rol        = $this->rol();
 
         if (!$this->esEstudiante($rol)) {
             $this->json(['ok' => false, 'msg' => 'Sin permiso.'], 403);
@@ -152,9 +144,9 @@ class SeguimientoControlador
 
         if (!is_dir($dirFisico)) mkdir($dirFisico, 0755, true);
 
-        $nombreArchivo  = "est{$id_usuario}_td{$id_tipo_documento}_" . date('YmdHis') . ".{$ext}";
-        $nombreDisplay  = basename($archivo['name']);
-        $rutaBD         = $dirRelativo . '/' . $nombreArchivo;
+        $nombreArchivo = "est{$id_usuario}_td{$id_tipo_documento}_" . date('YmdHis') . ".{$ext}";
+        $nombreDisplay = basename($archivo['name']);
+        $rutaBD        = $dirRelativo . '/' . $nombreArchivo;
 
         if (!move_uploaded_file($archivo['tmp_name'], $dirFisico . $nombreArchivo)) {
             $this->json(['ok' => false, 'msg' => 'Error al guardar el archivo en disco.'], 500);
@@ -284,7 +276,6 @@ class SeguimientoControlador
 
         if ($ok) {
             $this->modelo->actualizarEstadoProcesoCarta($id_integrante);
-
         }
 
         $this->json([
@@ -297,9 +288,8 @@ class SeguimientoControlador
 
     // 
     //  ENVIAR CORRECCIONES CARTA — Etapa 3 (POST → AJAX JSON)
-    //  El estudiante responde al rechazo del supervisor desde correcciones_carta.php
+    //  El estudiante responde al rechazo del supervisor desde correcciones_carta.php.
     //  Solo envía comentario + archivo opcional (sin reemplazar la carta).
-    //  Para reenviar una carta corregida se usa subirCartaTerminacion().
     // 
 
     public function enviarCorreccionesCarta(): void
@@ -437,12 +427,12 @@ class SeguimientoControlador
         $aprobadas = $this->modelo->contarTareasAprobadas($id_proyecto, $id_estudiante);
         $fase2_ok  = $total > 0 && $aprobadas >= $total;
 
-        if ($total === 0)       $e2_estado = 'pendiente';
-        elseif ($fase2_ok)      $e2_estado = 'completado';
-        elseif ($aprobadas > 0) $e2_estado = 'proceso';
-        else                    $e2_estado = 'pendiente';
+        if ($total === 0)        $e2_estado = 'pendiente';
+        elseif ($fase2_ok)       $e2_estado = 'completado';
+        elseif ($aprobadas > 0)  $e2_estado = 'proceso';
+        else                     $e2_estado = 'pendiente';
 
-        $cierre = $this->modelo->CierreEstudiante($id_proyecto, $id_estudiante);
+        $cierre    = $this->modelo->CierreEstudiante($id_proyecto, $id_estudiante);
         $e3_estado = !$cierre ? 'pendiente' : match ($cierre['estado']) {
             'pendiente'              => 'finalizacion_pendiente',
             'finalizacion_pendiente' => 'finalizacion_pendiente',
@@ -549,7 +539,7 @@ class SeguimientoControlador
     }
 
     // Stubs requeridos por otras vistas
-    public function filtros(int $id_usuario, string $rol): array  { return []; }
-    public function encabezados(string $rol): array               { return []; }
-    public function datosopciones(string $rol, array $filtros): array { return []; }
+    public function filtros(int $id_usuario, string $rol): array           { return []; }
+    public function encabezados(string $rol): array                        { return []; }
+    public function datosopciones(string $rol, array $filtros): array      { return []; }
 }

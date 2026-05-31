@@ -98,7 +98,7 @@ ob_start();
     <!-- INFORMACIÓN DEL PERIODO (solo lectura) -->
     <div class="card mb-4 shadow-sm">
         <div class="card-header">
-            <h5 class="mb-0">Información del periodo
+            <h5 class="mb-0"><i class="bi-info-circle me-2"></i>Información del periodo
                 <span class="text-muted fs-6 fw-normal">(no editable)</span>
             </h5>
         </div>
@@ -134,7 +134,7 @@ ob_start();
 
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
-                <h5 class="mb-0">Fechas de proyectos e integración</h5>
+                <h5 class="mb-0"><i class="bi-calendar3 me-2"></i>Fechas de proyectos e integración</h5>
             </div>
             <div class="card-body">
 
@@ -202,7 +202,7 @@ ob_start();
             <button type="submit" class="btn btn-guardar">
                 <i class="bi bi-floppy me-1"></i> Guardar cambios
             </button>
-            <a href="index.php" class="btn btn-secondary">Cancelar</a>
+            <a href="index.php" class="btn btn-secondary"><i class="bi bi-x-circle me-1"></i> Cancelar</a>
         </div>
 
     </form>

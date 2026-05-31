@@ -64,7 +64,7 @@ ob_start();
     <div class="card shadow-sm mb-4">
 
         <div class="card-header">
-            <h5 class="mb-0">Información de la temática</h5>
+            <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i> Información de la temática</h5>
         </div>
 
         <div class="card-body">
@@ -128,7 +128,7 @@ ob_start();
 
         <div class="card-header d-flex justify-content-between align-items-center">
 
-            <h5 class="mb-0">Subtemáticas</h5>
+            <h5 class="mb-0"><i class="bi bi-file-text me-2"></i> Subtemáticas</h5>
 
             <span class="badge bg-primary">
 

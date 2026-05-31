@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
+$rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'supervisor') {
@@ -28,27 +28,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit; // rechazar() redirige
 }
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
+//  Validaciones GET ─
+include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
-//  GET: mostrar formulario 
 $id_ver = isset($_GET['id_usuarios']) ? intval($_GET['id_usuarios']) : 0;
 
-if ($id_ver <= 0) {
-    die("ID de usuario no válido.");
-}
+$id_validar = $id_ver;
+include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
+//  Cargar datos ─
 $usuario = $controlador->indexDetalles($rol, $id_ver);
 
-//Validación de argumentos en url
-$id_validar = $usuario;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
+$registro = $usuario;
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
-
-// Solo se puede rechazar si está en espera
+// Solo se puede rechazar si el usuario está en espera
 if ($usuario['estado_usuario'] !== 'espera') {
     header("Location: detalles.php?id_usuarios=" . $id_ver);
     exit;
 }
+
+//  Iconos reutilizables ─
+include __DIR__ . '/../../publico/incluido/_iconos.php';
 
 ob_start();
 ?>
@@ -57,17 +58,15 @@ ob_start();
 
     <!-- ENCABEZADO -->
     <div class="row mb-4 align-items-center">
-
         <?php
         $titulo      = 'Respuesta a Solicitud de Usuario';
-        $descripcion = 'Aprobar o rechazar el acceso al sistema';
+        $descripcion = 'Rechazar el acceso al sistema';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
-
         <div class="col-6 col-md-6 text-md-end">
-            <?php if ($rol == "supervisor"): ?>
+            <?php if ($rol === 'supervisor'): ?>
                 <a href="detalles.php?id_usuarios=<?= $id_ver ?>" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Regresar
+                    <i class="<?= $iconos['tabla']['regresar'] ?>"></i> Regresar
                 </a>
             <?php endif; ?>
         </div>
@@ -79,7 +78,7 @@ ob_start();
             <!-- INFORMACIÓN RESUMIDA DEL USUARIO -->
             <div class="mb-4">
                 <h5 class="text-danger">
-                    Información del usuario
+                    <i class="<?= $iconos['detalles']['informacion'] ?> me-2"></i>Información del usuario
                 </h5>
                 <div class="row">
                     <div class="col-md-6">
@@ -87,8 +86,8 @@ ob_start();
                             <strong>Nombre completo:</strong><br>
                             <?= htmlspecialchars(
                                 $usuario['nombre'] . ' ' .
-                                    $usuario['apellido_paterno'] . ' ' .
-                                    $usuario['apellido_materno']
+                                $usuario['apellido_paterno'] . ' ' .
+                                $usuario['apellido_materno']
                             ) ?>
                         </p>
                     </div>
@@ -119,7 +118,7 @@ ob_start();
 
             <hr>
 
-            <!-- ESTADO (no editable) -->
+            <!-- ESTADO RESULTANTE (informativo) -->
             <div class="mb-3">
                 <label class="form-label fw-bold">Estado resultante</label>
                 <div>
@@ -155,11 +154,11 @@ ob_start();
 
                 <div class="d-flex justify-content-between flex-wrap gap-2">
                     <a href="detalles.php?id_usuarios=<?= $id_ver ?>" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Cancelar
+                        <i class="<?= $iconos['tabla']['regresar'] ?> me-1"></i> Cancelar
                     </a>
                     <button type="submit" class="btn btn-danger"
                         onclick="return confirm('¿Confirmar el rechazo de este usuario? Se enviará una notificación por correo.')">
-                        Confirmar rechazo
+                        <i class="<?= $iconos['tabla']['solicitar_cierre'] ?> me-1"></i> Confirmar rechazo
                     </button>
                 </div>
 

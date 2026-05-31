@@ -116,11 +116,7 @@ ob_start();
 
         <button
             type="submit"
-            class="btn btn-guardar-tematica">
-
-            Crear temática
-
-        </button>
+            class="btn btn-guardar-tematica"><i class="bi bi-plus-lg me-1"></i> Crear temática</button>
 
 </div>
 

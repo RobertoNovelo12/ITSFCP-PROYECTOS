@@ -76,7 +76,7 @@ ob_start();
         <?php
         $titulo      = 'Rechazar solicitud académica';
         $descripcion = 'ID #' . $id_solicitud . ' &bull; ' . $ctrl->etiquetaTipo($solicitud['tipo']);
-        include __DIR__ . '/../../../publico/incluido/_encabezado.php';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-6 col-md-4 text-md-end mt-2 mt-md-0">
             <a href="detalles.php?id_solicitud=<?= $id_solicitud ?>" class="btn btn-secondary">
@@ -89,7 +89,7 @@ ob_start();
     <?php
     if (isset($_mapa[$msg])) {
         extract($_mapa[$msg]);
-        include __DIR__ . '/../../../publico/incluido/_mensaje.php';
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
     }
     ?>
 
@@ -117,7 +117,7 @@ ob_start();
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
                     <i class="bi bi-person-badge text-primary fs-5"></i>
-                    <h6 class="mb-0 fw-semibold">Información del investigador</h6>
+                    <h6 class="mb-0 fw-semibold"><i class="bi-person-badge me-2"></i>Información del investigador</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">

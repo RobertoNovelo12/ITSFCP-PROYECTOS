@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../Modelos/periodo.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 class periodoControlador extends BaseControlador
 {
@@ -220,8 +221,12 @@ class periodoControlador extends BaseControlador
             $ffi = !empty($datos['fecha_fin_solicitud'])    ? trim($datos['fecha_fin_solicitud'])    : null;
 
             $validacion = $this->validarFechasSubperiodos(
-                $periodoAuto['inicio'], $periodoAuto['fin'],
-                $fip, $ffp, $fii, $ffi
+                $periodoAuto['inicio'],
+                $periodoAuto['fin'],
+                $fip,
+                $ffp,
+                $fii,
+                $ffi
             );
 
             if (!$validacion['ok']) {
@@ -235,7 +240,10 @@ class periodoControlador extends BaseControlador
                 $periodoAuto['nombre'],
                 $periodoAuto['inicio'],
                 $periodoAuto['fin'],
-                $fip, $ffp, $fii, $ffi
+                $fip,
+                $ffp,
+                $fii,
+                $ffi
             );
 
             if (!$id) {
@@ -244,13 +252,11 @@ class periodoControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_crear');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_crear';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -289,8 +295,12 @@ class periodoControlador extends BaseControlador
             $ffi = !empty($datos['fecha_fin_solicitud'])    ? trim($datos['fecha_fin_solicitud'])    : null;
 
             $validacion = $this->validarFechasSubperiodos(
-                $datosActuales['inicio'], $datosActuales['fin'],
-                $fip, $ffp, $fii, $ffi
+                $datosActuales['inicio'],
+                $datosActuales['fin'],
+                $fip,
+                $ffp,
+                $fii,
+                $ffi
             );
 
             if (!$validacion['ok']) {
@@ -304,7 +314,6 @@ class periodoControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_editar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -352,7 +361,6 @@ class periodoControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_desactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -395,7 +403,6 @@ class periodoControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_desactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -433,13 +440,11 @@ class periodoControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_reactivar');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_reactivar';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -538,58 +543,42 @@ class periodoControlador extends BaseControlador
 
     private function obtenerbotones(string $tipo, ?int $id1 = null): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         return match ($tipo) {
 
-            'Editar Periodo' =>
-                '<a href="editar.php?id_periodos=' . $id1 . '"
-                    class="btn btn-sm btn-warning"
-                    data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-title="Editar periodo">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-                         class="bi bi-pencil-square" viewBox="0 0 16 16">
-                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                    </svg>
-                </a>',
+            'Editar Periodo' => Botones::botonIcono(
+                'editar.php?id_periodos=' . $id1,
+                'warning',
+                $iconos['tabla']['editar'],
+                'Editar periodo'
+            ),
 
-            'Detalles' =>
-                '<a href="detalles.php?id_periodos=' . $id1 . '"
-                    class="btn btn-sm btn-primary"
-                    data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-title="Ver detalles del periodo">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-                         class="bi bi-eye-fill" viewBox="0 0 16 16">
-                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
-                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
-                    </svg>
-                </a>',
+            'Detalles' => Botones::botonIcono(
+                'detalles.php?id_periodos=' . $id1,
+                'primary',
+                $iconos['tabla']['ver'],
+                'Ver detalles del periodo'
+            ),
 
-            'Desactivar' =>
-                '<a href="index.php?id_periodos=' . $id1 . '&action=desactivar_periodo"
-                    class="btn btn-sm btn-danger"
-                    data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-title="Desactivar periodo">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-                         class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-                    </svg>
-                </a>',
+            'Desactivar' => Botones::botonIcono(
+                'index.php?id_periodos=' . $id1 . '&action=desactivar_periodo',
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Desactivar periodo'
+            ),
 
-            'Reactivar' =>
-                '<a href="crear.php"
-                    class="btn btn-sm btn-success"
-                    data-bs-toggle="tooltip" data-bs-placement="top"
-                    data-bs-title="Ir a reactivar este periodo">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
-                         class="bi bi-arrow-repeat" viewBox="0 0 16 16">
-                        <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
-                        <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
-                    </svg>
-                </a>',
+            'Reactivar' => Botones::botonIcono(
+                'crear.php',
+                'success',
+                $iconos['tabla']['reactivar'],
+                'Ir a reactivar este periodo'
+            ),
 
             default => '',
         };
     }
+
 
     public function botonesAccionPrincipal(int $id, string $rol, ?string $estado = null, int $puede_reactivar = 0): string
     {
@@ -597,8 +586,8 @@ class periodoControlador extends BaseControlador
 
         if ($estado === 'Activo') {
             return $this->obtenerbotones('Editar Periodo', $id)
-                 . $this->obtenerbotones('Detalles', $id)
-                 . $this->obtenerbotones('Desactivar', $id);
+                . $this->obtenerbotones('Detalles', $id)
+                . $this->obtenerbotones('Desactivar', $id);
         }
 
         if ($estado === 'Terminado') {

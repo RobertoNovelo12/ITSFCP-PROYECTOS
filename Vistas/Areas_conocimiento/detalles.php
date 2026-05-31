@@ -63,7 +63,7 @@ ob_start();
 
     <div class="card shadow-sm mb-4">
         <div class="card-header">
-            <h5 class="mb-0">Información del Área de conocimientos</h5>
+            <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>  Información del Área de conocimientos</h5>
         </div>
         <div class="card-body">
             <div class="row mb-3">
@@ -97,7 +97,7 @@ ob_start();
     <!-- SUBAREAS -->
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Subareas</h5>
+            <h5 class="mb-0"><i class="bi bi-file-text me-2"></i> Subareas</h5>
             <span class="badge bg-primary">
                 <?= count($subarea) ?> / 10
             </span>

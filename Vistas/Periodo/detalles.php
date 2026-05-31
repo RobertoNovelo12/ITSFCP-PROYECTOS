@@ -73,7 +73,7 @@ ob_start();
     <!-- INFORMACIÓN GENERAL -->
     <div class="card shadow-sm mb-4">
         <div class="card-header">
-            <h5 class="mb-0">Información del periodo</h5>
+            <h5 class="mb-0"><i class="bi-info-circle me-2"></i>Información del periodo</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
@@ -138,7 +138,7 @@ ob_start();
     <!-- FECHAS DE PROYECTOS -->
     <div class="card shadow-sm mb-4">
         <div class="card-header">
-            <h5 class="mb-0">Periodo de Proyectos</h5>
+            <h5 class="mb-0"><i class="bi-calendar3 me-2"></i>Periodo de Proyectos</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
@@ -191,7 +191,7 @@ ob_start();
     <!-- FECHAS DE INTEGRACIÓN -->
     <div class="card shadow-sm mb-4">
         <div class="card-header">
-            <h5 class="mb-0">Periodo de Integración</h5>
+            <h5 class="mb-0"><i class="bi-calendar-range me-2"></i>Periodo de Integración</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">

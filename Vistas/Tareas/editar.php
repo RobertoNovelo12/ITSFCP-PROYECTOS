@@ -119,11 +119,7 @@ include __DIR__ . '/../../mensaje.php';
 
                     <!-- Nota de límite -->
                     <div class="nota-explicacion mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
-                            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
-                            <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                            <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
-                        </svg>
+                        <i class="bi bi-file-earmark-text"></i>
                         <span>
                             Máximo <strong><?= number_format(MAX_DESCRIPCION, 0, '.', ',') ?> caracteres</strong>
                             (texto plano, sin contar etiquetas HTML).
@@ -149,11 +145,7 @@ include __DIR__ . '/../../mensaje.php';
 
                     <!-- Nota de límite -->
                     <div class="nota-explicacion mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 20 20">
-                            <circle cx="10" cy="10" r="8.5" stroke="currentColor" stroke-width="1.4" />
-                            <path d="M10 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                            <circle cx="10" cy="6.5" r="0.8" fill="currentColor" />
-                        </svg>
+                        <i class="bi bi-file-earmark-text"></i>
                         <span>
                             Máximo <strong><?= number_format(MAX_INSTRUCCIONES, 0, '.', ',') ?> caracteres</strong>
                             (texto plano). Redacta pasos claros y concretos;

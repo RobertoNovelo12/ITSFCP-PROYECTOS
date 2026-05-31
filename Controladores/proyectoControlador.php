@@ -4,7 +4,8 @@
 require_once __DIR__ . '/../Modelos/proyecto.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
-
+include __DIR__ . '../../publico/incluido/_iconos.php';
+include __DIR__ . '/../publico/incluido/_botones.php';
 
 class ProyectoControlador extends BaseControlador
 {
@@ -200,92 +201,72 @@ class ProyectoControlador extends BaseControlador
     // BOTONES INDIVIDUALES
     // 
 
-    public function obtenerbotones(string $tipo, int $id_proyecto, ?int $id_usuario = null): string
+     public function obtenerbotones(string $tipo, int $id_proyecto, ?int $id_usuario = null): string
     {
-        switch ($tipo) {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
 
-            case 'Detalles':
-                return '<a href="detalles.php?id_proyectos=' . $id_proyecto . '" class="btn btn-primary btn-sm"
-                    data-bs-toggle="tooltip" data-bs-title="Ver detalles del proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                         class="bi bi-eye-fill" viewBox="0 0 16 16">
-                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
-                        <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
-                    </svg></a>';
+        return match ($tipo) {
 
-            case 'Tareas':
-                return '<a href="../Tareas/index.php?id_proyectos=' . $id_proyecto . '" class="btn btn-info btn-sm"
-                    data-bs-toggle="tooltip" data-bs-title="Tareas">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                         class="bi bi-list-task" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
-                        <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/>
-                        <path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5zM2 7h1v1H2zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm1 .5H2v1h1z"/>
-                    </svg></a>';
+            'Detalles' => Botones::botonIcono(
+                'detalles.php?id_proyectos=' . $id_proyecto,
+                'primary',
+                $iconos['tabla']['ver'],
+                'Ver detalles del proyecto'
+            ),
 
-            case 'Ver Tareas Alumnos':
-                return '<a href="../Tareas/tareas_estudiante.php?id_usuario=' . $id_usuario . '&id_proyectos=' . $id_proyecto . '"
-                    class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-title="Ver Tareas">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                         class="bi bi-list-task" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/>
-                        <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/>
-                        <path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5zM2 7h1v1H2zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm1 .5H2v1h1z"/>
-                    </svg></a>';
+            'Tareas' => Botones::botonIcono(
+                '../Tareas/index.php?id_proyectos=' . $id_proyecto,
+                'info',
+                $iconos['tabla']['tareas_list'],
+                'Tareas'
+            ),
 
-            case 'Solicitar cerrar':
-                return '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"
-                    class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="Solicitar cierre del proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                         class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-                    </svg></a>';
+            'Ver Tareas Alumnos' => Botones::botonIcono(
+                '../Tareas/tareas_estudiante.php?id_usuario=' . $id_usuario,
+                'info',
+                $iconos['tabla']['tareas_list'],
+                'Ver Tareas'
+            ),
 
-            case 'Volver a enviar cierre':
-                return '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar"
-                    class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="Volver a enviar cierre">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                         class="bi bi-arrow-repeat" viewBox="0 0 16 16">
-                        <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
-                        <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
-                    </svg></a>';
+            'Solicitar cerrar' => Botones::botonIcono(
+                'index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar',
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Solicitar cerrar proyecto'
+            ),
 
-            case 'Volver a enviar proyecto':
-                return '<a href="index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorAprobar"
-                    class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="Volver a enviar proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                         class="bi bi-arrow-repeat" viewBox="0 0 16 16">
-                        <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
-                        <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
-                    </svg></a>';
+            'Volver a enviar cierre' => Botones::botonIcono(
+                'index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar',
+                'warning',
+                $iconos['tabla']['volver_enviar'],
+                'Volver a enviar cierre'
+            ),
 
-            case 'Editar':
-                return '<a href="editar.php?id_proyectos=' . $id_proyecto . '"
-                    class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="Editar proyecto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                         class="bi bi-pencil-square" viewBox="0 0 16 16">
-                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                    </svg></a>';
+            'Volver a enviar proyecto' => Botones::botonIcono(
+                'index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorAprobar',
+                'warning',
+                $iconos['tabla']['volver_enviar'],
+                'Volver a enviar proyecto'
+            ),
 
-            case 'Comentarios':
-                return '<a href="ver_comentarios.php?id_proyectos=' . $id_proyecto . '"
-                    class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-title="Ver comentarios">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                         class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
-                        <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
-                    </svg></a>';
+            'Editar' => Botones::botonIcono(
+                'editar.php?id_proyectos=' . $id_proyecto,
+                'info',
+                $iconos['tabla']['editar'],
+                'Editar proyecto'
+            ),
 
-            case 'Dar de baja':
-                return '<button class="btn btn-danger btn-sm" data-accion="baja" data-id="' . $id_usuario . '">Dar de baja</button>';
+            'Comentarios' => Botones::botonIcono(
+                'ver_comentarios.php?id_proyectos=' . $id_proyecto,
+                'info',
+                $iconos['tabla']['comentarios'],
+                'Ver comentarios'
+            ),
 
-            case 'Reactivar':
-                return '<button class="btn btn-success btn-sm" data-accion="reactivar" data-id="' . $id_usuario . '">Reactivar</button>';
-
-            default:
-                return '';
-        }
+            default => '',
+        };
     }
+
 
 
     // 

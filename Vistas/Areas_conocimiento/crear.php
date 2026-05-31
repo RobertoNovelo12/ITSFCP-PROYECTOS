@@ -61,7 +61,7 @@ ob_start();
         <input type="hidden" name="action" value="registrarArea">
 
         <!-- DATOS DEL ÁREA -->
-        <h5>Información del área</h5>
+        <h5><i class="bi-info-circle me-2"></i>Información del área</h5>
 
         <div class="mb-3">
             <label class="form-label">Nombre</label>
@@ -98,9 +98,7 @@ ob_start();
 
         <hr>
 
-        <button type="submit" class="btn btn-guardar-area">
-            Crear área
-        </button>
+        <button type="submit" class="btn btn-guardar-area"><i class="bi bi-plus-lg me-1"></i> Crear área</button>
 
     </form>
 </div>
