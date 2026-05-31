@@ -53,7 +53,7 @@ ob_start();
         ?>
         <div class="col-6 col-md-6 text-md-end">
             <?php if ($rol === 'supervisor'): ?>
-                <a href="index.php" class="btn btn-secondary btn-sm px-4"><i class="bi bi-arrow-left me-1"></i> 
+                <a href="index.php" class="btn btn-secondary btn-sm px-4"> 
                     <i class="<?= $iconos['tabla']['regresar'] ?>"></i> Regresar
                 </a>
             <?php endif; ?>
@@ -64,7 +64,7 @@ ob_start();
     <div class="card shadow-sm mb-4">
         <div class="card-header">
             <h5 class="mb-0">
-               <i class="bi bi-person-circle me-2"></i> <i class="<?= $iconos['detalles']['informacion'] ?> me-2"></i>Información general
+               <i class="<?= $iconos['detalles']['informacion'] ?> me-2"></i>Información general
             </h5>
         </div>
         <div class="card-body">

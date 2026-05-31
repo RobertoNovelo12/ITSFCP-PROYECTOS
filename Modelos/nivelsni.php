@@ -1,73 +1,38 @@
 <?php
-// Modelos/nivelsni.php
+// Modelos/NivelSNI.php
 
-require_once __DIR__ . '/../publico/config/conexion.php';
-require_once __DIR__ . '/BaseModelo.php';
+require_once __DIR__ . '/../Repositorios/NivelSNIRepositorio.php';
 
-class NivelSNI extends BaseModelo
+/**
+ * NivelSNI (Modelo)
+ *
+ * Responsabilidad exclusiva: lógica de negocio del módulo de niveles SNI.
+ * Delega toda ejecución SQL a NivelSNIRepositorio.
+ */
+class NivelSNI
 {
+    private NivelSNIRepositorio $repo;
 
-
-    /** Construye la cláusula WHERE dinámica reutilizable. */
-    private function construirWhere(array &$params, string &$types, ?string $buscar, int $filtro): string
+    public function __construct(mysqli $conn)
     {
-        $where = [];
-
-        if ($filtro === 0) {
-            $where[] = 'estado = 0';
-        } elseif ($filtro === 1) {
-            $where[] = 'estado = 1';
-        } else {
-            $where[] = 'estado IN (0, 1)';
-        }
-
-        if (!empty($buscar)) {
-            $where[]  = '(nombre LIKE ? OR fecha_creacion LIKE ?)';
-            $params[] = "%$buscar%";
-            $params[] = "%$buscar%";
-            $types   .= 'ss';
-        }
-
-        return ' WHERE ' . implode(' AND ', $where);
+        $this->repo = new NivelSNIRepositorio($conn);
     }
 
-    // ─
+
+    // 
     // TABLA PRINCIPAL CON PAGINACIÓN
-    // ─
+    // 
 
     public function obtenerTablaFiltro(?string $buscar, int $filtro): array
     {
-        $por_pagina = 6;
-        $pagina     = max(1, (int)($_GET['pagina'] ?? 1));
-        $desde      = ($pagina - 1) * $por_pagina;
-
-        $total         = $this->obtenerCantidadNivelSNI($buscar, $filtro);
+        $por_pagina    = 6;
+        $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
+        $desde         = ($pagina - 1) * $por_pagina;
+        $total         = $this->repo->contarNiveles($buscar, $filtro);
         $total_paginas = max(1, (int)ceil($total / $por_pagina));
 
-        $params = [];
-        $types  = '';
-
-        $sql = "SELECT
-                    id_nivel,
-                    nombre,
-                    fecha_creacion AS crear,
-                    CASE
-                        WHEN estado = 1 THEN 'Activo'
-                        WHEN estado = 0 THEN 'Desactivado'
-                        ELSE 'Desconocido'
-                    END AS estados
-                FROM niveles_sni";
-
-        $sql     .= $this->construirWhere($params, $types, $buscar, $filtro);
-        $sql     .= ' ORDER BY id_nivel ASC LIMIT ?, ?';
-        $params[] = $desde;
-        $params[] = $por_pagina;
-        $types   .= 'ii';
-
-        $data = $this->ejecutar($sql, $types, $params);
-
         return [
-            'niveles_sni' => $data,
+            'niveles_sni' => $this->repo->listarNiveles($buscar, $filtro, $desde, $por_pagina),
             'paginacion'  => [
                 'total'         => $total,
                 'por_pagina'    => $por_pagina,
@@ -79,217 +44,131 @@ class NivelSNI extends BaseModelo
 
     public function obtenerCantidadNivelSNI(?string $buscar = null, int $filtro = 2): int
     {
-        $params = [];
-        $types  = '';
-        $sql    = 'SELECT COUNT(*) AS total FROM niveles_sni';
-        $sql   .= $this->construirWhere($params, $types, $buscar, $filtro);
-
-        $resultado = $this->ejecutar($sql, $types, $params, false);
-        return (int)($resultado['total'] ?? 0);
+        return $this->repo->contarNiveles($buscar, $filtro);
     }
 
-    // ─
+
+    // 
     // OBTENER REGISTRO
-    // ─
+    // 
 
     public function obtenerEditar(int $id_nivel): array
     {
-        $resultado = $this->ejecutar(
-            "SELECT
-                id_nivel,
-                nombre,
-                CASE
-                    WHEN estado = 1 THEN 'Activo'
-                    WHEN estado = 0 THEN 'Desactivado'
-                    ELSE 'Desconocido'
-                END AS estado
-             FROM niveles_sni
-             WHERE id_nivel = ?",
-            'i',
-            [$id_nivel],
-            false
-        );
+        $fila = $this->repo->buscarParaEditar($id_nivel);
 
-        if (!$resultado) throw new Exception('Nivel SNI no encontrado.');
-        return $resultado;
+        if (!$fila) {
+            throw new Exception('Nivel SNI no encontrado.');
+        }
+
+        return $fila;
     }
 
     public function obtenerDetalles(int $id_nivel): array
     {
-        $resultado = $this->ejecutar(
-            "SELECT
-                id_nivel,
-                nombre,
-                fecha_creacion,
-                fecha_modificacion,
-                CASE
-                    WHEN estado = 1 THEN 'Activo'
-                    WHEN estado = 0 THEN 'Desactivado'
-                    ELSE 'Desconocido'
-                END AS estado
-             FROM niveles_sni
-             WHERE id_nivel = ?",
-            'i',
-            [$id_nivel],
-            false
-        );
+        $fila = $this->repo->buscarDetalle($id_nivel);
 
-        if (!$resultado) throw new Exception('Nivel SNI no encontrado.');
-        return $resultado;
+        if (!$fila) {
+            throw new Exception('Nivel SNI no encontrado.');
+        }
+
+        return $fila;
     }
 
     public function obtenerPorId(int $id_nivel, bool $forUpdate = false): ?array
     {
-        $sql = 'SELECT estado FROM niveles_sni WHERE id_nivel = ?';
-        if ($forUpdate) $sql .= ' FOR UPDATE';
-
-        $resultado = $this->ejecutar($sql, 'i', [$id_nivel], false);
-        return $resultado ?: null;
+        return $this->repo->buscarPorId($id_nivel, $forUpdate);
     }
 
-    // ─
+
+    // 
     // CRUD
-    // ─
+    // 
 
     /**
-     * Registra un nuevo Nivel SNI (activo = 1).
-     * DEBE ejecutarse dentro de una transacción.
+     * @return int  ID insertado.
+     * @throws Exception
      */
     public function registrarNivelSNI(string $nombre): int
     {
-        $validacion = $this->verificarNivelSNI($nombre);
+        $validacion = $this->repo->verificarNivel($nombre);
+
         if ($validacion['activo']) {
             throw new Exception('Ya existe un Nivel SNI activo con ese nombre.');
         }
 
-        $this->ejecutar(
-            "INSERT INTO niveles_sni (nombre, estado, fecha_creacion) VALUES (?, 1, NOW())",
-            's',
-            [$nombre]
-        );
-        return (int)$this->conn->insert_id;
+        return $this->repo->insertarNivel($nombre);
     }
 
     /**
-     * Edita un Nivel SNI existente.
-     * DEBE ejecutarse dentro de una transacción.
+     * @return int  El mismo $id_nivel recibido.
      */
     public function editarNivelSNI(string $nombre, int $id_nivel): int
     {
-        $this->ejecutar(
-            "UPDATE niveles_sni SET nombre = ?, fecha_modificacion = NOW() WHERE id_nivel = ?",
-            'si',
-            [$nombre, $id_nivel]
-        );
+        $this->repo->actualizarNivel($nombre, $id_nivel);
+
         return $id_nivel;
     }
 
     /**
-     * Reactiva un Nivel SNI desactivado.
-     * DEBE ejecutarse dentro de una transacción.
+     * @throws Exception
      */
     public function reactivar(int $id_nivel): void
     {
-        $registro = $this->obtenerPorId($id_nivel, true);
-        if (!$registro) throw new Exception('Nivel SNI no encontrado.');
+        $registro = $this->repo->buscarPorId($id_nivel, true);
 
-        $datos = $this->ejecutar(
-            'SELECT nombre FROM niveles_sni WHERE id_nivel = ?',
-            'i',
-            [$id_nivel],
-            false
-        );
-        if (!$datos) throw new Exception('No se pudieron obtener datos del Nivel SNI.');
+        if (!$registro) {
+            throw new Exception('Nivel SNI no encontrado.');
+        }
 
-        $validacion = $this->verificarNivelSNI($datos['nombre']);
+        $datos = $this->repo->buscarNombrePorId($id_nivel);
+
+        if (!$datos) {
+            throw new Exception('No se pudieron obtener datos del Nivel SNI.');
+        }
+
+        $validacion = $this->repo->verificarNivel($datos['nombre']);
+
         if ($validacion['activo']) {
             throw new Exception('Ya existe un Nivel SNI activo con el mismo nombre.');
         }
 
-        $this->ejecutar(
-            "UPDATE niveles_sni SET estado = 1, fecha_modificacion = NOW()
-             WHERE id_nivel = ? AND estado = 0",
-            'i',
-            [$id_nivel]
-        );
+        $afectadas = $this->repo->reactivarNivel($id_nivel);
 
-        if ($this->conn->affected_rows === 0) {
+        if ($afectadas === 0) {
             throw new Exception('El registro ya estaba activo o no se pudo actualizar.');
         }
     }
 
     /**
-     * Desactivación lógica (soft delete).
-     * Devuelve las filas afectadas.
+     * @return int  Filas afectadas.
      */
     public function eliminar_niveles_sni(int $id_nivel): int
     {
-        $this->ejecutar(
-            "UPDATE niveles_sni SET estado = 0, fecha_modificacion = NOW()
-             WHERE id_nivel = ? AND estado <> 0",
-            'i',
-            [$id_nivel]
-        );
-        return $this->conn->affected_rows;
+        return $this->repo->desactivarNivel($id_nivel);
     }
 
-    // ─
+
+    // 
     // VERIFICACIONES DE DUPLICIDAD
-    // ─
+    // 
 
     public function verificarNivelSNI(string $nombre): array
     {
-        $resultado = $this->ejecutar(
-            "SELECT
-                EXISTS(SELECT 1 FROM niveles_sni WHERE estado = 1 AND nombre = ?) AS activo,
-                EXISTS(SELECT 1 FROM niveles_sni WHERE estado = 0 AND nombre = ?) AS desactivado",
-            'ss',
-            [$nombre, $nombre],
-            false
-        );
-        return [
-            'activo'      => (int)($resultado['activo']      ?? 0),
-            'desactivado' => (int)($resultado['desactivado'] ?? 0),
-        ];
+        return $this->repo->verificarNivel($nombre);
     }
 
-    /**
-     * Verifica si existe otro registro con el mismo nombre, excluyendo el ID actual.
-     */
     public function obtenerPorIdDiferente(int $id_nivel, string $nombre): array
     {
-        $resultado = $this->ejecutar(
-            "SELECT
-                EXISTS(
-                    SELECT 1 FROM niveles_sni
-                    WHERE estado = 1 AND nombre = ? AND id_nivel != ?
-                ) AS activo,
-                EXISTS(
-                    SELECT 1 FROM niveles_sni
-                    WHERE estado = 0 AND nombre = ? AND id_nivel != ?
-                ) AS desactivado",
-            'sisi',
-            [$nombre, $id_nivel, $nombre, $id_nivel],
-            false
-        );
-        return [
-            'activo'      => (int)($resultado['activo']      ?? 0),
-            'desactivado' => (int)($resultado['desactivado'] ?? 0),
-        ];
+        return $this->repo->verificarNivelOtroId($id_nivel, $nombre);
     }
 
-    // ─
-    // CONCURRENCIA
-    // ─
 
-    /**
-     * Bloquea los registros activos.
-     * DEBE ejecutarse dentro de una transacción (InnoDB).
-     */
+    // 
+    // CONCURRENCIA
+    // 
+
     public function bloquear_tabla(): void
     {
-        $this->ejecutar(
-            'SELECT id_nivel FROM niveles_sni WHERE estado = 1 FOR UPDATE'
-        );
+        $this->repo->bloquearTabla();
     }
 }

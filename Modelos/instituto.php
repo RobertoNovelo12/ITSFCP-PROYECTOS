@@ -1,58 +1,61 @@
 <?php
-// Modelos/instituto.php
+// Modelos/Instituto.php
 
-require_once __DIR__ . '/../publico/config/conexion.php';
-require_once __DIR__ . '/BaseModelo.php';
+require_once __DIR__ . '/../Repositorios/InstitutoRepositorio.php';
 
-class Instituto extends BaseModelo
+/**
+ * Instituto (Modelo)
+ *
+ * Responsabilidad exclusiva: lógica de negocio del módulo de instituto.
+ * Delega toda ejecución SQL a InstitutoRepositorio.
+ */
+class Instituto
 {
+    private InstitutoRepositorio $repo;
 
-    // 
-    //  CONSULTAS
-    // 
+    public function __construct(mysqli $conn)
+    {
+        $this->repo = new InstitutoRepositorio($conn);
+    }
+
+
+    // ·············································
+    // CONSULTAS
+    // ·············································
 
     public function obtenerDetalles(): ?array
     {
-        return $this->ejecutar(
-            "SELECT * FROM instituto LIMIT 1",
-            "",
-            [],
-            false
-        );
+        return $this->repo->obtenerDetalles();
     }
 
     public function obtenerDirectores(): array
     {
-        return $this->ejecutar(
-            "SELECT id_director, nombre, apellido, estado FROM director ORDER BY nombre ASC"
-        );
+        return $this->repo->listarDirectores();
     }
 
-    // 
-    //  VALIDACIÓN
-    // 
+
+    // ·············································
+    // VALIDACIÓN
+    // ·············································
 
     /**
      * Verifica que el director exista y esté activo.
-     * Lanza excepción si no es válido.
+     *
+     * @throws Exception
      */
     public function validarDirectorActivo(int $id_director): void
     {
-        $row = $this->ejecutar(
-            "SELECT estado FROM director WHERE id_director = ?",
-            "i",
-            [$id_director],
-            false
-        );
+        $fila = $this->repo->buscarEstadoDirector($id_director);
 
-        if (!$row || (int)$row['estado'] !== 1) {
-            throw new Exception("director_inactivo");
+        if (!$fila || (int)$fila['estado'] !== 1) {
+            throw new Exception('director_inactivo');
         }
     }
 
-    // 
-    //  CRUD
-    // 
+
+    // ·············································
+    // CRUD
+    // ·············································
 
     public function editar(
         int $id_instituto,
@@ -66,33 +69,19 @@ class Instituto extends BaseModelo
         string $telefono,
         int $id_director
     ): void {
-        $this->ejecutar(
-            "UPDATE instituto SET
-                nombre           = ?,
-                unidad_academica = ?,
-                direccion        = ?,
-                estado           = ?,
-                correo_instituto = ?,
-                ciudad           = ?,
-                clave_plantel    = ?,
-                telefono         = ?,
-                id_director      = ?
-             WHERE id_instituto  = ?",
-            "ssssssssii",
-            [
-                $nombre, $unidad_academica, $direccion, $estado,
-                $correo_instituto, $ciudad, $clave_plantel, $telefono,
-                $id_director, $id_instituto,
-            ]
+        $this->repo->actualizarInstituto(
+            $id_instituto, $nombre, $unidad_academica, $direccion, $estado,
+            $correo_instituto, $ciudad, $clave_plantel, $telefono, $id_director
         );
     }
 
-    // 
-    //  UTILIDADES
-    // 
+
+    // ·············································
+    // UTILIDADES
+    // ·············································
 
     public function bloquearTabla(): void
     {
-        $this->ejecutar("SELECT id_instituto FROM instituto FOR UPDATE");
+        $this->repo->bloquearTabla();
     }
 }

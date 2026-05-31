@@ -38,7 +38,7 @@ include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 require_once __DIR__ . '/../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
-$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id_usuario);
+$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id_usuario, $id_proyectos);
 $ediciones = $tareaControlador->obtenerEdicionesRecientes($id_tarea, 10);
 
 $campoNombres = [

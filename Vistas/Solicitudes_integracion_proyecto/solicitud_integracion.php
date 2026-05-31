@@ -36,7 +36,7 @@ $ctrl  = new solicitudesControlador();
 
 $periodoActualProyectos = $ctrl->periodoactualSolicitud();
 $hoy = date('Y-m-d');
-$puedeSolicitar = ($hoy >= $periodoActualProyectos['fecha_inicio_pfecha_ifecha_inicio_solicitudnicio_solicitudroyectos']
+$puedeSolicitar = ($hoy >= $periodoActualProyectos['fecha_inicio_solicitud']
     && $hoy <= $periodoActualProyectos['fecha_fin_solicitud']);
 
 if (!$puedeSolicitar) {

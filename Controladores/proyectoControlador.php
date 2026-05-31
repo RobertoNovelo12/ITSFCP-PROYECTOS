@@ -222,7 +222,7 @@ class ProyectoControlador extends BaseControlador
             ),
 
             'Ver Tareas Alumnos' => Botones::botonIcono(
-                '../Tareas/tareas_estudiante.php?id_usuario=' . $id_usuario,
+                '../Tareas/tareas_estudiante.php?id_proyectos=' . $id_proyecto,
                 'info',
                 $iconos['tabla']['tareas_list'],
                 'Ver Tareas'

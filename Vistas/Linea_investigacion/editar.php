@@ -84,7 +84,7 @@ ob_start();
         <?php
         $titulo      = 'Editar Línea de Investigación';
         $descripcion = 'Modificar datos de la línea de investigación';
-        include __DIR__ . '/../../../publico/incluido/_encabezado.php';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">

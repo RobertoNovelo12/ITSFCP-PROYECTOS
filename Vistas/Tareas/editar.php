@@ -19,19 +19,13 @@ if (!in_array($rol, ['investigador', 'profesor'])) {
     exit;
 }
 
-include __DIR__ .  '../../../publico/incluido/_validar_tareas.php';
-
 $id_tarea = $_GET['id_tarea'] ?? null;
 
 //Validación de argumentos en url
-$id_validar = $id_tarea;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $id_proyectos = $_GET['id_proyectos'] ?? $_POST['id_proyectos'] ?? null;
 
 //Validación de argumentos en url
-$id_validar = $id_proyectos;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 
@@ -51,7 +45,7 @@ if ($action === 'actualizarestado' && isset($_GET['id_tarea'])) {
     $tareaControlador->actualizarestado($_GET['id_tarea'], $rol, $_GET['tipo'], $id_proyectos);
 }
 
-$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id );
+$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id, $id_proyectos);
 $ediciones = $tareaControlador->obtenerEdicionesRecientes($id_tarea, 8);
 
 $campoNombres = [
@@ -66,7 +60,6 @@ $lenDescripcion   = mb_strlen(strip_tags($tarea['descripcion']   ?? ''), 'UTF-8'
 $lenInstrucciones = mb_strlen(strip_tags($tarea['instrucciones'] ?? ''), 'UTF-8');
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 
@@ -77,13 +70,13 @@ include __DIR__ . '/../../mensaje.php';
     <div class="row mb-4 align-items-center">
 
         <?php
-        $titulo      = '<?= htmlspecialchars($tarea["titulo_tarea"] ?? "Editar Actividad") ?>';
+        $titulo      = "Editar Actividad";
         $descripcion = 'Modificar instrucciones, descripción y archivo de guía';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
 
         <div class="col-6 col-md-6 text-md-end">
-            <div class="d-flex align-items-center gap-2">
+            <div class="">
                 <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tarea['estado'] ?? '') ?>">
                     <?= htmlspecialchars($tarea['estado'] ?? '') ?>
                 </span>

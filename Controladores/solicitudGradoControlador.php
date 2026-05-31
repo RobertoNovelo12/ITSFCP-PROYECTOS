@@ -274,13 +274,13 @@ class SolicitudGradoControlador
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'correo@gmail.com';    // ← Cambiar
-            $mail->Password   = 'app_password';         // ← Cambiar
+            $mail->Username   = 'luismarioiretaxiu1110@gmail.com';    // ← Cambiar
+            $mail->Password   = 'alsu vdxr vbpb tgkr';         // ← Cambiar
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
 
-            $mail->setFrom('correo@gmail.com', 'Sistema de Proyectos ITSFCP');
+            $mail->setFrom('luismarioiretaxiu1110@gmail.com', 'Sistema de Proyectos ITSFCP');
             $mail->addAddress($destinatario, $nombre);
             $mail->isHTML(true);
             $mail->Subject = 'Resultado de tu solicitud de Grado Académico';

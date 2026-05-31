@@ -491,7 +491,6 @@ class TareaControlador extends BaseControlador
             $id_usuario    = (int)($datos['id_usuario'] ?? $_SESSION['id_usuario'] ?? 0);
 
             $tarea = new Tarea($conn);
-            $tarea->actualizarTareasVencidos();
 
             $id_documento_recurso = null;
             if (!empty($_FILES['archivo']['tmp_name']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
@@ -725,14 +724,14 @@ class TareaControlador extends BaseControlador
     // MOSTRAR TAREA GENERAL (editar / detalles)
     // 
 
-    public function mostrarEditarTarea(int $id_tarea, string $rol, int $id_usuario)
+    public function mostrarEditarTarea(int $id_tarea, string $rol, int $id_usuario, int $id_proyectos)
     {
         global $conn;
         try {
             if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) return [];
             $tareas = new Tarea($conn);
             $tareas->actualizarTareasVencidos();
-            return $tareas->obtenerTareaGeneral($id_tarea, $rol, $id_usuario) ?? [];
+            return $tareas->obtenerTareaGeneral($id_tarea, $rol, $id_usuario, $id_proyectos) ?? [];
         } catch (\Exception $e) {
             error_log('TareaControlador::mostrarEditarTarea() — ' . $e->getMessage());
             $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');

@@ -132,7 +132,7 @@ class AjustesDocumentosRepositorio extends BaseModelo
 
 
     // 
-    // DESACTIVAR  (soft-delete)
+    // DESACTIVAR  (soft-delete o no eliminar por completo, solo desactivar administrativamente)
     // 
 
     /**

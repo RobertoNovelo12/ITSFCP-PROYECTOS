@@ -19,9 +19,9 @@ class TematicaRepositorio extends BaseModelo
     }
 
 
-    // ─────────────────────────────────────────────
+    // 
     // CONTEO PARA PAGINACIÓN
-    // ─────────────────────────────────────────────
+    // 
 
     /**
      * Cuenta temáticas según el filtro de estado y búsqueda.
@@ -29,32 +29,38 @@ class TematicaRepositorio extends BaseModelo
      * @param int         $filtro  2 = todos | 1 = activos | 0 = desactivados
      * @param string|null $buscar  Texto libre sobre nombre_tematica
      */
-    public function contarTematicas(int $filtro, ?string $buscar): int
-    {
-        $sql    = "SELECT COUNT(*) AS total FROM tematica AS tema WHERE 1";
+    public function contarTematicas(
+        int $filtro,
+        ?string $buscar
+    ): int {
+
         $params = [];
         $types  = '';
 
-        if ($filtro === 0 || $filtro === 1) {
-            $sql     .= ' AND tema.estado = ?';
-            $params[] = $filtro;
-            $types   .= 'i';
-        }
+        $sql = "SELECT COUNT(*) AS total
+            FROM tematica AS tema";
 
-        if (!empty($buscar)) {
-            $sql     .= ' AND tema.nombre_tematica LIKE ?';
-            $params[] = "%$buscar%";
-            $types   .= 's';
-        }
+        $sql .= $this->construirWhereEstadoBusqueda(
+            $filtro,
+            $buscar,
+            $params,
+            $types
+        );
 
-        $fila = $this->ejecutar($sql, $types, $params, false);
+        $fila = $this->ejecutar(
+            $sql,
+            $types,
+            $params,
+            false
+        );
+
         return (int)($fila['total'] ?? 0);
     }
 
 
-    // ─────────────────────────────────────────────
+    // 
     // LISTADO PRINCIPAL
-    // ─────────────────────────────────────────────
+    // 
 
     /**
      * Devuelve la página de temáticas con INNER JOIN a subtematica
@@ -97,9 +103,9 @@ class TematicaRepositorio extends BaseModelo
     }
 
 
-    // ─────────────────────────────────────────────
+    // 
     // LISTADO FILTRADO POR ESTADO
-    // ─────────────────────────────────────────────
+    // 
 
     /**
      * Devuelve la página de temáticas filtradas por estado (y búsqueda).
@@ -124,25 +130,15 @@ class TematicaRepositorio extends BaseModelo
                     END AS estado
                 FROM tematica AS tema";
 
-        $where  = [];
         $params = [];
         $types  = '';
 
-        if ($filtro === 0 || $filtro === 1) {
-            $where[]  = 'tema.estado = ?';
-            $params[] = $filtro;
-            $types   .= 'i';
-        }
-
-        if (!empty($buscar)) {
-            $where[]  = 'tema.nombre_tematica LIKE ?';
-            $params[] = "%$buscar%";
-            $types   .= 's';
-        }
-
-        if (!empty($where)) {
-            $sql .= ' WHERE ' . implode(' AND ', $where);
-        }
+        $sql .= $this->construirWhereEstadoBusqueda(
+            $filtro,
+            $buscar,
+            $params,
+            $types
+        );
 
         $sql     .= ' GROUP BY tema.id_tematica ORDER BY tema.id_tematica ASC LIMIT ?, ?';
         $params[] = $desde;
@@ -153,9 +149,9 @@ class TematicaRepositorio extends BaseModelo
     }
 
 
-    // ─────────────────────────────────────────────
+    // 
     // DATOS PARA EDITAR
-    // ─────────────────────────────────────────────
+    // 
 
     /** Devuelve los datos de una temática por su ID. */
     public function buscarTematicaPorId(int $id_tematica): array
@@ -196,9 +192,9 @@ class TematicaRepositorio extends BaseModelo
     }
 
 
-    // ─────────────────────────────────────────────
+    // 
     // CRUD TEMÁTICA
-    // ─────────────────────────────────────────────
+    // 
 
     /** Inserta una nueva temática y devuelve su ID. */
     public function insertarTematica(string $nombre, string $descripcion): int
@@ -249,9 +245,9 @@ class TematicaRepositorio extends BaseModelo
     }
 
 
-    // ─────────────────────────────────────────────
+    // 
     // CRUD SUBTEMÁTICAS
-    // ─────────────────────────────────────────────
+    // 
 
     /** Inserta una subtemática nueva. */
     public function insertarSubtematica(int $id_tematica, string $nombre): void
@@ -301,9 +297,9 @@ class TematicaRepositorio extends BaseModelo
     }
 
 
-    // ─────────────────────────────────────────────
+    // 
     // VALIDACIÓN DE DUPLICADOS
-    // ─────────────────────────────────────────────
+    // 
 
     /**
      * Verifica si ya existe una subtemática con el mismo nombre
@@ -329,5 +325,41 @@ class TematicaRepositorio extends BaseModelo
 
         $fila = $this->ejecutar($sql, $types, $params, false);
         return (int)($fila['total'] ?? 0) > 0;
+    }
+
+    /**
+     * Construye dinámicamente el WHERE para filtros de estado y búsqueda.
+     *
+     * @param int         $filtro 2 = todos | 1 = activos | 0 = desactivados
+     * @param string|null $buscar Texto de búsqueda
+     * @param array       $params Parámetros para bind_param
+     * @param string      $types  Tipos para bind_param
+     *
+     * @return string Cláusula WHERE completa o cadena vacía
+     */
+    private function construirWhereEstadoBusqueda(
+        int $filtro,
+        ?string $buscar,
+        array &$params,
+        string &$types
+    ): string {
+
+        $where = [];
+
+        if ($filtro === 0 || $filtro === 1) {
+            $where[] = 'tema.estado = ?';
+            $params[] = $filtro;
+            $types .= 'i';
+        }
+
+        if (!empty($buscar)) {
+            $where[] = 'tema.nombre_tematica LIKE ?';
+            $params[] = "%{$buscar}%";
+            $types .= 's';
+        }
+
+        return empty($where)
+            ? ''
+            : ' WHERE ' . implode(' AND ', $where);
     }
 }
