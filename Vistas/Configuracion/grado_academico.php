@@ -37,10 +37,13 @@ include __DIR__ . '/../../mensaje.php';
 <div class="container-fluid py-4" style="max-width:95%;">
 
     <!-- HEADER -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-        <div>
-            <h4 class="mb-0 fw-semibold">Configuración de Grado Académico</h4>
-            <small class="text-muted">Solicita cambios y revisa el historial</small>
+    <div class="row mb-4 align-items-center">
+        <?php
+        $titulo      = 'Configuración de Grado Académico';
+        $descripcion = 'Solicita cambios y revisa el historial';
+        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        ?>
+        <div class="col-16 col-md-6 text-md-end">
         </div>
     </div>
 

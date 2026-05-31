@@ -15,9 +15,6 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol         = strtolower($_SESSION['rol'] ?? '');
 $id_usuario  = intval($_SESSION['id_usuario']);
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
-
-
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
@@ -25,18 +22,11 @@ if ($rol !== 'supervisor') {
 
 $id_director = $_GET['id_director'] ?? null;
 
-$id_validar = $id_director;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
-
-
 require_once __DIR__ .  '/../../Controladores/directorControlador.php';
 
 $directorControlador = new directorControlador();
 $datos  = $directorControlador->indexEditar($rol, $id_director);
 $grados = $directorControlador->obtenerGrados($rol);
-
-$registro = $datos;
-include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 //  Mapa de mensajes 
@@ -80,12 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ob_start();
 ?>
 
-<!-- ALERTAS -->
-<?php if (isset($_mapa[$msg])):
-    extract($_mapa[$msg]);
-    include __DIR__ . '../../../publico/incluido/_mensaje.php';
-endif; ?>
-
 <div class="container-fluid py-4 ancho_container">
 
     <!-- ENCABEZADO -->
@@ -101,6 +85,13 @@ endif; ?>
             </a>
         </div>
     </div>
+
+    <!-- ALERTAS -->
+    <?php if (isset($_mapa[$msg])):
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
+
 
     <!-- FORMULARIO -->
     <form method="POST" action="">

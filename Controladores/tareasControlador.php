@@ -240,32 +240,32 @@ class TareaControlador extends BaseControlador
         return match ($tipo) {
 
             'Aprobar' =>
-                '<button type="submit" name="tipo" value="Aprobado" class="btn btn-success btn-sm">
+            '<button type="submit" name="tipo" value="Aprobado" class="btn btn-success btn-sm">
                     <i class="' . $iconos['tabla']['aprobar'] . ' me-1"></i>Aprobar
                 </button>',
 
             'EnviarTarea' =>
-                '<button type="submit" name="tipo" value="Revisar" class="btn btn-primary btn-sm">
+            '<button type="submit" name="tipo" value="Revisar" class="btn btn-primary btn-sm">
                     <i class="' . $iconos['tabla']['subir'] . ' me-1"></i>Enviar tarea
                 </button>',
 
             'ReenviarTarea' =>
-                '<button type="submit" name="tipo" value="Revisar" class="btn btn-primary btn-sm">
+            '<button type="submit" name="tipo" value="Revisar" class="btn btn-primary btn-sm">
                     <i class="' . $iconos['tabla']['volver_enviar'] . ' me-1"></i>Volver a enviar
                 </button>',
 
             'Solicitar Corregir' =>
-                '<button type="submit" name="tipo" value="Corregir" class="btn btn-warning btn-sm">
+            '<button type="submit" name="tipo" value="Corregir" class="btn btn-warning btn-sm">
                     <i class="' . $iconos['tabla']['editar'] . ' me-1"></i>Solicitar corrección
                 </button>',
 
             'Guardar' =>
-                '<button type="submit" form="form-borrador" class="btn btn-outline-secondary btn-sm">
+            '<button type="submit" form="form-borrador" class="btn btn-outline-secondary btn-sm">
                     <i class="' . $iconos['tabla']['guardar'] . ' me-1"></i>Guardar borrador
                 </button>',
 
             'Activar' =>
-                '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente"
+            '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente"
                     class="btn btn-success btn-sm">
                     <i class="' . $iconos['tabla']['aprobar'] . ' me-1"></i>Activar tarea
                 </a>',
@@ -498,6 +498,8 @@ class TareaControlador extends BaseControlador
             }
 
             $tarea->editarTareaGeneral($id_tarea, $descripcion, $instrucciones, $fecha_entrega, $id_documento_recurso, $id_usuario);
+            $tarea->actualizarestado($id_tarea, 1, $id_proyectos, 0, $id_usuario, '', 6);
+
             $conn->commit();
 
             $this->redirigir('exito_editar', 'editar.php', "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
@@ -543,7 +545,8 @@ class TareaControlador extends BaseControlador
                 $id_proyecto,
                 $id_asignacion,
                 $id_usuario,
-                $datos['comentarios'] ?? ''
+                $datos['comentarios'] ?? '',
+                0
             );
 
             $conn->commit();
@@ -655,8 +658,10 @@ class TareaControlador extends BaseControlador
         int    $id_proyectos,
         int    $id_asignacion = 0,
         int    $id_usuarios   = 0,
-        string $comentarios   = ''
+        string $comentarios   = '',
+        int $estado_anterior = 0
     ): void {
+        //$estado_anterior es para reactivar una tarea cuando estaba vencida
         global $conn;
 
         if (!$id_usuarios) {
@@ -667,16 +672,13 @@ class TareaControlador extends BaseControlador
 
         if (!in_array($tipo, ['Revisar', 'Corregir', 'Aprobado', 'Pendiente'], true)) {
             error_log("actualizarestado(): tipo no válido: '{$tipo}'");
-            $this->redirigir(
-                'error_tipo_invalido',
-                'tarea.php',
-                "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}"
-            );
         }
+
 
         $tarea = new Tarea($conn);
         $tarea->actualizarTareasVencidos();
 
+        //El botón tiene el tipo, con etá función se obtiene el valor del tipo
         $numeroEstado = $this->numerofiltro($tipo);
 
         require_once __DIR__ . '/../vendor/autoload.php';
@@ -687,17 +689,14 @@ class TareaControlador extends BaseControlador
         }
         $comentarios_p = $purifier->purify($comentarios);
 
-        $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios_p);
-        $tarea->actualizarTareasConcluidas($id_tarea);
+        if ($numeroEstado == 1 && $estado_anterior == 6) {
+            $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios_p, 6);
+            $tarea->actualizarTareasConcluidas($id_tarea);
 
-        if (in_array($tipo, ['Aprobado', 'Corregir', 'Revisar'], true)) {
-            $this->redirigir(
-                'exito_estado',
-                'tarea.php',
-                "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}"
-            );
-        } else {
-            $this->redirigir('exito_estado', 'editar.php', "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
+        }
+        if ($estado_anterior !== 6) {
+            $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios_p);
+            $tarea->actualizarTareasConcluidas($id_tarea);
         }
     }
 

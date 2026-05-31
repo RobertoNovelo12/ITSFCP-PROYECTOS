@@ -31,14 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // rechazar() redirige; no llega aquí
 }
 
-//  GET: mostrar formulario 
-
-include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = (int)($_GET['id_solicitud'] ?? 0);
-//Validación de argumentos en url
-$id_validar = $id_solicitud;
-include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
 
 $datos     = $ctrl->detalle($id_solicitud);
@@ -48,10 +42,6 @@ $registro = $datos;
 include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 $solicitud = $datos['solicitud'];
-
-// Validación
-$registro = $solicitud;
-include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 
 if ($solicitud['estado'] !== 'pendiente') {

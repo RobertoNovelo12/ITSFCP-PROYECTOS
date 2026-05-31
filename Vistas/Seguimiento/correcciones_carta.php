@@ -30,13 +30,8 @@ if ($rol !== 'estudiante') {
     exit;
 }
 
-include __DIR__ . '/../../../publico/incluido/_validar_get.php';
 
 $id_cierre_est = intval($_GET['id'] ?? 0);
-
-// Validación de argumentos en url
-$id_validar = $id_cierre_est;
-include __DIR__ . '../../../publico/incluido/_validar_id.php';
 
 require_once __DIR__ . '/../../Controladores/seguimientoControlador.php';
 require_once __DIR__ . '/../../publico/config/conexion.php';
@@ -62,10 +57,6 @@ if ((int)$cierre['id_usuarios'] !== $id_usuario) {
 }
 
 $id_proyecto = (int)$cierre['id_proyectos'];
-
-// Validación de id_proyecto
-$id_validar = $id_proyecto;
-include __DIR__ . '/../../../publico/incluido/_validar_id.php';
 
 // El estudiante puede responder si está rechazado o en finalizacion_pendiente
 $estados_activos = ['rechazado', 'finalizacion_pendiente'];

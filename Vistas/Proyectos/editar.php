@@ -14,7 +14,6 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id = $_SESSION['id_usuario'];
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 //Solo investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
@@ -23,9 +22,6 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
 }
 
 $id_proyecto = $_GET["id_proyectos"] ?? null;
-
-$id_validar = $id_proyecto;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 $action = $_POST['action'] ?? null;

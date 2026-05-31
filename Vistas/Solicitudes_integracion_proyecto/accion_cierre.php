@@ -24,22 +24,9 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
 
 $id_seg   = intval($_GET['id_seg']  ?? 0);
 
-//Validación de argumentos en url
-$id_validar = $id_seg;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
-
-
 $id_sol   = intval($_GET['id_sol']  ?? 0);
 
-//Validación de argumentos en url
-$id_validar = $id_sol;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
-
 $estado   = $_GET['estado']         ?? ''; // 'completado' | 'correcciones' | 'rechazado'
-
-//Validación de argumentos en url
-$id_validar = $estado;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 if (!$id_seg || !$id_sol || !in_array($estado, ['completado', 'correcciones', 'rechazado'], true)) {

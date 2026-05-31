@@ -201,7 +201,7 @@ class ProyectoControlador extends BaseControlador
     // BOTONES INDIVIDUALES
     // 
 
-     public function obtenerbotones(string $tipo, int $id_proyecto, ?int $id_usuario = null): string
+    public function obtenerbotones(string $tipo, int $id_proyecto, ?int $id_usuario = null): string
     {
         include __DIR__ . '../../publico/incluido/_iconos.php';
 
@@ -567,6 +567,7 @@ class ProyectoControlador extends BaseControlador
     {
         global $conn;
         try {
+
             $this->validarMetodo('GET');
             $this->validarAcceso($rol, ['supervisor', 'investigador', 'profesor']);
 

@@ -135,6 +135,15 @@ class SolicitudGrado
         return ['ok' => true, 'msg' => 'Solicitud de grado académico enviada correctamente. Queda pendiente de revisión.'];
     }
 
+    // 
+    //  VERIFICAR SOLICITUD PENDIENTE ACTIVA
+    // 
+
+    public function tieneSolicitudPendiente($id_usuario)
+    {
+                return $this->repo->tieneSolicitudPendiente($id_usuario);
+    }
+
 
     // 
     // HISTORIAL DEL INVESTIGADOR (línea de tiempo)

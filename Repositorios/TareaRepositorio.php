@@ -50,7 +50,7 @@ class TareaRepositorio extends BaseModelo
         );
     }
 
-    public function insertarHistorialVencidoBatch(array $asignaciones): void
+    public function insertarHistorialVencido(array $asignaciones): void
     {
         $stmt = $this->conn->prepare(
             "INSERT INTO tareas_historial
@@ -91,7 +91,7 @@ class TareaRepositorio extends BaseModelo
      * Batch: procesa cada tarea del array para marcarla como concluida
      * si todos los alumnos activos del proyecto la tienen aprobada.
      */
-    public function procesarConclusionesBatch(array $tareas): void
+    public function procesarConclusiones(array $tareas): void
     {
         $stmtTotal = $this->conn->prepare(
             "SELECT COUNT(*) AS total
@@ -380,7 +380,7 @@ class TareaRepositorio extends BaseModelo
     /**
      * Inserta filas de historial de edición para un lote de asignaciones y cambios.
      */
-    public function insertarHistorialEdicionBatch(array $asignaciones, array $cambios, int $id_usuario): void
+    public function insertarHistorialEdicion(array $asignaciones, array $cambios, int $id_usuario): void
     {
         $stmt = $this->conn->prepare(
             "INSERT INTO tareas_historial
@@ -479,7 +479,7 @@ class TareaRepositorio extends BaseModelo
     /**
      * Inserta asignación si no existe, luego obtiene su id y registra historial.
      */
-    public function activarTareaParaAlumnosBatch(int $id_tarea, array $alumnos, int $id_usuario): void
+    public function activarTareaParaAlumnos(int $id_tarea, array $alumnos, int $id_usuario): void
     {
         $stmtIns = $this->conn->prepare(
             "INSERT INTO tareas_usuarios (id_tarea, id_usuarios, id_estadoT)

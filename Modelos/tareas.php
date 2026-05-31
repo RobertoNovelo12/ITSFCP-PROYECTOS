@@ -30,7 +30,7 @@ class Tarea
         if (empty($vencidos)) return;
 
         $this->repo->marcarVencidas($hoy);
-        $this->repo->insertarHistorialVencidoBatch($vencidos);
+        $this->repo->insertarHistorialVencido($vencidos);
     }
 
     /**
@@ -41,7 +41,7 @@ class Tarea
     {
         $tareas = $this->repo->obtenerTareasActivas($id_tarea);
         if (empty($tareas)) return;
-        $this->repo->procesarConclusionesBatch($tareas);
+        $this->repo->procesarConclusiones($tareas);
     }
 
 
@@ -104,9 +104,18 @@ class Tarea
     ): int {
         $id_proyecto = $id_proyecto ?: null;
         return $this->repo->registrarDocumento(
-            $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
-            $tamano_bytes, $tipo, $visibilidad, $id_usuario,
-            $id_proyecto, $etapa, $version
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $tipo,
+            $visibilidad,
+            $id_usuario,
+            $id_proyecto,
+            $etapa,
+            $version
         );
     }
 
@@ -131,15 +140,34 @@ class Tarea
         if (!$primeraAsig) return;
 
         $cambios = [];
-        if ($actual['descripcion']   !== $descripcion)   $cambios[] = ['campo_modificado' => 'descripcion',   'valor_anterior' => $actual['descripcion'],   'valor_nuevo' => $descripcion];
-        if ($actual['instrucciones'] !== $instrucciones) $cambios[] = ['campo_modificado' => 'instrucciones', 'valor_anterior' => $actual['instrucciones'], 'valor_nuevo' => $instrucciones];
-        if ($actual['fecha_entrega'] !== $fecha_entrega) $cambios[] = ['campo_modificado' => 'fecha_entrega', 'valor_anterior' => $actual['fecha_entrega'], 'valor_nuevo' => $fecha_entrega];
-        if ($id_documento_recurso !== null)               $cambios[] = ['campo_modificado' => 'archivo_guia',  'valor_anterior' => null,                    'valor_nuevo' => 'Nuevo archivo subido'];
 
+        $campos = [
+            'descripcion'   => $descripcion,
+            'instrucciones' => $instrucciones,
+            'fecha_entrega' => $fecha_entrega
+        ];
+
+        foreach ($campos as $campo => $nuevoValor) {
+            if ($actual[$campo] !== $nuevoValor) {
+                $cambios[] = [
+                    'campo_modificado' => $campo,
+                    'valor_anterior'   => $actual[$campo],
+                    'valor_nuevo'      => $nuevoValor
+                ];
+            }
+        }
+
+        if ($id_documento_recurso !== null) {
+            $cambios[] = [
+                'campo_modificado' => 'archivo_guia',
+                'valor_anterior'   => null,
+                'valor_nuevo'      => 'Nuevo archivo subido'
+            ];
+        }
         if (empty($cambios)) return;
 
         $todasAsig = $this->repo->obtenerTodasAsignaciones($id_tarea);
-        $this->repo->insertarHistorialEdicionBatch($todasAsig, $cambios, $id_usuario);
+        $this->repo->insertarHistorialEdicion($todasAsig, $cambios, $id_usuario);
     }
 
 
@@ -185,7 +213,8 @@ class Tarea
         int    $id_proyectos,
         int    $id_asignacion,
         int    $id_usuarios,
-        string $comentario
+        string $comentario,
+        int $estado_anterior = 0
     ): void {
         if ($numeroEstado === 0) {
             error_log("actualizarestado (modelo): numeroEstado=0, se ignora.");
@@ -193,6 +222,11 @@ class Tarea
         }
 
         // ESTADO 1 — ACTIVAR TAREA
+        if ($numeroEstado === 1 && $estado_anterior === 6) {
+            $this->repo->actualizarEstadoTarea($id_tarea, $numeroEstado);
+
+            return;
+        }
         if ($numeroEstado === 1) {
             $this->repo->actualizarEstadoTarea($id_tarea, $numeroEstado);
 
@@ -206,7 +240,7 @@ class Tarea
             $id_tarea     = (int)$proy['id_tarea'];
 
             $alumnos = $this->repo->obtenerAlumnosActivosProyecto($id_proyectos);
-            $this->repo->activarTareaParaAlumnosBatch($id_tarea, $alumnos, $id_usuarios);
+            $this->repo->activarTareaParaAlumnos($id_tarea, $alumnos, $id_usuarios);
             return;
         }
 

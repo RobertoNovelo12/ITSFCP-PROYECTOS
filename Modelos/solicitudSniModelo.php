@@ -135,6 +135,15 @@ class SolicitudSni
         return ['ok' => true, 'msg' => 'Solicitud de nivel SNI enviada correctamente. Queda pendiente de revisión.'];
     }
 
+       // 
+    // DATOS ACTUALES DEL INVESTIGADOR
+    // 
+
+    public function tieneSolicitudPendiente(int $id_usuario)
+    {
+        return $this->repo->tieneSolicitudPendiente($id_usuario);
+    }
+
 
     // 
     // HISTORIAL DEL INVESTIGADOR (línea de tiempo)

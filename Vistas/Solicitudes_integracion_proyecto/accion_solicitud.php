@@ -21,18 +21,11 @@ if (!in_array($rol, ['investigador', 'profesor'], true)) {
     exit;
 }
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = intval($_GET['id'] ?? 0);
-//Validación de argumentos en url
-$id_validar = $id_solicitud;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $tipo = $_GET['tipo'] ?? ''; // 'correcciones' | 'rechazar'
 
-//Validación de argumentos en url
-$id_validar = $tipo;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 if (!$id_solicitud || !in_array($tipo, ['correcciones', 'rechazar'], true)) {
     header("Location: index.php");

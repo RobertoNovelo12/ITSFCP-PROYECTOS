@@ -34,10 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $instituto  = $controlador->indexDetalles($rol);
 $directores = $controlador->directores();
 
-//Validación de argumentos en url
-$id_validar = $instituto;
-include __DIR__ . '../../../publico/incluido/_validar_id.php';
-
 //  Mapa de mensajes 
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [

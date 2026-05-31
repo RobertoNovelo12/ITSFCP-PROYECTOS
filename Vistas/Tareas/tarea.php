@@ -13,8 +13,6 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id  = (int)$_SESSION['id_usuario'];
 
-// include __DIR__ .  ' Validar GET no vacío (reutilizable _validar_tareas.php) include __DIR__ .  '
-include __DIR__ .  '../../../publico/incluido/_validar_tareas.php';
 
 // Solo investigador y estudiante pueden acceder
 if (!in_array($rol, ['investigador', 'estudiante', 'supervisor'], true)) {
@@ -22,18 +20,11 @@ if (!in_array($rol, ['investigador', 'estudiante', 'supervisor'], true)) {
     exit;
 }
 
-// include __DIR__ .  ' Validar IDs de URL include __DIR__ .  '─
 $id_proyecto   = (int)($_GET['id_proyectos']  ?? 0);
-$id_validar    = $id_proyecto;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $id_asignacion = (int)($_GET['id_asignacion'] ?? 0);
-$id_validar    = $id_asignacion;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $id_tarea      = (int)($_GET['id_tarea']      ?? 0);
-$id_validar    = $id_tarea;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 require_once __DIR__ .  '/../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
@@ -110,7 +101,6 @@ $datos = $tareaControlador->mostrarTarea($id_asignacion, $rol, $id, $id_proyecto
 
 // Validar que se encontró el registro (reutilizable _validar_datos.php)
 $registro = $datos;
-include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 $resultado         = $tareaControlador->info_linea_tiempo($id_asignacion);
 $historialAgrupado = $resultado['datos'];
@@ -197,7 +187,7 @@ ob_start();
     </div>
 
         <!-- include __DIR__ .  ' Mensajes de feedback (patrón $_mapa) include __DIR__ .  ' -->
-    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); include __DIR__ . '/../../../publico/incluido/_mensaje.php'; endif; ?>
+    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); include __DIR__ . '../../../publico/incluido/_mensaje.php'; endif; ?>
 
     <!-- Alerta: tarea modificada por investigador -->
     <?php if (!empty($datos['fecha_modificacion'])): ?>

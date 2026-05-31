@@ -22,13 +22,9 @@ require_once __DIR__ .  '/../../Controladores/solicitudesControlador.php';
 
 $ctrl         = new solicitudesControlador();
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_solicitud = intval($_GET['id'] ?? 0);
 
-//Validación de argumentos en url
-$id_validar = $id_solicitud;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 //  Acción directa: aceptar desde esta página ─

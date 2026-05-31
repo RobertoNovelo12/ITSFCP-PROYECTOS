@@ -58,6 +58,20 @@ $campoNombres = [
 // Longitud actual del contenido ya guardado (sin HTML)
 $lenDescripcion   = mb_strlen(strip_tags($tarea['descripcion']   ?? ''), 'UTF-8');
 $lenInstrucciones = mb_strlen(strip_tags($tarea['instrucciones'] ?? ''), 'UTF-8');
+$msg = $_GET['msg'] ?? '';
+
+$_mapa = [
+    'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Proyecto actualizado',   'mensaje' => 'El proyecto fue editado correctamente.'],
+    'exito_estado'       => ['tipo' => 'exito',  'titulo_msg' => 'Estado actualizado',     'mensaje' => 'El estado del proyecto fue actualizado correctamente.'],
+    'exito_operacion'    => ['tipo' => 'exito',  'titulo_msg' => 'Operación completada',   'mensaje' => 'La operación sobre el estudiante fue realizada correctamente.'],
+    'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
+    'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar el proyecto. Verifica los datos e intenta de nuevo.'],
+    'error_estado'       => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',        'mensaje' => 'No fue posible actualizar el estado del proyecto.'],
+    'error_operacion'    => ['tipo' => 'error',  'titulo_msg' => 'Error en la operación',  'mensaje' => 'No fue posible completar la operación sobre el estudiante.'],
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver la información del proyecto.'],
+    'sin_permiso_tarea'   => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver las tareas del proyecto.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+];
 
 ob_start();
 ?>
@@ -87,6 +101,15 @@ ob_start();
             </div>
         </div>
     </div>
+
+        <!-- ALERTAS -->
+    <?php
+
+    if (isset($_mapa[$msg])) {
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    }
+    ?>
 
     <!--  Última edición ─ -->
     <?php if (!empty($tarea['fecha_modificacion'])): ?>

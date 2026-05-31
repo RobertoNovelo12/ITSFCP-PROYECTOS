@@ -12,20 +12,11 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol          = strtolower($_SESSION['rol'] ?? '');
 $id_usuario   = intval($_SESSION['id_usuario']);
 
-require_once '../../../publico/incluido/_validar_get.php';
-
 
 $id_proyectos = $_GET['id_proyectos'] ?? null;
 
-//Validación de argumentos en url
-$id_validar = $id_proyectos;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
-
 $motivo = $_GET['motivo']       ?? null;
 
-//Validación de argumentos en url
-$id_validar = $motivo;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");

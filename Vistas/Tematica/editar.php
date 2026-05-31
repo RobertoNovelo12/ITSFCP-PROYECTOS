@@ -17,7 +17,6 @@ $tematicaControlador = new TematicaControlador();
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -26,14 +25,13 @@ if ($rol !== 'supervisor') {
 
 $id_tematica = isset($_GET['id_tematica']) ? intval($_GET['id_tematica']) : 0;
 
-//Validación de argumentos en url
-$id_validar = $id_tematica;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
-
-
 $datos = $tematicaControlador->indexEditar($rol, $id_tematica);
 
 $tematica = $datos['tematica'][0];
+// Validación
+$registro = $tematica;
+include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
+
 $subtematicas = $datos['subtematicas'];
 
 $action = $_POST['action'] ?? null;

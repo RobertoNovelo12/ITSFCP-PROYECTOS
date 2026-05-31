@@ -11,17 +11,12 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario  = (int)$_SESSION['id_usuario'];
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
-
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
     exit;
 }
 
 $id_periodos = (int)($_GET['id_periodos'] ?? 0);
-
-$id_validar = $id_periodos;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 require_once __DIR__ .  '/../../Controladores/periodoControlador.php';
 

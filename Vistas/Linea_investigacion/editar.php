@@ -15,12 +15,8 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 $id_linea   = (int)($_GET['id_linea'] ?? 0);
-
-$id_validar = $id_linea;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 if ($rol !== 'supervisor') {
     header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
@@ -33,10 +29,6 @@ $ctrl    = new LineaInvestigacionControlador();
 $action  = $_POST['action'] ?? null;
 $datos   = $ctrl->indexEditar($rol, $id_linea);
 $mensaje = '';
-
-// Validación
-$registro = $datos;
-include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 //  Procesar acción POST 

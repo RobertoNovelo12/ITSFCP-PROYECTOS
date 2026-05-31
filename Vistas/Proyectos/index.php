@@ -28,8 +28,15 @@ require_once "../../Controladores/proyectoControlador.php";
 $proyectoControlador = new ProyectoControlador();
 $periodo = $proyectoControlador->periodoactual();
 
+
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
+    if (isset($_GET['id_proyectos'], $_GET['tipo'])) {
+        $proyectoControlador->actualizarestado($_GET['id_proyectos'], $rol, $_GET['tipo']);
+    }
+}
+
 // Solo acciones de proyectos (no solicitudes)
-$accionesPermitidas = ['index', 'Total', 'Activos', 'Cierre', 'PorAprobar', 'Rechazados', 'PorCerrar', 'Vencido', 'Cierrerechazado'];
+$accionesPermitidas = ['index', 'Total', 'Activos', 'Cierre', 'PorAprobar', 'Rechazados', 'PorCerrar', 'Vencido', 'Cierrerechazado','actualizarestado'];
 if (!in_array($action, $accionesPermitidas)) {
     header("Location: index.php?msg=accion_no_permitida");
 }

@@ -15,7 +15,6 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
@@ -25,21 +24,12 @@ if ($rol !== 'supervisor') {
 $id_nivel   = (int)($_GET['id_nivel'] ?? 0);
 
 
-
-$id_validar = $id_nivel;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
-
-
 require_once __DIR__ .  '/../../Controladores/nivelsniControlador.php';
 
 $ctrl    = new NivelsniControlador();
 $action  = $_POST['action'] ?? null;
 $datos   = $ctrl->indexEditar($rol, $id_nivel);
 $mensaje = '';
-
-// Validación
-$registro = $datos;
-include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 
 
 //  Procesar acción POST 

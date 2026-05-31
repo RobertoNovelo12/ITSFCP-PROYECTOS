@@ -14,7 +14,6 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 if ($rol !== 'supervisor') {
     header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
@@ -23,9 +22,6 @@ if ($rol !== 'supervisor') {
 
 $id_tipo_documento = $_GET["id_tipo_documento"] ?? null;
 
-//Validación de argumentos en url
-$id_validar = $id_tipo_documento;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 $action = $_POST['action'] ?? null;
 require_once __DIR__ . '/../../Controladores/ajustesTiposDocumentoscontrolador.php';

@@ -22,14 +22,8 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
 $id_cierre_est = intval($_GET['id'] ?? 0);
-
-//Validación de argumentos en url
-$id_validar = $id_cierre_est;
-include __DIR__ . '../../../publico/incluido/_validar_id.php';
-
 
 include __DIR__ . '../../Controladores/solicitudes_carta_terminacionControlador.php';
 $ctrl  = new solicitudes_carta_terminacionControlador();

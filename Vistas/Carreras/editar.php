@@ -11,13 +11,8 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
-
 
 $id_carrera = (int)($_GET['id_carrera'] ?? 0);
-
-$id_validar = $id_carrera;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 if ($rol !== 'supervisor') {
@@ -46,11 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 //  Cargar datos actuales de la carrera 
 $datos = $carreraControlador->indexEditar($rol, $id_carrera);
-
-// Validación
-$registro = $datos;
-include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
-
 
 //  Mapa de mensajes ─
 $msg   = $_GET['msg'] ?? '';
