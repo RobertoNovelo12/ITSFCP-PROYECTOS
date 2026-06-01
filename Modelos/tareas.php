@@ -23,6 +23,18 @@ class Tarea
     // MANTENIMIENTO AUTOMÁTICO
     // ─
 
+    /**
+     * Marca automáticamente como vencidas las tareas cuya fecha de entrega
+     * ya expiró.
+     *
+     * Decisión de diseño:
+     * Una tarea en estado "Vencido" no puede ser enviada por el estudiante.
+     *
+     * Futuro:
+     * Puede implementarse un flujo de "Entrega tardía" (estado 10), donde
+     * el investigador reactive o permita la entrega después del vencimiento.
+     */
+
     public function actualizarTareasVencidos(): void
     {
         $hoy      = date('Y-m-d');
@@ -203,9 +215,7 @@ class Tarea
     }
 
 
-    // ─
     // ACTUALIZAR ESTADO
-    // ─
 
     public function actualizarestado(
         int    $id_tarea,
@@ -214,48 +224,86 @@ class Tarea
         int    $id_asignacion,
         int    $id_usuarios,
         string $comentario,
-        int $estado_anterior = 0
+        int    $estadoActual = 0
     ): void {
+
         if ($numeroEstado === 0) {
-            error_log("actualizarestado (modelo): numeroEstado=0, se ignora.");
             return;
         }
 
-        // ESTADO 1 — ACTIVAR TAREA
-        if ($numeroEstado === 1 && $estado_anterior === 6) {
-            $this->repo->actualizarEstadoTarea($id_tarea, $numeroEstado);
+        //Reactivar tarea vencida
+
+        if ($numeroEstado === 1 && $estadoActual === 6) {
+
+            //Se obtienen las ID's de las tareas
+            $asignaciones = $this->repo->obtenerAsignacionesVencidasDeTarea($id_tarea);
+            //Se actualiza el estado de la plantilla
+            $this->repo->actualizarEstadoTarea($id_tarea, 1);
+            //Se actualiza el estado de las tareas de los usuarios
+            $this->repo->reactivarAsignacionesVencidas($id_tarea);
+            //Se insertan los cambios en el historial
+            $this->repo->insertarHistorialReactivacion(
+                $asignaciones,
+                $id_usuarios
+            );
 
             return;
         }
+
+        //Activar tarea
+
         if ($numeroEstado === 1) {
-            $this->repo->actualizarEstadoTarea($id_tarea, $numeroEstado);
+
+            $this->repo->actualizarEstadoTarea($id_tarea, 1);
 
             $proy = $this->repo->obtenerProyectoDeTarea($id_tarea);
+
             if (!$proy) {
-                error_log("actualizarestado: no se encontró proyecto para id_tarea={$id_tarea}");
                 return;
             }
 
             $id_proyectos = (int)$proy['id_proyectos'];
-            $id_tarea     = (int)$proy['id_tarea'];
 
             $alumnos = $this->repo->obtenerAlumnosActivosProyecto($id_proyectos);
-            $this->repo->activarTareaParaAlumnos($id_tarea, $alumnos, $id_usuarios);
+
+            $this->repo->activarTareaParaAlumnos(
+                $id_tarea,
+                $alumnos,
+                $id_usuarios
+            );
+
             return;
         }
 
-        // ESTADOS 2 (Revisar), 3 (Corregir), 5 (Aprobado)
-        if (!in_array($numeroEstado, [2, 3, 5], true)) {
-            error_log("actualizarestado (modelo): estado no válido recibido: {$numeroEstado}");
+        //Estados permitidos
+
+        $permitidos = [
+            2, // Revisar
+            3, // Corregir
+            5, // Aprobado
+            11 // Entrega tardía
+        ];
+
+        if (!in_array($numeroEstado, $permitidos, true)) {
             return;
         }
+
+        //Actualizar asignación
 
         if ($id_asignacion !== 0) {
+
             $this->repo->actualizarEstadoAsignacion($id_asignacion, $numeroEstado);
+
             $this->repo->insertarHistorialEstado($id_asignacion, $numeroEstado, $id_usuarios, $comentario);
-        } else {
-            $this->repo->actualizarEstadoAsignacionesDeTarea($id_tarea, $numeroEstado);
+
+            return;
         }
+
+        //Actualizar todos los alumnos
+        $this->repo->actualizarEstadoAsignacionesDeTarea(
+            $id_tarea,
+            $numeroEstado
+        );
     }
 
 
@@ -345,5 +393,18 @@ class Tarea
             'datos'      => $agrupado,
             'paginacion' => compact('total', 'por_pagina', 'pagina', 'total_paginas'),
         ];
+    }
+
+    public function obtenerperiodo(): array
+    {
+        return $this->repo->listarPeriodoActual();
+    }
+
+    //Para obtener la información del proyecto por medio de la tarea. 
+    //Para validar fecha límite para asignar la fecha de entrega de tarea
+    public function obtenerProyectoPorTarea(int $id_tarea)
+    {
+        global $conn;
+        return $this->repo->obtenerProyectoPorTarea($id_tarea);
     }
 }

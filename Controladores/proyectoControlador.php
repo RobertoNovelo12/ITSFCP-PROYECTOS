@@ -455,34 +455,109 @@ class ProyectoControlador extends BaseControlador
     public function registrarProyecto(array $datos, int $id, string $rol): void
     {
         global $conn;
+
         try {
             $this->validarMetodo('POST');
             $this->validarAcceso($rol, ['investigador', 'profesor']);
 
-            $subtematicas = $datos['subtematicas'] ?? [];
-            if (empty($subtematicas) || empty($datos['NombreProyecto'])) {
-                throw new Exception("Datos incompletos");
+            // 
+            // VALIDAR PERIODO DE CREACIÓN
+            // 
+            $periodo = $this->obtenerperiodo();
+
+            if (empty($periodo) || empty($periodo[0])) {
+                $this->redirigir('periodo_vencido');
             }
 
-            $periodo   = $this->obtenerperiodo();
-            $instituto = $this->obtenerInstituto()[0] ?? null;
-            if (!$instituto) {
-                throw new Exception("No se encontró instituto");
+            $periodo = $periodo[0];
+
+            $hoy = date('Y-m-d');
+
+            if (
+                $hoy < $periodo['fecha_inicio_proyectos'] ||
+                $hoy > $periodo['fecha_fin_proyectos']
+            ) {
+                $this->redirigir('periodo_vencido');
             }
+
+            // 
+            // VALIDAR DATOS OBLIGATORIOS
+            // 
+            $subtematicas = $datos['subtematicas'] ?? [];
+
+            if (
+                empty($subtematicas) ||
+                empty(trim($datos['NombreProyecto'] ?? ''))
+            ) {
+                $this->redirigir('error_crear');
+            }
+
+            // 
+            // VALIDAR FECHAS DEL PROYECTO
+            // 
+            $fechaInicio = $datos['FechaInicio'] ?? '';
+            $fechaFinal  = $datos['FechaFinal'] ?? '';
+
+            if (empty($fechaInicio) ||  empty($fechaFinal)) {
+                $this->redirigir('error_crear');
+            }
+
+            $inicio = new DateTime($fechaInicio);
+            $fin    = new DateTime($fechaFinal);
+
+            if ($fin < $inicio) {
+                $this->redirigir('error_crear');
+            }
+
+            // Máximo 1 año
+            $limite = clone $inicio;
+            $limite->modify('+1 year');
+
+            if ($fin > $limite) {
+                $this->redirigir('error_crear');
+            }
+
+            //Evitar que capturen antes de la fecha de inicio
+            if ($inicio < new DateTime($periodo['fecha_inicio'])) {
+                $this->redirigir('error_crear');
+            }
+
+            //Evitar que capturen después de un año de la fecha final
+            $limiteMaximo = new DateTime($periodo['fecha_final']);
+            $limiteMaximo->modify('+1 year');
+
+            if ($fin > $limiteMaximo) {
+                $this->redirigir('error_crear');
+            }
+
+            // 
+            // OBTENER INSTITUTO
+            // 
+            $instituto = $this->obtenerInstituto()[0] ?? null;
+
+            if (!$instituto) {
+                $this->redirigir('error_sin_registro');
+            }
+
+            // 
+            // REGISTRAR PROYECTO
+            // 
+            $conn->begin_transaction();
 
             $modelo = new Proyectos($conn);
+
             $modelo->actualizarProyectosVencidos();
 
             $proyectoId = $modelo->registrarProyecto(
                 $id,
-                3, // id_estadoP = 'Por aprobar'
+                3, // Por aprobar
                 (int)$instituto['id_instituto'],
-                (int)$periodo[0]['id_periodos'],
+                (int)$periodo['id_periodos'],
                 $datos['NombreProyecto'],
                 $datos['Descripcion'],
                 $datos['Objetivos'],
-                $datos['FechaInicio'],
-                $datos['FechaFinal'],
+                $fechaInicio,
+                $fechaFinal,
                 $datos['Presupuesto'],
                 $datos['Requisitos'],
                 $datos['Pre_requisitos'],
@@ -491,16 +566,38 @@ class ProyectoControlador extends BaseControlador
             );
 
             foreach ($subtematicas as $idSub) {
-                $modelo->vincularSubtematica($proyectoId, (int)$idSub);
+                $modelo->vincularSubtematica(
+                    $proyectoId,
+                    (int)$idSub
+                );
             }
+
+            $conn->commit();
 
             $this->redirigir('exito_crear');
         } catch (Exception $e) {
-            error_log($e->getMessage());
-            // Si el error viene de validarAcceso usamos su clave directamente,
-            // en cualquier otro caso mostramos el mensaje genérico de creación.
-            $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_crear';
-            $this->redirigir($msg);
+
+            if ($conn->errno === 0) {
+                try {
+                    $conn->rollback();
+                } catch (Exception $ex) {
+                }
+            }
+
+            error_log('ProyectoControlador::registrarProyecto() - ' . $e->getMessage());
+
+            $mensaje = $e->getMessage();
+
+            if (in_array($mensaje, [
+                'accion_no_permitida',
+                'periodo_vencido',
+                'error_sin_registro'
+            ], true)) {
+
+                $this->redirigir($mensaje);
+            }
+
+            $this->redirigir('error_crear');
         }
     }
 

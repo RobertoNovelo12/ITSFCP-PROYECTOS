@@ -186,8 +186,10 @@ ob_start();
         </div>
     </div>
 
-        <!-- include __DIR__ .  ' Mensajes de feedback (patrón $_mapa) include __DIR__ .  ' -->
-    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); include __DIR__ . '../../../publico/incluido/_mensaje.php'; endif; ?>
+    <!-- include __DIR__ .  ' Mensajes de feedback (patrón $_mapa) include __DIR__ .  ' -->
+    <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
 
     <!-- Alerta: tarea modificada por investigador -->
     <?php if (!empty($datos['fecha_modificacion'])): ?>
@@ -275,9 +277,10 @@ ob_start();
 
                     <input type="hidden" name="action"
                         value="<?= $rol === 'estudiante' ? 'editarTareaEstudiante' : 'editarTareaRevisar' ?>">
-                    <input type="hidden" name="id_tarea"       value="<?= (int)$datos['id_tarea'] ?>">
-                    <input type="hidden" name="id_proyectos"   value="<?= (int)$datos['id_proyectos'] ?>">
-                    <input type="hidden" name="id_asignacion"  value="<?= (int)$datos['id_asignacion'] ?>">
+                    <input type="hidden" name="id_tarea" value="<?= (int)$datos['id_tarea'] ?>">
+                    <input type="hidden" name="id_estadoT" value="<?= (int)$datos['id_estadoT'] ?>">
+                    <input type="hidden" name="id_proyectos" value="<?= (int)$datos['id_proyectos'] ?>">
+                    <input type="hidden" name="id_asignacion" value="<?= (int)$datos['id_asignacion'] ?>">
                     <input type="hidden" name="tipo" id="campo-tipo" value="">
 
                     <?= $tareaControlador->tareas($datos['tipo_tarea'], $rol, $datos) ?? '' ?>
@@ -312,13 +315,13 @@ ob_start();
                         enctype="multipart/form-data"
                         class="d-none">
 
-                        <input type="hidden" name="action"       value="guardar_borrador">
-                        <input type="hidden" name="id_tarea"     value="<?= (int)$datos['id_tarea'] ?>">
+                        <input type="hidden" name="action" value="guardar_borrador">
+                        <input type="hidden" name="id_tarea" value="<?= (int)$datos['id_tarea'] ?>">
                         <input type="hidden" name="id_proyectos" value="<?= (int)$datos['id_proyectos'] ?>">
                         <input type="hidden" name="id_asignacion" value="<?= (int)$datos['id_asignacion'] ?>">
                         <!-- Rellenados por JS justo antes del submit -->
-                        <input type="hidden" name="contenido"    id="borrador-contenido">
-                        <input type="hidden" name="comentarios"  id="borrador-comentarios">
+                        <input type="hidden" name="contenido" id="borrador-contenido">
+                        <input type="hidden" name="comentarios" id="borrador-comentarios">
                     </form>
                 <?php endif; ?>
 
@@ -414,7 +417,11 @@ ob_start();
         color: #374151;
         line-height: 1.5;
     }
-    .nota-explicacion svg { color: #3b82f6; margin-top: .1rem; }
+
+    .nota-explicacion svg {
+        color: #3b82f6;
+        margin-top: .1rem;
+    }
 
     .char-counter {
         font-size: .78rem;
@@ -422,34 +429,44 @@ ob_start();
         text-align: right;
         transition: color .2s;
     }
-    .char-counter.near-limit { color: #d97706; font-weight: 600; }
-    .char-counter.over-limit { color: #dc2626; font-weight: 700; }
+
+    .char-counter.near-limit {
+        color: #d97706;
+        font-weight: 600;
+    }
+
+    .char-counter.over-limit {
+        color: #dc2626;
+        font-weight: 700;
+    }
 </style>
 
 <script>
     (function() {
         'use strict';
 
-        const esSoloLectura  = <?= in_array($rol, ['investigador', 'supervisor'], true) ? 'true' : 'false' ?>;
+        const esSoloLectura = <?= in_array($rol, ['investigador', 'supervisor'], true) ? 'true' : 'false' ?>;
         const esEstudianteEdit = <?= ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3], true)) ? 'true' : 'false' ?>;
 
-        const LIMITE_CONTENIDO   = <?= MAX_CONTENIDO ?>;
+        const LIMITE_CONTENIDO = <?= MAX_CONTENIDO ?>;
         const LIMITE_COMENTARIOS = <?= MAX_COMENTARIOS ?>;
 
         function obtenerTextoPlano(editorId) {
             const inst = tinymce.get(editorId);
-            if (inst) return inst.getContent({ format: 'text' });
+            if (inst) return inst.getContent({
+                format: 'text'
+            });
             const el = document.getElementById(editorId);
             return el ? el.value : '';
         }
 
         function actualizarContador(contadorId, valorId, len, max) {
             const counter = document.getElementById(contadorId);
-            const valEl   = document.getElementById(valorId);
+            const valEl = document.getElementById(valorId);
             if (!counter || !valEl) return;
             valEl.textContent = len.toLocaleString('es-MX');
             counter.classList.remove('near-limit', 'over-limit');
-            if (len > max)           counter.classList.add('over-limit');
+            if (len > max) counter.classList.add('over-limit');
             else if (len >= max * .9) counter.classList.add('near-limit');
         }
 
@@ -467,7 +484,9 @@ ob_start();
             const taComentarios = formPpal.querySelector('[name="comentarios"]');
             if (taComentarios) {
                 const instCom = tinymce.get(taComentarios.id);
-                const texto   = instCom ? instCom.getContent({ format: 'text' }) : taComentarios.value;
+                const texto = instCom ? instCom.getContent({
+                    format: 'text'
+                }) : taComentarios.value;
                 actualizarContador('counter-comentarios', 'counter-comentarios-val', [...texto].length, LIMITE_COMENTARIOS);
             }
         }
@@ -491,8 +510,10 @@ ob_start();
             const taComentarios = formPpal.querySelector('[name="comentarios"]');
             if (taComentarios) {
                 const instCom = tinymce.get(taComentarios.id);
-                const texto   = instCom ? instCom.getContent({ format: 'text' }) : taComentarios.value;
-                const len     = [...texto].length;
+                const texto = instCom ? instCom.getContent({
+                    format: 'text'
+                }) : taComentarios.value;
+                const len = [...texto].length;
                 if (len > LIMITE_COMENTARIOS) {
                     const exceso = len - LIMITE_COMENTARIOS;
                     alert(`"Comentarios" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\nPor favor reduce el texto antes de enviar.`);
@@ -526,18 +547,20 @@ ob_start();
                 branding: false,
                 statusbar: true,
                 setup(editor) {
-                    editor.on('init',                     () => refrescarContadores());
+                    editor.on('init', () => refrescarContadores());
                     editor.on('input keyup change SetContent', () => refrescarContadores());
                 },
             });
 
             // include __DIR__ .  ' Form principal include __DIR__ .  '
             const formPrincipal = document.getElementById('form-principal');
-            const campoTipo     = document.getElementById('campo-tipo');
+            const campoTipo = document.getElementById('campo-tipo');
 
             if (formPrincipal && campoTipo) {
                 formPrincipal.querySelectorAll('button[type="submit"][name="tipo"]').forEach(btn => {
-                    btn.addEventListener('click', function() { campoTipo.value = this.value; });
+                    btn.addEventListener('click', function() {
+                        campoTipo.value = this.value;
+                    });
                 });
 
                 formPrincipal.addEventListener('submit', function(e) {
@@ -545,7 +568,10 @@ ob_start();
                         const primerBoton = formPrincipal.querySelector('button[type="submit"][name="tipo"]');
                         if (primerBoton) campoTipo.value = primerBoton.value;
                     }
-                    if (!validarLimites()) { e.preventDefault(); return; }
+                    if (!validarLimites()) {
+                        e.preventDefault();
+                        return;
+                    }
 
                     const editorEl = formPrincipal.querySelector('.editor');
                     if (editorEl) {
@@ -559,11 +585,14 @@ ob_start();
             const formBorrador = document.getElementById('form-borrador');
             if (formBorrador) {
                 formBorrador.addEventListener('submit', function(e) {
-                    if (!validarLimites()) { e.preventDefault(); return; }
+                    if (!validarLimites()) {
+                        e.preventDefault();
+                        return;
+                    }
 
-                    const editorEl = formPrincipal
-                        ? formPrincipal.querySelector('.editor')
-                        : document.querySelector('.editor');
+                    const editorEl = formPrincipal ?
+                        formPrincipal.querySelector('.editor') :
+                        document.querySelector('.editor');
 
                     if (editorEl) {
                         const inst = tinymce.get(editorEl.id);
@@ -571,20 +600,20 @@ ob_start();
                     }
 
                     if (!document.getElementById('borrador-contenido').value) {
-                        const ta = formPrincipal
-                            ? formPrincipal.querySelector('textarea[name="contenido"]')
-                            : document.querySelector('textarea[name="contenido"]');
+                        const ta = formPrincipal ?
+                            formPrincipal.querySelector('textarea[name="contenido"]') :
+                            document.querySelector('textarea[name="contenido"]');
                         if (ta) document.getElementById('borrador-contenido').value = ta.value;
                     }
 
-                    const com = formPrincipal
-                        ? formPrincipal.querySelector('[name="comentarios"]')
-                        : document.querySelector('[name="comentarios"]');
+                    const com = formPrincipal ?
+                        formPrincipal.querySelector('[name="comentarios"]') :
+                        document.querySelector('[name="comentarios"]');
                     if (com) {
                         const instCom = tinymce.get(com.id);
-                        document.getElementById('borrador-comentarios').value = instCom
-                            ? instCom.getContent()
-                            : com.value;
+                        document.getElementById('borrador-comentarios').value = instCom ?
+                            instCom.getContent() :
+                            com.value;
                     }
                 });
             }

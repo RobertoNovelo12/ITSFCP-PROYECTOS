@@ -141,7 +141,7 @@ class ProyectosRepositorio extends BaseModelo
                         WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
                         WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
                         ELSE 'Terminado'
-                    END AS estado
+                    END AS estado, fecha_inicio_proyectos, fecha_fin_proyectos
              FROM periodos ORDER BY periodo DESC LIMIT 1"
         );
     }
@@ -172,10 +172,20 @@ class ProyectosRepositorio extends BaseModelo
     // 
 
     public function insertarProyecto(
-        int $id_investigador, int $id_estadoP, int $id_instituto, int $id_periodos,
-        string $titulo, string $descripcion, string $objetivo,
-        string $fecha_inicio, string $fecha_final, string $presupuesto,
-        string $requisitos, string $Pre_requisitos, string $modalidad, int $AlumnosCantidad
+        int $id_investigador,
+        int $id_estadoP,
+        int $id_instituto,
+        int $id_periodos,
+        string $titulo,
+        string $descripcion,
+        string $objetivo,
+        string $fecha_inicio,
+        string $fecha_final,
+        string $presupuesto,
+        string $requisitos,
+        string $Pre_requisitos,
+        string $modalidad,
+        int $AlumnosCantidad
     ): int {
         $this->ejecutar(
             'INSERT INTO proyectos
@@ -184,10 +194,20 @@ class ProyectosRepositorio extends BaseModelo
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)',
             'iiiisssssssssi',
             [
-                $id_investigador, $id_estadoP, $id_instituto, $id_periodos,
-                $titulo, $descripcion, $objetivo,
-                $fecha_inicio, $fecha_final, $presupuesto,
-                $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad,
+                $id_investigador,
+                $id_estadoP,
+                $id_instituto,
+                $id_periodos,
+                $titulo,
+                $descripcion,
+                $objetivo,
+                $fecha_inicio,
+                $fecha_final,
+                $presupuesto,
+                $requisitos,
+                $Pre_requisitos,
+                $modalidad,
+                $AlumnosCantidad,
             ]
         );
 
@@ -195,10 +215,18 @@ class ProyectosRepositorio extends BaseModelo
     }
 
     public function actualizarProyecto(
-        int $id_proyecto, int $id_investigador,
-        string $titulo, string $descripcion, string $objetivo,
-        string $fecha_inicio, string $fecha_final, string $presupuesto,
-        string $requisitos, string $Pre_requisitos, string $modalidad, int $AlumnosCantidad
+        int $id_proyecto,
+        int $id_investigador,
+        string $titulo,
+        string $descripcion,
+        string $objetivo,
+        string $fecha_inicio,
+        string $fecha_final,
+        string $presupuesto,
+        string $requisitos,
+        string $Pre_requisitos,
+        string $modalidad,
+        int $AlumnosCantidad
     ): void {
         $this->ejecutar(
             'UPDATE proyectos SET
@@ -208,10 +236,18 @@ class ProyectosRepositorio extends BaseModelo
              WHERE id_proyectos = ? AND id_investigador = ?',
             'sssssiisisii',
             [
-                $titulo, $descripcion, $objetivo, $Pre_requisitos, $requisitos,
-                $AlumnosCantidad, $modalidad, $presupuesto,
-                $fecha_inicio, $fecha_final,
-                $id_proyecto, $id_investigador,
+                $titulo,
+                $descripcion,
+                $objetivo,
+                $Pre_requisitos,
+                $requisitos,
+                $AlumnosCantidad,
+                $modalidad,
+                $presupuesto,
+                $fecha_inicio,
+                $fecha_final,
+                $id_proyecto,
+                $id_investigador,
             ]
         );
     }
@@ -589,7 +625,6 @@ class ProyectosRepositorio extends BaseModelo
 
             $this->conn->commit();
             return ['success' => true];
-
         } catch (Throwable $e) {
             $this->conn->rollback();
             return ['success' => false, 'msg' => $e->getMessage()];
@@ -630,7 +665,6 @@ class ProyectosRepositorio extends BaseModelo
 
             $this->conn->commit();
             return ['success' => true];
-
         } catch (Throwable $e) {
             $this->conn->rollback();
             return ['success' => false, 'msg' => $e->getMessage()];

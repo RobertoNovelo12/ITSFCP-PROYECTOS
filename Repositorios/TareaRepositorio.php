@@ -30,11 +30,12 @@ class TareaRepositorio extends BaseModelo
     {
         return $this->ejecutar(
             "SELECT taus.id_asignacion
-             FROM tareas_usuarios taus
-             JOIN tareas tare ON taus.id_tarea = tare.id_tarea
-             WHERE taus.id_estadoT IN (1, 2, 3, 8)
-               AND tare.fecha_entrega < ?",
-            's', [$hoy]
+         FROM tareas_usuarios taus
+         JOIN tareas tare ON taus.id_tarea = tare.id_tarea
+         WHERE taus.id_estadoT IN (1,3,8)
+           AND tare.fecha_entrega < ?",
+            's',
+            [$hoy]
         );
     }
 
@@ -42,11 +43,12 @@ class TareaRepositorio extends BaseModelo
     {
         $this->ejecutar(
             "UPDATE tareas_usuarios taus
-             JOIN tareas tare ON taus.id_tarea = tare.id_tarea
-             SET taus.id_estadoT = 6
-             WHERE taus.id_estadoT IN (1, 2, 3, 8)
-               AND tare.fecha_entrega < ?",
-            's', [$hoy]
+         JOIN tareas tare ON taus.id_tarea = tare.id_tarea
+         SET taus.id_estadoT = 6
+         WHERE taus.id_estadoT IN (1,3,8)
+           AND tare.fecha_entrega < ?",
+            's',
+            [$hoy]
         );
     }
 
@@ -65,6 +67,57 @@ class TareaRepositorio extends BaseModelo
         $stmt->close();
     }
 
+    // REACTIVAR TODAS LAS ASIGNACIONES VENCIDAS DE UNA TAREA
+    public function reactivarAsignacionesVencidas(int $id_tarea): void
+    {
+        $this->ejecutar(
+            'UPDATE tareas_usuarios
+         SET id_estadoT = 1
+         WHERE id_tarea = ?
+           AND id_estadoT = 6',
+            'i',
+            [$id_tarea]
+        );
+    }
+
+    public function obtenerAsignacionesVencidasDeTarea(int $id_tarea): array
+    {
+        return $this->ejecutar(
+            'SELECT id_asignacion
+         FROM tareas_usuarios
+         WHERE id_tarea = ?
+           AND id_estadoT = 6',
+            'i',
+            [$id_tarea]
+        );
+    }
+
+    public function insertarHistorialReactivacion(
+        array $asignaciones,
+        int $id_usuario
+    ): void {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO tareas_historial
+            (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
+         VALUES (?, 1, ?, 'Tarea reactivada por el investigador', 'estado')"
+        );
+
+        if (!$stmt) {
+            return;
+        }
+
+        foreach ($asignaciones as $v) {
+            $stmt->bind_param(
+                'ii',
+                $v['id_asignacion'],
+                $id_usuario
+            );
+            $stmt->execute();
+        }
+
+        $stmt->close();
+    }
+
     /**
      * Devuelve tareas en estados activos (1, 2, 3), opcionalmente filtradas por id_tarea.
      */
@@ -76,7 +129,8 @@ class TareaRepositorio extends BaseModelo
                  FROM tareas t
                  JOIN tbl_seguimiento tbse ON tbse.id_avances = t.id_avances
                  WHERE t.id_tarea = ? AND t.id_estadoT IN (1, 2, 3)",
-                'i', [$id_tarea]
+                'i',
+                [$id_tarea]
             );
         }
         return $this->ejecutar(
@@ -184,7 +238,8 @@ class TareaRepositorio extends BaseModelo
              LEFT  JOIN documentos_subidos ds_ent ON ds_ent.id_documento = taus.id_documento_entrega
              WHERE s.id_proyectos = ? AND taus.id_usuarios = ?
              ORDER BY t.id_tarea ASC",
-            'ii', [$id_proyecto, $id_usuario]
+            'ii',
+            [$id_proyecto, $id_usuario]
         );
     }
 
@@ -206,7 +261,8 @@ class TareaRepositorio extends BaseModelo
              LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
              WHERE s.id_proyectos = ? AND proy.id_investigador = ?
              ORDER BY t.id_tarea ASC",
-            'ii', [$id_proyecto, $id_usuario]
+            'ii',
+            [$id_proyecto, $id_usuario]
         );
     }
 
@@ -227,7 +283,8 @@ class TareaRepositorio extends BaseModelo
              LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
              WHERE s.id_proyectos = ?
              ORDER BY t.id_tarea ASC",
-            'i', [$id_proyecto]
+            'i',
+            [$id_proyecto]
         );
     }
 
@@ -257,7 +314,8 @@ class TareaRepositorio extends BaseModelo
              LEFT  JOIN documentos_subidos ds_ent ON ds_ent.id_documento = tu.id_documento_entrega
              WHERE tu.id_tarea = ? AND proy.id_investigador = ?
              ORDER BY estudiante ASC",
-            'ii', [$id_tarea, $id_usuario]
+            'ii',
+            [$id_tarea, $id_usuario]
         );
     }
 
@@ -280,7 +338,8 @@ class TareaRepositorio extends BaseModelo
              LEFT  JOIN documentos_subidos ds_ent ON ds_ent.id_documento = tu.id_documento_entrega
              WHERE tu.id_tarea = ?
              ORDER BY estudiante ASC",
-            'i', [$id_tarea]
+            'i',
+            [$id_tarea]
         );
     }
 
@@ -307,7 +366,8 @@ class TareaRepositorio extends BaseModelo
              INNER JOIN tbl_seguimiento ts ON ts.id_avances  = t.id_avances
              WHERE tu.id_usuarios = ? AND ts.id_proyectos = ?
              ORDER BY tu.id_asignacion DESC",
-            'ii', [$id_usuario, $id_proyectos]
+            'ii',
+            [$id_usuario, $id_proyectos]
         );
     }
 
@@ -317,10 +377,18 @@ class TareaRepositorio extends BaseModelo
     // ─
 
     public function registrarDocumento(
-        string  $nombre, string  $nombre_archivo, string $ruta,
-        string  $tipo_mime, string $extension, int $tamano_bytes,
-        string  $tipo, string $visibilidad, int $id_usuario,
-        ?int    $id_proyecto, ?int $etapa, int $version
+        string  $nombre,
+        string  $nombre_archivo,
+        string $ruta,
+        string  $tipo_mime,
+        string $extension,
+        int $tamano_bytes,
+        string  $tipo,
+        string $visibilidad,
+        int $id_usuario,
+        ?int    $id_proyecto,
+        ?int $etapa,
+        int $version
     ): int {
         $this->ejecutar(
             "INSERT INTO documentos_subidos
@@ -328,8 +396,20 @@ class TareaRepositorio extends BaseModelo
                  tipo, visibilidad, id_usuario, id_proyecto, etapa, version, activo, fecha_subida)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())",
             'sssssiissiii',
-            [$nombre, $nombre_archivo, $ruta, $tipo_mime, $extension, $tamano_bytes,
-             $tipo, $visibilidad, $id_usuario, $id_proyecto, $etapa, $version]
+            [
+                $nombre,
+                $nombre_archivo,
+                $ruta,
+                $tipo_mime,
+                $extension,
+                $tamano_bytes,
+                $tipo,
+                $visibilidad,
+                $id_usuario,
+                $id_proyecto,
+                $etapa,
+                $version
+            ]
         );
         return (int)$this->conn->insert_id;
     }
@@ -343,7 +423,9 @@ class TareaRepositorio extends BaseModelo
     {
         return $this->ejecutar(
             'SELECT descripcion, instrucciones, fecha_entrega FROM tareas WHERE id_tarea = ?',
-            'i', [$id_tarea], false
+            'i',
+            [$id_tarea],
+            false
         ) ?: null;
     }
 
@@ -351,23 +433,30 @@ class TareaRepositorio extends BaseModelo
     {
         return $this->ejecutar(
             'SELECT id_asignacion FROM tareas_usuarios WHERE id_tarea = ? LIMIT 1',
-            'i', [$id_tarea], false
+            'i',
+            [$id_tarea],
+            false
         ) ?: null;
     }
 
     public function actualizarTareaGeneral(
-        int $id_tarea, string $descripcion, string $instrucciones,
-        string $fecha_entrega, ?int $id_documento_recurso
+        int $id_tarea,
+        string $descripcion,
+        string $instrucciones,
+        string $fecha_entrega,
+        ?int $id_documento_recurso
     ): void {
         if ($id_documento_recurso === null) {
             $this->ejecutar(
                 "UPDATE tareas SET descripcion=?, instrucciones=?, fecha_entrega=?, fecha_modificacion=NOW() WHERE id_tarea=?",
-                'sssi', [$descripcion, $instrucciones, $fecha_entrega, $id_tarea]
+                'sssi',
+                [$descripcion, $instrucciones, $fecha_entrega, $id_tarea]
             );
         } else {
             $this->ejecutar(
                 "UPDATE tareas SET descripcion=?, instrucciones=?, fecha_entrega=?, id_documento_recurso=?, fecha_modificacion=NOW() WHERE id_tarea=?",
-                'sssii', [$descripcion, $instrucciones, $fecha_entrega, $id_documento_recurso, $id_tarea]
+                'sssii',
+                [$descripcion, $instrucciones, $fecha_entrega, $id_documento_recurso, $id_tarea]
             );
         }
     }
@@ -393,8 +482,11 @@ class TareaRepositorio extends BaseModelo
             foreach ($cambios as $c) {
                 $stmt->bind_param(
                     'iisss',
-                    $asig['id_asignacion'], $id_usuario,
-                    $c['campo_modificado'], $c['valor_anterior'], $c['valor_nuevo']
+                    $asig['id_asignacion'],
+                    $id_usuario,
+                    $c['campo_modificado'],
+                    $c['valor_anterior'],
+                    $c['valor_nuevo']
                 );
                 $stmt->execute();
             }
@@ -408,15 +500,18 @@ class TareaRepositorio extends BaseModelo
     // ─
 
     public function actualizarAsignacion(
-        int $id_asignacion, int $id_tarea,
-        string $contenido, ?int $id_documento_entrega
+        int $id_asignacion,
+        int $id_tarea,
+        string $contenido,
+        ?int $id_documento_entrega
     ): void {
         $this->ejecutar(
             "UPDATE tareas_usuarios
              SET contenido            = ?,
                  id_documento_entrega = COALESCE(?, id_documento_entrega)
              WHERE id_asignacion = ? AND id_tarea = ?",
-            'siii', [$contenido, $id_documento_entrega, $id_asignacion, $id_tarea]
+            'siii',
+            [$contenido, $id_documento_entrega, $id_asignacion, $id_tarea]
         );
     }
 
@@ -426,8 +521,11 @@ class TareaRepositorio extends BaseModelo
     // ─
 
     public function guardarBorrador(
-        int $id_tarea, int $id_asignacion, int $id_usuarios,
-        string $contenido, ?int $id_documento_entrega
+        int $id_tarea,
+        int $id_asignacion,
+        int $id_usuarios,
+        string $contenido,
+        ?int $id_documento_entrega
     ): void {
         if (!$id_asignacion) return;
 
@@ -437,13 +535,15 @@ class TareaRepositorio extends BaseModelo
                  contenido            = ?,
                  id_documento_entrega = COALESCE(?, id_documento_entrega)
              WHERE id_asignacion = ? AND id_tarea = ?",
-            'siii', [$contenido, $id_documento_entrega, $id_asignacion, $id_tarea]
+            'siii',
+            [$contenido, $id_documento_entrega, $id_asignacion, $id_tarea]
         );
         $this->ejecutar(
             "INSERT INTO tareas_historial
                 (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
              VALUES (?, 8, ?, 'Borrador guardado por el estudiante', 'estado')",
-            'ii', [$id_asignacion, $id_usuarios]
+            'ii',
+            [$id_asignacion, $id_usuarios]
         );
     }
 
@@ -464,7 +564,9 @@ class TareaRepositorio extends BaseModelo
              FROM tareas tare
              JOIN tbl_seguimiento tbse ON tbse.id_avances = tare.id_avances
              WHERE tare.id_tarea = ?",
-            'i', [$id_tarea], false
+            'i',
+            [$id_tarea],
+            false
         ) ?: null;
     }
 
@@ -472,7 +574,8 @@ class TareaRepositorio extends BaseModelo
     {
         return $this->ejecutar(
             "SELECT id_usuarios FROM proyectos_usuarios WHERE id_proyectos = ? AND estado = 'activo'",
-            'i', [$id_proyectos]
+            'i',
+            [$id_proyectos]
         );
     }
 
@@ -520,7 +623,8 @@ class TareaRepositorio extends BaseModelo
     {
         $this->ejecutar(
             'UPDATE tareas_usuarios SET id_estadoT = ? WHERE id_asignacion = ?',
-            'ii', [$estado, $id_asignacion]
+            'ii',
+            [$estado, $id_asignacion]
         );
     }
 
@@ -530,13 +634,17 @@ class TareaRepositorio extends BaseModelo
     }
 
     public function insertarHistorialEstado(
-        int $id_asignacion, int $estado, int $id_usuario, string $comentario
+        int $id_asignacion,
+        int $estado,
+        int $id_usuario,
+        string $comentario
     ): void {
         $this->ejecutar(
             "INSERT INTO tareas_historial
                 (id_asignacion, id_estadoT, id_usuarios, comentario, tipo_cambio)
              VALUES (?, ?, ?, ?, 'estado')",
-            'iiis', [$id_asignacion, $estado, $id_usuario, $comentario]
+            'iiis',
+            [$id_asignacion, $estado, $id_usuario, $comentario]
         );
     }
 
@@ -570,7 +678,9 @@ class TareaRepositorio extends BaseModelo
         return $this->ejecutar(
             $this->sqlDetalleAsignacion() . "
              WHERE a.id_asignacion = ? AND a.id_usuarios = ? AND proy.id_proyectos = ? LIMIT 1",
-            'iii', [$id_asignacion, $id_usuario, $id_proyecto], false
+            'iii',
+            [$id_asignacion, $id_usuario, $id_proyecto],
+            false
         ) ?: null;
     }
 
@@ -579,7 +689,9 @@ class TareaRepositorio extends BaseModelo
         return $this->ejecutar(
             $this->sqlDetalleAsignacion() . "
              WHERE a.id_asignacion = ? AND proy.id_investigador = ? AND proy.id_proyectos = ? LIMIT 1",
-            'iii', [$id_asignacion, $id_usuario, $id_proyecto], false
+            'iii',
+            [$id_asignacion, $id_usuario, $id_proyecto],
+            false
         ) ?: null;
     }
 
@@ -588,7 +700,9 @@ class TareaRepositorio extends BaseModelo
         return $this->ejecutar(
             $this->sqlDetalleAsignacion() . "
              WHERE a.id_asignacion = ? AND proy.id_proyectos = ? LIMIT 1",
-            'ii', [$id_asignacion, $id_proyecto], false
+            'ii',
+            [$id_asignacion, $id_proyecto],
+            false
         ) ?: null;
     }
 
@@ -600,7 +714,9 @@ class TareaRepositorio extends BaseModelo
              INNER JOIN tbl_seguimiento tbse ON t.id_avances     = tbse.id_avances
              INNER JOIN proyectos proy       ON proy.id_proyectos = tbse.id_proyectos
              WHERE a.id_asignacion = ? AND a.id_usuarios = ? AND proy.id_proyectos = ? LIMIT 1",
-            'iii', [$id_asignacion, $id_usuario, $id_proyecto], false
+            'iii',
+            [$id_asignacion, $id_usuario, $id_proyecto],
+            false
         ) ?: null;
     }
 
@@ -612,7 +728,9 @@ class TareaRepositorio extends BaseModelo
              INNER JOIN tbl_seguimiento tbse ON t.id_avances     = tbse.id_avances
              INNER JOIN proyectos proy       ON proy.id_proyectos = tbse.id_proyectos
              WHERE a.id_asignacion = ? AND proy.id_investigador = ? AND proy.id_proyectos = ? LIMIT 1",
-            'iii', [$id_asignacion, $id_usuario, $id_proyecto], false
+            'iii',
+            [$id_asignacion, $id_usuario, $id_proyecto],
+            false
         ) ?: null;
     }
 
@@ -642,7 +760,9 @@ class TareaRepositorio extends BaseModelo
             $this->sqlTareaGeneral() . "
              INNER JOIN tareas_usuarios taus ON taus.id_tarea = tare.id_tarea
              WHERE tare.id_tarea = ? AND taus.id_usuarios = ?",
-            'ii', [$id_tarea, $id_usuario], false
+            'ii',
+            [$id_tarea, $id_usuario],
+            false
         ) ?: null;
     }
 
@@ -653,7 +773,9 @@ class TareaRepositorio extends BaseModelo
              INNER JOIN tbl_seguimiento tbse ON tbse.id_avances   = tare.id_avances
              INNER JOIN proyectos proy       ON proy.id_proyectos = tbse.id_proyectos
              WHERE tare.id_tarea = ? AND proy.id_investigador = ?",
-            'ii', [$id_tarea, $id_usuario], false
+            'ii',
+            [$id_tarea, $id_usuario],
+            false
         ) ?: null;
     }
 
@@ -661,7 +783,9 @@ class TareaRepositorio extends BaseModelo
     {
         return $this->ejecutar(
             $this->sqlTareaGeneral() . " WHERE tare.id_tarea = ?",
-            'i', [$id_tarea], false
+            'i',
+            [$id_tarea],
+            false
         ) ?: null;
     }
 
@@ -679,7 +803,9 @@ class TareaRepositorio extends BaseModelo
              JOIN documentos_subidos ds ON ds.id_documento = t.id_documento_entrega
              WHERE t.id_asignacion = ? AND ds.tipo = 'entrega' AND ds.activo = 1
              LIMIT 1",
-            'i', [$id_asignacion], false
+            'i',
+            [$id_asignacion],
+            false
         ) ?: null;
     }
 
@@ -692,7 +818,9 @@ class TareaRepositorio extends BaseModelo
              JOIN documentos_subidos ds ON ds.id_documento = t.id_documento_recurso
              WHERE t.id_tarea = ? AND ds.tipo = 'recurso' AND ds.activo = 1
              LIMIT 1",
-            'i', [$id_tarea], false
+            'i',
+            [$id_tarea],
+            false
         ) ?: null;
     }
 
@@ -705,7 +833,9 @@ class TareaRepositorio extends BaseModelo
              FROM plantillas_documentos pd
              JOIN documentos_subidos ds ON ds.id_documento = pd.id_documento
              WHERE pd.id_plantilla = ? LIMIT 1",
-            'i', [$id_plantilla], false
+            'i',
+            [$id_plantilla],
+            false
         ) ?: null;
     }
 
@@ -724,7 +854,8 @@ class TareaRepositorio extends BaseModelo
                AND th.id_asignacion IN (SELECT id_asignacion FROM tareas_usuarios WHERE id_tarea = ?)
              ORDER BY th.fecha DESC
              LIMIT ?",
-            'ii', [$id_tarea, $limite]
+            'ii',
+            [$id_tarea, $limite]
         );
     }
 
@@ -732,7 +863,9 @@ class TareaRepositorio extends BaseModelo
     {
         return (int)($this->ejecutar(
             "SELECT COUNT(*) AS total FROM tareas_historial WHERE id_asignacion = ? AND tipo_cambio = 'estado'",
-            'i', [$id_asignacion], false
+            'i',
+            [$id_asignacion],
+            false
         )['total'] ?? 0);
     }
 
@@ -750,7 +883,8 @@ class TareaRepositorio extends BaseModelo
              WHERE tahi.id_asignacion = ? AND tahi.tipo_cambio = 'estado'
              ORDER BY tahi.fecha DESC
              LIMIT ?, ?",
-            'iii', [$id_asignacion, $desde, $por_pagina]
+            'iii',
+            [$id_asignacion, $desde, $por_pagina]
         );
     }
 
@@ -767,5 +901,32 @@ class TareaRepositorio extends BaseModelo
                  WHERE th.id_asignacion = tu.id_asignacion AND th.tipo_cambio = 'estado' AND th.id_estadoT = 3) AS fecha_correccion,
                 (SELECT MAX(th.fecha) FROM tareas_historial th
                  WHERE th.id_asignacion = tu.id_asignacion AND th.tipo_cambio = 'estado' AND th.id_estadoT = 5) AS fecha_aprobacion";
+    }
+
+    public function listarPeriodoActual(): array
+    {
+        return $this->ejecutar(
+            "SELECT id_periodos, periodo,
+                    fecha_inicio AS FechaInicio, fecha_final AS FechaFinal,
+                    CASE
+                        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+                        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
+                        ELSE 'Terminado'
+                    END AS estado, fecha_inicio_proyectos, fecha_fin_proyectos
+             FROM periodos ORDER BY periodo DESC LIMIT 1"
+        );
+    }
+
+    public function obtenerProyectoPorTarea(int $id_tarea)
+    {
+        return $this->ejecutar(
+            "SELECT fecha_inicio, fecha_fin
+             FROM tareas AS ta
+             JOIN tbl_seguimiento AS tbse ON ta.id_avances = tbse.id_avances
+             JOIN proyectos AS proy ON tbse.id_proyectos = proy.id_proyectos
+             WHERE ta.id_tarea = ?",
+            'i',
+            [$id_tarea]
+        );
     }
 }

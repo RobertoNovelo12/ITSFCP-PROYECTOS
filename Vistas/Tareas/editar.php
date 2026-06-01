@@ -21,11 +21,9 @@ if (!in_array($rol, ['investigador', 'profesor'])) {
 
 $id_tarea = $_GET['id_tarea'] ?? null;
 
-//Validación de argumentos en url
 
 $id_proyectos = $_GET['id_proyectos'] ?? $_POST['id_proyectos'] ?? null;
 
-//Validación de argumentos en url
 
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 
@@ -47,6 +45,7 @@ if ($action === 'actualizarestado' && isset($_GET['id_tarea'])) {
 
 $tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id, $id_proyectos);
 $ediciones = $tareaControlador->obtenerEdicionesRecientes($id_tarea, 8);
+$periodo = $tareaControlador->obtenerperiodo();
 
 $campoNombres = [
     'descripcion'   => 'Descripción',
@@ -61,15 +60,16 @@ $lenInstrucciones = mb_strlen(strip_tags($tarea['instrucciones'] ?? ''), 'UTF-8'
 $msg = $_GET['msg'] ?? '';
 
 $_mapa = [
-    'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Proyecto actualizado',   'mensaje' => 'El proyecto fue editado correctamente.'],
-    'exito_estado'       => ['tipo' => 'exito',  'titulo_msg' => 'Estado actualizado',     'mensaje' => 'El estado del proyecto fue actualizado correctamente.'],
+    'fecha_invalida'     => ['tipo' => 'error',  'titulo_msg' => 'Fecha de entrega excedida',   'mensaje' => 'La fecha de entrega de la actividad se excede la fecha límite del propio proyecto. Intente con una fecha acorde al proyecto.'],
+    'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Tarea actualizado',   'mensaje' => 'La tarea fue editado correctamente.'],
+    'exito_estado'       => ['tipo' => 'exito',  'titulo_msg' => 'Estado actualizado',     'mensaje' => 'El estado de la tarea fue actualizado correctamente.'],
     'exito_operacion'    => ['tipo' => 'exito',  'titulo_msg' => 'Operación completada',   'mensaje' => 'La operación sobre el estudiante fue realizada correctamente.'],
     'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
-    'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar el proyecto. Verifica los datos e intenta de nuevo.'],
-    'error_estado'       => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',        'mensaje' => 'No fue posible actualizar el estado del proyecto.'],
+    'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar la tarea. Verifica los datos e intenta de nuevo.'],
+    'error_estado'       => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',        'mensaje' => 'No fue posible actualizar el estado de la tarea.'],
     'error_operacion'    => ['tipo' => 'error',  'titulo_msg' => 'Error en la operación',  'mensaje' => 'No fue posible completar la operación sobre el estudiante.'],
-    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver la información del proyecto.'],
-    'sin_permiso_tarea'   => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver las tareas del proyecto.'],
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver la información de la tarea.'],
+    'sin_permiso_tarea'   => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver las tareas de la tarea.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 
@@ -102,7 +102,7 @@ ob_start();
         </div>
     </div>
 
-        <!-- ALERTAS -->
+    <!-- ALERTAS -->
     <?php
 
     if (isset($_mapa[$msg])) {
@@ -185,8 +185,8 @@ ob_start();
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label tarea-seccion-label">Fecha de entrega</label>
-                        <input type="date" name="fecha_entrega" class="form-control"
-                            value="<?= htmlspecialchars($tarea['fecha_entrega'] ?? '') ?>">
+                        <input
+                            type="date" name="fecha_entrega" class="form-control"  value="<?= htmlspecialchars($tarea['fecha_entrega'] ?? '') ?>" min="<?= htmlspecialchars($proyecto['fecha_inicio']) ?>"  max="<?= htmlspecialchars($proyecto['fecha_fin']) ?>">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label tarea-seccion-label">Archivo de guía actual</label>

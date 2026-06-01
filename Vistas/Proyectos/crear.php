@@ -142,21 +142,42 @@ ob_start();
                     </div>
                 </div>
                 <div class="row mb-1">
+
                     <div class="col-md">
                         <div class="mb-3">
                             <label for="InputFormLimpiar8" class="form-label">Fecha inicio</label>
-                            <input type="date" class="form-control" name="FechaInicio" id="InputFormLimpiar8" aria-describedby="FechaInicio" min="<?php echo $periodo['FechaInicio'] ?>" max="<?php echo $periodo['FechaFinal'] ?>" required>
+
+                            <input
+                                type="date"
+                                class="form-control"
+                                name="FechaInicio"
+                                id="InputFormLimpiar8"
+                                min="<?= $periodo['FechaInicio'] ?>"
+                                max="<?= $periodo['FechaFinal'] ?>"
+                                required>
                         </div>
                     </div>
+
                     <div class="col-md">
                         <div class="mb-3">
                             <label for="InputFormLimpiar9" class="form-label">Fecha final</label>
-                            <input type="date" class="form-control" name="FechaFinal" id="InputFormLimpiar9" aria-describedby="FechaFinal" min="<?php echo $periodo['FechaInicio'] ?>" max="<?= date('Y-m-d', strtotime('+1 year')) ?>" required>
+
+                            <input
+                                type="date"
+                                class="form-control"
+                                name="FechaFinal"
+                                id="InputFormLimpiar9"
+                                disabled
+                                required>
                         </div>
                     </div>
-                    <div class="alert alert-warning" role="alert">
-                        Los proyectos pueden durar un máximo de 1 año
+
+                    <div class="col-12">
+                        <div class="alert alert-warning" role="alert">
+                            Los proyectos pueden durar un máximo de 1 año a partir de la fecha de inicio.
+                        </div>
                     </div>
+
                 </div>
                 <div class="row mb-1">
                     <div class="col-12 text-center">
@@ -219,4 +240,42 @@ include __DIR__ . '/../../layout.php';
             cargarSubtematicas();
         }
     });
+    //Para añadir máximo 1 año a la fecha final del proyecto
+    document.addEventListener("DOMContentLoaded", function () {
+
+    const fechaInicio = document.getElementById("InputFormLimpiar8");
+    const fechaFinal  = document.getElementById("InputFormLimpiar9");
+
+    fechaInicio.addEventListener("change", function () {
+
+        if (!this.value) {
+            fechaFinal.value = '';
+            fechaFinal.disabled = true;
+            return;
+        }
+
+        const inicio = new Date(this.value);
+
+        const maximo = new Date(inicio);
+        maximo.setFullYear(maximo.getFullYear() + 1);
+
+        const maximoFormateado = maximo.toISOString().split('T')[0];
+
+        fechaFinal.disabled = false;
+
+        fechaFinal.min = this.value;
+        fechaFinal.max = maximoFormateado;
+
+        if (
+            fechaFinal.value &&
+            (
+                fechaFinal.value < fechaFinal.min ||
+                fechaFinal.value > fechaFinal.max
+            )
+        ) {
+            fechaFinal.value = '';
+        }
+    });
+
+});
 </script>

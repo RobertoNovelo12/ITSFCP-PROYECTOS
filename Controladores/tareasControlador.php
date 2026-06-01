@@ -148,6 +148,27 @@ class TareaControlador extends BaseControlador
         return $titulos[$desc] ?? $desc;
     }
 
+    /**
+     * Estados de tareas:
+     *
+     * 1  Pendiente
+     * 2  Revisar
+     * 3  Corregir
+     * 4  Sin activar
+     * 5  Aprobado
+     * 6  Vencido
+     * 7  Entregado
+     * 8  Borrador
+     * 9  Concluido
+     * 10 Entregado tardío
+     *
+     * NOTA:
+     * Actualmente las tareas vencidas quedan bloqueadas para el estudiante.
+     * El estado 10 (Entregado tardío) se mantiene reservado para una posible
+     * versión futura que permita entregas fuera de la fecha límite bajo
+     * autorización del investigador o mediante configuración institucional.
+     */
+
     private function numerofiltro(string $action): int
     {
         return match ($action) {
@@ -161,6 +182,7 @@ class TareaControlador extends BaseControlador
             'Entregado'  => 7,
             'Borrador'   => 8,
             'Concluido'  => 9,
+            'Entrega tardía' => 10,
             default      => 0,
         };
     }
@@ -355,13 +377,22 @@ class TareaControlador extends BaseControlador
                 } elseif ($estado === 'Corregir') {
                     $boton  = $this->obtenerbotonesTarea('ReenviarTarea');
                     $boton .= ' ' . $this->obtenerbotonesTarea('Guardar');
-                } elseif ($estado === 'Revisar') {
-                    $boton = $this->obtenerbotonesTarea('Guardar');
+                } elseif ($estado === 'Vencido') {
+
+                    /*
+                    * Actualmente no se permiten entregas tardías.
+                    *
+                    * Mejora futura:
+                    * Mostrar un botón "Entregar tardíamente" que cambie
+                    * el estado a 10 (Entregado tardío).
+                    */
+                    $boton = '';
                 }
                 break;
+
             case 'investigador':
             case 'profesor':
-                if (in_array($estado, ['Revisar', 'Corregir', 'Concluido'], true)) {
+                if (in_array($estado, ['Revisar', 'Corregir', 'Entregado tardío'], true)) {
                     $boton  = $this->obtenerbotonesTarea('Aprobar');
                     $boton .= ' ' . $this->obtenerbotonesTarea('Solicitar Corregir');
                 } elseif ($estado === 'Sin activar') {
@@ -491,6 +522,15 @@ class TareaControlador extends BaseControlador
             $id_usuario    = (int)($datos['id_usuario'] ?? $_SESSION['id_usuario'] ?? 0);
 
             $tarea = new Tarea($conn);
+            //Validar que la fecha no se exceda de la fecha fin del proyecto
+            $proyecto = $tarea->obtenerProyectoPorTarea($id_tarea);
+
+            if (
+                $fecha_entrega < $proyecto['fecha_inicio'] ||
+                $fecha_entrega > $proyecto['fecha_fin']
+            ) {
+                $this->redirigir('fecha_invalida', 'editar.php', "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
+            }
 
             $id_documento_recurso = null;
             if (!empty($_FILES['archivo']['tmp_name']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
@@ -515,16 +555,31 @@ class TareaControlador extends BaseControlador
     // EDITAR — enrutador estudiante / investigador
     // 
 
-    public function editar(array $datos, string $rol, int $id_proyecto, int $id_asignacion, int $id_usuario): void
-    {
+    public function editar(
+        array $datos,
+        string $rol,
+        int $id_proyecto,
+        int $id_asignacion,
+        int $id_usuario
+    ): void {
+
         global $conn;
+
         $this->validarMetodo('POST');
-        $this->validarAcceso($rol, ['estudiante', 'investigador', 'profesor']);
+        $this->validarAcceso(
+            $rol,
+            ['estudiante', 'investigador', 'profesor']
+        );
 
         $tipo = trim($datos['tipo'] ?? '');
 
-        if (!in_array($tipo, ['Revisar', 'Corregir', 'Aprobado'], true)) {
-            error_log("editar(): tipo inválido: '{$tipo}'");
+        if (
+            !in_array(
+                $tipo,
+                ['Revisar', 'Corregir', 'Aprobado', 'Entrega tardía'],
+                true
+            )
+        ) {
             $this->redirigir(
                 'error_tipo_invalido',
                 'tarea.php',
@@ -533,9 +588,15 @@ class TareaControlador extends BaseControlador
         }
 
         $conn->begin_transaction();
+
         try {
+
             if ($rol === 'estudiante') {
-                $this->_guardarContenidoEstudiante($datos, $id_proyecto, $id_asignacion);
+                $this->_guardarContenidoEstudiante(
+                    $datos,
+                    $id_proyecto,
+                    $id_asignacion
+                );
             }
 
             $this->actualizarestado(
@@ -546,7 +607,7 @@ class TareaControlador extends BaseControlador
                 $id_asignacion,
                 $id_usuario,
                 $datos['comentarios'] ?? '',
-                0
+                (int)($datos['id_estadoT'] ?? 0)
             );
 
             $conn->commit();
@@ -557,8 +618,14 @@ class TareaControlador extends BaseControlador
                 "&id_tarea={$datos['id_tarea']}&id_proyectos={$id_proyecto}&id_asignacion={$id_asignacion}"
             );
         } catch (\Exception $e) {
+
             $conn->rollback();
-            error_log('TareaControlador::editar() — ' . $e->getMessage());
+
+            error_log(
+                'TareaControlador::editar() — ' .
+                    $e->getMessage()
+            );
+
             $this->redirigir(
                 'error_estado',
                 'tarea.php',
@@ -659,9 +726,9 @@ class TareaControlador extends BaseControlador
         int    $id_asignacion = 0,
         int    $id_usuarios   = 0,
         string $comentarios   = '',
-        int $estado_anterior = 0
+        int    $estadoActual  = 0
     ): void {
-        //$estado_anterior es para reactivar una tarea cuando estaba vencida
+
         global $conn;
 
         if (!$id_usuarios) {
@@ -670,34 +737,48 @@ class TareaControlador extends BaseControlador
 
         $tipo = trim($tipo);
 
-        if (!in_array($tipo, ['Revisar', 'Corregir', 'Aprobado', 'Pendiente'], true)) {
-            error_log("actualizarestado(): tipo no válido: '{$tipo}'");
+        $permitidos = [
+            'Pendiente',
+            'Revisar',
+            'Corregir',
+            'Aprobado',
+            'Entrega tardía'
+        ];
+
+        if (!in_array($tipo, $permitidos, true)) {
+            throw new Exception('estado_no_valido');
         }
 
-
         $tarea = new Tarea($conn);
+
         $tarea->actualizarTareasVencidos();
 
-        //El botón tiene el tipo, con etá función se obtiene el valor del tipo
         $numeroEstado = $this->numerofiltro($tipo);
 
         require_once __DIR__ . '/../vendor/autoload.php';
+
         static $purifier = null;
+
         if ($purifier === null) {
-            $config   = \HTMLPurifier_Config::createDefault();
+            $config = \HTMLPurifier_Config::createDefault();
             $purifier = new \HTMLPurifier($config);
         }
+
         $comentarios_p = $purifier->purify($comentarios);
 
-        if ($numeroEstado == 1 && $estado_anterior == 6) {
-            $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios_p, 6);
-            $tarea->actualizarTareasConcluidas($id_tarea);
+        $tarea->actualizarestado(
+            $id_tarea,
+            $numeroEstado,
+            $id_proyectos,
+            $id_asignacion,
+            $id_usuarios,
+            $comentarios_p,
+            $estadoActual
+        );
 
-        }
-        if ($estado_anterior !== 6) {
-            $tarea->actualizarestado($id_tarea, $numeroEstado, $id_proyectos, $id_asignacion, $id_usuarios, $comentarios_p);
-            $tarea->actualizarTareasConcluidas($id_tarea);
-        }
+        $tarea->actualizarTareasConcluidas(
+            $id_tarea
+        );
     }
 
     // 
@@ -800,13 +881,13 @@ class TareaControlador extends BaseControlador
     public function estiloEstado($estado): string
     {
         return match ((int)$estado) {
-            1       => 'primary',
-            2       => 'warning',
-            3       => 'danger',
-            5       => 'success',
-            6       => 'secondary',
-            7, 9    => 'info',
-            8       => 'light',
+            1       => 'primary',    // Pendiente
+            2, 10       => 'warning',    // Revisar y Entregado tardío
+            3       => 'danger',     // Corregir
+            5       => 'success',    // Aprobado
+            6       => 'secondary',  // Sin activar
+            7, 9    => 'info',       // Concluido
+            8       => 'light',      // Borrador
             default => 'light',
         };
     }
@@ -814,15 +895,15 @@ class TareaControlador extends BaseControlador
     public function EstiloEstadoLista(string $estado): string
     {
         return match ($estado) {
-            'Pendiente'   => 'primary',
-            'Revisar'     => 'warning',
-            'Corregir'    => 'danger',
-            'Vencido'     => 'dark',
-            'Aprobado'    => 'success',
-            'Sin activar' => 'secondary',
-            'Borrador'    => 'light',
-            'Concluido'   => 'info',
-            default       => 'light',
+            'Pendiente'         => 'primary',
+            'Revisar', 'Entregado tardío'    => 'warning',
+            'Corregir'          => 'danger',
+            'Vencido'           => 'dark',
+            'Aprobado'          => 'success',
+            'Sin activar'       => 'secondary',
+            'Borrador'          => 'light',
+            'Concluido'         => 'info',
+            default             => 'light',
         };
     }
 
@@ -889,5 +970,16 @@ class TareaControlador extends BaseControlador
             id_proyecto: $id_proyecto,
             etapa: $etapa
         );
+    }
+
+    public function obtenerperiodo(): array
+    {
+        global $conn;
+        try {
+            return (new Tarea($conn))->obtenerperiodo() ?? [];
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
+        }
     }
 }
