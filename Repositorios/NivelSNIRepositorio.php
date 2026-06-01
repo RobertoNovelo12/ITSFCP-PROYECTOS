@@ -17,9 +17,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // CONTEO PARA PAGINACIÓN
-    // ·············································
+    // 
 
     public function contarNiveles(?string $buscar, int $filtro): int
     {
@@ -32,9 +32,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // LISTADO CON FILTROS Y PAGINACIÓN
-    // ·············································
+    // 
 
     public function listarNiveles(?string $buscar, int $filtro, int $desde, int $por_pagina): array
     {
@@ -62,9 +62,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // DETALLE / EDICIÓN
-    // ·············································
+    // 
 
     public function buscarParaEditar(int $id_nivel): ?array
     {
@@ -133,9 +133,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // CREAR
-    // ·············································
+    // 
 
     public function insertarNivel(string $nombre): int
     {
@@ -149,9 +149,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // ACTUALIZAR
-    // ·············································
+    // 
 
     public function actualizarNivel(string $nombre, int $id_nivel): void
     {
@@ -176,9 +176,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // SOFT DELETE
-    // ·············································
+    // 
 
     public function desactivarNivel(int $id_nivel): int
     {
@@ -194,9 +194,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // VERIFICACIÓN DE DUPLICIDAD
-    // ·············································
+    // 
 
     /**
      * @return array{activo: int, desactivado: int}
@@ -245,9 +245,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // CONCURRENCIA
-    // ·············································
+    // 
 
     public function bloquearTabla(): void
     {
@@ -255,9 +255,9 @@ class NivelSNIRepositorio extends BaseModelo
     }
 
 
-    // ·············································
+    // 
     // HELPER PRIVADO: WHERE
-    // ·············································
+    // 
 
     private function construirWhere(array &$params, string &$types, ?string $buscar, int $filtro): string
     {
