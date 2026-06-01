@@ -267,7 +267,7 @@ class gradoacademicoControlador extends BaseControlador
 
         return match ($tipo) {
 
-            'Editar GradoAcademico' => Botones::botonIcono(
+            'Editar' => Botones::botonIcono(
                 'editar.php?id_grado=' . $id1,
                 'warning',
                 $iconos['tabla']['editar'],

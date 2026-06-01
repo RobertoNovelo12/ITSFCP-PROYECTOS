@@ -191,7 +191,7 @@ class DirectorRepositorio extends BaseModelo
              SET id_grado = ?, nombre = ?, apellido = ?, correo = ?, telefono = ?,
                  fecha_modificacion = NOW(), fecha_inicio = ?, fecha_final = ?, motivo_fin = ?
              WHERE id_director = ?',
-            'issssssi',
+            'isssssssi',
             [$id_grado, $nombre, $apellido, $correo, $telefono,
              $fecha_inicio, $fecha_final, $motivo_fin, $id_director]
         );

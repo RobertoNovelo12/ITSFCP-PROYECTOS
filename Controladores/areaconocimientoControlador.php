@@ -245,6 +245,41 @@ class AreaConocimientoControlador extends BaseControlador
         }
     }
 
+        public function obtenerbotonesEditar(string $tipo): string
+    {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
+        return match ($tipo) {
+
+            'Desactivar' =>
+            '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">
+                    <i class="' . $iconos['tabla']['solicitar_cierre'] . ' me-1"></i>Desactivar
+                </button>',
+
+            'Reactivar' =>
+            '<button type="submit" name="action" value="Reactivar" class="btn btn-sm btn-warning">
+                    <i class="' . $iconos['editar']['reactivar'] . ' me-1"></i>Reactivar
+                </button>',
+
+            'Guardar' =>
+            '<button type="submit" name="action" value="Guardar" class="btn btn-sm btn-guardar">
+                    <i class="' . $iconos['editar']['guardar'] . ' me-1"></i>Guardar cambios
+                </button>',
+
+            default => '',
+        };
+    }
+
+        public function botonesAccionEditar(string $rol, ?string $estado = null): string
+    {
+        if (!$this->esSupervisor($rol)) return '';
+
+        return match ($estado) {
+            'Activo'      => $this->obtenerbotonesEditar('Desactivar') . $this->obtenerbotonesEditar('Guardar'),
+            'Desactivado' => $this->obtenerbotonesEditar('Reactivar')  . $this->obtenerbotonesEditar('Guardar'),
+            default       => '',
+        };
+    }
 
     // 
     // EDITAR ÁREA Y SUBAREAS

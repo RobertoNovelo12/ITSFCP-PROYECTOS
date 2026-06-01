@@ -56,7 +56,9 @@ $_mapa = [
 ob_start();
 ?>
 
-<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]); require_once __DIR__ . '../../../publico/incluido/_mensaje.php'; endif; ?>
+<?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+    require_once __DIR__ . '../../../publico/incluido/_mensaje.php';
+endif; ?>
 
 <div class="container-fluid py-4 ancho_container">
 
@@ -76,7 +78,7 @@ ob_start();
 
     <form method="POST" action="" id="formCrearArea">
 
-        <input type="hidden" name="action"  value="Modificar">
+        <input type="hidden" name="action" value="Modificar">
         <input type="hidden" name="id_area" value="<?= (int)$area['id_area'] ?>">
 
         <!-- DATOS DEL ÁREA -->
@@ -122,8 +124,8 @@ ob_start();
                 <div class="subarea row mb-3 align-items-center g-2">
 
                     <input type="hidden"
-                           name="subarea[<?= $i ?>][id_subarea]"
-                           value="<?= (int)$sub['id_subarea'] ?>">
+                        name="subarea[<?= $i ?>][id_subarea]"
+                        value="<?= (int)$sub['id_subarea'] ?>">
 
                     <div class="col-12 col-md-8">
                         <input
@@ -157,8 +159,7 @@ ob_start();
         </div>
 
         <hr>
-
-        <button type="submit" class="btn btn-guardar-area"><i class="bi bi-floppy me-1"></i> Guardar cambios</button>
+        <button type="submit" class="btn btn-sm btn-guardar">Guardar cambios</button>
 
     </form>
 </div>
