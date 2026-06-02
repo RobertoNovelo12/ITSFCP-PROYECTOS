@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && $action == 'actualizarestado') {
 }
 
 // Solo acciones de proyectos (no solicitudes)
-$accionesPermitidas = ['index', 'Total', 'Activos', 'Cierre', 'PorAprobar', 'Rechazados', 'PorCerrar', 'Vencido', 'Cierrerechazado','actualizarestado'];
+$accionesPermitidas = ['index', 'Total', 'Activos', 'Cierre', 'PorAprobar', 'Rechazados', 'PorCerrar', 'Vencido', 'Cierrerechazado', 'actualizarestado'];
 if (!in_array($action, $accionesPermitidas)) {
     header("Location: index.php?msg=accion_no_permitida");
 }
@@ -322,13 +322,11 @@ ob_start();
                 </div>
 
                 <!-- PAGINACIÓN -->
-                <?php if ($paginacion['total_paginas'] > 1):
-                    $qBase = 'action=' . urlencode($action)
-                        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-                    $entidad = 'proyectos';
-                    include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
-
-                <?php endif; ?>
+                <?php
+                $qBase = 'action=' . urlencode($action)
+                    . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+                $entidad = 'proyectos';
+                include __DIR__ . '../../../publico/incluido/_paginacion.php'; ?>
 
             <?php else: ?>
                 <div class="alert alert-info text-center">

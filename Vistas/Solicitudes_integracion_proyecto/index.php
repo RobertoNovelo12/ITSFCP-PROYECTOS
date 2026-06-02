@@ -271,7 +271,7 @@ ob_start();
         </div>
 
         <!-- PAGINACIÓN -->
-        <?php if ($paginacion['total_paginas'] > 1):
+        <?php 
             $qBase = http_build_query(array_filter([
                 'periodo'     => $filtros['periodo'],
                 'buscar'      => $filtros['buscar'],
@@ -282,7 +282,7 @@ ob_start();
             ]));
             $entidad = 'solicitudes';
             include __DIR__ . '../../../publico/incluido/_paginacion.php';
-        endif; ?>
+         ?>
 
     <?php else: ?>
         <div class="alert alert-info text-center">

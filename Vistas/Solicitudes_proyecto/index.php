@@ -167,14 +167,14 @@ ob_start();
                             placeholder="Buscar por título..."
                             value="<?= htmlspecialchars($buscar) ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
-                     <?php if (!empty($buscar)): ?>
-                        <a href="?id_periodo=<?= urlencode($id_periodo) ?>&tipo=<?= urlencode($tipo_filtro) ?>&id_period= <?= urldecode($id_periodo) ?>"
-                            class="btn btn-secondary"
-                            title="Limpiar búsqueda">
+                        <?php if (!empty($buscar)): ?>
+                            <a href="?id_periodo=<?= urlencode($id_periodo) ?>&tipo=<?= urlencode($tipo_filtro) ?>&id_period= <?= urldecode($id_periodo) ?>"
+                                class="btn btn-secondary"
+                                title="Limpiar búsqueda">
 
-                            <i class="bi bi-x-lg"></i>
-                        </a>
-                    <?php endif; ?>
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        <?php endif; ?>
                     </form>
                 </div>
             </div>
@@ -276,13 +276,13 @@ ob_start();
                     <?php endforeach; ?>
                 </div>
 
-                <?php if ($paginacion['total_paginas'] > 1):
-                    $qBase  = 'tipo='       . urlencode($tipo_filtro)
-                        . '&id_periodo=' . urlencode($id_periodo)
-                        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-                    $entidad = 'solicitudes';
-                    include __DIR__ . '../../../publico/incluido/_paginacion.php';
-                endif; ?>
+                <?php
+                $qBase  = 'tipo='       . urlencode($tipo_filtro)
+                    . '&id_periodo=' . urlencode($id_periodo)
+                    . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+                $entidad = 'solicitudes';
+                include __DIR__ . '../../../publico/incluido/_paginacion.php';
+                ?>
 
             <?php else: ?>
                 <div class="alert alert-info text-center">No hay solicitudes para mostrar</div>

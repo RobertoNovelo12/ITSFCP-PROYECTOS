@@ -6270,6 +6270,27 @@ summary::-webkit-details-marker {
   overflow: hidden;
 }
 
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);   /* 4 columnas fijas en desktop */
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Tablet: 2 columnas */
+@media (max-width: 900px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Móvil: 1 columna */
+@media (max-width: 500px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .kpi-card:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);

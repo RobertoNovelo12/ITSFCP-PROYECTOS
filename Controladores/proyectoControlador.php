@@ -33,7 +33,10 @@ class ProyectoControlador extends BaseControlador
 
             // tipo === 'tabla'
             $resultado = $modelo->obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar);
-            return is_string($resultado) ? json_decode($resultado, true) : $resultado;
+            error_log("resultado tipo: " . gettype($resultado) . " | valor: " . var_export($resultado, true));
+
+            $decoded = is_string($resultado) ? json_decode($resultado, true) : $resultado;
+            return is_array($decoded) ? $decoded : [];
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];

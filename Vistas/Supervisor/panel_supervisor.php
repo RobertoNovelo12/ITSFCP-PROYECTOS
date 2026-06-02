@@ -82,73 +82,66 @@ ob_start();
     </div>
 
     <!--  TARJETAS KPI PRINCIPALES -->
-    <div class="row g-3 mb-4">
+
+    <div class="kpi-grid">
 
         <!-- Proyectos -->
-        <div class="col-6 col-md-3">
-            <div class="kpi-card azul h-100">
-                <div class="kpi-icon azul"><i class="bi bi-folder2-open"></i></div>
-                <div class="kpi-num"><?= $resumen['proyectos']['total_proyectos'] ?? 0 ?></div>
-                <div class="fw-bold mb-2 mb-md-0">Proyectos</div>
-                <div class="kpi-desc">Proyectos de investigación registrados en el sistema para el periodo seleccionado.</div>
-                <div class="kpi-sub">
-                    <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['activos'] ?? 0 ?> activos</span>
-                    <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['por_aprobar'] ?? 0 ?> por aprobar</span>
-                    <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['por_cerrar'] ?? 0 ?> por cerrar</span>
-                    <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['rechazados'] ?? 0 ?> rechazados</span>
-                    <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['vencidos'] ?? 0 ?> vencidos</span>
-                    <span class="text-dark"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['cerrados'] ?? 0 ?> cerrados</span>
-                </div>
+        <div class="kpi-card azul">
+            <div class="kpi-icon azul"><i class="bi bi-folder2-open"></i></div>
+            <div class="kpi-num"><?= $resumen['proyectos']['total_proyectos'] ?? 0 ?></div>
+            <div class="fw-bold mb-2">Proyectos</div>
+            <div class="kpi-desc">Proyectos de investigación registrados en el sistema para el periodo seleccionado.</div>
+            <div class="kpi-sub">
+                <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['activos'] ?? 0 ?> activos</span>
+                <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['por_aprobar'] ?? 0 ?> por aprobar</span>
+                <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['por_cerrar'] ?? 0 ?> por cerrar</span>
+                <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['rechazados'] ?? 0 ?> rechazados</span>
+                <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['vencidos'] ?? 0 ?> vencidos</span>
+                <span class="text-dark"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['proyectos']['cerrados'] ?? 0 ?> cerrados</span>
             </div>
         </div>
 
         <!-- Estudiantes -->
-        <div class="col-6 col-md-3">
-            <div class="kpi-card verde h-100">
-                <div class="kpi-icon verde"><i class="bi bi-people-fill"></i></div>
-                <div class="kpi-num"><?= $resumen['estudiantes']['total_estudiantes'] ?? 0 ?></div>
-                <div class="fw-bold mb-2 mb-md-0">Estudiantes</div>
-                <div class="kpi-desc">Estudiantes integrados a algún proyecto de investigación, incluyendo activos y con proyecto concluido.</div>
-                <div class="kpi-sub">
-                    <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['activos'] ?? 0 ?> activos</span>
-                    <span class="text-primary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['concluidos'] ?? 0 ?> concluidos</span>
-                    <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['bajas'] ?? 0 ?> bajas</span>
-                </div>
+        <div class="kpi-card verde">
+            <div class="kpi-icon verde"><i class="bi bi-people-fill"></i></div>
+            <div class="kpi-num"><?= $resumen['estudiantes']['total_estudiantes'] ?? 0 ?></div>
+            <div class="fw-bold mb-2">Estudiantes</div>
+            <div class="kpi-desc">Estudiantes integrados a algún proyecto de investigación, incluyendo activos y con proyecto concluido.</div>
+            <div class="kpi-sub">
+                <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['activos'] ?? 0 ?> activos</span>
+                <span class="text-primary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['concluidos'] ?? 0 ?> concluidos</span>
+                <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['estudiantes']['bajas'] ?? 0 ?> bajas</span>
             </div>
         </div>
 
         <!-- Solicitudes de integración -->
-        <div class="col-6 col-md-3">
-            <div class="kpi-card amber h-100">
-                <div class="kpi-icon amber"><i class="bi bi-envelope-paper-fill"></i></div>
-                <div class="kpi-num"><?= $resumen['solicitudes']['total_solicitudes'] ?? 0 ?></div>
-                <div class="fw-bold mb-2 mb-md-0">Solicitudes de integración</div>
-                <div class="kpi-desc">Solicitudes enviadas por estudiantes para incorporarse a un proyecto de investigación.</div>
-                <div class="kpi-sub">
-                    <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['pendientes'] ?? 0 ?> pendientes</span>
-                    <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['en_revision'] ?? 0 ?> en revisión</span>
-                    <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['correcciones'] ?? 0 ?> correcciones</span>
-                    <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['aceptadas'] ?? 0 ?> aceptadas</span>
-                    <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['rechazadas'] ?? 0 ?> rechazadas</span>
-                </div>
+        <div class="kpi-card amber">
+            <div class="kpi-icon amber"><i class="bi bi-envelope-paper-fill"></i></div>
+            <div class="kpi-num"><?= $resumen['solicitudes']['total_solicitudes'] ?? 0 ?></div>
+            <div class="fw-bold mb-2">Solicitudes de integración</div>
+            <div class="kpi-desc">Solicitudes enviadas por estudiantes para incorporarse a un proyecto de investigación.</div>
+            <div class="kpi-sub">
+                <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['pendientes'] ?? 0 ?> pendientes</span>
+                <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['en_revision'] ?? 0 ?> en revisión</span>
+                <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['correcciones'] ?? 0 ?> correcciones</span>
+                <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['aceptadas'] ?? 0 ?> aceptadas</span>
+                <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['solicitudes']['rechazadas'] ?? 0 ?> rechazadas</span>
             </div>
         </div>
 
         <!-- Tareas / secciones del documento -->
-        <div class="col-6 col-md-3">
-            <div class="kpi-card rojo h-100">
-                <div class="kpi-icon rojo"><i class="bi bi-list-task"></i></div>
-                <div class="kpi-num"><?= $resumen['tareas']['total_tareas'] ?? 0 ?></div>
-                <div class="fw-bold mb-2 mb-md-0">Secciones del documento</div>
-                <div class="kpi-desc">Instancias de secciones del documento asignadas a cada estudiante en todos los proyectos (excluye "Sin activar").</div>
-                <div class="kpi-sub">
-                    <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['aprobadas'] ?? 0 ?> aprobadas</span>
-                    <span class="text-primary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['entregadas'] ?? 0 ?> entregadas</span>
-                    <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['en_revision'] ?? 0 ?> en revisión</span>
-                    <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['corregir'] ?? 0 ?> a corregir</span>
-                    <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['pendientes'] ?? 0 ?> pendientes</span>
-                    <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['vencidas'] ?? 0 ?> vencidas</span>
-                </div>
+        <div class="kpi-card rojo">
+            <div class="kpi-icon rojo"><i class="bi bi-list-task"></i></div>
+            <div class="kpi-num"><?= $resumen['tareas']['total_tareas'] ?? 0 ?></div>
+            <div class="fw-bold mb-2">Secciones del documento</div>
+            <div class="kpi-desc">Instancias de secciones del documento asignadas a cada estudiante en todos los proyectos (excluye "Sin activar").</div>
+            <div class="kpi-sub">
+                <span class="text-success"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['aprobadas'] ?? 0 ?> aprobadas</span>
+                <span class="text-primary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['entregadas'] ?? 0 ?> entregadas</span>
+                <span class="text-info"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['en_revision'] ?? 0 ?> en revisión</span>
+                <span class="text-warning"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['corregir'] ?? 0 ?> a corregir</span>
+                <span class="text-secondary"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['pendientes'] ?? 0 ?> pendientes</span>
+                <span class="text-danger"><i class="bi bi-circle-fill" style="font-size:.45rem;vertical-align:middle"></i> <?= $resumen['tareas']['vencidas'] ?? 0 ?> vencidas</span>
             </div>
         </div>
 

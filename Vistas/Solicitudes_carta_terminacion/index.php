@@ -297,13 +297,13 @@ ob_start();
         </div>
 
         <!-- PAGINACIÓN -->
-        <?php if ($paginacion['total_paginas'] > 1):
+        <?php 
             $qBase = 'tipo='       . urlencode($tipo_filtro)
                 . '&id_periodo=' . urlencode($id_periodo)
                 . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
             $entidad = 'solicitudes';
             include __DIR__ . '../../../publico/incluido/_paginacion.php';
-        endif; ?>
+         ?>
 
     <?php else: ?>
         <div class="alert alert-info text-center">

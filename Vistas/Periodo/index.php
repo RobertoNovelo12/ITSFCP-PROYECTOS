@@ -269,12 +269,12 @@ ob_start();
     </div>
 
     <!-- PAGINACIÓN -->
-    <?php if ($paginacion['total_paginas'] > 1):
+    <?php 
         $qBase  = 'action=' . urlencode($action)
             . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
         $entidad = 'periodos';
         include __DIR__ . '../../../publico/incluido/_paginacion.php';
-    endif; ?>
+     ?>
 
 </div>
 

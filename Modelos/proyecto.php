@@ -128,7 +128,7 @@ class Proyectos
         $total         = $this->contarInvestigador($id, $filtro, $buscar);
         $total_paginas = (int)ceil($total / $por_pagina);
 
-        $sql    = '
+        $sql    = "
             SELECT
                 proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
                 espr.nombre AS estado_proyecto, peri.periodo,
@@ -157,12 +157,12 @@ class Proyectos
             ) total_est ON total_est.id_proyectos = proy.id_proyectos
             LEFT JOIN (
                 SELECT id_proyectos, COUNT(*) AS total
-                FROM proyectos_usuarios WHERE estado = \'activo\' GROUP BY id_proyectos
+                FROM proyectos_usuarios WHERE estado = 'activo' GROUP BY id_proyectos
             ) total_activos ON total_activos.id_proyectos = proy.id_proyectos
             LEFT JOIN (
                 SELECT pu.id_proyectos, COUNT(DISTINCT pu.id_usuarios) AS total
                 FROM proyectos_usuarios pu
-                WHERE pu.estado = \'activo\'
+                WHERE pu.estado = 'activo'
                   AND EXISTS (SELECT 1 FROM tareas_usuarios tu2 WHERE tu2.id_usuarios = pu.id_usuarios)
                   AND NOT EXISTS (SELECT 1 FROM tareas_usuarios tu3
                       WHERE tu3.id_usuarios = pu.id_usuarios AND tu3.id_estadoT <> 5)
@@ -171,14 +171,14 @@ class Proyectos
             LEFT JOIN (
                 SELECT pu.id_proyectos, COUNT(DISTINCT pu.id_usuarios) AS total
                 FROM proyectos_usuarios pu
-                WHERE pu.estado = \'activo\'
+                WHERE pu.estado = 'activo'
                   AND (NOT EXISTS (SELECT 1 FROM tareas_usuarios tu4 WHERE tu4.id_usuarios = pu.id_usuarios)
                        OR EXISTS (SELECT 1 FROM tareas_usuarios tu5
                            WHERE tu5.id_usuarios = pu.id_usuarios AND tu5.id_estadoT <> 5))
                 GROUP BY pu.id_proyectos
             ) activos_bloqueados ON activos_bloqueados.id_proyectos = proy.id_proyectos
             WHERE proy.id_investigador = ? AND proy.id_estadoP <> 3
-        ';
+        ";
         $params = [$id];
         $types  = 'i';
 

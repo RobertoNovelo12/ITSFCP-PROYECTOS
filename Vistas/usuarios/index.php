@@ -53,7 +53,7 @@ $paginacion = $resultado['paginacion'] ?? [
     'total'        => 0,
     'por_pagina'   => 6,
     'pagina'       => $pagina,
-    'total_paginas'=> 1,
+    'total_paginas' => 1,
 ];
 
 $encabezados = $controlador->encabezados($rol);
@@ -68,7 +68,7 @@ $_mapa = [
     'error_sin_registro' => ['tipo' => 'error',  'titulo_msg' => 'Sin registro',           'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver esta sección.'],
     'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'Parámetros faltantes',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
-    'accion_no_permitida'=> ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',    'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',    'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
 ];
 
 ob_start();
@@ -127,9 +127,9 @@ ob_start();
                             + '&buscar=<?= urlencode($buscar) ?>'
                             + '&tipo=' + this.value">
                         <option value="" <?= ($tipo === '') ? 'selected' : '' ?>>Todos los tipos</option>
-                        <option value="estudiante"   <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
+                        <option value="estudiante" <?= ($tipo === 'estudiante')   ? 'selected' : '' ?>>Estudiante</option>
                         <option value="investigador" <?= ($tipo === 'investigador') ? 'selected' : '' ?>>Investigador</option>
-                        <option value="supervisor"   <?= ($tipo === 'supervisor')   ? 'selected' : '' ?>>Supervisor</option>
+                        <option value="supervisor" <?= ($tipo === 'supervisor')   ? 'selected' : '' ?>>Supervisor</option>
                     </select>
                 </div>
 
@@ -138,7 +138,7 @@ ob_start();
                     <label class="form-label mb-1 small fw-semibold">Buscar</label>
                     <form class="d-flex gap-2" method="GET">
                         <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
-                        <input type="hidden" name="tipo"   value="<?= htmlspecialchars($tipo) ?>">
+                        <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo) ?>">
                         <input type="text"
                             name="buscar"
                             class="form-control"
@@ -149,7 +149,7 @@ ob_start();
                         </button>
                         <?php if (!empty($buscar)): ?>
                             <a href="?action=<?= urlencode($action) ?>&tipo=<?= urlencode($tipo) ?>"
-                               class="btn btn-secondary" title="Limpiar búsqueda">
+                                class="btn btn-secondary" title="Limpiar búsqueda">
                                 <i class="bi bi-x-lg"></i>
                             </a>
                         <?php endif; ?>
@@ -245,13 +245,13 @@ ob_start();
     </div>
 
     <!-- PAGINACIÓN -->
-    <?php if ($paginacion['total_paginas'] > 1):
-        $qBase   = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
-            . (!empty($tipo)   ? '&tipo='   . urlencode($tipo)   : '');
-        $entidad = 'usuarios';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php';
-    endif; ?>
+    <?php
+    $qBase   = 'action=' . urlencode($action)
+        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
+        . (!empty($tipo)   ? '&tipo='   . urlencode($tipo)   : '');
+    $entidad = 'usuarios';
+    include __DIR__ . '../../../publico/incluido/_paginacion.php';
+    ?>
 
 </div>
 

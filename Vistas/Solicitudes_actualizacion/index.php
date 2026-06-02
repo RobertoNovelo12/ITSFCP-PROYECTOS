@@ -281,13 +281,13 @@ ob_start();
     </div>
 
     <!-- PAGINACIÓN -->
-    <?php if ($paginacion['total_paginas'] > 1):
-        $qBase = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
-            . (!empty($tipo)   ? '&tipo='   . urlencode($tipo)   : '');
-        $entidad = 'solicitudes';
-        include __DIR__ . '../../../publico/incluido/_paginacion.php';
-    endif; ?>
+    <?php
+    $qBase = 'action=' . urlencode($action)
+        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '')
+        . (!empty($tipo)   ? '&tipo='   . urlencode($tipo)   : '');
+    $entidad = 'solicitudes';
+    include __DIR__ . '../../../publico/incluido/_paginacion.php';
+    ?>
 
 </div>
 

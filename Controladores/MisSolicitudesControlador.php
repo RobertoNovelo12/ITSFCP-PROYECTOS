@@ -1,7 +1,7 @@
 <?php
 // Controladores/misSolicitudesControlador.php
 
-require_once __DIR__ . '/../Modelos/misSolicitudes.php';
+require_once __DIR__ . '/../Modelos/MisSolicitudes.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
 include __DIR__ . '/../publico/incluido/_botones.php';

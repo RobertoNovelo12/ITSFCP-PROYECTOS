@@ -21,7 +21,7 @@ if ($rol !== 'estudiante') {
     exit;
 }
 
-require_once __DIR__ . '/../../Controladores/misSolicitudesControlador.php';
+require_once __DIR__ . '/../../Controladores/MisSolicitudesControlador.php';
 $ctrl = new MisSolicitudesControlador();
 
 //  Acciones POST 
@@ -284,7 +284,7 @@ include __DIR__ . '/../../mensaje.php';
             </div>
 
             <!--  PAGINACIÓN  -->
-            <?php if ($paginacion['total_paginas'] > 1):
+            <?php 
                 $qBase = http_build_query(array_filter([
                     'periodo' => $filtros['periodo'] ?? '',
                     'buscar'  => $filtros['buscar']  ?? '',
@@ -292,7 +292,7 @@ include __DIR__ . '/../../mensaje.php';
                 ]));
                 $entidad = 'resultados';
                 include __DIR__ . '../../../publico/incluido/_paginacion.php';
-            endif; ?>
+             ?>
 
         <?php else: ?>
             <!-- ESTADO VACÍO -->
