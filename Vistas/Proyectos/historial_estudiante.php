@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 $id = intval($_SESSION['id_usuario']);
@@ -17,7 +17,7 @@ include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 //Solo el investigador y supervisor puede acceder
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 

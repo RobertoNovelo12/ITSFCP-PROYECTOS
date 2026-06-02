@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -14,7 +14,7 @@ $id_usuario = intval($_SESSION['id_usuario']);
 
 //Solo investigador o profesor pueden acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -73,8 +73,10 @@ function badgeSeg(string $estado): string
     return "<span class='badge {$cls}'>{$txt}</span>";
 }
 
+/* Iconos reutilizables */
+include __DIR__ . '../../../publico/incluido/_iconos.php';
+
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4 ancho_container">
@@ -229,12 +231,12 @@ include __DIR__ . '/../../mensaje.php';
     <?php if (!empty($documentos)): ?>
         <div class="card shadow-sm mb-4">
             <div class="card-header text-white">
-                <h5 class="mb-0"><i class="bi bi-paperclip me-2"></i>Documentos subidos por el estudiante</h5>
+                <h5 class="mb-0"><i class="<?= $iconos['tabla']['adjunto'] ?> me-2"></i>Documentos subidos por el estudiante</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2">
                     <?php foreach ($documentos as $doc): ?>
-                        <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($doc['ruta']) ?>"
+                        <a href="/<?= htmlspecialchars($doc['ruta']) ?>"
                             target="_blank"
                             class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-file-earmark-text me-1"></i>
@@ -253,10 +255,10 @@ include __DIR__ . '/../../mensaje.php';
     <?php if (!empty($sol['carta_ruta'])): ?>
         <div class="card shadow-sm mb-4">
             <div class="card-header text-white">
-                <h5 class="mb-0"><i class="bi bi-file-earmark-check me-2"></i>Carta compromiso</h5>
+                <h5 class="mb-0"><i class="<?= $iconos['tabla']['descargar'] ?> me-2"></i>Carta compromiso</h5>
             </div>
             <div class="card-body">
-                <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($sol['carta_ruta']) ?>"
+                <a href="/<?= htmlspecialchars($sol['carta_ruta']) ?>"
                     target="_blank" class="btn btn-outline-primary">
                     <i class="bi bi-download me-1"></i>
                     <?= htmlspecialchars($sol['carta_nombre'] ?? 'Descargar carta') ?>
@@ -271,7 +273,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- DATOS DEL ESTUDIANTE -->
     <div class="card shadow-sm mb-4">
         <div class="card-header text-white">
-            <h5 class="mb-0">Información del estudiante</h5>
+            <h5 class="mb-0"><i class="<?= $iconos['detalles']['informacion'] ?> me-2"></i>Información del estudiante</h5>
         </div>
         <div class="card-body">
             <div class="row">
@@ -299,7 +301,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- PROYECTO -->
     <div class="card shadow-sm mb-4">
         <div class="card-header text-white">
-            <h5 class="mb-0">Proyecto solicitado</h5>
+            <h5 class="mb-0"><i class="<?= $iconos['detalles']['proyecto'] ?> me-2"></i>Proyecto solicitado</h5>
         </div>
         <div class="card-body">
             <div class="row">
@@ -336,7 +338,7 @@ include __DIR__ . '/../../mensaje.php';
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header text-white">
-                    <h5 class="mb-0">Motivación</h5>
+                    <h5 class="mb-0"><i class="<?= $iconos['detalles']['subinformacion'] ?> me-2"></i>Motivación</h5>
                 </div>
                 <div class="card-body">
                     <?= nl2br(htmlspecialchars($sol['motivacion'] ?? 'Sin información')) ?>
@@ -346,7 +348,7 @@ include __DIR__ . '/../../mensaje.php';
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header text-white">
-                    <h5 class="mb-0">Experiencia</h5>
+                    <h5 class="mb-0"><i class="<?= $iconos['detalles']['subinformacion'] ?> me-2"></i>Experiencia</h5>
                 </div>
                 <div class="card-body">
                     <?= nl2br(htmlspecialchars($sol['experiencia'] ?? 'Sin información')) ?>
@@ -358,7 +360,7 @@ include __DIR__ . '/../../mensaje.php';
     <!-- HISTORIAL DE COMENTARIOS -->
     <div class="card shadow-sm mb-4">
         <div class="card-header text-white">
-            <h5 class="mb-0">Historial de comentarios</h5>
+            <h5 class="mb-0"><i class="<?= $iconos['detalles']['historial'] ?> me-2"></i>Historial de comentarios</h5>
         </div>
         <div class="card-body">
             <?php if (!empty($comentarios)): ?>
@@ -366,7 +368,7 @@ include __DIR__ . '/../../mensaje.php';
                     <div class="border rounded p-3 mb-2 <?= $c['tipo'] === 'investigador' ? 'bg-light' : 'bg-white' ?>">
                         <p class="mb-1"><?= nl2br(htmlspecialchars($c['comentario'])) ?></p>
                         <?php if (!empty($c['archivo_nombre'])): ?>
-                            <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($c['archivo_ruta']) ?>"
+                            <a href="/<?= htmlspecialchars($c['archivo_ruta']) ?>"
                                 target="_blank" class="small text-primary">
                                 <i class="bi bi-paperclip"></i> <?= htmlspecialchars($c['archivo_nombre']) ?>
                             </a>
@@ -389,7 +391,7 @@ include __DIR__ . '/../../mensaje.php';
     <?php if (in_array($sol['estado'], ['pendiente', 'en_revision', 'correcciones'])): ?>
         <div class="card shadow-sm mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Acciones sobre la solicitud</h5>
+                <h5 class="mb-0"><i class="<?= $iconos['detalles']['informacion'] ?> me-2"></i>Acciones sobre la solicitud</h5>
             </div>
             <div class="card-body d-flex gap-2 flex-wrap">
                 <form method="POST"

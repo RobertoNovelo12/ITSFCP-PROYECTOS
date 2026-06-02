@@ -3,7 +3,7 @@ session_start();
 
 // Si hay sesión activa → Ir al dashboard
 if (isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Dashboard/dashboard.php?error=1");
+    header("Location: /Vistas/Dashboard/dashboard.php?error=1");
     exit;
 }
 ?>
@@ -96,7 +96,7 @@ if (isset($_SESSION['id_usuario'])) {
         <p>Esto no es tu culpa. Algo falló en nuestro sistema.<br>
         Intenta regresar al inicio mientras lo resolvemos.</p>
 
-        <a href="/ITSFCP-PROYECTOS/index.php">Volver al inicio</a>
+        <a href="/index.php">Volver al inicio</a>
     </div>
 
 </body>

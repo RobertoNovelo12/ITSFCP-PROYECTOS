@@ -12,7 +12,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -22,7 +22,7 @@ $action     = $_GET['action'] ?? 'index';
 
 // Solo estudiante accede
 if ($rol !== 'estudiante') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -251,7 +251,7 @@ ob_start();
                                 </div>
 
                                 <?php if (!empty($etapa['documento_subido'])): ?>
-                                    <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
+                                    <a href="/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
                                         target="_blank"
                                         class="btn-doc-descarga">
                                         <i class="<?= $iconos['tabla']['descargar'] ?>"></i>
@@ -306,7 +306,7 @@ ob_start();
                                         <span><strong>¡Etapa completada!</strong> Tu carta de terminación fue aprobada. Tu participación ha concluido oficialmente.</span>
                                     </div>
                                     <?php if (!empty($etapa['documento_subido'])): ?>
-                                        <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
+                                        <a href="/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
                                             target="_blank"
                                             class="btn-doc-descarga">
                                             <i class="<?= $iconos['detalles']['descargar'] ?>"></i>
@@ -321,7 +321,7 @@ ob_start();
                                         <span><strong>Terminación pendiente de validación.</strong> Tu carta fue enviada y está esperando la revisión del supervisor.</span>
                                     </div>
                                     <?php if (!empty($etapa['documento_subido'])): ?>
-                                        <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
+                                        <a href="/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
                                             target="_blank"
                                             class="btn-doc-descarga btn-doc-secondary">
                                             <i class="<?= $iconos['detalles']['subinformacion'] ?>"></i>

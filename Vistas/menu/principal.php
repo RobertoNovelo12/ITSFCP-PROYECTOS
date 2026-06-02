@@ -54,7 +54,7 @@ if ($result && $result->num_rows > 0) {
                     <div class="mb-3">
                         <p class="mb-0 small"><strong>Fecha de creación:</strong> '.htmlspecialchars($proyecto['fecha_creacion']).'</p>
                     </div>
-                    <a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id='.$proyecto['id_proyectos'].'" class="btn btn-ver-detalle">Ver detalle</a>
+                    <a href="/Vistas/Proyectos/detalles_proyecto.php?id='.$proyecto['id_proyectos'].'" class="btn btn-ver-detalle">Ver detalle</a>
                 </div>
             </div>
         </div>

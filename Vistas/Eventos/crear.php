@@ -13,9 +13,9 @@ header("Access-Control-Allow-Headers: *");
 $idUsuario = $_SESSION["id_usuario"] ?? 0;
 $rol = $_SESSION["rol"] ?? "";
 
-// =====================================================
+// 
 // OBTENER PROYECTOS
-// =====================================================
+// 
 if (isset($_GET["getProyectos"])) {
 
     header("Content-Type: application/json; charset=UTF-8");
@@ -57,9 +57,9 @@ if (isset($_GET["getProyectos"])) {
     exit;
 }
 
-// =====================================================
+// 
 // OBTENER ESTUDIANTES DE UN PROYECTO
-// =====================================================
+// 
 if (isset($_GET["getEstudiantes"]) && isset($_GET["id_proyecto"])) {
 
     header("Content-Type: application/json; charset=UTF-8");
@@ -87,9 +87,9 @@ if (isset($_GET["getEstudiantes"]) && isset($_GET["id_proyecto"])) {
     exit;
 }
 
-// =====================================================
+// 
 // CREAR NUEVO EVENTO (PRIVADO - SOLO CREADOR)
-// =====================================================
+// 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     header("Content-Type: application/json; charset=UTF-8");

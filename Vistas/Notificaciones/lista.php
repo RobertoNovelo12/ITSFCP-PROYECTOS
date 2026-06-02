@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION)) session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS/publico/config/conexion.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/publico/config/conexion.php';
 
 if (!isset($_SESSION['id_usuario'])) {
     http_response_code(403);

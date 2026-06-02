@@ -4,7 +4,7 @@
  * MisAlumnosControlador.php
  * Controlador para el módulo "Mis Alumnos" del investigador.
  * Solo lectura — sin acciones de baja/reactivación.
- * Ruta sugerida: /ITSFCP-PROYECTOS/Controladores/MisAlumnosControlador.php
+ * Ruta sugerida: /Controladores/MisAlumnosControlador.php
  */
 
 require_once __DIR__ . '/../Modelos/misAlumnos.php';
@@ -30,7 +30,7 @@ class misalumnosControlador extends BaseControlador
         $rol = strtolower($_SESSION['rol'] ?? '');
         if (!in_array($rol, ['investigador', 'profesor'], true)) {
             http_response_code(403);
-            header('Location: /ITSFCP-PROYECTOS/index.php');
+            header('Location: /index.php');
             exit;
         }
     }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión</title>
-    <link rel="stylesheet" href="/ITSFCP-PROYECTOS/publico/css/styles.css">
+    <link rel="stylesheet" href="/publico/css/styles.css">
 </head>
 <body class="body-register">
 
@@ -19,14 +19,14 @@
         <script>
             document.getElementById("modalSolicitud").style.display = "flex";
             function cerrarModal() {
-                window.location.href = "/ITSFCP-PROYECTOS/login.php";
+                window.location.href = "/login.php";
             }
         </script>
     <?php endif; ?>
 
     <div class="header-log-reg">
-        <a href="/ITSFCP-PROYECTOS/index.php" class="home-btn">Regresar al inicio</a>
-        <a href="/ITSFCP-PROYECTOS/registro.php" class="toggle-btn">Crear cuenta</a>
+        <a href="/index.php" class="home-btn">Regresar al inicio</a>
+        <a href="/registro.php" class="toggle-btn">Crear cuenta</a>
     </div>
 
     <div class="container-register">
@@ -34,7 +34,7 @@
             <div class="title-log-reg">Iniciar sesión</div>
 
             <!-- El form ahora apunta al mismo login.php (que actúa como entrada) -->
-            <form class="form" action="/ITSFCP-PROYECTOS/login.php" method="POST">
+            <form class="form" action="/login.php" method="POST">
                 <div class="input-group">
                     <input type="email" id="email" name="correo"
                            class="input-field" placeholder=" " required>
@@ -46,7 +46,7 @@
                            class="input-field" placeholder=" " required>
                     <label for="password" class="floating-label">Contraseña</label>
                     <span class="toggle-password-wrapper">
-                        <img src="/ITSFCP-PROYECTOS/publico/icons/solar_eye-closed-broken.webp"
+                        <img src="/publico/icons/solar_eye-closed-broken.webp"
                              id="togglePassword" class="toggle-password">
                     </span>
                 </div>
@@ -60,6 +60,6 @@
         </div>
     </div>
 
-    <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
+    <script src="/publico/js/javascript.js"></script>
 </body>
 </html>

@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -16,7 +16,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'Registrar') {
     $nombreTipo = strtok($nombre, ' v');
     $carpeta    = $ctrl->carpetaPorTipo($nombreTipo);
 
-    $base       = "/ITSFCP-PROYECTOS/storage/plantillas/supervisor_{$id_usuario}/{$carpeta}/";
+    $base       = "/storage/plantillas/supervisor_{$id_usuario}/{$carpeta}/";
     $rutaFisica = $_SERVER['DOCUMENT_ROOT'] . $base . $nombreFisico;
     $rutaBD     = $base . $nombreFisico;
 
@@ -274,7 +274,7 @@ include __DIR__ . '/../../layout.php';
             btnGuardar.disabled = true;
             btnGuardar.textContent = 'Cargando…';
 
-            fetch('/ITSFCP-PROYECTOS/Ajax/plantilla_documento.php?tipo_documento=' + encodeURIComponent(idTipo))
+            fetch('/Ajax/plantilla_documento.php?tipo_documento=' + encodeURIComponent(idTipo))
                 .then(r => {
                     if (!r.ok) throw new Error('Error de red: ' + r.status);
                     return r.json();

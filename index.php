@@ -3,7 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 if (isset($_SESSION['rol'])) {
-    $base_url = "/ITSFCP-PROYECTOS/";
+    $base_url = "/";
 
     switch (strtolower($_SESSION['rol'])) {
         case 'alumno':
@@ -46,7 +46,7 @@ if (isset($_SESSION['rol'])) {
         })();
     </script>
     
-    <link rel="stylesheet" href="/ITSFCP-PROYECTOS/publico/css/styles.css">
+    <link rel="stylesheet" href="/publico/css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
@@ -91,8 +91,8 @@ if (isset($_SESSION['rol'])) {
         </div>
     </div>
     
-    <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
-    <script src="/ITSFCP-PROYECTOS/publico/js/sidebar.js"></script>
+    <script src="/publico/js/javascript.js"></script>
+    <script src="/publico/js/sidebar.js"></script>
 </body>
 
 </html>

@@ -4,7 +4,7 @@
  * mis_alumnos/index.php
  * Vista principal del módulo "Mis Alumnos" para el investigador.
  * Solo lectura — sin acciones de baja/reactivación.
- * Ruta sugerida: /ITSFCP-PROYECTOS/Vistas/mis_alumnos/index.php
+ * Ruta sugerida: /Vistas/mis_alumnos/index.php
  */
 
 ini_set('display_errors', 1);
@@ -14,7 +14,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header('Location: /index.php');
     exit;
 }
 
@@ -22,7 +22,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
+    header('Location: /Vistas/Principal/index.php');
     exit;
 }
 

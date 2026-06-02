@@ -62,7 +62,7 @@ class solicitudesControlador extends BaseControlador
         if (!in_array($mime_real, $mimes, true)) return null;
 
         $nombreFinal = 'sol_' . $id_solicitud . '_' . uniqid() . '.' . $ext;
-        $base        = "/ITSFCP-PROYECTOS/storage/recursos/solicitudes/solicitud_{$id_solicitud}/";
+        $base        = "/storage/recursos/solicitudes/solicitud_{$id_solicitud}/";
         $dirFisico   = $_SERVER['DOCUMENT_ROOT'] . $base;
 
         if (!is_dir($dirFisico)) mkdir($dirFisico, 0755, true);
@@ -128,7 +128,7 @@ class solicitudesControlador extends BaseControlador
         $dirFisico   = realpath($_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS') . '/' . $dirRelativo;
         $rutaBD      = $dirRelativo . $nombreFinal;
 
-        $storageBase = realpath($_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS/storage');
+        $storageBase = realpath($_SERVER['DOCUMENT_ROOT'] . '/storage');
         if (!$storageBase) throw new Exception("Storage no disponible.");
 
         if (!is_dir($dirFisico) && !mkdir($dirFisico, 0755, true)) {
@@ -190,7 +190,7 @@ class solicitudesControlador extends BaseControlador
         if (!in_array($mime_real, $mimes, true)) return null;
 
         $nombreFinal = 'cv_' . $id_solicitud . '_' . uniqid() . '.' . $ext;
-        $base        = "/ITSFCP-PROYECTOS/storage/recursos/solicitudes/solicitud_{$id_solicitud}/";
+        $base        = "/storage/recursos/solicitudes/solicitud_{$id_solicitud}/";
         $dirFisico   = $_SERVER['DOCUMENT_ROOT'] . $base;
 
         if (!is_dir($dirFisico)) mkdir($dirFisico, 0755, true);
@@ -607,10 +607,10 @@ class solicitudesControlador extends BaseControlador
 
             $ok  = (new Solicitud($conn))->cancelarSolicitud($id_solicitud, $id_usuario);
             $msg = $ok ? 'exito_cancelar' : 'error_cancelar';
-            $this->redirigir($msg, "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php");
+            $this->redirigir($msg, "/Vistas/Mis_solicitudes/index.php");
         } catch (Exception $e) {
             error_log($e->getMessage());
-            $this->redirigir('error_cancelar', "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php");
+            $this->redirigir('error_cancelar', "/Vistas/Mis_solicitudes/index.php");
         }
     }
 
@@ -625,7 +625,7 @@ class solicitudesControlador extends BaseControlador
             $datos      = $S->obtenerDatosSolicitud($id_solicitud);
 
             if (!$datos) {
-                $this->redirigir('error_datos', "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php?id={$id_solicitud}");
+                $this->redirigir('error_datos', "/Vistas/Mis_solicitudes/index.php?id={$id_solicitud}");
             }
 
             $conn->begin_transaction();
@@ -654,11 +654,11 @@ class solicitudesControlador extends BaseControlador
             $S->enviarCorrecciones($id_solicitud, $id_usuario, $comentario, $id_doc);
             $conn->commit();
 
-            $this->redirigir('exito_correcciones_enviadas', "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php?id={$id_solicitud}");
+            $this->redirigir('exito_correcciones_enviadas', "/Vistas/Mis_solicitudes/index.php?id={$id_solicitud}");
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log("[enviarCorrecciones estudiante] " . $e->getMessage());
-            $this->redirigir('error_correcciones', "/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes/index.php?id={$id_solicitud}");
+            $this->redirigir('error_correcciones', "/Vistas/Mis_solicitudes/index.php?id={$id_solicitud}");
         }
     }
 
@@ -689,15 +689,15 @@ class solicitudesControlador extends BaseControlador
             exit('Plantilla no disponible.');
         }
 
-        $storageBase = realpath($_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS/storage');
+        $storageBase = realpath($_SERVER['DOCUMENT_ROOT'] . '/storage');
         if (!$storageBase) {
             http_response_code(500);
             exit('Storage no disponible.');
         }
 
         $rutaRelativa = ltrim($file['ruta'], '/');
-        $rutaRelativa = preg_replace('#^ITSFCP-PROYECTOS/#', '', $rutaRelativa);
-        $rutaCompleta = realpath($_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS/' . $rutaRelativa);
+        $rutaRelativa = preg_replace('#^#', '', $rutaRelativa);
+        $rutaCompleta = realpath($_SERVER['DOCUMENT_ROOT'] . '/' . $rutaRelativa);
 
         if (!$rutaCompleta || !file_exists($rutaCompleta)) {
             http_response_code(404);
@@ -741,7 +741,7 @@ class solicitudesControlador extends BaseControlador
             if (!$periodo) {
                 $this->redirigir(
                     'error_ventana_cerrada',
-                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
+                    "/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
                 );
             }
             $id_periodo = (int)$periodo['id_periodos'];
@@ -754,14 +754,14 @@ class solicitudesControlador extends BaseControlador
             if ($motivacion === '' || $experiencia === '') {
                 $this->redirigir(
                     'error_datos',
-                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
+                    "/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
                 );
             }
 
             if (empty($_FILES['carta_compromiso']) || $_FILES['carta_compromiso']['error'] !== UPLOAD_ERR_OK) {
                 $this->redirigir(
                     'error_carta_requerida',
-                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
+                    "/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
                 );
             }
 
@@ -808,7 +808,7 @@ class solicitudesControlador extends BaseControlador
             $S->marcarSeguimientoEnProceso($id_seguimiento);
 
             $titulo_proyecto = $S->obtenerTituloProyecto($id_proyectos);
-            $enlace          = "/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles.php?id_proyectos={$id_proyectos}";
+            $enlace          = "/Vistas/Proyectos/detalles.php?id_proyectos={$id_proyectos}";
 
             $S->insertarNotificacion(
                 id_usuario: $id_usuario,
@@ -830,14 +830,14 @@ class solicitudesControlador extends BaseControlador
 
             $this->redirigir(
                 'exito_solicitud_enviada',
-                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
+                "/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
             );
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log("[enviarSolicitud] " . $e->getMessage());
             $this->redirigir(
                 'error_solicitud',
-                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
+                "/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
             );
         }
     }

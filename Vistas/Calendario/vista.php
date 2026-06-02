@@ -150,5 +150,5 @@
 
 </div>
 
-<script src="/ITSFCP-PROYECTOS/publico/js/calendario.js"></script>
-<script src="/ITSFCP-PROYECTOS/publico/js/evento.js"></script>
+<script src="/publico/js/calendario.js"></script>
+<script src="/publico/js/evento.js"></script>

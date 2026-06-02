@@ -12,9 +12,9 @@ if (!$id_usuario) {
     die("Error: no hay sesión activa.");
 }
 
-// ===============================
+// 
 //  CONSULTAR USUARIO
-// ===============================
+// 
 $queryUsuario = "SELECT * FROM usuarios WHERE id_usuarios = ?";
 $stmtUsuario = $conn->prepare($queryUsuario);
 $stmtUsuario->bind_param("i", $id_usuario);
@@ -22,9 +22,9 @@ $stmtUsuario->execute();
 $resultUsuario = $stmtUsuario->get_result();
 $usuario = $resultUsuario->fetch_assoc();
 
-// ===============================
+// 
 //  CONSULTAR CONFIGURACIONES
-// ===============================
+// 
 $queryConfig = "SELECT * FROM configuraciones WHERE id_usuarios = ?";
 $stmtConfig = $conn->prepare($queryConfig);
 $stmtConfig->bind_param("i", $id_usuario);
@@ -32,9 +32,9 @@ $stmtConfig->execute();
 $resultConfig = $stmtConfig->get_result();
 $config = $resultConfig->fetch_assoc();
 
-// ===============================
+// 
 //  VALORES POR DEFECTO
-// ===============================
+// 
 $valores_por_defecto = [
     'localidad' => '',
     'fecha_nacimiento' => $usuario['fecha_nacimiento'] ?? NULL,
@@ -52,9 +52,9 @@ $valores_por_defecto = [
 // MEZCLAR CONFIG BD + DEFAULTS
 $config = array_merge($valores_por_defecto, $config ?: []);
 
-// ===============================
+// 
 //  PREPARAR FECHA
-// ===============================
+// 
 $fecha_mostrar = $config['fecha_nacimiento'] ?? $usuario['fecha_nacimiento'];
 $fecha_nac = new DateTime($fecha_mostrar);
 $meses = ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -63,21 +63,21 @@ $fecha_formateada = $fecha_nac->format('d') . ' de ' .
     $meses[(int)$fecha_nac->format('m')] .
     ' de ' . $fecha_nac->format('Y');
 
-// ===============================
+// 
 //  DATOS DEL USUARIO
-// ===============================
+// 
 $inicial = strtoupper(substr($usuario['nombre'], 0, 1));
 $nombre_completo = trim($usuario['nombre'] . ' ' . $usuario['apellido_paterno'] . ' ' . $usuario['apellido_materno']);
 
-// ===============================
+// 
 //  JSON PARA DEBUG EN JS
-// ===============================
+// 
 $config_json = json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 $usuario_json = json_encode($usuario, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-// ===============================
+// 
 //  CONTENIDO HTML
-// ===============================
+// 
 $contenido = '
 <div class="container-ajustes py-4">
     <div class="row">
@@ -159,7 +159,7 @@ console.log("Config:", ' . $config_json . ');
 console.log("====================");
 </script>
 
-<script src="/ITSFCP-PROYECTOS/publico/js/ajustes.js"></script>
+<script src="/publico/js/ajustes.js"></script>
 ';
 
 include __DIR__ . '/../../layout.php';

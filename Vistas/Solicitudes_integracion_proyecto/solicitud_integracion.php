@@ -9,7 +9,7 @@ session_start();
 
 //  Guard de sesión ─
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -18,7 +18,7 @@ $rol  = strtolower($_SESSION['rol'] ?? '');
 
 // Solo estudiantes pueden ver este formulario
 if ($rol !== 'estudiante') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -36,7 +36,7 @@ $puedeSolicitar = ($hoy >= $periodoActualProyectos['fecha_inicio_solicitud']
     && $hoy <= $periodoActualProyectos['fecha_fin_solicitud']);
 
 if (!$puedeSolicitar) {
-    header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
+    header('Location: /Vistas/Principal/index.php');
     exit;
 }
 
@@ -44,11 +44,11 @@ $datos = $ctrl->obtenerDatosFormulario($id_proyectos, $id_usuario);
 
 // Redirigir si el proyecto o el estudiante no se encontraron
 if (!$datos['proyecto']) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 if (!$datos['estudiante']) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -102,7 +102,7 @@ $_mapa = [
             include __DIR__ . '../../../publico/incluido/_encabezado.php';
             ?>
             <div class="col-md-6 text-md-end">
-                <a href="/ITSFCP-PROYECTOS/Vistas/Principal/detalles_proyecto.php?id_proyectos=<?= $id_proyectos ?>" class="btn btn-secondary">
+                <a href="/Vistas/Principal/detalles_proyecto.php?id_proyectos=<?= $id_proyectos ?>" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Regresar
                 </a>
             </div>
@@ -291,7 +291,7 @@ $_mapa = [
                                             <small>Versión <?= (int)$plantilla['version'] ?> · <?= strtoupper($plantilla['extension']) ?></small>
                                         </div>
                                     </div>
-                                    <a href="/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/descargar_plantilla.php?id_plantilla=<?= (int)$plantilla['id_plantilla'] ?>"
+                                    <a href="/Vistas/Solicitudes_integracion_proyecto/descargar_plantilla.php?id_plantilla=<?= (int)$plantilla['id_plantilla'] ?>"
                                         class="btn-descargar-plantilla"
                                         target="_blank">
                                         <i class="bi bi-file-earmark-text"></i>

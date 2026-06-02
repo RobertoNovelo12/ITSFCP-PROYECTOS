@@ -4,7 +4,7 @@ require_once __DIR__ . "/../../publico/config/conexion.php";
 
 // Verificar que el usuario esté logueado
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -97,7 +97,7 @@ $contenido .= '
                         <h3 class="soporte-contacto-titulo">Contacta con nosotros</h3>
                     </div>
                     
-                    <form class="soporte-form" id="formContacto" method="POST" action="/ITSFCP-PROYECTOS/Vistas/soporte/procesar_contacto.php">
+                    <form class="soporte-form" id="formContacto" method="POST" action="/Vistas/soporte/procesar_contacto.php">
                         <div class="soporte-form-group">
                             <label class="soporte-label">Escribe tú nombre</label>
                             <input type="text" name="nombre" class="soporte-input" required>
@@ -126,7 +126,7 @@ $contenido .= '
     </div>
 </div>
 
-<script src="/ITSFCP-PROYECTOS/publico/js/soporte.js"></script>
+<script src="/publico/js/soporte.js"></script>
 ';
 
 include __DIR__ . '/../../layout.php';

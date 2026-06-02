@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 $rol = strtolower($_SESSION['rol'] ?? '');
@@ -17,7 +17,7 @@ $action = $_POST['action'] ?? null;
 
 //Solo el investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -32,7 +32,7 @@ $puedeCrear = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
     && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
 
 if (!$puedeCrear) {
-    header('Location: /ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+    header('Location: /Vistas/Proyectos/index.php');
     exit;
 }
 
@@ -215,7 +215,7 @@ include __DIR__ . '/../../layout.php';
             const idTematica = selectTematica.value;
             if (!idTematica) return;
 
-            fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + idTematica)
+            fetch("/Ajax/subtematicas.php?tematica=" + idTematica)
                 .then(r => r.json())
                 .then(data => {
 

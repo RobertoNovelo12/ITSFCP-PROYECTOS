@@ -214,8 +214,8 @@ document.getElementById('btn-confirmar-ok').addEventListener('click', () => {
 
     // Enviar ambos en paralelo
     Promise.all([
-        fetch('/ITSFCP-PROYECTOS/Ajax/ajustes_perfil.php', { method: 'POST', body: formPerfil }).then(r => r.json()),
-        fetch('/ITSFCP-PROYECTOS/Ajax/ajustes_config.php', { method: 'POST', body: formConfig }).then(r => r.json())
+        fetch('/Ajax/ajustes_perfil.php', { method: 'POST', body: formPerfil }).then(r => r.json()),
+        fetch('/Ajax/ajustes_config.php', { method: 'POST', body: formConfig }).then(r => r.json())
     ]).then(([resPerfil, resConfig]) => {
         // Si ambos son ok
         if (resPerfil.ok && resConfig.ok) {

@@ -3,7 +3,7 @@ session_start();
 
 // Verificar sesión y rol
 if (!isset($_SESSION['id_usuario']) || strtolower($_SESSION['rol']) !== 'estudiante') {
-    header("Location: /ITSFCP-PROYECTOS/login.php");
+    header("Location: /login.php");
     exit;
 }
 

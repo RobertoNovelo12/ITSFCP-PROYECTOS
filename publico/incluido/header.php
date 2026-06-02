@@ -44,13 +44,13 @@ if ($usuario_logeado) {
         </button>
 
         <?php if (!$usuario_logeado): ?>
-            <a class="login-btn" href="/ITSFCP-PROYECTOS/login.php">Iniciar sesión</a>
+            <a class="login-btn" href="/login.php">Iniciar sesión</a>
         <?php else: ?>
 
             <!-- ICONO DE NOTIFICACIONES -->
             <div class="notif-wrapper">
                 <div class="notif-icon" id="notifBtn">
-                    <img src="/ITSFCP-PROYECTOS/publico/icons/notificacion.svg" alt="Notificaciones">
+                    <img src="/publico/icons/notificacion.svg" alt="Notificaciones">
                     <?php if ($no_leidas > 0): ?>
                         <span class="notif-count" id="notifCount"><?= $no_leidas ?></span>
                     <?php endif; ?>
@@ -74,16 +74,16 @@ if ($usuario_logeado) {
             <!-- PERFIL -->
             <div class="profile-wrapper" id="userProfileBtn">
                 <?php if (!empty($_SESSION['foto_url'])): ?>
-                    <img class="avatar-img" src="/ITSFCP-PROYECTOS/img/avatars/<?= $_SESSION['foto_url'] ?>" alt="Avatar">
+                    <img class="avatar-img" src="/img/avatars/<?= $_SESSION['foto_url'] ?>" alt="Avatar">
                 <?php else: ?>
                     <div class="avatar-initial"><?= $inicial ?></div>
                 <?php endif; ?>
-                <img class="avatar-arrow" src="/ITSFCP-PROYECTOS/publico/icons/caretaa.svg" alt="Menú">
+                <img class="avatar-arrow" src="/publico/icons/caretaa.svg" alt="Menú">
             </div>
 
             <!-- MENÚ DESPLEGABLE -->
             <div class="profile-dropdown" id="profileDropdown">
-                <a href="/ITSFCP-PROYECTOS/logout.php" class="logout-btn">Cerrar sesión</a>
+                <a href="/logout.php" class="logout-btn">Cerrar sesión</a>
             </div>
 
         <?php endif; ?>
@@ -113,7 +113,7 @@ notifBtn.addEventListener('click', () => {
     if (notifDropdown.dataset.loaded) return;
 
     // AJAX para marcar como leídas y actualizar dropdown
-    fetch('/ITSFCP-PROYECTOS/Vistas/Notificaciones/lista.php')
+    fetch('/Vistas/Notificaciones/lista.php')
         .then(res => res.json())
         .then(data => {
             if (data.status === 'ok') {

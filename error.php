@@ -3,7 +3,7 @@
         <div class="modal-content">
 
             <div class="img_modal">
-                <img src="/ITSFCP-PROYECTOS/publico/icons/error.png" alt="icono">
+                <img src="/publico/icons/error.png" alt="icono">
             </div>
 
 

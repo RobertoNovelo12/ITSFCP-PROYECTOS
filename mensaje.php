@@ -3,7 +3,7 @@
         <div class="modal-content">
 
             <div class="img_modal">
-                <img src="/ITSFCP-PROYECTOS/publico/icons/comprobar.svg" alt="icono">
+                <img src="/publico/icons/comprobar.svg" alt="icono">
             </div>
 
             <h2>¡Operación realizada!</h2>

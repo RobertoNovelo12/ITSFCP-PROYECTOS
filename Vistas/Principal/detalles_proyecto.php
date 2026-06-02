@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -17,7 +17,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 
 //Todos los roles pueden acceder
 if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -270,7 +270,7 @@ ob_start();
 
                     <?php elseif ($puede_solicitar): ?>
                         <!-- Ventana abierta y sin solicitud activa -> puede enviar -->
-                        <a href="/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos=<?= $id_proyectos ?>"
+                        <a href="/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos=<?= $id_proyectos ?>"
                             class="btn-enviar-solicitud">
                             <i class="bi bi-send"></i> Solicitud
                         </a>

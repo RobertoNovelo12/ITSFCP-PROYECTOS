@@ -4,7 +4,7 @@ include("../../publico/config/conexion.php");
 
 // Si no hay sesión, redirigir
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/login.php");
+    header("Location: /login.php");
     exit;
 }
 
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         </form>
     </div>
-    <script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
+    <script src="/publico/js/javascript.js"></script>
 </body>
 
 </html>

@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['rol']) || strtolower($_SESSION['rol']) !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/login.php");
+    header("Location: /login.php");
     exit;
 }
 

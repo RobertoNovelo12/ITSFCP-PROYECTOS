@@ -2,5 +2,5 @@
 session_start();
 session_unset();
 session_destroy();
-header("Location: /ITSFCP-PROYECTOS/login.php");
+header("Location: /login.php");
 exit;

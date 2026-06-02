@@ -26,7 +26,7 @@ require_once __DIR__ . "/../../Modelos/plantilladocumento.php";
 $rol        = strtolower($_SESSION['rol'] ?? '');
 // Solo la usa el supervisor
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -68,7 +68,7 @@ if (!$storageBase) {
 //  Construir ruta física ─
 /*
  * Las rutas en BD pueden estar en dos formatos según quien las guardó:
- *   a) Absoluta web:   /ITSFCP-PROYECTOS/storage/plantillas/supervisor_5/carta/archivo.docx
+ *   a) Absoluta web:   /storage/plantillas/supervisor_5/carta/archivo.docx
  *   b) Relativa pura:  storage/plantillas/supervisor_5/carta/archivo.docx
  *   c) Ruta en disco:  C:\xampp\htdocs\ITSFCP-PROYECTOS\storage\...  (Windows)
  *
@@ -77,7 +77,7 @@ if (!$storageBase) {
 $rutaBD       = $file['ruta'];
 $proyectoRoot = realpath(__DIR__ . '/../../');   // raíz de ITSFCP-PROYECTOS
 
-// Quitar barra inicial y prefijo /ITSFCP-PROYECTOS/ si existe
+// Quitar barra inicial y prefijo / si existe
 $rutaBD = ltrim($rutaBD, '/\\');
 $rutaBD = preg_replace('#^ITSFCP-PROYECTOS[\\/]#i', '', $rutaBD);
 

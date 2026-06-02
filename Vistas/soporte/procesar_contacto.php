@@ -10,17 +10,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (empty($nombre) || empty($correo) || empty($mensaje)) {
         $_SESSION['mensaje_error'] = 'Todos los campos son obligatorios';
-        header("Location: /ITSFCP-PROYECTOS/Vistas/soporte/soporte.php");
+        header("Location: /Vistas/soporte/soporte.php");
         exit;
     }
 
     // FALTA VALIDAR FORMATO DE CORREO ELECTRÓNICO
     
     $_SESSION['mensaje_exito'] = 'Tu mensaje ha sido enviado correctamente. Te responderemos pronto.';
-    header("Location: /ITSFCP-PROYECTOS/Vistas/soporte/soporte.php");
+    header("Location: /Vistas/soporte/soporte.php");
     exit;
 }
 
-header("Location: /ITSFCP-PROYECTOS/Vistas/soporte/soporte.php");
+header("Location: /Vistas/soporte/soporte.php");
 exit;
 ?>

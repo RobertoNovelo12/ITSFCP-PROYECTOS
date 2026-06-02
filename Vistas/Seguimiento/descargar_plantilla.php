@@ -32,7 +32,7 @@ if (!isset($_SESSION['id_usuario'])) {
 
 //Solo estudiante accede
 if (strtolower($_SESSION['rol']) !== 'estudiante') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 

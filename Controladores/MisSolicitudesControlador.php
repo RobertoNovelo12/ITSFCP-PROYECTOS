@@ -12,7 +12,7 @@ class MisSolicitudesControlador extends BaseControlador
     private const TAMANO_MAXIMO_BYTES    = 5 * 1024 * 1024; // 5 MB
     private const RUTA_STORAGE           = __DIR__ . '/../storage/solicitudes/';
     private const POR_PAGINA             = 8;
-    private const BASE_URL               = '/ITSFCP-PROYECTOS/Vistas/Mis_solicitudes';
+    private const BASE_URL               = '/Vistas/Mis_solicitudes';
 
     // ─
     //  INDEX
@@ -204,8 +204,7 @@ class MisSolicitudesControlador extends BaseControlador
                 $base . '/detalles_mi_solicitud.php?id=' . $id_solicitud . '#form-responder',
                 'secondary',
                 $iconos['tabla']['responder'],
-                'Responder',
-                'Responder correcciones'
+                'Responder'
             );
         }
 
@@ -218,8 +217,7 @@ class MisSolicitudesControlador extends BaseControlador
                 [
                     'onclick' => "abrirModalCancelar({$id_solicitud}, 'esta solicitud')",
                 ],
-                'sm',
-                'Cancelar'
+                'sm'
             );
         }
 

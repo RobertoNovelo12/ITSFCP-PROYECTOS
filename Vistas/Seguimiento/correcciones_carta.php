@@ -18,7 +18,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header('Location: /index.php');
     exit;
 }
 
@@ -26,7 +26,7 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
 if ($rol !== 'estudiante') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -112,7 +112,7 @@ ob_start();
                 </div>
                 <div class="col-md-4 text-md-end">
                     <?php if (!empty($cierre['ruta_documento'])): ?>
-                        <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($cierre['ruta_documento']) ?>"
+                        <a href="/<?= htmlspecialchars($cierre['ruta_documento']) ?>"
                             target="_blank" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-paperclip me-1"></i>Ver carta enviada
                         </a>
@@ -157,7 +157,7 @@ ob_start();
                         <div><?= nl2br(htmlspecialchars($c['comentario'])) ?></div>
                         <?php if (!empty($c['archivo_nombre'])): ?>
                             <div class="mt-1">
-                                <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($c['archivo_ruta']) ?>"
+                                <a href="/<?= htmlspecialchars($c['archivo_ruta']) ?>"
                                     target="_blank" class="small text-primary">
                                     <i class="bi bi-paperclip me-1"></i><?= htmlspecialchars($c['archivo_nombre']) ?>
                                 </a>

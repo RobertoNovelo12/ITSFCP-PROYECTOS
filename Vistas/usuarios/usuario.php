@@ -218,13 +218,13 @@ $lineas = $conn->query("SELECT id_linea, nombre FROM lineas_investigacion ORDER 
     document.getElementById("modalSolicitud").style.display = "flex";
 
     function cerrarModal() {
-        window.location.href = "/ITSFCP-PROYECTOS/index.php";
+        window.location.href = "/index.php";
     }
 </script>
 
 <?php endif; ?>
 
-<script src="/ITSFCP-PROYECTOS/publico/js/javascript.js"></script>
+<script src="/publico/js/javascript.js"></script>
 
 </body>
 </html>

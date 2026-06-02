@@ -7,7 +7,7 @@ if (!$id_usuario) { header("Location: login.php"); exit; }
 
 //Solo investigador puede acceder
 if (!in_array(strtolower($_SESSION['rol']), ['investigador', 'profesor', 'supervisor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: index.php");
     exit;
 }
 

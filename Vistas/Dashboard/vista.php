@@ -104,7 +104,7 @@ $mostrar_btn     = $datos['mostrar_btn'];
                         <div>En este espacio encontrarás tus proyectos.</div>
                     <?php else: ?>
                         <?php foreach ($proyectos as $proyecto): ?>
-                            <a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>"
+                            <a href="/Vistas/Proyectos/detalles.php?id_proyectos=<?= $proyecto['id_proyectos'] ?>"
                                class="proyecto-link">
                                 <div class="proyecto-item d-flex justify-content-between align-items-center mb-3">
                                     <div>

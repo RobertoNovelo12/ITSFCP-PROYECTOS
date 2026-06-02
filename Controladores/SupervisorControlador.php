@@ -25,7 +25,7 @@ class SupervisorControlador
         $rol = strtolower($_SESSION['rol'] ?? '');
         if ($rol !== 'supervisor') {
             http_response_code(403);
-            header('Location: /ITSFCP-PROYECTOS/index.php');
+            header('Location: /index.php');
             exit;
         }
     }

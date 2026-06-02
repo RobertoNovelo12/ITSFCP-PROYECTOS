@@ -4,7 +4,7 @@
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -13,7 +13,7 @@ $id_usuario = (int)$_SESSION['id_usuario'];
 
 
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 

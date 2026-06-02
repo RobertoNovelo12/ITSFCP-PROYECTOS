@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header('Location: /index.php');
     exit;
 }
 
@@ -19,7 +19,7 @@ $id_usuario = intval($_SESSION['id_usuario']);
 $id_linea   = (int)($_GET['id_linea'] ?? 0);
 
 if ($rol !== 'supervisor') {
-    header('Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php');
+    header('Location: /Vistas/Principal/index.php');
     exit;
 }
 

@@ -140,7 +140,7 @@ class SeguimientoControlador extends BaseControlador
         [$archivo, $mime, $ext] = $this->validarArchivo($_FILES['documento']);
 
         $dirRelativo = "storage/etapas/proyecto_{$id_proyecto}";
-        $dirFisico   = $_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS/' . $dirRelativo . '/';
+        $dirFisico   = $_SERVER['DOCUMENT_ROOT'] . '/' . $dirRelativo . '/';
 
         if (!is_dir($dirFisico)) mkdir($dirFisico, 0755, true);
 
@@ -222,7 +222,7 @@ class SeguimientoControlador extends BaseControlador
         [$archivo, $mime, $ext] = $this->validarArchivo($_FILES['documento']);
 
         $dirRelativo = "storage/etapas/proyecto_{$id_proyecto}";
-        $dirFisico   = $_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS/' . $dirRelativo . '/';
+        $dirFisico   = $_SERVER['DOCUMENT_ROOT'] . '/' . $dirRelativo . '/';
 
         if (!is_dir($dirFisico)) mkdir($dirFisico, 0755, true);
 
@@ -328,7 +328,7 @@ class SeguimientoControlador extends BaseControlador
 
             $id_proyecto = (int)$cierre['id_proyectos'];
             $dirRelativo = "storage/etapas/proyecto_{$id_proyecto}";
-            $dirFisico   = $_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS/' . $dirRelativo . '/';
+            $dirFisico   = $_SERVER['DOCUMENT_ROOT'] . '/' . $dirRelativo . '/';
 
             if (!is_dir($dirFisico)) mkdir($dirFisico, 0755, true);
 
@@ -389,7 +389,7 @@ class SeguimientoControlador extends BaseControlador
                     (int)$seg['id_usuarios'],
                     'Reporte Final aprobado',
                     'El investigador aprobó tu Reporte Final. Ya puedes descargar y subir tu Carta de Terminación.',
-                    '/ITSFCP-PROYECTOS/Vistas/Seguimiento/index.php?id_proyectos=' . $seg['id_proyectos']
+                    '/Vistas/Seguimiento/index.php?id_proyectos=' . $seg['id_proyectos']
                 );
             }
         }

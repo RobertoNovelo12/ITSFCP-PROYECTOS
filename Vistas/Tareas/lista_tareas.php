@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -18,7 +18,7 @@ $action = $_GET['action'] ?? 'index_Lista';
 include __DIR__ . '../../../publico/incluido/_validar_tareas.php';
 
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
-    header('Location: /ITSFCP-PROYECTOS/index.php');
+    header('Location: /index.php');
     exit;
 }
 

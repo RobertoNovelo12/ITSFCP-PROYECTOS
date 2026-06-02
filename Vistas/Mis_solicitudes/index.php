@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -17,7 +17,7 @@ $rol = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'estudiante') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -306,7 +306,7 @@ include __DIR__ . '/../../mensaje.php';
                             Aún no has enviado ninguna solicitud de integración.
                         <?php endif; ?>
                     </p>
-                    <a href="/ITSFCP-PROYECTOS/Vistas/menu/principal.php"
+                    <a href="/Vistas/menu/principal.php"
                         class="ms-btn-filtrar" style="display:inline-flex;">
                         <i class="bi bi-search"></i> Explorar proyectos
                     </a>

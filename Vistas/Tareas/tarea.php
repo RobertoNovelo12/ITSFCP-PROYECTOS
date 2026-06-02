@@ -6,7 +6,7 @@
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -16,7 +16,7 @@ $id  = (int)$_SESSION['id_usuario'];
 
 // Solo investigador y estudiante pueden acceder
 if (!in_array($rol, ['investigador', 'estudiante', 'supervisor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 

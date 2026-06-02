@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -17,7 +17,7 @@ $id_usuario = intval($_SESSION['id_usuario']);
 
 //Solo el investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -120,7 +120,7 @@ ob_start();
                     </div>
                     <?php if (!empty($sol['carta_ruta'])): ?>
                         <div class="mt-2">
-                            <a href="/ITSFCP-PROYECTOS/<?= htmlspecialchars($sol['carta_ruta']) ?>"
+                            <a href="/<?= htmlspecialchars($sol['carta_ruta']) ?>"
                                 target="_blank"
                                 class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-eye"></i> Ver carta compromiso

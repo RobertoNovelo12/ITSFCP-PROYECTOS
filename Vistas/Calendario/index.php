@@ -4,7 +4,7 @@ if (!isset($_SESSION)) session_start();
 require_once __DIR__ . "/../../publico/config/conexion.php";
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/login.php");
+    header("Location: /login.php");
     exit;
 }
 

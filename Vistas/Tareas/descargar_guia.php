@@ -27,7 +27,7 @@ require_once __DIR__ . "/../../Modelos/tareas.php";
 
 // Solo investigador, supervisor y estudiante pueden acceder 
 if (!in_array($_SESSION['rol'], ['investigador', 'supervisor', 'estudiante'])) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -67,7 +67,7 @@ if (!$storageBase) {
 
 //  Construir ruta física 
 // Las rutas en BD pueden venir en distintos formatos:
-//   a) Absoluta web:   /ITSFCP-PROYECTOS/storage/recursos/tarea_5/archivo.pdf
+//   a) Absoluta web:   /storage/recursos/tarea_5/archivo.pdf
 //   b) Relativa pura:  storage/recursos/tarea_5/archivo.pdf
 //   c) Ruta en disco:  C:\xampp\htdocs\ITSFCP-PROYECTOS\storage\...  (Windows)
 // Normalizamos eliminando el prefijo web y resolvemos desde la raíz del proyecto.

@@ -97,7 +97,7 @@ class SolicitudGrado
         }
 
         $nombre_archivo = uniqid() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $archivo['name']);
-        $ruta_relativa  = '/ITSFCP-PROYECTOS/storage/academico/usuario_' . $id_usuario . '/' . $nombre_archivo;
+        $ruta_relativa  = '/storage/academico/usuario_' . $id_usuario . '/' . $nombre_archivo;
 
         if (!move_uploaded_file($archivo['tmp_name'], $dir . $nombre_archivo)) {
             return ['ok' => false, 'msg' => 'Error al guardar el documento.'];

@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -17,7 +17,7 @@ include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 //Solo supervisor
 if ($rol !== 'supervisor') {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 

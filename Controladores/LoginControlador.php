@@ -4,7 +4,7 @@ require_once __DIR__ . '/../Modelos/LoginModelo.php';
 class LoginControlador
 {
     private $modelo;
-    private string $base_url = "/ITSFCP-PROYECTOS/";
+    private string $base_url = "/";
 
     public function __construct($conn)
     {

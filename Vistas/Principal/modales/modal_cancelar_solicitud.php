@@ -20,7 +20,7 @@ if (empty($puede_cancelar) || empty($solicitud)) return;
            <small class="text-muted">Esta acción no se puede deshacer.</small>
         </p>
         <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-            <a href="/ITSFCP-PROYECTOS/Vistas/Proyectos/cancelar_solicitud.php?id_solicitud=<?= (int)$solicitud['id_solicitud_proyecto'] ?>&id_proyecto=<?= (int)$id_proyecto ?>"
+            <a href="/Vistas/Proyectos/cancelar_solicitud.php?id_solicitud=<?= (int)$solicitud['id_solicitud_proyecto'] ?>&id_proyecto=<?= (int)$id_proyecto ?>"
                class="submit-btn" style="background:#d9534f;">
                 <i class="bi bi-x-circle"></i> Sí, cancelar
             </a>

@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
@@ -17,7 +17,7 @@ $id = $_SESSION['id_usuario'];
 
 //Solo investigador puede acceder
 if (!in_array($rol, ['investigador', 'profesor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
@@ -193,7 +193,7 @@ ob_start();
         const subIds = subtematicasProyecto.map(s => Number(s.id_subtematica));
 
         function cargarSub() {
-            fetch("/ITSFCP-PROYECTOS/Ajax/subtematicas.php?tematica=" + selectTematica.value)
+            fetch("/Ajax/subtematicas.php?tematica=" + selectTematica.value)
                 .then(r => r.json())
                 .then(data => {
                     selectSub.innerHTML = "";

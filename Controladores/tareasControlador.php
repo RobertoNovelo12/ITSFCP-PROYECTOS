@@ -22,7 +22,7 @@ class TareaControlador extends BaseControlador
             $tareas->actualizarTareasConcluidas();
             $resultado = $tareas->obtenerTareas($id_proyecto, $id_usuario, $rol);
             if (!$resultado) {
-                $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+                $this->redirigir('sin_permiso_tarea', '/Vistas/Proyectos/index.php');
             }
             return $resultado;
         } catch (\Exception $e) {
@@ -691,7 +691,7 @@ class TareaControlador extends BaseControlador
 
             $id_documento_entrega = null;
             if (!empty($_FILES['archivo']['tmp_name']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
-                $base = "/ITSFCP-PROYECTOS/storage/entregas/alumno_{$id_usuarios}/proyecto_{$id_proyectos}/actividad/";
+                $base = "/storage/entregas/alumno_{$id_usuarios}/proyecto_{$id_proyectos}/actividad/";
                 $id_documento_entrega = $this->_subirArchivoGenerico($_FILES['archivo'], $base, $id_usuarios, $id_proyectos, $tarea, 'entrega');
             }
 
@@ -814,7 +814,7 @@ class TareaControlador extends BaseControlador
             return $tareas->obtenerTareaGeneral($id_tarea, $rol, $id_usuario, $id_proyectos) ?? [];
         } catch (\Exception $e) {
             error_log('TareaControlador::mostrarEditarTarea() — ' . $e->getMessage());
-            $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+            $this->redirigir('sin_permiso_tarea', '/Vistas/Proyectos/index.php');
         }
     }
 
@@ -847,7 +847,7 @@ class TareaControlador extends BaseControlador
 
                 //Si es que si, manda 1 y se omite el if, si no se redirige
                 if (empty($verificar)) {
-                    $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+                    $this->redirigir('sin_permiso_tarea', '/Vistas/Proyectos/index.php');
                 }
             }
 
@@ -855,7 +855,7 @@ class TareaControlador extends BaseControlador
             return array_merge($defaults, is_array($datos) && !empty($datos) ? $datos : []);
         } catch (\Exception $e) {
             error_log('TareaControlador::mostrarTarea() — ' . $e->getMessage());
-            $this->redirigir('sin_permiso_tarea', '/ITSFCP-PROYECTOS/Vistas/Proyectos/index.php');
+            $this->redirigir('sin_permiso_tarea', '/Vistas/Proyectos/index.php');
         }
     }
 
@@ -925,7 +925,7 @@ class TareaControlador extends BaseControlador
     {
         $extension   = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $nombreFinal = uniqid() . '_' . basename($file['name']);
-        $base        = "/ITSFCP-PROYECTOS/storage/recursos/investigador_{$id_usuario}/proyecto_{$id_proyecto}/";
+        $base        = "/storage/recursos/investigador_{$id_usuario}/proyecto_{$id_proyecto}/";
         return $this->_moverYRegistrar($file, $base, $nombreFinal, $extension, $id_usuario, $id_proyecto, 'recurso', $tarea);
     }
 
@@ -935,7 +935,7 @@ class TareaControlador extends BaseControlador
         $nombreFinal = uniqid() . '_' . basename($file['name']);
         $etapa_num   = (int)($datos['etapa'] ?? 0);
         $subcarpeta  = $etapa_num > 0 ? "actividad_{$etapa_num}" : 'actividad';
-        $base        = "/ITSFCP-PROYECTOS/storage/entregas/alumno_{$id_usuario}/proyecto_{$id_proyecto}/{$subcarpeta}/";
+        $base        = "/storage/entregas/alumno_{$id_usuario}/proyecto_{$id_proyecto}/{$subcarpeta}/";
         return $this->_moverYRegistrar($file, $base, $nombreFinal, $extension, $id_usuario, $id_proyecto, 'entrega', $tarea, $etapa_num ?: null);
     }
 
