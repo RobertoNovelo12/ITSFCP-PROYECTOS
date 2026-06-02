@@ -47,15 +47,7 @@ if (
 // 
 $proyecto = $proyectoControlador->datosproyecto($id_proyecto);
 
-// Validación
-$registro = $proyecto;
-include __DIR__ . '../../../publico/incluido/_validar_datos.php';
-
 $investigador = $proyectoControlador->datosinvestigador($id_proyecto);
-
-// Validación
-$registro = $investigador;
-include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 $subtematicas = $proyectoControlador->subtematicasProyecto($id_proyecto);
 
@@ -117,23 +109,16 @@ ob_start();
 
     <!-- INFORMACIÓN DEL PROYECTO -->
     <div class="card mb-4 shadow-sm">
-
         <div class="card-header">
-            <i class="bi bi-info-circle me-2"></i> <b>Información del proyecto</b>
+            <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i> Información del proyecto</h5>
         </div>
-
         <div class="card-body">
-
             <h5><?= htmlspecialchars($proyecto['titulo']) ?></h5>
-
             <p class="text-muted">
                 <?= nl2br(htmlspecialchars($proyecto['descripcion'])) ?>
             </p>
-
             <hr>
-
             <div class="row">
-
                 <div class="col-md-6">
                     <dl>
                         <dt>Objetivos</dt>
@@ -146,7 +131,6 @@ ob_start();
                         <dd><?= nl2br(htmlspecialchars($proyecto['requisitos'])) ?></dd>
                     </dl>
                 </div>
-
                 <div class="col-md-6">
                     <dl>
                         <dt>Cantidad alumnos</dt>
@@ -181,11 +165,8 @@ ob_start();
                         <dd><?= $proyecto['creado_en'] ?></dd>
                     </dl>
                 </div>
-
             </div>
-
             <hr>
-
             <b>Subtemáticas</b>
             <div class="mt-2">
                 <?php foreach ($subtematicas as $sub): ?>
@@ -194,21 +175,16 @@ ob_start();
                     </span>
                 <?php endforeach; ?>
             </div>
-
         </div>
-
     </div>
 
     <!-- INVESTIGADOR -->
     <div class="card mb-4 shadow-sm">
-
         <div class="card-header">
-            <i class="bi bi-person-badge me-2"></i> <b>Investigador</b>
+            <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Investigador</h5>
         </div>
-
         <div class="card-body">
             <div class="row">
-
                 <div class="col-md-6">
                     <dl>
                         <dt>Nombre completo</dt>
@@ -227,7 +203,6 @@ ob_start();
                         <dd><?= $dat_area_inv['subarea'] ?: 'No tiene subárea asignada' ?></dd>
                     </dl>
                 </div>
-
                 <div class="col-md-6">
                     <dl>
                         <dt>Nivel SNI</dt>
@@ -240,7 +215,6 @@ ob_start();
                         <dd><?= $datos_linea_inv['linea'] ?></dd>
                     </dl>
                 </div>
-
             </div>
         </div>
     </div>
@@ -254,11 +228,9 @@ ob_start();
 
     <!-- ESTUDIANTES -->
     <?php if (in_array($rol, ['supervisor', 'profesor', 'investigador'], true)): ?>
-
         <div class="card-header">
-            <i class="bi bi-people-fill"></i> <b>Estudiantes involucrados</b>
+            <h5 class="mb-0"><i class="bi bi-people-fill"></i> <b>Estudiantes involucrados</b></h5>
         </div>
-
         <?php if (!empty($estudiantes)): ?>
 
             <!-- TABLA (DESKTOP) -->

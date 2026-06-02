@@ -262,7 +262,7 @@ ob_start();
                 $pct           = $total_cupo > 0 ? min(100, round($inscritos / $total_cupo * 100)) : 0;
                 $cupoLleno     = ($p['lugares_disponibles'] ?? 1) <= 0;
             ?>
-                <div class="card-proyecto <?= $stripeClass ?>">
+                <div class="card-proyecto">
                     <div class="card-stripe"></div>
                     <div class="card-body-inner">
 

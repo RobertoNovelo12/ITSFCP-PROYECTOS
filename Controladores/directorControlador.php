@@ -145,7 +145,6 @@ class directorControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_crear');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno !== 0) $conn->rollback();
             error_log($e->getMessage());
@@ -200,7 +199,6 @@ class directorControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_editar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno !== 0) $conn->rollback();
             error_log($e->getMessage());
@@ -228,7 +226,6 @@ class directorControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_reactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno !== 0) $conn->rollback();
             error_log($e->getMessage());
@@ -259,7 +256,6 @@ class directorControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_desactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno !== 0) $conn->rollback();
             error_log($e->getMessage());
@@ -386,11 +382,34 @@ class directorControlador extends BaseControlador
 
     private function obtenerbotonesEditar(string $tipo): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         return match ($tipo) {
-            'Desactivar' => '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>',
-            'Reactivar'  => '<button type="submit" name="action" value="Reactivar"  class="btn btn-sm btn-warning">Reactivar</button>',
-            'Guardar'    => '<button type="submit" name="action" value="Guardar"    class="btn btn-sm btn-guardar">Guardar cambios</button>',
-            default      => '',
+            'Desactivar' => Botones::botonData(
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Desactivar director',
+                ['accion' => 'Desactivar'],
+                'sm',
+                'Desactivar'
+            ),
+            'Reactivar' => Botones::botonData(
+                'warning',
+                $iconos['tabla']['reactivar'],
+                'Reactivar director',
+                ['accion' => 'Reactivar'],
+                'sm',
+                'Reactivar'
+            ),
+            'Guardar' => Botones::botonData(
+                'guardar',
+                $iconos['tabla']['guardar'],
+                'Guardar cambios',
+                ['accion' => 'Guardar'],
+                'sm',
+                'Guardar'
+            ),
+            default => '',
         };
     }
 
@@ -400,14 +419,13 @@ class directorControlador extends BaseControlador
 
         if ($estado === 'Activo') {
             return $this->obtenerbotonesEditar('Desactivar')
-                 . $this->obtenerbotonesEditar('Guardar');
+                . $this->obtenerbotonesEditar('Guardar');
         }
         if ($estado === 'Desactivado') {
             return $this->obtenerbotonesEditar('Reactivar')
-                 . $this->obtenerbotonesEditar('Guardar');
+                . $this->obtenerbotonesEditar('Guardar');
         }
 
         return '';
     }
-
 }

@@ -188,7 +188,7 @@ ob_start();
 
         <button
             type="submit"
-            class="btn btn-guardar-tematica"
+            class="btn btn-guardar"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
             data-bs-custom-class="custom-tooltip"

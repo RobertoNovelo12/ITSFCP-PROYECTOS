@@ -97,7 +97,7 @@ ob_start();
     <div class="card mb-4 shadow-sm">
         <div class="card-header">
             <h5 class="mb-0"><i class="bi-info-circle me-2"></i>Información del periodo
-                <span class="text-muted fs-6 fw-normal">(no editable)</span>
+                <span class="text fs-6 fw-normal">(no editable)</span>
             </h5>
         </div>
         <div class="card-body">

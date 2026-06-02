@@ -310,15 +310,38 @@ class gradoacademicoControlador extends BaseControlador
         return $boton;
     }
 
-    //  Botones formulario editar 
+    // ─ Botones formulario editar ─
 
     private function obtenerbotonesEditar(string $tipo): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         return match ($tipo) {
-            'Desactivar' => '<button type="submit" name="action" value="Desactivar" class="btn btn-danger">Desactivar</button>',
-            'Reactivar'  => '<button type="submit" name="action" value="Reactivar"  class="btn btn-warning">Reactivar</button>',
-            'Guardar'    => '<button type="submit" name="action" value="Guardar"    class="btn btn-guardar">Guardar cambios</button>',
-            default      => '',
+            'Desactivar' => Botones::botonData(
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Desactivar grado académico',
+                ['accion' => 'Desactivar'],
+                'sm',
+                'Desactivar'
+            ),
+            'Reactivar' => Botones::botonData(
+                'warning',
+                $iconos['tabla']['reactivar'],
+                'Reactivar grado académico',
+                ['accion' => 'Reactivar'],
+                'sm',
+                'Reactivar'
+            ),
+            'Guardar' => Botones::botonData(
+                'guardar',
+                $iconos['tabla']['guardar'],
+                'Guardar cambios',
+                ['accion' => 'Guardar'],
+                'sm',
+                'Guardar'
+            ),
+            default => '',
         };
     }
 

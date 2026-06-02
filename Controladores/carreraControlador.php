@@ -169,30 +169,51 @@ class carreraControlador extends BaseControlador
 
         if ($estado === 'Activo') {
             return $this->obtenerbotones('Editar Carrera', $id)
-                 . $this->obtenerbotones('Detalles', $id)
-                 . $this->obtenerbotones('Desactivar', $id);
+                . $this->obtenerbotones('Detalles', $id)
+                . $this->obtenerbotones('Desactivar', $id);
         }
 
         if ($estado === 'Desactivado') {
             return $this->obtenerbotones('Editar Carrera', $id)
-                 . $this->obtenerbotones('Detalles', $id);
+                . $this->obtenerbotones('Detalles', $id);
         }
 
         return '';
     }
 
 
-    // ─
-    // BOTONES FORMULARIO EDITAR
-    // ─
+    // ─ Botones formulario editar ─
 
-    public function obtenerbotonesEditar(string $tipo): string
+    private function obtenerbotonesEditar(string $tipo): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         return match ($tipo) {
-            'Desactivar' => '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>',
-            'Reactivar'  => '<button type="submit" name="action" value="Reactivar"  class="btn btn-sm btn-warning">Reactivar</button>',
-            'Guardar'    => '<button type="submit" name="action" value="Guardar"    class="btn btn-sm btn-guardar">Guardar cambios</button>',
-            default      => '',
+            'Desactivar' => Botones::botonData(
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Desactivar carrera',
+                ['accion' => 'Desactivar'],
+                'sm',
+                'Desactivar'
+            ),
+            'Reactivar' => Botones::botonData(
+                'warning',
+                $iconos['tabla']['reactivar'],
+                'Reactivar carrera',
+                ['accion' => 'Reactivar'],
+                'sm',
+                'Reactivar'
+            ),
+            'Guardar' => Botones::botonData(
+                'guardar',
+                $iconos['tabla']['guardar'],
+                'Guardar cambios',
+                ['accion' => 'Guardar'],
+                'sm',
+                'Guardar'
+            ),
+            default => '',
         };
     }
 
@@ -233,13 +254,11 @@ class carreraControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_crear');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_crear';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -283,13 +302,11 @@ class carreraControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_editar');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_editar';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -328,7 +345,6 @@ class carreraControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_desactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -366,13 +382,11 @@ class carreraControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_reactivar');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_reactivar';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
