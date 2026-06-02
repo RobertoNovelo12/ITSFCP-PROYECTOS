@@ -35,7 +35,8 @@ include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 $subtematicas = $datos['subtematicas'];
 
 $action = $_POST['action'] ?? null;
-
+/* Iconos reutilizables */
+include __DIR__ . '../../../publico/incluido/_iconos.php';
 if ($action === 'Modificar') {
 
     $subtematicas = $_POST['subtematicas'] ?? [];
@@ -169,24 +170,31 @@ ob_start();
 
         <!-- BOTON AGREGAR -->
 
+        <!-- BOTÓN AGREGAR SUBTEMÁTICA -->
         <div class="mt-3">
-
             <button
                 type="button"
                 class="btn btn-agregar-sub w-100"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-custom-class="custom-tooltip"
+                data-bs-title="Agregar una nueva subtemática"
                 onclick="agregarSubtematica()">
-
-                Agregar subtemática
-
+                <i class="<?= $iconos['tabla']['subir'] ?> me-2"></i>Agregar subtemática
             </button>
-
         </div>
 
         <hr>
 
         <button
             type="submit"
-            class="btn btn-guardar-tematica"><i class="bi bi-floppy me-1"></i> Guardar cambios</button>
+            class="btn btn-guardar-tematica"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-custom-class="custom-tooltip"
+            data-bs-title="Guardar los cambios realizados">
+            <i class="<?= $iconos['tabla']['guardar'] ?> me-1"></i> Guardar cambios
+        </button>
 
     </form>
 </div>

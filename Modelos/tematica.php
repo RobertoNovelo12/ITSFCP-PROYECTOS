@@ -1,8 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../publico/config/conexion.php';
-require_once __DIR__ . '/BaseModelo.php';
-require_once __DIR__ . '/TematicaRepositorio.php';
+require_once __DIR__ . '/../Repositorios/TematicaRepositorio.php';
 
 class Tematica
 {

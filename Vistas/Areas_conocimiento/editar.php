@@ -43,6 +43,9 @@ if (empty($area)) {
     exit;
 }
 
+/* Iconos reutilizables */
+include __DIR__ . '../../../publico/incluido/_iconos.php';
+
 //  Mapa de mensajes ─
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
@@ -148,18 +151,31 @@ endif; ?>
             <?php endforeach; ?>
         </div>
 
-        <!-- BOTÓN AGREGAR -->
+        <!-- BOTÓN AGREGAR SUBÁREA -->
         <div class="mt-3">
             <button
                 type="button"
                 class="btn btn-agregar-sub w-100"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-custom-class="custom-tooltip"
+                data-bs-title="Agregar una nueva subárea"
                 onclick="agregarSubarea()">
-                Agregar subárea
+                <i class="<?= $iconos['tabla']['subir'] ?> me-2"></i>Agregar subárea
             </button>
         </div>
 
         <hr>
-        <button type="submit" class="btn btn-sm btn-guardar">Guardar cambios</button>
+
+        <button
+            type="submit"
+            class="btn btn-sm btn-guardar"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-custom-class="custom-tooltip"
+            data-bs-title="Guardar los cambios realizados">
+            <i class="<?= $iconos['tabla']['guardar'] ?> me-2"></i>Guardar cambios
+        </button>
 
     </form>
 </div>

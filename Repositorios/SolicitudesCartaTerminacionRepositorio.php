@@ -257,7 +257,7 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
              WHERE pu.id_proyectos = ? AND pu.id_usuarios = ?
                AND ce.fecha_respuesta IS NOT NULL
 
-             ORDER BY fecha ASC",
+             ORDER BY fecha DESC",
             'iiiiii',
             [$id_proyectos, $id_usuarios, $id_proyectos, $id_usuarios, $id_proyectos, $id_usuarios]
         );

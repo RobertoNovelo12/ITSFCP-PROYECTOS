@@ -91,7 +91,7 @@ class AreaConocimientoRepositorio extends BaseModelo
             $sql .= ' WHERE ' . implode(' AND ', $where);
         }
 
-        $sql     .= ' GROUP BY area.id_area ORDER BY area.id_area ASC LIMIT ?, ?';
+        $sql     .= ' GROUP BY area.id_area ORDER BY area.id_area DESC LIMIT ?, ?';
         $params[] = $desde;
         $params[] = $por_pagina;
         $types   .= 'ii';

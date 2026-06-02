@@ -338,7 +338,7 @@ ob_start();
 
                     <!-- Botón -->
                     <div class="card-footer-inner">
-                        <a href="detalles_proyecto.php?id=<?= (int)$p['id_proyectos'] ?>"
+                        <a href="detalles_proyecto.php?id_proyectos=<?= (int)$p['id_proyectos'] ?>"
                             class="btn-ver-detalle">
                             <i class="bi bi-funnel-fill me-1"></i>
                             Ver detalle

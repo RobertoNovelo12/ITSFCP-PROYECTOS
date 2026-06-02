@@ -71,7 +71,7 @@ class PlantillaDocumentoRepositorio extends BaseModelo
                  ON ds.id_documento = pd.id_documento
                 AND ds.activo = 1
              {$where}
-             ORDER BY pd.id_plantilla ASC
+             ORDER BY pd.id_plantilla DESC
              LIMIT ?, ?",
             $types,
             $params

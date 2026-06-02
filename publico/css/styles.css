@@ -2113,7 +2113,7 @@ select:focus {
   font-weight: 500;
   margin-bottom: 8px;
   color: var(--color-texto-principal);
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .form-group-evento input[type="text"],
@@ -2127,7 +2127,7 @@ select:focus {
   padding: 10px 12px;
   border: 1px solid var(--borde-menu);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 18px;
   font-family: inherit;
   background-color: var(--fondo-inputs);
   color: var(--color-texto-principal);
@@ -7196,7 +7196,7 @@ summary::-webkit-details-marker {
 }
 
 .form-group-evento label {
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 500;
   color: var(--color-primario);
 }
@@ -7207,7 +7207,7 @@ summary::-webkit-details-marker {
   padding: 8px 12px;
   border: 1px solid var(--borde-menu);
   border-radius: 6px;
-  font-size: 13.5px;
+  font-size: 15.5px;
   color: var(--color-texto-principal);
   background: var(--fondo-inputs);
   transition:

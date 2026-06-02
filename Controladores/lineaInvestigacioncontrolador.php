@@ -338,11 +338,34 @@ class LineaInvestigacionControlador extends BaseControlador
 
     private function obtenerbotonesEditar(string $tipo): string
     {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
         return match ($tipo) {
-            'Desactivar' => '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">Desactivar</button>',
-            'Reactivar'  => '<button type="submit" name="action" value="Reactivar"  class="btn btn-sm btn-warning">Reactivar</button>',
-            'Guardar'    => '<button type="submit" name="action" value="Guardar"    class="btn btn-sm btn-guardar">Guardar cambios</button>',
-            default      => '',
+            'Desactivar' => Botones::botonData(
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Desactivar línea de investigación',
+                ['accion' => 'Desactivar'],
+                'sm',
+                'Desactivar'
+            ),
+            'Reactivar' => Botones::botonData(
+                'warning',
+                $iconos['tabla']['reactivar'],
+                'Reactivar línea de investigación',
+                ['accion' => 'Reactivar'],
+                'sm',
+                'Reactivar'
+            ),
+            'Guardar' => Botones::botonData(
+                'guardar',
+                $iconos['tabla']['guardar'],
+                'Guardar cambios',
+                ['accion' => 'Guardar'],
+                'sm',
+                'Guardar'
+            ),
+            default => '',
         };
     }
 

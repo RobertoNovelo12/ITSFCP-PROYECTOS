@@ -179,6 +179,44 @@ class tematicaControlador extends BaseControlador
         };
     }
 
+     // ─ Botones formulario editar ─
+
+    public function obtenerbotonesEditar(string $tipo): string
+    {
+        include __DIR__ . '../../publico/incluido/_iconos.php';
+
+        return match ($tipo) {
+            'Desactivar' => '
+            <button type="submit" name="action" value="Desactivar"
+                    class="btn btn-danger"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="Desactivar nivel Temática">
+                <i class="' . $iconos['tabla']['solicitar_cierre'] . ' me-2"></i>Desactivar
+            </button>',
+            'Reactivar' => '
+            <button type="submit" name="action" value="Reactivar"
+                    class="btn btn-warning"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="Reactivar Temática">
+                <i class="' . $iconos['tabla']['reactivar'] . ' me-2"></i>Reactivar
+            </button>',
+            'Guardar' => '
+            <button type="submit" name="action" value="Guardar"
+                    class="btn btn-guardar"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="Guardar cambios">
+                <i class="' . $iconos['tabla']['guardar'] . ' me-2"></i>Guardar cambios
+            </button>',
+            default => '',
+        };
+    }
+
 
     // 
     // CREAR TEMÁTICA

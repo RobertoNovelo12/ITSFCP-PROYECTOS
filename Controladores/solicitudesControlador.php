@@ -90,7 +90,7 @@ class solicitudesControlador extends BaseControlador
      */
     private function procesarCartaCompromiso(
         string $campo_file,
-        int    $id_proyecto,
+        int    $id_proyectos,
         int    $id_estudiante,
         int    $id_seguimiento,
         int    $id_plantilla
@@ -124,7 +124,7 @@ class solicitudesControlador extends BaseControlador
         }
 
         $nombreFinal = "est{$id_estudiante}_td1_" . date('YmdHis') . '.' . $ext;
-        $dirRelativo = "storage/etapas/proyecto_{$id_proyecto}/";
+        $dirRelativo = "storage/etapas/proyecto_{$id_proyectos}/";
         $dirFisico   = realpath($_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS') . '/' . $dirRelativo;
         $rutaBD      = $dirRelativo . $nombreFinal;
 
@@ -144,6 +144,7 @@ class solicitudesControlador extends BaseControlador
             throw new Exception("Error al guardar la carta compromiso en disco.");
         }
 
+
         global $conn;
         return (new Solicitud($conn))->registrarDocumento(
             nombre: basename($file['name']),
@@ -155,7 +156,7 @@ class solicitudesControlador extends BaseControlador
             tipo: 'etapa',
             visibilidad: 'privado',
             id_usuario: $id_estudiante,
-            id_proyecto: $id_proyecto,
+            id_proyectos: $id_proyectos,
             id_etapa: 1,
             version: 1,
             id_plantilla: $id_plantilla,
@@ -502,13 +503,13 @@ class solicitudesControlador extends BaseControlador
         }
     }
 
-    public function DatosSeguimientoEstudiante(int $id_proyecto, int $id_estudiante, int $id_usuario): array
+    public function DatosSeguimientoEstudiante(int $id_proyectos, int $id_estudiante, int $id_usuario): array
     {
         global $conn;
-        return (new Solicitud($conn))->DatosSeguimientoEstudiante($id_proyecto, $id_estudiante, $id_usuario);
+        return (new Solicitud($conn))->DatosSeguimientoEstudiante($id_proyectos, $id_estudiante, $id_usuario);
     }
 
-    public function botonesAccion(int $id_solicitud, string $estado, int $id_proyecto, array $filtros = []): string
+    public function botonesAccion(int $id_solicitud, string $estado, int $id_proyectos, array $filtros = []): string
     {
         include __DIR__ . '../../publico/incluido/_iconos.php';
 
@@ -570,12 +571,12 @@ class solicitudesControlador extends BaseControlador
         }
     }
 
-    public function obtenerDatosFormulario(int $id_proyecto, int $id_usuario): array
+    public function obtenerDatosFormulario(int $id_proyectos, int $id_usuario): array
     {
         global $conn;
         $modelo = new Solicitud($conn);
         return [
-            'proyecto'   => $modelo->obtenerProyecto($id_proyecto),
+            'proyecto'   => $modelo->obtenerProyecto($id_proyectos),
             'estudiante' => $modelo->obtenerEstudiante($id_usuario),
             'carreras'   => $modelo->obtenerCarreras(),
             'plantilla'  => $modelo->obtenerPlantillaCartaCompromiso(),
@@ -638,7 +639,7 @@ class solicitudesControlador extends BaseControlador
                 $id_seg      = (int)($seguimiento['seg_id'] ?? 0);
 
                 if (!$id_seg) {
-                    $id_seg = $S->crearSeguimientoCartaCompromiso($datos['id_proyectos'], $id_usuario, 'proceso');
+                    $id_seg = $S->crearSeguimientoCartaCompromiso($datos['id_proyectos'], $id_usuario, 'proceso', $id_plantilla);
                 }
 
                 $id_doc = $this->procesarCartaCompromiso(
@@ -661,12 +662,12 @@ class solicitudesControlador extends BaseControlador
         }
     }
 
-    public function obtenerEstadoSolicitud(int $id_proyecto, int $id_usuario, string $rol): array
+    public function obtenerEstadoSolicitud(int $id_proyectos, int $id_usuario, string $rol): array
     {
         global $conn;
         try {
             $this->soloEstudiante($rol);
-            return (new Solicitud($conn))->obtenerSolicitudEstudiante($id_proyecto, $id_usuario) ?? [];
+            return (new Solicitud($conn))->obtenerSolicitudEstudiante($id_proyectos, $id_usuario) ?? [];
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
@@ -727,7 +728,7 @@ class solicitudesControlador extends BaseControlador
 
     //  enviarSolicitud 
 
-    public function enviarSolicitud(int $id_proyecto, int $id_usuario, string $rol): void
+    public function enviarSolicitud(int $id_proyectos, int $id_usuario, string $rol): void
     {
         global $conn;
         try {
@@ -735,12 +736,12 @@ class solicitudesControlador extends BaseControlador
             $this->soloEstudiante($rol);
 
             $S       = new Solicitud($conn);
-            $periodo = $S->obtenerPeriodoActivoParaProyecto($id_proyecto);
+            $periodo = $S->obtenerPeriodoActivoParaProyecto($id_proyectos);
 
             if (!$periodo) {
                 $this->redirigir(
                     'error_ventana_cerrada',
-                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}"
+                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
                 );
             }
             $id_periodo = (int)$periodo['id_periodos'];
@@ -753,14 +754,14 @@ class solicitudesControlador extends BaseControlador
             if ($motivacion === '' || $experiencia === '') {
                 $this->redirigir(
                     'error_datos',
-                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}"
+                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
                 );
             }
 
             if (empty($_FILES['carta_compromiso']) || $_FILES['carta_compromiso']['error'] !== UPLOAD_ERR_OK) {
                 $this->redirigir(
                     'error_carta_requerida',
-                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}"
+                    "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
                 );
             }
 
@@ -770,7 +771,7 @@ class solicitudesControlador extends BaseControlador
             $conn->begin_transaction();
 
             $id_solicitud = $S->crearSolicitud(
-                id_proyecto: $id_proyecto,
+                id_proyectos: $id_proyectos,
                 id_estudiante: $id_usuario,
                 id_periodo: $id_periodo,
                 promedio: $promedio,
@@ -784,15 +785,16 @@ class solicitudesControlador extends BaseControlador
                 $S->actualizarDocumentoSolicitud($id_solicitud, $id_doc_cv);
             }
 
+
             $id_seguimiento = $S->crearSeguimientoCartaCompromiso(
-                id_proyecto: $id_proyecto,
+                id_proyectos: $id_proyectos,
                 id_estudiante: $id_usuario,
                 estado: 'proceso'
             );
 
             $id_doc_carta = $this->procesarCartaCompromiso(
                 campo_file: 'carta_compromiso',
-                id_proyecto: $id_proyecto,
+                id_proyectos: $id_proyectos,
                 id_estudiante: $id_usuario,
                 id_seguimiento: $id_seguimiento,
                 id_plantilla: $id_plantilla
@@ -801,11 +803,12 @@ class solicitudesControlador extends BaseControlador
             if (!$id_doc_carta) {
                 throw new Exception("No se pudo guardar la carta compromiso.");
             }
+        
 
             $S->marcarSeguimientoEnProceso($id_seguimiento);
 
-            $titulo_proyecto = $S->obtenerTituloProyecto($id_proyecto);
-            $enlace          = "/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles_proyecto.php?id={$id_proyecto}";
+            $titulo_proyecto = $S->obtenerTituloProyecto($id_proyectos);
+            $enlace          = "/ITSFCP-PROYECTOS/Vistas/Proyectos/detalles.php?id_proyectos={$id_proyectos}";
 
             $S->insertarNotificacion(
                 id_usuario: $id_usuario,
@@ -827,14 +830,14 @@ class solicitudesControlador extends BaseControlador
 
             $this->redirigir(
                 'exito_solicitud_enviada',
-                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}"
+                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
             );
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log("[enviarSolicitud] " . $e->getMessage());
             $this->redirigir(
                 'error_solicitud',
-                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_proyecto/solicitud_integracion.php?id_proyecto={$id_proyecto}"
+                "/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos={$id_proyectos}"
             );
         }
     }

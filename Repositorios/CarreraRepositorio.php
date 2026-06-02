@@ -50,7 +50,7 @@ class CarreraRepositorio extends BaseModelo
                     END AS estados
                 FROM carreras
                 $where
-                ORDER BY id_carrera ASC
+                ORDER BY id_carrera DESC
                 LIMIT ?, ?";
 
         $params[] = $desde;

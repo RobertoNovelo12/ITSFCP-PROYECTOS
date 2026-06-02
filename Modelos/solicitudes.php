@@ -36,23 +36,34 @@ class Solicitud
         string  $tipo,
         string  $visibilidad,
         int     $id_usuario,
-        int     $id_proyecto    = 0,
-        ?int    $id_etapa       = null,
-        int     $version        = 1,
-        ?int    $id_plantilla   = null,
-        ?int    $id_seguimiento = null
+        int     $id_proyectos    = 0,
+        ?int    $id_etapa        = null,
+        int     $version         = 1,
+        ?int    $id_plantilla    = null,
+        ?int    $id_seguimiento  = null
     ): int {
         $visibilidad = strtolower(trim($visibilidad));
         if (!in_array($visibilidad, ['publico', 'privado'], true)) {
             throw new Exception('Visibilidad inválida');
         }
 
-        $id_proyecto_val = $id_proyecto ?: null;
+        $id_proyecto_val = $id_proyectos ?: null;
 
         $id = $this->repo->insertarDocumento(
-            $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension, $tamano_bytes,
-            $tipo, $visibilidad, $id_usuario, $id_proyecto_val,
-            $id_etapa, $version, $id_plantilla, $id_seguimiento
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $tipo,
+            $visibilidad,
+            $id_usuario,
+            $id_proyecto_val,
+            $id_etapa,
+            $version,
+            $id_plantilla,
+            $id_seguimiento
         );
 
         if ($id === 0) {
@@ -152,24 +163,24 @@ class Solicitud
         return $this->repo->buscarDatosSolicitud($id_solicitud);
     }
 
-    public function vincularTareasAlNuevoEstudiante(int $id_proyecto, int $id_usuario): void
+    public function vincularTareasAlNuevoEstudiante(int $id_proyectos, int $id_usuario): void
     {
-        $this->repo->vincularTareasEstudiante($id_proyecto, $id_usuario);
+        $this->repo->vincularTareasEstudiante($id_proyectos, $id_usuario);
     }
 
-    public function vincularEstudianteProyecto(int $id_proyecto, int $id_usuario): void
+    public function vincularEstudianteProyecto(int $id_proyectos, int $id_usuario): void
     {
-        $this->repo->vincularEstudianteProyecto($id_proyecto, $id_usuario);
+        $this->repo->vincularEstudianteProyecto($id_proyectos, $id_usuario);
     }
 
     public function registrarHistorialUsuario(
-        int    $id_proyecto,
+        int    $id_proyectos,
         int    $id_estudiante,
         string $accion,
         string $motivo,
         int    $realizado_por
     ): void {
-        $this->repo->registrarHistorialUsuario($id_proyecto, $id_estudiante, $accion, $motivo, $realizado_por);
+        $this->repo->registrarHistorialUsuario($id_proyectos, $id_estudiante, $accion, $motivo, $realizado_por);
     }
 
     public function actualizarEstadoCierre(
@@ -181,22 +192,22 @@ class Solicitud
         return $this->repo->actualizarEstadoCierre($id_seguimiento, $estado, $id_usuario, $comentario);
     }
 
-    public function DatosSeguimientoEstudiante(int $id_proyecto, int $id_estudiante, int $id_investigador): array
+    public function DatosSeguimientoEstudiante(int $id_proyectos, int $id_estudiante, int $id_investigador): array
     {
-        $sol       = $this->repo->buscarEstadoSolicitud($id_proyecto, $id_estudiante);
+        $sol       = $this->repo->buscarEstadoSolicitud($id_proyectos, $id_estudiante);
         $e1_estado = $sol['estado'] ?? 'pendiente';
 
-        $act           = $this->repo->buscarActividadesEstudiante($id_proyecto, $id_estudiante);
+        $act           = $this->repo->buscarActividadesEstudiante($id_proyectos, $id_estudiante);
         $total_act     = (int)($act['total']     ?? 0);
         $aprobadas_act = (int)($act['aprobadas'] ?? 0);
         $fase2_ok      = $total_act > 0 && $aprobadas_act >= 11;
         $e2_estado     = $fase2_ok ? 'completado' : ($aprobadas_act > 0 ? 'proceso' : 'pendiente');
 
-        $cierre        = $this->repo->buscarSeguimientoCierre($id_proyecto, $id_estudiante);
+        $cierre        = $this->repo->buscarSeguimientoCierre($id_proyectos, $id_estudiante);
         $e3_estado     = $cierre['estado']         ?? 'pendiente';
         $id_seg_cierre = $cierre['id_seguimiento']  ?? null;
 
-        $documentos = $this->repo->listarDocumentosEstudiante($id_estudiante, $id_proyecto);
+        $documentos = $this->repo->listarDocumentosEstudiante($id_estudiante, $id_proyectos);
 
         return [
             'e1_estado'             => $e1_estado,
@@ -222,9 +233,9 @@ class Solicitud
         return $this->repo->listarProyectosInvestigador($id);
     }
 
-    public function getEtapasPorProyecto(int $id_proyecto, int $id_usuario): array
+    public function getEtapasPorProyecto(int $id_proyectos, int $id_usuario): array
     {
-        return $this->repo->listarEtapasPorProyecto($id_proyecto, $id_usuario);
+        return $this->repo->listarEtapasPorProyecto($id_proyectos, $id_usuario);
     }
 
 
@@ -243,7 +254,7 @@ class Solicitud
     }
 
     public function crearSolicitud(
-        int     $id_proyecto,
+        int     $id_proyectos,
         int     $id_estudiante,
         int     $id_periodo,
         ?float  $promedio,
@@ -253,14 +264,20 @@ class Solicitud
         ?int    $id_doc_cv = null
     ): int {
         return $this->repo->crearSolicitud(
-            $id_proyecto, $id_estudiante, $id_periodo,
-            $promedio, $motivacion, $experiencia, $semestre, $id_doc_cv
+            $id_proyectos,
+            $id_estudiante,
+            $id_periodo,
+            $promedio,
+            $motivacion,
+            $experiencia,
+            $semestre,
+            $id_doc_cv
         );
     }
 
-    public function crearSeguimientoCartaCompromiso(int $id_proyecto, int $id_estudiante, string $estado = 'pendiente'): int
+    public function crearSeguimientoCartaCompromiso(int $id_proyectos, int $id_estudiante, string $estado = 'pendiente'): int
     {
-        return $this->repo->crearSeguimientoCartaCompromiso($id_proyecto, $id_estudiante, $estado);
+        return $this->repo->crearSeguimientoCartaCompromiso($id_proyectos, $id_estudiante, $estado);
     }
 
     public function vincularDocumentoSeguimiento(int $id_documento, int $id_seguimiento): void
@@ -283,9 +300,9 @@ class Solicitud
         return $this->repo->cancelarSolicitud($id_solicitud, $id_estudiante);
     }
 
-    public function obtenerSolicitudEstudiante(int $id_proyecto, int $id_estudiante): ?array
+    public function obtenerSolicitudEstudiante(int $id_proyectos, int $id_estudiante): ?array
     {
-        return $this->repo->buscarSolicitudEstudiante($id_proyecto, $id_estudiante);
+        return $this->repo->buscarSolicitudEstudiante($id_proyectos, $id_estudiante);
     }
 
     public function obtenerPeriodoActivoParaProyecto(int $id_proyecto): ?array
@@ -293,12 +310,30 @@ class Solicitud
         return $this->repo->buscarPeriodoActivoParaProyecto($id_proyecto);
     }
 
-    public function obtenerProyecto(int $id_proyecto): ?array    { return $this->repo->buscarProyecto($id_proyecto); }
-    public function obtenerEstudiante(int $id_usuario): ?array   { return $this->repo->buscarEstudiante($id_usuario); }
-    public function obtenerCarreras(): array                      { return $this->repo->listarCarreras(); }
-    public function obtenerTituloProyecto(int $id_proyecto): string { return $this->repo->buscarTituloProyecto($id_proyecto); }
-    public function obtenerSupervisoresActivos(): array           { return $this->repo->listarSupervisoresActivos(); }
-    public function periodoactualSolicitud(): ?array              { return $this->repo->buscarPeriodoActualSolicitud(); }
+    public function obtenerProyecto(int $id_proyecto): ?array
+    {
+        return $this->repo->buscarProyecto($id_proyecto);
+    }
+    public function obtenerEstudiante(int $id_usuario): ?array
+    {
+        return $this->repo->buscarEstudiante($id_usuario);
+    }
+    public function obtenerCarreras(): array
+    {
+        return $this->repo->listarCarreras();
+    }
+    public function obtenerTituloProyecto(int $id_proyecto): string
+    {
+        return $this->repo->buscarTituloProyecto($id_proyecto);
+    }
+    public function obtenerSupervisoresActivos(): array
+    {
+        return $this->repo->listarSupervisoresActivos();
+    }
+    public function periodoactualSolicitud(): ?array
+    {
+        return $this->repo->buscarPeriodoActualSolicitud();
+    }
 
     public function insertarNotificacion(int $id_usuario, string $titulo, string $contenido, string $enlace = ''): void
     {

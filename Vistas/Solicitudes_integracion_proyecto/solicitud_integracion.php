@@ -23,11 +23,7 @@ if ($rol !== 'estudiante') {
 }
 
 //  Parámetro de ruta ─
-$id_proyecto = isset($_GET['id_proyecto']) ? (int)$_GET['id_proyecto'] : 0;
-if ($id_proyecto <= 0) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
-    exit;
-}
+$id_proyectos = isset($_GET['id_proyectos']) ? (int)$_GET['id_proyectos'] : 0;
 
 //  Controlador ─
 require_once __DIR__ . '/../../Controladores/solicitudesControlador.php';
@@ -44,7 +40,7 @@ if (!$puedeSolicitar) {
     exit;
 }
 
-$datos = $ctrl->obtenerDatosFormulario($id_proyecto, $id_usuario);
+$datos = $ctrl->obtenerDatosFormulario($id_proyectos, $id_usuario);
 
 // Redirigir si el proyecto o el estudiante no se encontraron
 if (!$datos['proyecto']) {
@@ -56,6 +52,11 @@ if (!$datos['estudiante']) {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $ctrl->enviarSolicitud($id_proyectos, $id_usuario, $rol);
+    // enviarSolicitud() hace su propio header() + exit() internamente (PRG)
+}
 //  Variables para la vista ─
 $proyecto   = $datos['proyecto'];
 $estudiante = $datos['estudiante'];
@@ -68,13 +69,23 @@ $nombre_completo = trim(
         . ' ' . htmlspecialchars($estudiante['apellido_materno'] ?? '')
 );
 
-// Mensaje de error de sesión (enviado por solicitudesControlador vía PRG)
-$error_msg = isset($_GET['error']) ? htmlspecialchars(urldecode($_GET['error'])) : null;
-
 $titulo = "Solicitud de Integración — " . htmlspecialchars($proyecto['titulo']);
 
 //  Inicio del buffer de salida 
 ob_start();
+
+//  Mensaje de éxito/error ─
+$msg = $_GET['msg'] ?? '';
+
+$_mapa = [
+    'exito_solicitud_enviada'       => ['tipo' => 'exito',  'titulo_msg' => 'Solicitud enviada',     'mensaje' => 'La solicitud fue enviada correctamente. Espere la respuesta del investigador.'],
+    'error_solicitud'    => ['tipo' => 'error',  'titulo_msg' => 'Operación no realizada',   'mensaje' => 'La operación sobre la solicitud fue rechazada. Intenta de nuevo'],
+    'error_datos'        => ['tipo' => 'error',  'titulo_msg' => 'Error con los datos',        'mensaje' => 'No fue posible la operación debido a un campo faltante por completar. Intenta de nuevo.'],
+    'error_ventana_cerrada'       => ['tipo' => 'error',  'titulo_msg' => 'Error de ventana cerrada',        'mensaje' => 'No fue posible enviar la solicitud al vencer el periodo de solicitudes de integración.'],
+    'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver la información del proyecto.'],
+    'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.',   'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
+];
 ?>
 
 <!-- 
@@ -91,29 +102,31 @@ ob_start();
             include __DIR__ . '../../../publico/incluido/_encabezado.php';
             ?>
             <div class="col-md-6 text-md-end">
-                <a href="/ITSFCP-PROYECTOS/Vistas/Principal/detalles_proyecto.php?id_proyecto=<?= $id_proyecto ?>" class="btn btn-secondary">
+                <a href="/ITSFCP-PROYECTOS/Vistas/Principal/detalles_proyecto.php?id_proyectos=<?= $id_proyectos ?>" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Regresar
                 </a>
             </div>
         </div>
 
 
-        <?php if ($error_msg): ?>
-            <div class="nota-solicitud nota-error mb-3">
-                <i class="bi bi-info-circle"></i>
-                <span><?= $error_msg ?></span>
-            </div>
-        <?php endif; ?>
+        <!-- ALERTAS -->
+        <?php
+
+        if (isset($_mapa[$msg])) {
+            extract($_mapa[$msg]);
+            include __DIR__ . '../../../publico/incluido/_mensaje.php';
+        }
+        ?>
 
         <div class="row">
             <div class="col-lg-8 mx-auto">
 
                 <form id="formSolicitud"
                     method="POST"
-                    action="/ITSFCP-PROYECTOS/publico/config/procesar_solicitud_proyecto.php"
+                    action=""
                     enctype="multipart/form-data">
 
-                    <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
+                    <input type="hidden" name="id_proyectos" value="<?= $id_proyectos ?>">
                     <input type="hidden" name="id_usuario" value="<?= $id_usuario ?>">
 
                     <!--  1. Información del proyecto ─ -->

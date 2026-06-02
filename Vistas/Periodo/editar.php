@@ -48,6 +48,9 @@ include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
 //  Error de rango de fecha (string en URL) 
 $error_fecha = isset($_GET['error_fecha']) ? htmlspecialchars($_GET['error_fecha']) : null;
 
+/* Iconos reutilizables */
+include __DIR__ . '../../../publico/incluido/_iconos.php';
+
 //  Mapa de mensajes ─
 $msg   = $_GET['msg'] ?? '';
 $_mapa = [
@@ -203,20 +206,29 @@ ob_start();
     </form>
 
     <!-- DESACTIVAR PERIODO -->
+    <!-- DESACTIVAR PERIODO -->
     <div class="card border-danger shadow-sm">
         <div class="card-header bg-danger text-white">
-            <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-1"></i> Advertencia</h5>
+            <h5 class="mb-0">
+                <i class="<?= $iconos['detalles']['advertencia'] ?> me-1"></i> Advertencia
+            </h5>
         </div>
         <div class="card-body">
             <p class="mb-3 text-muted">
                 Al desactivar el periodo ya no estará disponible para nuevos registros.
                 Esta acción se puede revertir desde la vista de crear periodo.
             </p>
-            <form method="POST" action="editar.php?id_periodos=<?= $id_periodos ?>"
-                onsubmit="return confirm('¿Está seguro de que desea desactivar este periodo?');">
+            <form method="POST" action="editar.php?id_periodos=<?= $id_periodos ?>">
                 <input type="hidden" name="action" value="desactivar">
-                <button type="submit" class="btn btn-danger">
-                    <i class="bi bi-x-circle-fill me-1"></i> Desactivar Periodo
+                <button
+                    type="submit"
+                    class="btn btn-danger"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="Desactivar este periodo"
+                    onclick="return confirm('¿Está seguro de que desea desactivar este periodo?');">
+                    <i class="<?= $iconos['tabla']['solicitar_cierre'] ?> me-1"></i> Desactivar Periodo
                 </button>
             </form>
         </div>

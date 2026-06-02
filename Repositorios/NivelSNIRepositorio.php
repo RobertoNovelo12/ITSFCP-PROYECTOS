@@ -53,7 +53,7 @@ class NivelSNIRepositorio extends BaseModelo
                 FROM niveles_sni";
 
         $sql     .= $this->construirWhere($params, $types, $buscar, $filtro);
-        $sql     .= ' ORDER BY id_nivel ASC LIMIT ?, ?';
+        $sql     .= ' ORDER BY id_nivel DESC LIMIT ?, ?';
         $params[] = $desde;
         $params[] = $por_pagina;
         $types   .= 'ii';

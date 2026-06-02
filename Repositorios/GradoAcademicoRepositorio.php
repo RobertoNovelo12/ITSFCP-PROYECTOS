@@ -64,7 +64,7 @@ class GradoAcademicoRepositorio extends BaseModelo
                 FROM grados_academicos";
 
         $sql     .= $this->construirWhere($params, $types, $buscar, $filtro);
-        $sql     .= ' ORDER BY id_grado ASC LIMIT ?, ?';
+        $sql     .= ' ORDER BY id_grado DESC LIMIT ?, ?';
         $params[] = $desde;
         $params[] = $por_pagina;
         $types   .= 'ii';

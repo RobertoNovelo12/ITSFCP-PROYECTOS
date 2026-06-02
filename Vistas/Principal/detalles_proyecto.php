@@ -21,21 +21,17 @@ if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], tr
     exit;
 }
 
-include __DIR__ .  '../../../publico/incluido/_validar_get.php';
 
 // Validar parámetro de ruta
-$id_proyecto = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$id_proyectos = isset($_GET['id_proyectos']) ? (int)$_GET['id_proyectos'] : 0;
 
-//Validación de argumentos en url
-$id_validar = $id_proyecto;
-include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
 
 //  Controlador 
 require_once __DIR__ .  '/../../Controladores/principalControlador.php';
 
 $controlador = new principalControlador();
-$datos       = $controlador->obtenerDatos($id_proyecto, $id_usuario, $rol);
+$datos       = $controlador->obtenerDatos($id_proyectos, $id_usuario, $rol);
 
 // Si el proyecto no existe, redirigir
 $registro = $datos;
@@ -274,7 +270,7 @@ ob_start();
 
                     <?php elseif ($puede_solicitar): ?>
                         <!-- Ventana abierta y sin solicitud activa -> puede enviar -->
-                        <a href="/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyecto=<?= $id_proyecto ?>"
+                        <a href="/ITSFCP-PROYECTOS/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos=<?= $id_proyectos ?>"
                             class="btn-enviar-solicitud">
                             <i class="bi bi-send"></i> Solicitud
                         </a>

@@ -54,7 +54,7 @@ class LineaInvestigacionRepositorio extends BaseModelo
                 FROM lineas_investigacion";
 
         $sql     .= $this->construirWhere($params, $types, $buscar, $filtro);
-        $sql     .= ' ORDER BY id_linea ASC LIMIT ?, ?';
+        $sql     .= ' ORDER BY id_linea DESC LIMIT ?, ?';
         $params[] = $desde;
         $params[] = $por_pagina;
         $types   .= 'ii';

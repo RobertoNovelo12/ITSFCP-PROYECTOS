@@ -15,14 +15,12 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
  * siguiendo el mismo patrón de MisAlumnos y MisSolicitudes de la Parte 1-2.
  * actualizarEstadoCierre() expone affected_rows a través de su valor bool.
  * 
- */
-class SolicitudRepositorio extends BaseModelo
+ */class SolicitudRepositorio extends BaseModelo
 {
     public function __construct(mysqli $conn)
     {
         parent::__construct($conn);
     }
-
 
     // 
     // ARCHIVOS / DOCUMENTOS
@@ -50,17 +48,27 @@ class SolicitudRepositorio extends BaseModelo
                  tipo, visibilidad, id_usuarios, id_proyectos, id_etapa, version,
                  activo, fecha_subida, id_plantilla, id_seguimiento)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), ?, ?)',
-            'sssssisisiiiii',
+            'sssssissiiiiii', // ← CORREGIDO: era 'sssssiissiiiii'
             [
-                $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension, $tamano_bytes,
-                $tipo, $visibilidad, $id_usuario, $id_proyecto_val,
-                $id_etapa, $version, $id_plantilla, $id_seguimiento,
+                $nombre,
+                $nombre_archivo,
+                $ruta,
+                $tipo_mime,
+                $extension,
+                $tamano_bytes,
+                $tipo,
+                $visibilidad,
+                $id_usuario,
+                $id_proyecto_val,
+                $id_etapa,
+                $version,
+                $id_plantilla,
+                $id_seguimiento,
             ]
         );
 
         return (int)$this->conn->insert_id;
     }
-
 
     // 
     // PERIODOS
@@ -80,7 +88,6 @@ class SolicitudRepositorio extends BaseModelo
             [$id]
         );
     }
-
 
     // 
     // RESUMEN / LISTADO (investigador)
@@ -137,13 +144,12 @@ class SolicitudRepositorio extends BaseModelo
              JOIN estudiantes e ON e.id_usuarios   = sp.id_estudiante
              JOIN carreras c    ON c.id_carrera    = e.id_carrera
              $where
-             ORDER BY sp.fecha_envio ASC
+             ORDER BY sp.fecha_envio DESC
              LIMIT ?, ?",
             $types,
             $params
         );
     }
-
 
     // 
     // DETALLE
@@ -192,7 +198,6 @@ class SolicitudRepositorio extends BaseModelo
         ) ?: null;
     }
 
-
     // 
     // PERMISOS
     // 
@@ -211,7 +216,6 @@ class SolicitudRepositorio extends BaseModelo
 
         return (int)($fila['cnt'] ?? 0) > 0;
     }
-
 
     // 
     // CAMBIOS DE ESTADO (investigador)
@@ -303,7 +307,6 @@ class SolicitudRepositorio extends BaseModelo
         );
     }
 
-
     // 
     // VENCIDOS
     // 
@@ -333,7 +336,6 @@ class SolicitudRepositorio extends BaseModelo
             [$id]
         );
     }
-
 
     // 
     // COMENTARIOS
@@ -367,12 +369,11 @@ class SolicitudRepositorio extends BaseModelo
              JOIN usuarios u ON u.id_usuarios = sc.id_usuario
              LEFT JOIN documentos_subidos ds ON ds.id_documento = sc.id_documento_adjunto
              WHERE sc.id_solicitud = ?
-             ORDER BY sc.fecha ASC",
+             ORDER BY sc.fecha DESC",
             'i',
             [$id]
         );
     }
-
 
     // 
     // TAREAS / VINCULACIÓN
@@ -441,7 +442,6 @@ class SolicitudRepositorio extends BaseModelo
         );
     }
 
-
     // 
     // CIERRE (seguimiento)
     // 
@@ -462,7 +462,6 @@ class SolicitudRepositorio extends BaseModelo
 
         return $this->conn->affected_rows > 0;
     }
-
 
     // 
     // SEGUIMIENTO DE ETAPAS
@@ -529,7 +528,6 @@ class SolicitudRepositorio extends BaseModelo
         );
     }
 
-
     // 
     // ENVIAR CORRECCIONES (respuesta del estudiante)
     // 
@@ -546,7 +544,6 @@ class SolicitudRepositorio extends BaseModelo
 
         $this->insertarComentario($id, $id_usuario, 'estudiante', $comentario, $id_documento);
     }
-
 
     // 
     // AUXILIARES (estudiante)
@@ -639,21 +636,32 @@ class SolicitudRepositorio extends BaseModelo
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', CURDATE())",
             'iiiisssi',
             [
-                $id_proyecto, $id_estudiante, $id_periodo, $id_doc_cv,
-                $promedio, $motivacion, $experiencia, $semestre,
+                $id_proyecto,
+                $id_estudiante,
+                $id_periodo,
+                $id_doc_cv,
+                $promedio,
+                $motivacion,
+                $experiencia,
+                $semestre,
             ]
         );
 
         return (int)$this->conn->insert_id;
     }
 
-    public function crearSeguimientoCartaCompromiso(int $id_proyecto, int $id_estudiante, string $estado = 'pendiente'): int
-    {
+    public function crearSeguimientoCartaCompromiso(
+        int    $id_proyecto,
+        int    $id_estudiante,
+        string $estado = 'pendiente'
+    ): int {
+        $id_tipo_documento = 1; // Carta Compromiso — fijo para integración
+
         $fila = $this->ejecutar(
             'SELECT id_seguimiento FROM seguimiento_documento
-             WHERE id_proyectos = ? AND id_usuarios = ? AND id_tipo_documento = 1 LIMIT 1',
-            'ii',
-            [$id_proyecto, $id_estudiante],
+             WHERE id_proyectos = ? AND id_usuarios = ? AND id_tipo_documento = ? LIMIT 1',
+            'iii',
+            [$id_proyecto, $id_estudiante, $id_tipo_documento],
             false
         );
 
@@ -664,9 +672,9 @@ class SolicitudRepositorio extends BaseModelo
         $this->ejecutar(
             'INSERT INTO seguimiento_documento
                 (id_proyectos, id_tipo_documento, id_usuarios, estado, fecha_inicio)
-             VALUES (?, 1, ?, ?, NOW())',
-            'iis',
-            [$id_proyecto, $id_estudiante, $estado]
+             VALUES (?, ?, ?, ?, NOW())',
+            'iiis',
+            [$id_proyecto, $id_tipo_documento, $id_estudiante, $estado]
         );
 
         return (int)$this->conn->insert_id;
@@ -749,17 +757,16 @@ class SolicitudRepositorio extends BaseModelo
 
     public function buscarPeriodoActivoParaProyecto(int $id_proyecto): ?array
     {
-        $hoy = date('Y-m-d');
         $fila = $this->ejecutar(
             'SELECT per.id_periodos, per.periodo
              FROM periodos per
              JOIN proyectos p ON p.id_periodos = per.id_periodos
              WHERE p.id_proyectos = ? AND per.estado = 1
-               AND (per.fecha_inicio_solicitud IS NULL OR per.fecha_inicio_solicitud <= ?)
-               AND (per.fecha_fin_solicitud    IS NULL OR per.fecha_fin_solicitud    >= ?)
+               AND (per.fecha_inicio_solicitud IS NULL OR per.fecha_inicio_solicitud <= CURDATE())
+               AND (per.fecha_fin_solicitud    IS NULL OR per.fecha_fin_solicitud    >= CURDATE())
              LIMIT 1',
-            'iss',
-            [$id_proyecto, $hoy, $hoy],
+            'i',
+            [$id_proyecto],
             false
         );
 
@@ -801,7 +808,7 @@ class SolicitudRepositorio extends BaseModelo
     public function listarCarreras(): array
     {
         return $this->ejecutar(
-            'SELECT id_carrera, nombre_carrera FROM carreras ORDER BY nombre_carrera ASC'
+            'SELECT id_carrera, nombre_carrera FROM carreras ORDER BY nombre_carrera DESC'
         );
     }
 
@@ -822,7 +829,7 @@ class SolicitudRepositorio extends BaseModelo
         return $this->ejecutar(
             "SELECT u.id_usuarios
              FROM usuarios u
-             INNER JOIN usuarios_roles r ON r.id_usuario = u.id_usuarios
+             INNER JOIN usuarios_roles r ON r.id_usuarios = u.id_usuarios
              WHERE r.id_rol = 4 AND u.estado_usuario = 'activo'"
         );
     }

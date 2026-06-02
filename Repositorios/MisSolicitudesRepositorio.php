@@ -248,7 +248,7 @@ class MisSolicitudesRepositorio extends BaseModelo
              FROM solicitud_comentarios sc
              LEFT JOIN documentos_subidos d ON d.id_documento = sc.id_documento_adjunto
              WHERE sc.id_solicitud = ?
-             ORDER BY sc.fecha ASC",
+             ORDER BY sc.fecha DESC",
             'i',
             [$id_solicitud]
         );
