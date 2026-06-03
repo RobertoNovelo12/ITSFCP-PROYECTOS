@@ -48,7 +48,7 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
                  tipo, visibilidad, id_usuarios, id_proyectos, id_etapa, version,
                  activo, fecha_subida, id_plantilla, id_seguimiento)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), ?, ?)',
-            'sssssissiiiiii', // ← CORREGIDO: era 'sssssiissiiiii'
+            'sssssissiiiiii', 
             [
                 $nombre,
                 $nombre_archivo,

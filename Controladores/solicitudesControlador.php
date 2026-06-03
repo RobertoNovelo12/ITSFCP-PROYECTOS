@@ -125,7 +125,7 @@ class solicitudesControlador extends BaseControlador
 
         $nombreFinal = "est{$id_estudiante}_td1_" . date('YmdHis') . '.' . $ext;
         $dirRelativo = "storage/etapas/proyecto_{$id_proyectos}/";
-        $dirFisico   = realpath($_SERVER['DOCUMENT_ROOT'] . '/ITSFCP-PROYECTOS') . '/' . $dirRelativo;
+        $dirFisico   = realpath($_SERVER['DOCUMENT_ROOT'] . '/') . '/' . $dirRelativo;
         $rutaBD      = $dirRelativo . $nombreFinal;
 
         $storageBase = realpath($_SERVER['DOCUMENT_ROOT'] . '/storage');
@@ -143,7 +143,6 @@ class solicitudesControlador extends BaseControlador
         if (!move_uploaded_file($file['tmp_name'], $dirFisico . $nombreFinal)) {
             throw new Exception("Error al guardar la carta compromiso en disco.");
         }
-
 
         global $conn;
         return (new Solicitud($conn))->registrarDocumento(
@@ -792,6 +791,8 @@ class solicitudesControlador extends BaseControlador
                 estado: 'proceso'
             );
 
+            //die(print_r("AVANCE 1"));
+
             $id_doc_carta = $this->procesarCartaCompromiso(
                 campo_file: 'carta_compromiso',
                 id_proyectos: $id_proyectos,
@@ -800,10 +801,14 @@ class solicitudesControlador extends BaseControlador
                 id_plantilla: $id_plantilla
             );
 
+            
+
             if (!$id_doc_carta) {
                 throw new Exception("No se pudo guardar la carta compromiso.");
             }
-        
+
+            
+            
 
             $S->marcarSeguimientoEnProceso($id_seguimiento);
 
