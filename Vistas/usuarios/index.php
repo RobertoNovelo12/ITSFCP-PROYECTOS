@@ -44,9 +44,6 @@ if (!in_array($action, $accionesPermitidas, true)) {
 //  Ejecutar acción 
 $resultado = $controlador->$action($rol, $buscar ?: null, $tipo ?: null);
 
-if (is_string($resultado)) {
-    $resultado = json_decode($resultado, true);
-}
 
 $usuarios   = $resultado['usuarios']   ?? [];
 $paginacion = $resultado['paginacion'] ?? [

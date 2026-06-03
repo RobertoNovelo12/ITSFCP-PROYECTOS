@@ -28,9 +28,9 @@ class Usuarios
     /**
      * Devuelve el listado paginado de usuarios junto con datos de paginación.
      *
-     * @return string  JSON con claves 'usuarios' y 'paginacion'.
+     * @return array  array con claves 'usuarios' y 'paginacion'.
      */
-    public function obtenerUsuarios(?string $estado = null, ?string $buscar = null, ?string $tipo = null): string
+    public function obtenerUsuarios(?string $estado = null, ?string $buscar = null, ?string $tipo = null): array
     {
         $por_pagina    = 6;
         $pagina        = max(1, intval($_GET['pagina'] ?? 1));
@@ -41,7 +41,7 @@ class Usuarios
 
         $filas = $this->repo->listarUsuarios($estado, $buscar, $tipo, $desde, $por_pagina);
 
-        return json_encode([
+        return [
             'usuarios'   => $filas,
             'paginacion' => [
                 'total'        => $total,
@@ -49,7 +49,7 @@ class Usuarios
                 'pagina'       => $pagina,
                 'total_paginas'=> $total_paginas,
             ],
-        ]);
+        ];
     }
 
 

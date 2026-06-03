@@ -129,7 +129,7 @@ class SolicitudesProyecto
         string $buscar      = '',
         int    $pagina      = 1,
         int    $id_periodo  = 0
-    ): string {
+    ): array {
         $por_pagina = 6;
         $pagina     = max(1, $pagina);
         $desde      = ($pagina - 1) * $por_pagina;
@@ -171,10 +171,10 @@ class SolicitudesProyecto
 
         $solicitudes = $this->repo->listarSolicitudes($base_where, $types, $params);
 
-        return json_encode([
+        return [
             "solicitudes" => $solicitudes,
             "paginacion"  => compact("total", "por_pagina", "pagina") + ["total_paginas" => $total_paginas],
-        ]);
+        ];
     }
 
 

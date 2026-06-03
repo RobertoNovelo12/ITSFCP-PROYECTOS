@@ -22,20 +22,21 @@ if (isset($_SESSION['rol'])) {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITSFCP/PROYECTOS</title>
-    
+
     <script>
         (() => {
             try {
                 const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
-                
+
                 if (sidebarCollapsed === "true") {
                     document.documentElement.classList.add("sidebar-collapsed-initial");
                 }
-                
+
                 const isDark = localStorage.getItem("darkModeEnabled") === "true";
                 if (isDark) {
                     document.documentElement.classList.add("dark-mode");
@@ -45,16 +46,17 @@ if (isset($_SESSION['rol'])) {
             }
         })();
     </script>
-    
+
     <link rel="stylesheet" href="/publico/css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
+
 <body>
     <?php include './publico/incluido/header.php'; ?>
-    
+
     <div class="container-main">
         <?php include 'sidebar_publico.php'; ?>
-        
+
         <div class="main-content-index">
             <h1 class="title">Sistema web responsive para gestión de proyectos en Instituto Tecnológico Superior
                 Felipe Carrillo Puerto</h1>
@@ -79,7 +81,7 @@ if (isset($_SESSION['rol'])) {
                 </div>
 
                 <div class="image-container">
-                    <img class="image-container" src="./publico/img/home-img.webp" alt="Ilustración del sistema" srcset="">
+                    <img src="./publico/img/home-img.webp" alt="Ilustración del sistema">
                 </div>
             </div>
 
@@ -90,7 +92,7 @@ if (isset($_SESSION['rol'])) {
             </div>
         </div>
     </div>
-    
+
     <script src="/publico/js/javascript.js"></script>
     <script src="/publico/js/sidebar.js"></script>
 </body>

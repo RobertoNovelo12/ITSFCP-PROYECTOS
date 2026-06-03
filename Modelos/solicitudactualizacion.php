@@ -30,7 +30,7 @@ class SolicitudActualizacion
         ?string $estado = null,
         ?string $buscar = null,
         ?string $tipo   = null
-    ): string {
+    ): array {
         $por_pagina    = 8;
         $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
         $desde         = ($pagina - 1) * $por_pagina;
@@ -42,10 +42,10 @@ class SolicitudActualizacion
 
         $data = $this->repo->listarSolicitudes($where, $params, $types, $desde, $por_pagina);
 
-        return json_encode([
+        return [
             'solicitudes' => $data,
             'paginacion'  => compact('total', 'por_pagina', 'pagina', 'total_paginas'),
-        ]);
+        ];
     }
 
 

@@ -27,7 +27,7 @@ $id_area = isset($_GET['id_area']) ? intval($_GET['id_area']) : 0;
 $id_validar = $id_area;
 include  __DIR__ .  '../../../publico/incluido/_validar_id.php';
 
-require_once __DIR__ .  "/../../Controladores/areaconocimientoControlador.php";
+require_once __DIR__ .  "/../../Controladores/AreaConocimientoControlador.php";
 $areaControlador = new AreaConocimientoControlador();
 
 $datos = $areaControlador->indexDetalles($rol, $id_area);

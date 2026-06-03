@@ -100,7 +100,7 @@ function isActive($link, $current_url)
             <div class="menu-item dropdown-btn <?= $proyectosActive ? 'dropdown-open' : '' ?>"
                 id="btnProyectos" data-tooltip="Proyectos" data-id="proyectos">
                 <span class="menu-icon">
-                    <img src="/publico/icons/proyectos.svg" alt="Proyectos">
+                    <img src="/publico/icons/Proyectos.svg" alt="Proyectos">
                 </span>
                 <span>Proyectos</span>
                 <img class="dropdown-arrow" src="/publico/icons/more.svg" alt="Expandir">

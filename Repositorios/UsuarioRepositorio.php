@@ -68,22 +68,22 @@ class UsuarioRepositorio extends BaseModelo
         int $por_pagina
     ): array {
         $sql = "SELECT
-                    u.id_usuarios,
-                    u.nombre,
-                    u.apellido_paterno,
-                    u.apellido_materno,
-                    CONCAT(u.nombre, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo,
-                    u.correo_institucional,
-                    u.telefono,
-                    u.fecha_registro,
-                    u.estado_usuario,
-                    COALESCE(ANY_VALUE(r.nombre), 'Sin rol') AS tipo_usuario
-                FROM usuarios u
-                LEFT JOIN usuarios_roles ur  ON ur.id_usuarios  = u.id_usuarios
-                LEFT JOIN roles          r   ON r.id_roles      = ur.id_rol
-                LEFT JOIN estudiantes    es  ON es.id_usuarios  = u.id_usuarios
-                LEFT JOIN investigadores inv ON inv.id_usuarios  = u.id_usuarios
-                LEFT JOIN supervisores   su  ON su.id_usuarios   = u.id_usuarios";
+            u.id_usuarios,
+            u.nombre,
+            u.apellido_paterno,
+            u.apellido_materno,
+            CONCAT(u.nombre, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo,
+            u.correo_institucional,
+            u.telefono,
+            u.fecha_registro,
+            u.estado_usuario,
+            COALESCE(MAX(r.nombre), 'Sin rol') AS tipo_usuario
+        FROM usuarios u
+        LEFT JOIN usuarios_roles ur  ON ur.id_usuarios  = u.id_usuarios
+        LEFT JOIN roles          r   ON r.id_roles      = ur.id_rol
+        LEFT JOIN estudiantes    es  ON es.id_usuarios  = u.id_usuarios
+        LEFT JOIN investigadores inv ON inv.id_usuarios  = u.id_usuarios
+        LEFT JOIN supervisores   su  ON su.id_usuarios   = u.id_usuarios";
 
         [$where, $params, $types] = $this->construirFiltros($estado, $buscar, $tipo);
 

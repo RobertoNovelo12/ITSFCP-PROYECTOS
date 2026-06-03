@@ -63,17 +63,17 @@ class Proyectos
     // TABLA DE PROYECTOS (centralizado)
     // 
 
-    public function obtenerProyectosTablaFiltro(int $id, ?int $filtro, string $rol, ?string $buscar): string
+    public function obtenerProyectosTablaFiltro(int $id, ?int $filtro, string $rol, ?string $buscar): array
     {
         return match (strtolower($rol)) {
             'estudiante'               => $this->obtenerProyectosTablaEstudiante($id, $filtro, $buscar),
             'investigador', 'profesor' => $this->obtenerProyectosTablaInvestigador($id, $filtro, $buscar),
             'supervisor'               => $this->obtenerProyectosTablaSupervisor($filtro, $buscar),
-            default                    => json_encode([]),
+            default                    => [],
         };
     }
 
-    private function obtenerProyectosTablaEstudiante(int $id, ?int $filtro, ?string $buscar): string
+    private function obtenerProyectosTablaEstudiante(int $id, ?int $filtro, ?string $buscar): array
     {
         $por_pagina    = 6;
         $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
@@ -106,21 +106,29 @@ class Proyectos
         $params = [$id];
         $types  = 'i';
 
-        if ($filtro) { $sql .= ' AND proy.id_estadoP = ?'; $params[] = $filtro; $types .= 'i'; }
-        if (!empty($buscar)) { $sql .= ' AND proy.titulo LIKE ?'; $params[] = "%$buscar%"; $types .= 's'; }
+        if ($filtro) {
+            $sql .= ' AND proy.id_estadoP = ?';
+            $params[] = $filtro;
+            $types .= 'i';
+        }
+        if (!empty($buscar)) {
+            $sql .= ' AND proy.titulo LIKE ?';
+            $params[] = "%$buscar%";
+            $types .= 's';
+        }
 
         $sql     .= ' ORDER BY proy.id_proyectos DESC LIMIT ?, ?';
         $params[] = $desde;
         $params[] = $por_pagina;
         $types   .= 'ii';
 
-        return json_encode([
+        return [
             'proyectos'  => $this->repo->ejecutarListado($sql, $types, $params),
             'paginacion' => compact('total', 'por_pagina', 'pagina') + ['total_paginas' => $total_paginas],
-        ]);
+        ];
     }
 
-    private function obtenerProyectosTablaInvestigador(int $id, ?int $filtro, ?string $buscar): string
+    private function obtenerProyectosTablaInvestigador(int $id, ?int $filtro, ?string $buscar): array
     {
         $por_pagina    = 6;
         $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
@@ -182,21 +190,29 @@ class Proyectos
         $params = [$id];
         $types  = 'i';
 
-        if ($filtro) { $sql .= ' AND proy.id_estadoP = ?'; $params[] = $filtro; $types .= 'i'; }
-        if (!empty($buscar)) { $sql .= ' AND proy.titulo LIKE ?'; $params[] = "%$buscar%"; $types .= 's'; }
+        if ($filtro) {
+            $sql .= ' AND proy.id_estadoP = ?';
+            $params[] = $filtro;
+            $types .= 'i';
+        }
+        if (!empty($buscar)) {
+            $sql .= ' AND proy.titulo LIKE ?';
+            $params[] = "%$buscar%";
+            $types .= 's';
+        }
 
         $sql     .= ' ORDER BY proy.id_proyectos DESC LIMIT ?, ?';
         $params[] = $desde;
         $params[] = $por_pagina;
         $types   .= 'ii';
 
-        return json_encode([
+        return [
             'proyectos'  => $this->repo->ejecutarListado($sql, $types, $params),
             'paginacion' => compact('total', 'por_pagina', 'pagina') + ['total_paginas' => $total_paginas],
-        ]);
+        ];
     }
 
-    private function obtenerProyectosTablaSupervisor(?int $filtro, ?string $buscar): string
+    private function obtenerProyectosTablaSupervisor(?int $filtro, ?string $buscar): array
     {
         $por_pagina = 6;
         $pagina     = max(1, (int)($_GET['pagina'] ?? 1));
@@ -207,8 +223,16 @@ class Proyectos
         $types_total  = '';
         $sql_total    = "SELECT COUNT(*) AS total FROM proyectos proy $where_base";
 
-        if ($filtro)       { $sql_total .= ' AND proy.id_estadoP = ?'; $params_total[] = $filtro;       $types_total .= 'i'; }
-        if (!empty($buscar)) { $sql_total .= ' AND proy.titulo LIKE ?'; $params_total[] = "%$buscar%"; $types_total .= 's'; }
+        if ($filtro) {
+            $sql_total .= ' AND proy.id_estadoP = ?';
+            $params_total[] = $filtro;
+            $types_total .= 'i';
+        }
+        if (!empty($buscar)) {
+            $sql_total .= ' AND proy.titulo LIKE ?';
+            $params_total[] = "%$buscar%";
+            $types_total .= 's';
+        }
 
         $total         = $this->repo->ejecutarConteo($sql_total, $types_total, $params_total);
         $total_paginas = max(1, (int)ceil($total / $por_pagina));
@@ -257,18 +281,27 @@ class Proyectos
         $params = [];
         $types  = '';
 
-        if ($filtro)       { $sql .= ' AND proy.id_estadoP = ?'; $params[] = $filtro;       $types .= 'i'; }
-        if (!empty($buscar)) { $sql .= ' AND proy.titulo LIKE ?'; $params[] = "%$buscar%"; $types .= 's'; }
+        if ($filtro) {
+            $sql .= ' AND proy.id_estadoP = ?';
+            $params[] = (int)$filtro;
+            $types .= 'i';
+        }
+
+        if (!empty($buscar)) {
+            $sql .= ' AND proy.titulo LIKE ?';
+            $params[] = "%$buscar%";
+            $types .= 's';
+        }
 
         $sql     .= ' ORDER BY proy.id_proyectos DESC LIMIT ?, ?';
-        $params[] = $desde;
-        $params[] = $por_pagina;
+        $params[] = (int)$desde;
+        $params[] = (int)$por_pagina;
         $types   .= 'ii';
 
-        return json_encode([
+        return [
             'proyectos'  => $this->repo->ejecutarListado($sql, $types, $params),
             'paginacion' => compact('total', 'por_pagina', 'pagina') + ['total_paginas' => $total_paginas],
-        ]);
+        ];
     }
 
     private function contarEstudiante(int $id, ?int $filtro, ?string $buscar): int
@@ -280,8 +313,16 @@ class Proyectos
         $params = [$id];
         $types  = 'i';
 
-        if ($filtro)       { $sql .= ' AND proy.id_estadoP = ?'; $params[] = $filtro;       $types .= 'i'; }
-        if (!empty($buscar)) { $sql .= ' AND proy.titulo LIKE ?'; $params[] = "%$buscar%"; $types .= 's'; }
+        if ($filtro) {
+            $sql .= ' AND proy.id_estadoP = ?';
+            $params[] = $filtro;
+            $types .= 'i';
+        }
+        if (!empty($buscar)) {
+            $sql .= ' AND proy.titulo LIKE ?';
+            $params[] = "%$buscar%";
+            $types .= 's';
+        }
 
         return $this->repo->ejecutarConteo($sql, $types, $params);
     }
@@ -292,8 +333,16 @@ class Proyectos
         $params = [$id];
         $types  = 'i';
 
-        if ($filtro)       { $sql .= ' AND id_estadoP = ?'; $params[] = $filtro;       $types .= 'i'; }
-        if (!empty($buscar)) { $sql .= ' AND titulo LIKE ?'; $params[] = "%$buscar%"; $types .= 's'; }
+        if ($filtro) {
+            $sql .= ' AND id_estadoP = ?';
+            $params[] = $filtro;
+            $types .= 'i';
+        }
+        if (!empty($buscar)) {
+            $sql .= ' AND titulo LIKE ?';
+            $params[] = "%$buscar%";
+            $types .= 's';
+        }
 
         return $this->repo->ejecutarConteo($sql, $types, $params);
     }
@@ -303,11 +352,26 @@ class Proyectos
     // CATÁLOGOS
     // 
 
-    public function tematica(): array                    { return $this->repo->listarTematicas(); }
-    public function obtenersubtematica(int $id): array   { return $this->repo->listarSubtematicas($id); }
-    public function obtenerperiodo(): array               { return $this->repo->listarPeriodoActual(); }
-    public function obtenerinstituto(): array             { return $this->repo->listarInstituto(); }
-    public function periodoactual(): ?array               { return $this->repo->buscarPeriodoActual(); }
+    public function tematica(): array
+    {
+        return $this->repo->listarTematicas();
+    }
+    public function obtenersubtematica(int $id): array
+    {
+        return $this->repo->listarSubtematicas($id);
+    }
+    public function obtenerperiodo(): array
+    {
+        return $this->repo->listarPeriodoActual();
+    }
+    public function obtenerinstituto(): array
+    {
+        return $this->repo->listarInstituto();
+    }
+    public function periodoactual(): ?array
+    {
+        return $this->repo->buscarPeriodoActual();
+    }
 
 
     // 
@@ -315,30 +379,66 @@ class Proyectos
     // 
 
     public function registrarProyecto(
-        int $id_investigador, int $id_estadoP, int $id_instituto, int $id_periodos,
-        string $titulo, string $descripcion, string $objetivo,
-        string $fecha_inicio, string $fecha_final, string $presupuesto,
-        string $requisitos, string $Pre_requisitos, string $modalidad, int $AlumnosCantidad
+        int $id_investigador,
+        int $id_estadoP,
+        int $id_instituto,
+        int $id_periodos,
+        string $titulo,
+        string $descripcion,
+        string $objetivo,
+        string $fecha_inicio,
+        string $fecha_final,
+        string $presupuesto,
+        string $requisitos,
+        string $Pre_requisitos,
+        string $modalidad,
+        int $AlumnosCantidad
     ): int {
         return $this->repo->insertarProyecto(
-            $id_investigador, $id_estadoP, $id_instituto, $id_periodos,
-            $titulo, $descripcion, $objetivo,
-            $fecha_inicio, $fecha_final, $presupuesto,
-            $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad
+            $id_investigador,
+            $id_estadoP,
+            $id_instituto,
+            $id_periodos,
+            $titulo,
+            $descripcion,
+            $objetivo,
+            $fecha_inicio,
+            $fecha_final,
+            $presupuesto,
+            $requisitos,
+            $Pre_requisitos,
+            $modalidad,
+            $AlumnosCantidad
         );
     }
 
     public function editarProyecto(
-        int $id_proyecto, int $id_investigador,
-        string $titulo, string $descripcion, string $objetivo,
-        string $fecha_inicio, string $fecha_final, string $presupuesto,
-        string $requisitos, string $Pre_requisitos, string $modalidad, int $AlumnosCantidad
+        int $id_proyecto,
+        int $id_investigador,
+        string $titulo,
+        string $descripcion,
+        string $objetivo,
+        string $fecha_inicio,
+        string $fecha_final,
+        string $presupuesto,
+        string $requisitos,
+        string $Pre_requisitos,
+        string $modalidad,
+        int $AlumnosCantidad
     ): void {
         $this->repo->actualizarProyecto(
-            $id_proyecto, $id_investigador,
-            $titulo, $descripcion, $objetivo,
-            $fecha_inicio, $fecha_final, $presupuesto,
-            $requisitos, $Pre_requisitos, $modalidad, $AlumnosCantidad
+            $id_proyecto,
+            $id_investigador,
+            $titulo,
+            $descripcion,
+            $objetivo,
+            $fecha_inicio,
+            $fecha_final,
+            $presupuesto,
+            $requisitos,
+            $Pre_requisitos,
+            $modalidad,
+            $AlumnosCantidad
         );
     }
 
@@ -348,7 +448,10 @@ class Proyectos
     // 
 
     public function actualizarEstadoProyectoRechazo(
-        int $id_usuario, int $id_proyectos, string $tipo, string $comentario
+        int $id_usuario,
+        int $id_proyectos,
+        string $tipo,
+        string $comentario
     ): void {
         $num_motivo = ($tipo === 'cierre_rechazado') ? 7 : 4;
         $this->repo->actualizarEstadoRechazo($id_proyectos, $num_motivo);
@@ -372,7 +475,10 @@ class Proyectos
 
             foreach ($tipos_tarea as $row) {
                 $id_tipo = (int)$row['id_tareatipo'];
-                $this->repo->insertarTarea($id_avances, $id_tipo, 4,
+                $this->repo->insertarTarea(
+                    $id_avances,
+                    $id_tipo,
+                    4,
                     ($id_tipo === 12 && $id_doc_reporte !== null) ? $id_doc_reporte : null
                 );
             }
@@ -400,7 +506,11 @@ class Proyectos
         $tareas      = $this->repo->listarTareasAprobadas($id_proyecto);
         $totalTareas = 11;
         $suma        = array_sum(array_map(
-            fn($row) => match ((int)$row['id_estadoT']) { 5 => 100, 2, 3 => 50, default => 0 },
+            fn($row) => match ((int)$row['id_estadoT']) {
+                5 => 100,
+                2, 3 => 50,
+                default => 0
+            },
             $tareas
         ));
 
@@ -445,17 +555,20 @@ class Proyectos
                 "$base JOIN proyectos_usuarios AS prous ON proy.id_proyectos = prous.id_proyectos
                  WHERE proy.id_proyectos = ? AND prous.id_usuarios = ?
                  GROUP BY proy.id_proyectos, espr.nombre, tema.nombre_tematica ORDER BY proy.id_proyectos DESC",
-                'ii', [$id_proyecto, $id_usuario],
+                'ii',
+                [$id_proyecto, $id_usuario],
             ],
             'investigador', 'profesor' => [
                 "$base WHERE proy.id_proyectos = ? AND proy.id_investigador = ?
                  GROUP BY proy.id_proyectos, espr.nombre, tema.nombre_tematica ORDER BY proy.id_proyectos DESC",
-                'ii', [$id_proyecto, $id_usuario],
+                'ii',
+                [$id_proyecto, $id_usuario],
             ],
             'supervisor' => [
                 "$base WHERE proy.id_proyectos = ?
                  GROUP BY proy.id_proyectos, espr.nombre, tema.nombre_tematica ORDER BY proy.id_proyectos DESC",
-                'i', [$id_proyecto],
+                'i',
+                [$id_proyecto],
             ],
             default => [null, null, null],
         };
@@ -465,30 +578,66 @@ class Proyectos
         return $this->repo->buscarProyectoPorRol($sql, $tipos, $params);
     }
 
-    public function obtenerProyectoInvestigador(int $id_proyecto): ?array  { return $this->repo->buscarInvestigadorProyecto($id_proyecto); }
-    public function obtenerUsuarioArea(?int $id_usuario): ?array            { return $id_usuario ? $this->repo->buscarAreaUsuario($id_usuario) : null; }
-    public function obtenerInvestigadorLinea(int $id_proyecto): ?array      { return $this->repo->buscarLineaInvestigador($id_proyecto); }
-    public function obtenersubtematicasProyecto(int $id_proyecto): array    { return $this->repo->listarSubtematicasProyecto($id_proyecto); }
-    public function obtenerProyectoEstudiante(int $id_proyecto): array      { return $this->repo->listarEstudiantesProyecto($id_proyecto); }
-    public function obtenerProyectoComentarios(int $id_proyecto): array     { return $this->repo->listarComentariosProyecto($id_proyecto); }
+    public function obtenerProyectoInvestigador(int $id_proyecto): ?array
+    {
+        return $this->repo->buscarInvestigadorProyecto($id_proyecto);
+    }
+    public function obtenerUsuarioArea(?int $id_usuario): ?array
+    {
+        return $id_usuario ? $this->repo->buscarAreaUsuario($id_usuario) : null;
+    }
+    public function obtenerInvestigadorLinea(int $id_proyecto): ?array
+    {
+        return $this->repo->buscarLineaInvestigador($id_proyecto);
+    }
+    public function obtenersubtematicasProyecto(int $id_proyecto): array
+    {
+        return $this->repo->listarSubtematicasProyecto($id_proyecto);
+    }
+    public function obtenerProyectoEstudiante(int $id_proyecto): array
+    {
+        return $this->repo->listarEstudiantesProyecto($id_proyecto);
+    }
+    public function obtenerProyectoComentarios(int $id_proyecto): array
+    {
+        return $this->repo->listarComentariosProyecto($id_proyecto);
+    }
 
 
     // 
     // SUBTEMATICAS
     // 
 
-    public function vincularSubtematica(int $id_proyecto, int $id_subtematica): void         { $this->repo->vincularSubtematica($id_proyecto, $id_subtematica); }
-    public function ActualizarvincularSubtematica(int $id_proyecto, int $id_subtematica): void { $this->repo->actualizarSubtematica($id_proyecto, $id_subtematica); }
+    public function vincularSubtematica(int $id_proyecto, int $id_subtematica): void
+    {
+        $this->repo->vincularSubtematica($id_proyecto, $id_subtematica);
+    }
+    public function ActualizarvincularSubtematica(int $id_proyecto, int $id_subtematica): void
+    {
+        $this->repo->actualizarSubtematica($id_proyecto, $id_subtematica);
+    }
 
 
     // 
     // ESTUDIANTES EN EL PROYECTO
     // 
 
-    public function estudiantes(int $id_proyecto): array                                    { return $this->repo->listarIntegrantes($id_proyecto); }
-    public function obtenerEstudianteProyecto(int $id_proyecto, int $id_estudiante): ?array { return $this->repo->buscarEstudianteEnProyecto($id_proyecto, $id_estudiante); }
-    public function bajaEstudiante(int $id_proyecto, int $id_estudiante, ?string $motivo, int $usuario): array      { return $this->repo->bajaEstudiante($id_proyecto, $id_estudiante, $motivo, $usuario); }
-    public function reactivarEstudiante(int $id_proyecto, int $id_estudiante, int $usuario): array                  { return $this->repo->reactivarEstudiante($id_proyecto, $id_estudiante, $usuario); }
+    public function estudiantes(int $id_proyecto): array
+    {
+        return $this->repo->listarIntegrantes($id_proyecto);
+    }
+    public function obtenerEstudianteProyecto(int $id_proyecto, int $id_estudiante): ?array
+    {
+        return $this->repo->buscarEstudianteEnProyecto($id_proyecto, $id_estudiante);
+    }
+    public function bajaEstudiante(int $id_proyecto, int $id_estudiante, ?string $motivo, int $usuario): array
+    {
+        return $this->repo->bajaEstudiante($id_proyecto, $id_estudiante, $motivo, $usuario);
+    }
+    public function reactivarEstudiante(int $id_proyecto, int $id_estudiante, int $usuario): array
+    {
+        return $this->repo->reactivarEstudiante($id_proyecto, $id_estudiante, $usuario);
+    }
 
 
     // 
@@ -496,7 +645,10 @@ class Proyectos
     // 
 
     public function lineaTiempoProyectoUsuarios(
-        int $id_proyecto, int $id_usuario, int $pagina = 1, int $por_pagina = 5
+        int $id_proyecto,
+        int $id_usuario,
+        int $pagina = 1,
+        int $por_pagina = 5
     ): array {
         $pagina        = max(1, $pagina);
         $desde         = ($pagina - 1) * $por_pagina;
