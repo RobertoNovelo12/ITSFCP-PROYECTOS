@@ -282,7 +282,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (!id) return;
 
   // Petición AJAX
-  let res = await fetch("/ITSFCP-PROYECTOS/Ajax/comentarios.php", {
+  let res = await fetch("/Ajax/comentarios.php", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",

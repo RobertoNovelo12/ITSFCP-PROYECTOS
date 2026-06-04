@@ -9,13 +9,13 @@ session_start();
 $rol = strtolower($_SESSION['rol'] ?? '');
 
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: /ITSFCP-PROYECTOS/index.php");
+    header("Location: /index.php");
     exit;
 }
 
-//Solo investigador puede acceder
+//Solo investigador y supervisor puede acceder
 if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) {
-    header("Location: /ITSFCP-PROYECTOS/Vistas/Principal/index.php");
+    header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
