@@ -116,23 +116,23 @@ class UsuarioRepositorio extends BaseModelo
             "SELECT
                 u.*,
                 g.genero,
-                COALESCE(ANY_VALUE(r.nombre), 'Sin rol') AS tipo_usuario,
+                COALESCE(r.nombre, 'Sin rol') AS tipo_usuario,
                 es.matricula,
                 c.nombre_carrera,
                 inv.rfc,
-                ga.nombre  AS grado_academico,
-                ns.nombre  AS nivel_sni
-             FROM usuarios u
-             LEFT JOIN genero_usuario    g   ON g.id_genero    = u.id_genero
-             LEFT JOIN usuarios_roles    ur  ON ur.id_usuarios = u.id_usuarios
-             LEFT JOIN roles             r   ON r.id_roles     = ur.id_rol
-             LEFT JOIN estudiantes       es  ON es.id_usuarios = u.id_usuarios
-             LEFT JOIN carreras          c   ON c.id_carrera   = es.id_carrera
-             LEFT JOIN investigadores    inv ON inv.id_usuarios = u.id_usuarios
-             LEFT JOIN grados_academicos ga  ON ga.id_grado    = inv.id_grado
-             LEFT JOIN niveles_sni       ns  ON ns.id_nivel    = inv.id_nivel_sni
-             LEFT JOIN supervisores      su  ON su.id_usuarios = u.id_usuarios
-             WHERE u.id_usuarios = ?",
+                ga.nombre AS grado_academico,
+                ns.nombre AS nivel_sni
+                FROM usuarios u
+                LEFT JOIN genero_usuario    g   ON g.id_genero    = u.id_genero
+                LEFT JOIN usuarios_roles    ur  ON ur.id_usuarios = u.id_usuarios
+                LEFT JOIN roles             r   ON r.id_roles     = ur.id_rol
+                LEFT JOIN estudiantes       es  ON es.id_usuarios = u.id_usuarios
+                LEFT JOIN carreras          c   ON c.id_carrera   = es.id_carrera
+                LEFT JOIN investigadores    inv ON inv.id_usuarios = u.id_usuarios
+                LEFT JOIN grados_academicos ga  ON ga.id_grado    = inv.id_grado
+                LEFT JOIN niveles_sni       ns  ON ns.id_nivel    = inv.id_nivel_sni
+                LEFT JOIN supervisores      su  ON su.id_usuarios = u.id_usuarios
+                WHERE u.id_usuarios = ?",
             'i',
             [$id_usuario],
             false

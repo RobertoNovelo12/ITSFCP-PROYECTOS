@@ -6,13 +6,16 @@ require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
 include __DIR__ . '/../publico/incluido/_botones.php';
 
-// PHPMailer (instalado vía Composer)
+// 1. Primero el require, sin condicional
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// 2. Luego los use
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
-}
+var_dump(file_exists(__DIR__ . '/../vendor/autoload.php'));
+
 
 class UsuariosControlador extends BaseControlador
 {
@@ -27,7 +30,7 @@ class UsuariosControlador extends BaseControlador
         try {
             $this->validarAcceso($rol, ['supervisor']);
             $resultado = (new Usuarios($conn))->obtenerUsuarios(null, $buscar, $tipo);
-            return is_string($resultado) ? json_decode($resultado, true) : $resultado;
+            return $resultado;
         } catch (Throwable $e) {
             error_log($e->getMessage());
             return ['usuarios' => [], 'paginacion' => []];

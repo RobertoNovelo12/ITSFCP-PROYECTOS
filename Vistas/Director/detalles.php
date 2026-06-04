@@ -110,7 +110,7 @@ ob_start();
                 <div class="col-md-6">
                     <dl>
                         <dt>Fecha inicio</dt>
-                        <?= date("d/m/Y", strtotime($director['inicio'])) ?>
+                        <?= $director['inicio'] ? date("d/m/Y", strtotime($director['inicio'])) : "Sin fecha" ?>
                     </dl>
                 </div>
                 <div class="col-md-6">
@@ -151,8 +151,7 @@ ob_start();
                     <dl>
                         <dt>Motivo salida</dt>
                         <dd>
-                            <?= htmlspecialchars($director['motivo_fin']) ? htmlspecialchars($director['motivo_fin']) : "No hay"  ?>
-                        </dd>
+                            <?= htmlspecialchars($director['motivo_fin'] ?? "No hay") ?> </dd>
                     </dl>
                 </div>
             </div>

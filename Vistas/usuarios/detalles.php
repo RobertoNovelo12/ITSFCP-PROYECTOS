@@ -37,7 +37,7 @@ $registro = $usuario;
 include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 //  Iconos reutilizables ─
-include __DIR__ . '/../../publico/incluido/_iconos.php';
+include __DIR__ . '../../../publico/incluido/_iconos.php';
 
 ob_start();
 ?>
@@ -53,7 +53,7 @@ ob_start();
         ?>
         <div class="col-6 col-md-6 text-md-end">
             <?php if ($rol === 'supervisor'): ?>
-                <a href="index.php" class="btn btn-secondary btn-sm px-4"> 
+                <a href="index.php" class="btn btn-secondary btn-sm px-4">
                     <i class="<?= $iconos['tabla']['regresar'] ?>"></i> Regresar
                 </a>
             <?php endif; ?>
@@ -64,7 +64,7 @@ ob_start();
     <div class="card shadow-sm mb-4">
         <div class="card-header">
             <h5 class="mb-0">
-               <i class="<?= $iconos['detalles']['informacion'] ?> me-2"></i>Información general
+                <i class="<?= $iconos['detalles']['informacion'] ?> me-2"></i>Información general
             </h5>
         </div>
         <div class="card-body">
@@ -74,10 +74,10 @@ ob_start();
                     <dl>
                         <dt>Nombre completo</dt>
                         <dd><?= htmlspecialchars(
-                            $usuario['nombre'] . ' ' .
-                            $usuario['apellido_paterno'] . ' ' .
-                            $usuario['apellido_materno']
-                        ) ?></dd>
+                                $usuario['nombre'] . ' ' .
+                                    $usuario['apellido_paterno'] . ' ' .
+                                    $usuario['apellido_materno']
+                            ) ?></dd>
                     </dl>
                 </div>
                 <div class="col-md-6">
@@ -136,8 +136,7 @@ ob_start();
                         <dt>Tipo de usuario</dt>
                         <dd>
                             <span class="badge rounded-pill text-bg-secondary">
-                                <?= htmlspecialchars(ucfirst($usuario['tipo_usuario'])) ?>
-                            </span>
+                                <?= htmlspecialchars(ucfirst($usuario['tipo_usuario'] ?? 'Sin tipo')) ?> </span>
                         </dd>
                     </dl>
                 </div>
@@ -187,7 +186,7 @@ ob_start();
         <div class="card shadow-sm mb-4">
             <div class="card-header">
                 <h5 class="mb-0">
-                   <i class="bi bi-person-circle me-2"></i> <i class="<?= $iconos['detalles']['subinformacion'] ?> me-2"></i>Datos de investigador
+                    <i class="bi bi-person-circle me-2"></i> <i class="<?= $iconos['detalles']['subinformacion'] ?> me-2"></i>Datos de investigador
                 </h5>
             </div>
             <div class="card-body">
@@ -227,12 +226,12 @@ ob_start();
                 <p class="text-muted">Este usuario está en espera de aprobación. Elige una acción:</p>
                 <div class="d-flex gap-2 flex-wrap">
                     <a href="index.php?action=aprobar&id_usuarios=<?= $usuario['id_usuarios'] ?>"
-                       class="btn btn-success"
-                       onclick="return confirm('¿Aprobar el acceso de este usuario?')">
+                        class="btn btn-success"
+                        onclick="return confirm('¿Aprobar el acceso de este usuario?')">
                         <i class="<?= $iconos['detalles']['exito_verificado'] ?> me-1"></i> Aprobar
                     </a>
                     <a href="respuesta.php?id_usuarios=<?= $usuario['id_usuarios'] ?>"
-                       class="btn btn-danger">
+                        class="btn btn-danger">
                         <i class="<?= $iconos['tabla']['solicitar_cierre'] ?> me-1"></i> Rechazar
                     </a>
                 </div>

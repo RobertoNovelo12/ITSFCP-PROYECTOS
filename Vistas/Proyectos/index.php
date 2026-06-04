@@ -273,38 +273,58 @@ ob_start();
                 <!-- MÓVIL -->
                 <div class="d-block d-md-none mt-4">
                     <?php foreach ($proyectos as $proyecto): ?>
-                        <div class="card mb-3 shadow-sm">
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body text-center">
+                                <h5 class="fw-bold">
+                                    <?= htmlspecialchars($proyecto['titulo']) ?>
+                                </h5>
+                                <span class="badge rounded-pill text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
+                                    <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
+                                </span>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <div class="row text-center">
+                                        <div class="col-12">
+                                            <strong>Periodo</strong>
+                                            <p class="mb-0"><?= htmlspecialchars($proyecto['periodo']) ?></p>
+                                        </div>
+                                    </div>
+                                    <div class="row text-center mt-2">
+                                        <div class="col-6">
+                                            <strong>Fecha inicio</strong>
+                                            <p class="mb-0"><?= htmlspecialchars($proyecto['fecha_inicio']) ?></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Fecha final</strong>
+                                            <p class="mb-0"><?= htmlspecialchars($proyecto['fecha_fin']) ?></p>
+                                        </div>
+                                    </div>
+                                    <div class="row text-center mt-2">
+                                        <div class="col-6">
+                                            <strong>Pendientes</strong>
+                                            <p class="mb-0"><?= $proyecto['total'] ?></p>
+                                        </div>
+                                        <?php if ($rol === 'estudiante'): ?>
+                                            <div class="col-6">
+                                                <?php
+                                                $estadoEst = $proyecto['estado_estudiante'] ?? 'activo';
+                                                $clase = ($estadoEst == 'baja') ? 'danger'
+                                                    : (($estadoEst == 'concluido') ? 'success' : 'primary');
+                                                ?>
+                                                <strong>Estado estudiante</strong>
+                                                <p class="mb-0">
+                                                    <span class="badge rounded-pill text-bg-<?= $clase ?>">
+                                                        <?= strtoupper($estadoEst) ?>
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </li>
+                            </ul>
                             <div class="card-body">
-
-                                <h5>ID: <?= $proyecto['id_proyectos'] ?></h5>
-                                <p><strong>Título:</strong> <?= htmlspecialchars($proyecto['titulo']) ?></p>
-                                <p><strong>Fecha inicio:</strong> <?= $proyecto['fecha_inicio'] ?></p>
-                                <p><strong>Fecha final:</strong> <?= $proyecto['fecha_fin'] ?></p>
-                                <p>
-                                    <strong>Estado proyecto:</strong>
-                                    <span class="badge text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
-                                        <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
-                                    </span>
-                                </p>
-
-                                <?php if ($rol === 'estudiante'): ?>
-                                    <p>
-                                        <strong>Estado estudiante:</strong>
-                                        <?php
-                                        $estadoEst = $proyecto['estado_estudiante'] ?? 'activo';
-                                        $clase = ($estadoEst == 'baja') ? 'danger'
-                                            : (($estadoEst == 'concluido') ? 'success' : 'primary');
-                                        ?>
-                                        <span class="badge text-bg-<?= $clase ?>">
-                                            <?= strtoupper($estadoEst) ?>
-                                        </span>
-                                    </p>
-                                <?php endif; ?>
-
-                                <p><strong>Periodo:</strong> <?= $proyecto['periodo'] ?></p>
-                                <p><strong>Pendientes:</strong> <?= $proyecto['total'] ?></p>
-
-                                <div class="d-flex gap-2 flex-wrap">
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
                                     <?= $proyectoControlador->botonesAccion(
                                         $proyecto['id_proyectos'],
                                         $rol,
@@ -315,7 +335,6 @@ ob_start();
                                         $puedeCrear_Editar
                                     ); ?>
                                 </div>
-
                             </div>
                         </div>
                     <?php endforeach; ?>

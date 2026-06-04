@@ -59,8 +59,8 @@ ob_start();
 
     <!--  FILTRO GLOBAL: PERIODO -->
     <div class="filter-periodo">
-        <label><i class="bi bi-calendar3 me-1"></i>Filtrar por periodo académico:</label>
-        <form method="GET" class="d-flex align-items-center gap-2 flex-wrap mb-0">
+        <label for="form"><i class="bi bi-calendar3 me-1"></i>Filtrar por periodo académico:</label>
+        <form method="GET" class="d-flex align-items-center gap-2 flex-wrap mb-0" id="form">
             <input type="hidden" name="tab" value="<?= htmlspecialchars($filtros['tab']) ?>">
             <select name="periodo" class="form-select form-select-sm" style="min-width:200px"
                 onchange="this.form.submit()">

@@ -1131,9 +1131,9 @@ html.sidebar-collapsed-initial .submenu {
     */
 .main-content {
   flex: 1;
-  padding: 40px;
+  padding: 10px;
   margin-left: 240px;
-  margin-top: 80px;
+  margin-top: 60px;
   margin-bottom: 40px;
   transition: margin-left 0.3s ease;
   background-color: var(--fondo-web);
@@ -6279,7 +6279,7 @@ summary::-webkit-details-marker {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-primario);
-  white-space: nowrap;
+  white-space: wrap;
   margin: 0;
 }
 
