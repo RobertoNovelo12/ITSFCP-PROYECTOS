@@ -62,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
         }
     }
 
-    // 1 — Guardar borrador (estudiante)
-    if ($action === 'guardar_borrador') {
+    // 1 — Guardar borrador (estudiante) - En consideración - Ahora pasado a Investigador
+    /*if ($action === 'guardar_borrador') {
         $tareaControlador->guardar_borrador(
             $id_datos,
             $idproy,
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
             $comentario
         );
         // guardar_borrador() redirige internamente
-    }
+    }*/
 
     // 2 — Enviar tarea / cambiar estado (estudiante)
     if ($action === 'editarTareaEstudiante') {

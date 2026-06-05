@@ -282,7 +282,7 @@ class TareaControlador extends BaseControlador
                 </button>',
 
             'Guardar' =>
-            '<button type="submit" form="form-borrador" class="btn btn-outline-secondary btn-sm">
+            '<button type="submit" name="action" value="Guardar" form="form-editar" class="btn btn-secondary btn-sm">
                     <i class="' . $iconos['tabla']['guardar'] . ' me-1"></i>Guardar borrador
                 </button>',
 
@@ -335,7 +335,7 @@ class TareaControlador extends BaseControlador
 
             case 'investigador':
             case 'profesor':
-                if (in_array($estado, ['Pendiente', 'Revisar', 'Corregir', 'Aprobado', 'Vencido', 'Sin activar'], true)) {
+                if (in_array($estado, ['Pendiente', 'Revisar', 'Corregir', 'Aprobado', 'Vencido', 'Sin activar', 'Borrador'], true)) {
                     $boton  = $this->obtenerbotones('Ver lista',    $id, $id_proyectos);
                     $boton .= ' ' . $this->obtenerbotones('Editar Tarea', $id, $id_proyectos);
                 } elseif ($estado === 'Concluido') {
@@ -371,9 +371,8 @@ class TareaControlador extends BaseControlador
         $boton = '';
         switch ($rol) {
             case 'estudiante':
-                if (in_array($estado, ['Pendiente', 'Borrador'], true)) {
+                if (in_array($estado, ['Pendiente'], true)) {
                     $boton  = $this->obtenerbotonesTarea('EnviarTarea');
-                    $boton .= ' ' . $this->obtenerbotonesTarea('Guardar');
                 } elseif ($estado === 'Corregir') {
                     $boton  = $this->obtenerbotonesTarea('ReenviarTarea');
                     $boton .= ' ' . $this->obtenerbotonesTarea('Guardar');
@@ -397,6 +396,11 @@ class TareaControlador extends BaseControlador
                     $boton .= ' ' . $this->obtenerbotonesTarea('Solicitar Corregir');
                 } elseif ($estado === 'Sin activar') {
                     $boton = $this->obtenerbotonesTarea('Activar', $id_tarea, $id2);
+                    $boton .= ' ' . $this->obtenerbotonesTarea('Guardar');
+                }
+                if (in_array($estado, ['Borrador'], true)) {
+                    $boton  = $this->obtenerbotonesTarea('Activar');
+                    $boton .= ' ' . $this->obtenerbotonesTarea('Guardar');
                 }
                 break;
         }
@@ -525,6 +529,17 @@ class TareaControlador extends BaseControlador
             //Validar que la fecha no se exceda de la fecha fin del proyecto
             $proyecto = $tarea->obtenerProyectoPorTarea($id_tarea);
 
+            //Revisa si el estudiante o investigador les pertenezca la tarea
+            if (in_array($rol, ['investigador'])) {
+                $verificar = $tarea->VerificarTarea($id_tarea, $id_usuario, $id_proyectos, $rol);
+
+                //Si es que si, manda 1 y se omite el if, si no se redirige
+                if (empty($verificar)) {
+                    $this->redirigir('sin_permiso_tarea', '/Vistas/Proyectos/index.php');
+                }
+            }
+
+            //Convertir a un formato apto para comparar
             if (
                 $fecha_entrega < $proyecto['fecha_inicio'] ||
                 $fecha_entrega > $proyecto['fecha_fin']
@@ -669,12 +684,12 @@ class TareaControlador extends BaseControlador
     // GUARDAR BORRADOR (estudiante)
     // 
 
-    public function guardar_borrador(
+    /*public function guardar_borrador(
         int    $id_tarea,
         int    $id_proyectos,
         int    $id_asignacion,
         int    $id_usuarios,
-        string $contenido,
+        string $contenido = '',
         string $comentarios = ''
     ): void {
         global $conn;
@@ -710,6 +725,81 @@ class TareaControlador extends BaseControlador
                 'error_borrador',
                 'tarea.php',
                 "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}&id_asignacion={$id_asignacion}"
+            );
+        }
+    }*/
+
+    //
+    // INVESTIGADOR
+    //
+
+    public function guardar_borrador_Investigador(
+        int    $id_proyectos,
+        int    $id_usuarios,
+        array  $datos
+    ): void {
+        global $conn;
+        $conn->begin_transaction();
+        try {
+            $tarea = new Tarea($conn);
+            $tarea->actualizarTareasVencidos();
+
+            $id_tarea      = (int)$datos['id_tarea'];
+            $id_proyectos  = (int)($datos['id_proyectos'] ?? ($_GET['id_proyectos'] ?? 0));
+            $id_avances  = (int)($datos['id_avances'] ?? 0);
+            $descripcion   = $datos['descripcion']   ?? '';
+            $instrucciones = $datos['instrucciones'] ?? '';
+            $fecha_entrega = $datos['fecha_entrega'] ?? '';
+            $id_usuario    = (int)($datos['id_usuario'] ?? $_SESSION['id_usuario'] ?? 0);
+
+            //Se usa HTMLPurifier para filtrar, validar y depurar código HTML
+            require_once __DIR__ . './../vendor/autoload.php';
+            $config        = \HTMLPurifier_Config::createDefault();
+            $purifier      = new \HTMLPurifier($config);
+            $instrucciones_p   = $purifier->purify($instrucciones);
+            $descripcion_p = $purifier->purify($descripcion);
+
+
+            //Validar que la fecha no se exceda de la fecha fin del proyecto
+            $proyecto = $tarea->obtenerProyectoPorTarea($id_tarea);
+
+            //Revisa si el estudiante o investigador les pertenezca la tarea
+            if (in_array($rol, ['investigador'])) {
+                $verificar = $tarea->VerificarTarea($id_tarea, $id_usuario, $id_proyectos, $rol);
+
+                //Si es que si, manda 1 y se omite el if, si no se redirige
+                if (empty($verificar)) {
+                    $this->redirigir('sin_permiso_tarea', '/Vistas/Proyectos/index.php');
+                }
+            }
+
+            //Convertir a un formato apto para comparar
+            if (
+                $fecha_entrega < $proyecto['fecha_inicio'] ||
+                $fecha_entrega > $proyecto['fecha_fin']
+            ) {
+                $this->redirigir('fecha_invalida', 'editar.php', "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
+            }
+
+            $id_documento_recurso = null;
+            if (!empty($_FILES['archivo']['tmp_name']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
+                $id_documento_recurso = $this->_subirArchivoRecurso($_FILES['archivo'], $id_usuarios, $id_proyectos, $tarea);
+            }
+            $tarea->guardar_borrador_Investigador($id_tarea, $id_avances, $instrucciones_p, $descripcion_p, $fecha_entrega, $id_documento_recurso);
+            $conn->commit();
+
+            $this->redirigir(
+                'exito_borrador',
+                'editar.php',
+                "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}"
+            );
+        } catch (\Exception $e) {
+            $conn->rollback();
+            error_log('TareaControlador::guardar_borrador() — ' . $e->getMessage());
+            $this->redirigir(
+                'error_borrador',
+                'editar.php',
+                "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}"
             );
         }
     }
@@ -804,14 +894,14 @@ class TareaControlador extends BaseControlador
     // MOSTRAR TAREA GENERAL (editar / detalles)
     // 
 
-    public function mostrarEditarTarea(int $id_tarea, string $rol, int $id_usuario, int $id_proyectos)
+    public function mostrarEditarTarea(int $id_tarea, string $rol, int $id_usuario)
     {
         global $conn;
         try {
             if (!in_array($rol, ['investigador', 'profesor', 'supervisor'], true)) return [];
             $tareas = new Tarea($conn);
             $tareas->actualizarTareasVencidos();
-            return $tareas->obtenerTareaGeneral($id_tarea, $rol, $id_usuario, $id_proyectos) ?? [];
+            return $tareas->obtenerTareaGeneral($id_tarea, $rol, $id_usuario) ?? [];
         } catch (\Exception $e) {
             error_log('TareaControlador::mostrarEditarTarea() — ' . $e->getMessage());
             $this->redirigir('sin_permiso_tarea', '/Vistas/Proyectos/index.php');

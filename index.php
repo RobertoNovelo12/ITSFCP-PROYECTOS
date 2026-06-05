@@ -53,11 +53,11 @@ if (isset($_SESSION['rol'])) {
 
 <body>
     <?php include './publico/incluido/header.php'; ?>
-
+<?php include 'sidebar_publico.php'; ?>
     <div class="container-main">
-        <?php include 'sidebar_publico.php'; ?>
+        
 
-        <div class="main-content-index">
+        <div class="main-content" style="margin-top: 80px;">
             <h1 class="title">Sistema web responsive para gestión de proyectos en Instituto Tecnológico Superior
                 Felipe Carrillo Puerto</h1>
 

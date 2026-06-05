@@ -14,6 +14,7 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol = strtolower($_SESSION['rol'] ?? '');
 $id  = $_SESSION['id_usuario'];
 
+
 if (!in_array($rol, ['investigador', 'profesor'])) {
     header("Location: /Vistas/Principal/index.php");
     exit;
@@ -42,8 +43,19 @@ if ($action === 'editarTarea') {
 if ($action === 'actualizarestado' && isset($_GET['id_tarea'])) {
     $tareaControlador->actualizarestado($_GET['id_tarea'], $rol, $_GET['tipo'], $id_proyectos);
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($action === 'Guardar') {
+        $tareaControlador->guardar_borrador_Investigador(
+            $id_proyectos,
+            $id,
+            $_POST
+        );
+        // guardar_borrador() redirige internamente
+    }
+}
 
-$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id, $id_proyectos);
+
+$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id);
 $ediciones = $tareaControlador->obtenerEdicionesRecientes($id_tarea, 8);
 $periodo = $tareaControlador->obtenerperiodo();
 
@@ -64,10 +76,11 @@ $_mapa = [
     'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Tarea actualizado',   'mensaje' => 'La tarea fue editado correctamente.'],
     'exito_estado'       => ['tipo' => 'exito',  'titulo_msg' => 'Estado actualizado',     'mensaje' => 'El estado de la tarea fue actualizado correctamente.'],
     'exito_operacion'    => ['tipo' => 'exito',  'titulo_msg' => 'Operación completada',   'mensaje' => 'La operación sobre el estudiante fue realizada correctamente.'],
+    'exito_borrador'          => ['tipo' => 'exito',  'titulo_msg' => 'Borrador guardado',       'mensaje' => 'El borrador fue guardado correctamente.'],
     'error_cargar'        => ['tipo' => 'error',  'titulo_msg' => 'Error al cargar',        'mensaje' => 'No fue posible cargar los datos. Intenta de nuevo.'],
     'error_editar'       => ['tipo' => 'error',  'titulo_msg' => 'Error al editar',        'mensaje' => 'No fue posible editar la tarea. Verifica los datos e intenta de nuevo.'],
     'error_estado'       => ['tipo' => 'error',  'titulo_msg' => 'Error de estado',        'mensaje' => 'No fue posible actualizar el estado de la tarea.'],
-    'error_operacion'    => ['tipo' => 'error',  'titulo_msg' => 'Error en la operación',  'mensaje' => 'No fue posible completar la operación sobre el estudiante.'],
+    'error_borrador'          => ['tipo' => 'error',  'titulo_msg' => 'Error al guardar',        'mensaje' => 'No fue posible guardar el borrador. Intenta de nuevo.'],
     'sin_permiso'        => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver la información de la tarea.'],
     'sin_permiso_tarea'   => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',     'mensaje' => 'No tienes permiso para ver las tareas de la tarea.'],
     'accion_no_permitida' => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',   'mensaje' => 'La acción solicitada no está disponible para tu rol.'],
@@ -126,6 +139,7 @@ ob_start();
                 method="POST" enctype="multipart/form-data" id="form-editar">
                 <input type="hidden" name="action" value="editarTarea">
                 <input type="hidden" name="id_tarea" value="<?= $tarea['id_tarea'] ?>">
+                <input type="hidden" name="id_avances" value="<?= $tarea['id_avances'] ?>">
                 <input type="hidden" name="id_proyectos" value="<?= htmlspecialchars($id_proyectos ?? '') ?>">
                 <input type="hidden" name="id_usuario" value="<?= $id ?>">
 
@@ -186,7 +200,7 @@ ob_start();
                     <div class="col-md-6">
                         <label class="form-label tarea-seccion-label">Fecha de entrega</label>
                         <input
-                            type="date" name="fecha_entrega" class="form-control"  value="<?= htmlspecialchars($tarea['fecha_entrega'] ?? '') ?>" min="<?= htmlspecialchars($proyecto['fecha_inicio']) ?>"  max="<?= htmlspecialchars($proyecto['fecha_fin']) ?>">
+                            type="date" name="fecha_entrega" class="form-control" value="<?= htmlspecialchars($tarea['fecha_entrega'] ?? '') ?>" min="<?= htmlspecialchars($proyecto['fecha_inicio']) ?>" max="<?= htmlspecialchars($proyecto['fecha_fin']) ?>">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label tarea-seccion-label">Archivo de guía actual</label>
@@ -212,12 +226,10 @@ ob_start();
 
                 <!--  Botones ─ -->
                 <div class="pt-3 d-flex flex-wrap align-items-center gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm px-4" id="btn-guardar">
-                        Guardar cambios
-                    </button>
                     <?= $tareaControlador->botonesAccionTarea($tarea['id_tarea'], $rol, $tarea['estado'], $id_proyectos) ?>
                 </div>
             </form>
+
         </div>
     </div>
 

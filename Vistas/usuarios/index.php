@@ -18,9 +18,6 @@ if ($rol !== 'supervisor') {
     exit;
 }
 
-require_once __DIR__ . '/../../Controladores/usuarioControlador.php';
-
-$controlador = new UsuariosControlador();
 
 //  Parámetros GET 
 $action = $_GET['action'] ?? 'index';
@@ -28,11 +25,6 @@ $buscar = trim($_GET['buscar'] ?? '');
 $tipo   = trim($_GET['tipo']   ?? '');
 $pagina = max(1, intval($_GET['pagina'] ?? 1));
 
-//  Acción directa: aprobar desde tabla ─
-if ($action === 'aprobar' && isset($_GET['id_usuarios'])) {
-    $controlador->aprobar(intval($_GET['id_usuarios']), $rol);
-    exit;
-}
 
 //  Validar acción permitida ─
 $accionesPermitidas = ['index', 'Espera', 'Activo', 'Cancelado'];
@@ -41,9 +33,17 @@ if (!in_array($action, $accionesPermitidas, true)) {
     exit;
 }
 
+require_once __DIR__ . '/../../Controladores/usuarioControlador.php';
+
+$controlador = new UsuariosControlador();
 //  Ejecutar acción 
 $resultado = $controlador->$action($rol, $buscar ?: null, $tipo ?: null);
 
+//  Acción directa: aprobar desde tabla ─
+if ($action === 'aprobar' && isset($_GET['id_usuarios'])) {
+    $controlador->aprobar(intval($_GET['id_usuarios']), $rol);
+    exit;
+}
 
 $usuarios   = $resultado['usuarios']   ?? [];
 $paginacion = $resultado['paginacion'] ?? [

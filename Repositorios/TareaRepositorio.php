@@ -517,10 +517,10 @@ class TareaRepositorio extends BaseModelo
 
 
     // ─
-    // GUARDAR BORRADOR
+    // GUARDAR BORRADOR - ALUMNO
     // ─
 
-    public function guardarBorrador(
+    /*public function guardarBorrador(
         int $id_tarea,
         int $id_asignacion,
         int $id_usuarios,
@@ -545,6 +545,36 @@ class TareaRepositorio extends BaseModelo
             'ii',
             [$id_asignacion, $id_usuarios]
         );
+    }*/
+
+    // ─
+    // GUARDAR BORRADOR - INVESTIGADOR
+    // ─
+
+    public function guardarBorradorInvestigador(
+        int $id_tarea,
+        int $id_avances,
+        string $instrucciones,
+        string $descripcion,
+        string $fecha_entrega,
+        ?int $id_documento_recurso
+    ): void {
+        if (!$id_tarea) return;
+
+        $this->ejecutar(
+            "UPDATE tareas
+         SET id_estadoT           = 8,
+             descripcion          = ?,
+             instrucciones        = ?,
+             fecha_entrega        = ?,
+             fecha_modificacion   = NOW(),
+             id_documento_recurso = COALESCE(?, id_documento_recurso)
+         WHERE id_tarea = ? AND id_avances = ?",
+            'sssiii',
+            [$descripcion, $instrucciones, $fecha_entrega, $id_documento_recurso, $id_tarea, $id_avances]
+        );
+        // Sin historial: la tarea aún no tiene id_asignacion (estado Sin activar)
+        // fecha_modificacion sirve como traza suficiente en esta etapa
     }
 
 
@@ -734,6 +764,19 @@ class TareaRepositorio extends BaseModelo
         ) ?: null;
     }
 
+    public function verificarTareaGeneralInvestigador(int $id_tarea, int $id_usuario, int $id_proyecto): ?array
+    {
+        return $this->ejecutar(
+            "SELECT 1 FROM tareas t
+             INNER JOIN tbl_seguimiento tbse ON t.id_avances     = tbse.id_avances
+             INNER JOIN proyectos proy       ON proy.id_proyectos = tbse.id_proyectos
+             WHERE t.id_tarea = ? AND proy.id_investigador = ? AND proy.id_proyectos = ? LIMIT 1",
+            'iii',
+            [$id_tarea, $id_usuario, $id_proyecto],
+            false
+        ) ?: null;
+    }
+
 
     // ─
     // DETALLE GENERAL DE TAREA (editar/detalles)
@@ -742,7 +785,7 @@ class TareaRepositorio extends BaseModelo
     private function sqlTareaGeneral(): string
     {
         return "SELECT
-                    tare.id_tarea, tita.descripcion_tipo AS tipo, tita.id_tareatipo,
+                    tare.id_tarea, tita.descripcion_tipo AS tipo, tita.id_tareatipo, tare.id_avances,
                     tare.descripcion, tare.instrucciones, tare.fecha_entrega,
                     tare.fecha_modificacion, tita.descripcion_tipo AS titulo_tarea,
                     esta.nombre AS estado, tare.id_estadoT,
@@ -926,7 +969,8 @@ class TareaRepositorio extends BaseModelo
              JOIN proyectos AS proy ON tbse.id_proyectos = proy.id_proyectos
              WHERE ta.id_tarea = ?",
             'i',
-            [$id_tarea]
+            [$id_tarea],
+            false
         );
     }
 }

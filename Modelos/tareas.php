@@ -200,10 +200,10 @@ class Tarea
 
 
     // ─
-    // GUARDAR BORRADOR
+    // GUARDAR BORRADOR - ESTUDIANTE
     // ─
 
-    public function guardar_borrador(
+   /* public function guardar_borrador(
         int    $id_tarea,
         int    $id_asignacion,
         int    $id_usuarios,
@@ -212,6 +212,21 @@ class Tarea
         ?int   $id_documento_entrega = null
     ): void {
         $this->repo->guardarBorrador($id_tarea, $id_asignacion, $id_usuarios, $contenido, $id_documento_entrega);
+    }*/
+
+    // ─
+    // GUARDAR BORRADOR INVESTIGADOR
+    // ─
+
+    public function guardar_borrador_Investigador(
+        int    $id_tarea,
+        int    $id_avances,
+        string $instrucciones = '',
+        string $descripcion   = '',
+        $fecha_entrega = '',
+        ?int   $id_documento_recurso = null
+    ): void {
+        $this->repo->guardarBorradorInvestigador($id_tarea, $id_avances, $instrucciones, $descripcion, $fecha_entrega, $id_documento_recurso);
     }
 
 
@@ -321,6 +336,7 @@ class Tarea
         };
     }
 
+    //Verifica si el estudiante le pertenezca la actividad.
     public function VerificarTareaProyecto(int $id_asignacion, int $id_usuario, int $id_proyecto, string $rol): ?array
     {
         return match (strtolower($rol)) {
@@ -329,6 +345,16 @@ class Tarea
             default                    => null,
         };
     }
+
+        //Verifica si al investigador le pertenezca la actividad.
+    public function VerificarTarea(int $id_Tarea, int $id_usuario, int $id_proyecto, string $rol): ?array
+    {
+        return match (strtolower($rol)) {
+            'investigador', 'profesor' => $this->repo->verificarTareaGeneralInvestigador($id_Tarea, $id_usuario, $id_proyecto),
+            default                    => null,
+        };
+    }
+
 
 
     // ─

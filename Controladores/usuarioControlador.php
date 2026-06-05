@@ -14,8 +14,6 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
-var_dump(file_exists(__DIR__ . '/../vendor/autoload.php'));
-
 
 class UsuariosControlador extends BaseControlador
 {
