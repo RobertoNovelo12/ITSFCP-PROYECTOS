@@ -178,7 +178,7 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  padding: 10px 20px;
+  padding: 20px 40px;
   display: flex;
   background-color: var(--fondo-web);
   color: var(--color-texto-principal);
@@ -412,7 +412,7 @@ html.dark-mode .avatar-arrow {
     */
 .container {
   display: flex;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - +0px);
 }
 
 .sidebar {

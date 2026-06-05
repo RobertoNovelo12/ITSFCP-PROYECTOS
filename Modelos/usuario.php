@@ -75,11 +75,10 @@ class Usuarios
     /**
      * Cambia el estado del usuario a 'activo'.
      *
-     * @return bool  true si se actualizó correctamente.
      */
-    public function actualizarEstado(int $id_usuario, string $estado): bool
+    public function actualizarEstado(int $id_usuario, string $estado): void
     {
-        return $this->repo->actualizarEstado($id_usuario, $estado);
+        $this->repo->actualizarEstado($id_usuario, $estado);
     }
 
 
@@ -91,11 +90,10 @@ class Usuarios
      * Cambia el estado del usuario a 'cancelado'.
      * El comentario de rechazo se envía por correo desde el controlador.
      *
-     * @return bool
      */
-    public function rechazarUsuario(int $id_usuario, string $comentario): bool
+    public function rechazarUsuario(int $id_usuario, string $comentario): void
     {
-        return $this->repo->actualizarEstado($id_usuario, 'cancelado');
+        $this->repo->actualizarEstado($id_usuario, 'cancelado');
     }
 
 

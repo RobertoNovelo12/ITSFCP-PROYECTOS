@@ -187,8 +187,8 @@ class AreaConocimientoControlador extends BaseControlador
 
         if ($estado === 'Activo') {
             return $this->obtenerbotones('Editar Area', $id)
-                 . $this->obtenerbotones('Detalles', $id)
-                 . $this->obtenerbotones('Desactivar', $id);
+                . $this->obtenerbotones('Detalles', $id)
+                . $this->obtenerbotones('Desactivar', $id);
         }
 
         if ($estado === 'Desactivado') {
@@ -228,13 +228,11 @@ class AreaConocimientoControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_crear');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_crear';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -245,32 +243,42 @@ class AreaConocimientoControlador extends BaseControlador
         }
     }
 
-        public function obtenerbotonesEditar(string $tipo): string
+    // ─ Botones formulario editar ─
+
+    private function obtenerbotonesEditar(string $tipo): string
     {
         include __DIR__ . '../../publico/incluido/_iconos.php';
 
         return match ($tipo) {
-
-            'Desactivar' =>
-            '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">
-                    <i class="' . $iconos['tabla']['solicitar_cierre'] . ' me-1"></i>Desactivar
-                </button>',
-
-            'Reactivar' =>
-            '<button type="submit" name="action" value="Reactivar" class="btn btn-sm btn-warning">
-                    <i class="' . $iconos['editar']['reactivar'] . ' me-1"></i>Reactivar
-                </button>',
-
-            'Guardar' =>
-            '<button type="submit" name="action" value="Guardar" class="btn btn-sm btn-guardar">
-                    <i class="' . $iconos['editar']['guardar'] . ' me-1"></i>Guardar cambios
-                </button>',
-
+            'Desactivar' => Botones::botonData(
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Desactivar Área de conocimiento',
+                ['accion' => 'Desactivar'],
+                'sm',
+                'Desactivar'
+            ),
+            'Reactivar' => Botones::botonData(
+                'warning',
+                $iconos['tabla']['reactivar'],
+                'Reactivar Área de conocimiento',
+                ['accion' => 'Reactivar'],
+                'sm',
+                'Reactivar'
+            ),
+            'Guardar' => Botones::botonData(
+                'guardar',
+                $iconos['tabla']['guardar'],
+                'Guardar cambios',
+                ['accion' => 'Guardar'],
+                'sm',
+                'Guardar'
+            ),
             default => '',
         };
     }
 
-        public function botonesAccionEditar(string $rol, ?string $estado = null): string
+    public function botonesAccionEditar(string $rol, ?string $estado = null): string
     {
         if (!$this->esSupervisor($rol)) return '';
 
@@ -343,13 +351,11 @@ class AreaConocimientoControlador extends BaseControlador
 
             $conn->commit();
             $this->redirigir('exito_editar');
-
         } catch (mysqli_sql_exception $e) {
             $conn->rollback();
             error_log($e->getMessage());
             $msg = ($e->getCode() == 1062) ? 'error_duplicado' : 'error_editar';
             $this->redirigir($msg);
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());
@@ -382,7 +388,6 @@ class AreaConocimientoControlador extends BaseControlador
             $conn->commit();
 
             $this->redirigir('exito_desactivar');
-
         } catch (Exception $e) {
             if (isset($conn) && $conn->errno === 0) $conn->rollback();
             error_log($e->getMessage());

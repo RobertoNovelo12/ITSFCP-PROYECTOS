@@ -70,7 +70,6 @@ class SeguimientoModelo
             if ($orden === 1) {
                 $etapa['estado']           = 'completado';
                 $etapa['documento_subido'] = $this->repo->datosSeguimientoEstudiante($id_proyecto, $id_usuario);
-
             } elseif ($orden === 2) {
                 $total     = $this->repo->contarTareasTotales($id_proyecto, $id_usuario);
                 $aprobadas = $this->repo->contarTareasAprobadas($id_proyecto, $id_usuario);
@@ -81,7 +80,6 @@ class SeguimientoModelo
                 $etapa['id_seguimiento']   = null;
                 $etapa['id_plantilla']     = null;
                 $etapa['documento_subido'] = null;
-
             } elseif ($orden === 3) {
                 $cierre                    = $this->repo->cierreEstudiante($id_proyecto, $id_usuario);
                 $etapa['documento_subido'] = null;
@@ -152,14 +150,12 @@ class SeguimientoModelo
             if ($orden === 1) {
                 $etapa['estado']           = 'completado';
                 $etapa['documento_subido'] = $this->repo->datosSeguimientoEstudiante($id_proyecto, $id_usuario);
-
             } elseif ($orden === 2) {
                 $etapa['tareas_total']     = $total_t;
                 $etapa['tareas_aprobadas'] = $aprobadas_t;
                 $etapa['id_seguimiento']   = null;
                 $etapa['id_plantilla']     = null;
                 $etapa['estado']           = $etapa2_ok ? 'completado' : 'baja_incompleta';
-
             } elseif ($orden === 3) {
                 $etapa['estado'] = 'baja_incompleta';
             }
@@ -231,9 +227,17 @@ class SeguimientoModelo
         ?int    $id_etapa
     ): bool {
         return $this->repo->registrarDocumentoCentralizado(
-            $id_seguimiento, $id_plantilla, $nombre, $nombre_archivo,
-            $ruta, $tipo_mime, $extension, $tamano_bytes,
-            $id_usuario, $id_proyecto, $id_etapa
+            $id_seguimiento,
+            $id_plantilla,
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $id_usuario,
+            $id_proyecto,
+            $id_etapa
         );
     }
 
@@ -255,8 +259,15 @@ class SeguimientoModelo
         int     $id_etapa
     ): int {
         return $this->repo->registrarDocumentoCarta(
-            $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
-            $tamano_bytes, $id_usuario, $id_proyecto, $id_etapa
+            $nombre,
+            $nombre_archivo,
+            $ruta,
+            $tipo_mime,
+            $extension,
+            $tamano_bytes,
+            $id_usuario,
+            $id_proyecto,
+            $id_etapa
         );
     }
 
@@ -300,7 +311,11 @@ class SeguimientoModelo
     ): bool {
         try {
             $this->repo->insertarComentarioCierre(
-                $id_cierre_est, $id_usuario, $comentario, $archivo_nombre, $archivo_ruta
+                $id_cierre_est,
+                $id_usuario,
+                $comentario,
+                $archivo_nombre,
+                $archivo_ruta
             );
             $this->repo->reiniciarEstadoCierre($id_cierre_est);
             return true;
@@ -550,15 +565,10 @@ class SeguimientoModelo
         int    $realizado_por,
         string $motivo = 'Proyecto concluido — cierre aprobado por supervisor'
     ): bool {
-        try {
-            $id_ep = $this->repo->idEstadoProcesoLiberado();
-            $this->repo->marcarIntegranteConcluido($id_proyecto, $id_estudiante, $id_ep);
-            $this->repo->insertarHistorial($id_proyecto, $id_estudiante, 'concluido', $motivo, $realizado_por);
-            return true;
-        } catch (Exception $e) {
-            error_log('marcarProyectoUsuarioConcluido: ' . $e->getMessage());
-            return false;
-        }
+        $id_ep = $this->repo->idEstadoProcesoLiberado();
+        $this->repo->marcarIntegranteConcluido($id_proyecto, $id_estudiante, $id_ep);
+        $this->repo->insertarHistorial($id_proyecto, $id_estudiante, 'concluido', $motivo, $realizado_por);
+        return true;
     }
 
     /**
@@ -573,7 +583,11 @@ class SeguimientoModelo
         int    $realizado_por
     ): bool {
         return $this->repo->insertarHistorial(
-            $id_proyecto, $id_estudiante, 'carta_rechazada', $motivo, $realizado_por
+            $id_proyecto,
+            $id_estudiante,
+            'carta_rechazada',
+            $motivo,
+            $realizado_por
         );
     }
 

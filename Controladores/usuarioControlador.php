@@ -118,12 +118,9 @@ class UsuariosControlador extends BaseControlador
                 throw new Exception('error_operacion');
             }
 
-            $modelo = new Usuarios($conn);
-            $ok     = $modelo->actualizarEstado($id_usuario, 'activo');
 
-            if (!$ok) {
-                throw new Exception('error_operacion');
-            }
+            $modelo = new Usuarios($conn);
+            $modelo->actualizarEstado($id_usuario, 'activo');
 
             $datos = $modelo->obtenerCorreo($id_usuario);
             if ($datos) {
@@ -165,11 +162,7 @@ class UsuariosControlador extends BaseControlador
             }
 
             $modelo = new Usuarios($conn);
-            $ok     = $modelo->rechazarUsuario($id_usuario, $comentario);
-
-            if (!$ok) {
-                throw new Exception('error_operacion');
-            }
+            $modelo->rechazarUsuario($id_usuario, $comentario);
 
             $datos = $modelo->obtenerCorreo($id_usuario);
             if ($datos) {

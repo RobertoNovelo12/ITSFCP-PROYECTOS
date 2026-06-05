@@ -19,9 +19,9 @@ class Instituto
     }
 
 
-    // ·············································
+    // 
     // CONSULTAS
-    // ·············································
+    // 
 
     public function obtenerDetalles(): ?array
     {
@@ -34,9 +34,9 @@ class Instituto
     }
 
 
-    // ·············································
+    // 
     // VALIDACIÓN
-    // ·············································
+    // 
 
     /**
      * Verifica que el director exista y esté activo.
@@ -53,9 +53,9 @@ class Instituto
     }
 
 
-    // ·············································
+    // 
     // CRUD
-    // ·············································
+    // 
 
     public function editar(
         int $id_instituto,
@@ -76,9 +76,9 @@ class Instituto
     }
 
 
-    // ·············································
+    // 
     // UTILIDADES
-    // ·············································
+    // 
 
     public function bloquearTabla(): void
     {

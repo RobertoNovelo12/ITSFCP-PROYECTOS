@@ -26,7 +26,7 @@ $carreraControlador = new carreraControlador();
 
 //  Acciones POST 
 // Cada método valida internamente el método HTTP, el rol y redirige con ?msg=.
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'Guardar') {

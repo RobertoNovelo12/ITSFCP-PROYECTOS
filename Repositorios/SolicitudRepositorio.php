@@ -836,16 +836,12 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
 
     public function insertarNotificacion(int $id_usuario, string $titulo, string $contenido, string $enlace = ''): void
     {
-        try {
             $this->ejecutar(
                 'INSERT INTO notificaciones (usuario_id, titulo, contenido, enlace, leido, creado_en)
                  VALUES (?, ?, ?, ?, 0, NOW())',
                 'isss',
                 [$id_usuario, $titulo, $contenido, $enlace]
             );
-        } catch (Exception $e) {
-            error_log('[insertarNotificacion] ' . $e->getMessage());
-        }
     }
 
     public function buscarPeriodoActualSolicitud(): ?array

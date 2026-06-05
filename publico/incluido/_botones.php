@@ -74,7 +74,7 @@ class Botones
            ' . $tooltipAttr . '>
             <i class="' . htmlspecialchars($icono) . ' me-2"></i>'
             . htmlspecialchars($texto) .
-        '</a>';
+            '</a>';
     }
 
     /**
@@ -147,15 +147,17 @@ class Botones
         }
 
         return '
-        <button type="button"
-                class="btn btn-' . htmlspecialchars($color) . ' btn-' . htmlspecialchars($tamano) . '"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                data-bs-custom-class="custom-tooltip"
-                data-bs-title="' . htmlspecialchars($tooltip) . '"'
-                . $atributos . '>
-            <i class="' . htmlspecialchars($icono) . '"></i>'
+    <button type="submit"
+            name="action"
+            value="' . htmlspecialchars($texto) . '"
+            class="btn btn-' . htmlspecialchars($color) . ' btn-' . htmlspecialchars($tamano) . '"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-custom-class="custom-tooltip"
+            data-bs-title="' . htmlspecialchars($tooltip) . '"'
+            . $atributos . '>
+        <i class="' . htmlspecialchars($icono) . '"></i>'
             . ($texto !== '' ? '<span class="ms-2">' . htmlspecialchars($texto) . '</span>' : '') . '
-        </button>';
+    </button>';
     }
 }

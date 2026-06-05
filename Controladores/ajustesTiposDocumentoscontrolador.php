@@ -112,27 +112,35 @@ class ajustesTiposDocumentosControlador extends BaseControlador
     // BOTONES
     // 
 
-    public function obtenerbotonesEditar(string $tipo): string
+    private function obtenerbotonesEditar(string $tipo): string
     {
         include __DIR__ . '../../publico/incluido/_iconos.php';
 
         return match ($tipo) {
-
-            'Desactivar' =>
-            '<button type="submit" name="action" value="Desactivar" class="btn btn-sm btn-danger">
-                    <i class="' . $iconos['tabla']['solicitar_cierre'] . ' me-1"></i>Desactivar
-                </button>',
-
-            'Reactivar' =>
-            '<button type="submit" name="action" value="Reactivar" class="btn btn-sm btn-warning">
-                    <i class="' . $iconos['editar']['reactivar'] . ' me-1"></i>Reactivar
-                </button>',
-
-            'Guardar' =>
-            '<button type="submit" name="action" value="Guardar" class="btn btn-sm btn-guardar">
-                    <i class="' . $iconos['editar']['guardar'] . ' me-1"></i>Guardar cambios
-                </button>',
-
+            'Desactivar' => Botones::botonData(
+                'danger',
+                $iconos['tabla']['solicitar_cierre'],
+                'Desactivar tipo de documento',
+                ['accion' => 'Desactivar'],
+                'sm',
+                'Desactivar'
+            ),
+            'Reactivar' => Botones::botonData(
+                'warning',
+                $iconos['tabla']['reactivar'],
+                'Reactivar tipo de documento',
+                ['accion' => 'Reactivar'],
+                'sm',
+                'Reactivar'
+            ),
+            'Guardar' => Botones::botonData(
+                'guardar',
+                $iconos['tabla']['guardar'],
+                'Guardar cambios',
+                ['accion' => 'Guardar'],
+                'sm',
+                'Guardar'
+            ),
             default => '',
         };
     }

@@ -149,16 +149,14 @@ class UsuarioRepositorio extends BaseModelo
     /**
      * Cambia el estado de un usuario ('activo' | 'cancelado' | 'espera').
      *
-     * @return bool  true si se actualizó al menos una fila.
      */
-    public function actualizarEstado(int $id_usuario, string $estado): bool
+    public function actualizarEstado(int $id_usuario, string $estado): void
     {
         $this->ejecutar(
             "UPDATE usuarios SET estado_usuario = ? WHERE id_usuarios = ?",
             'si',
             [$estado, $id_usuario]
         );
-        return $this->conn->affected_rows > 0;
     }
 
 

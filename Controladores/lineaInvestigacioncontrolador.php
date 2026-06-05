@@ -344,7 +344,7 @@ class LineaInvestigacionControlador extends BaseControlador
             'Desactivar' => Botones::botonData(
                 'danger',
                 $iconos['tabla']['solicitar_cierre'],
-                'Desactivar línea de investigación',
+                'Desactivar Línea de investigación',
                 ['accion' => 'Desactivar'],
                 'sm',
                 'Desactivar'
@@ -352,7 +352,7 @@ class LineaInvestigacionControlador extends BaseControlador
             'Reactivar' => Botones::botonData(
                 'warning',
                 $iconos['tabla']['reactivar'],
-                'Reactivar línea de investigación',
+                'Reactivar Línea de investigación',
                 ['accion' => 'Reactivar'],
                 'sm',
                 'Reactivar'
