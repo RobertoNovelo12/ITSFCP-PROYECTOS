@@ -18,9 +18,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     }
 
 
-    // ─
+    // 
     // MANTENIMIENTO AUTOMÁTICO
-    // ─
+    // 
 
     public function actualizarProyectosVencidos(): bool
     {
@@ -33,9 +33,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     }
 
 
-    // ─
+    // 
     // CAMBIOS DE ESTADO
-    // ─
+    // 
 
     public function actualizarEstado(int $id_proyectos, int $numeroEstado): void
     {
@@ -107,6 +107,26 @@ class SolicitudesProyectoRepositorio extends BaseModelo
         );
     }
 
+    /**
+     * Inserta la solicitud de cierre en tbl_cierres cuando el investigador
+     * solicita el cierre de su proyecto (estado 5 → Por cerrar).
+     * Equivalente al método en ProyectosRepositorio.
+     */
+    public function insertarCierre(int $id_proyectos, int $id_investigador, ?float $porcentaje): void
+    {
+        $this->ejecutar(
+            "INSERT INTO tbl_cierres (id_proyectos, id_investigador, porcentaje_avance, fecha_solicitud, estado)
+             VALUES (?, ?, ?, CURDATE(), 'espera')
+             ON DUPLICATE KEY UPDATE
+                porcentaje_avance = VALUES(porcentaje_avance),
+                fecha_solicitud   = CURDATE(),
+                estado            = 'espera',
+                fecha_resultado   = NULL",
+            "iid",
+            [$id_proyectos, $id_investigador, $porcentaje ?? 0.0]
+        );
+    }
+
     public function rechazarConComentario(int $id_usuario, int $id_proyectos, string $tipo, string $comentario): void
     {
         $num_motivo = ($tipo === 'cierre_rechazado') ? 7 : 4;
@@ -129,10 +149,43 @@ class SolicitudesProyectoRepositorio extends BaseModelo
         }
     }
 
+    /**
+     * Reenviar cierre rechazado (7) → Por cerrar (5).
+     * Solo el investigador dueño del proyecto puede ejecutarla.
+     */
+    public function reenviarCierre(int $id_proyectos, int $id_investigador): bool
+    {
+        // Verificar que el proyecto pertenezca al investigador y esté en estado 7.
+        $row = $this->ejecutar(
+            "SELECT id_proyectos
+             FROM proyectos
+             WHERE id_proyectos = ?
+               AND id_investigador = ?
+               AND id_estadoP = 7
+             LIMIT 1",
+            "ii", [$id_proyectos, $id_investigador], false
+        );
 
-    // ─
+        if (empty($row)) {
+            return false;
+        }
+
+        $this->ejecutar(
+            "UPDATE proyectos
+             SET id_estadoP = 5, actualizado_en = NOW()
+             WHERE id_proyectos = ?
+               AND id_investigador = ?
+               AND id_estadoP = 7",
+            "ii", [$id_proyectos, $id_investigador]
+        );
+
+        return $this->conn->affected_rows > 0;
+    }
+
+
+    // 
     // AVANCE / TAREAS
-    // ─
+    // 
 
     public function obtenerTareasAprobadas(int $id_proyecto): array
     {
@@ -147,9 +200,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     }
 
 
-    // ─
+    // 
     // RESUMEN (dashboard)
-    // ─
+    // 
 
     public function resumenSolicitudesSupervisor(?int $id_periodo): array
     {
@@ -171,32 +224,40 @@ class SolicitudesProyectoRepositorio extends BaseModelo
         ) ?? ['total' => 0, 'pendientes_creacion' => 0, 'pendientes_cierre' => 0, 'aprobadas' => 0];
     }
 
+    /**
+     * Resumen de solicitudes para el investigador.
+     * Incluye rechazados (4, 7) como tarjeta independiente.
+     */
     public function resumenSolicitudesInvestigador(int $id_usuario, ?int $id_periodo): array
     {
         $where_periodo = $id_periodo ? " AND proy.id_periodos = ?" : "";
         $params        = [$id_usuario];
         $types         = "i";
-        if ($id_periodo) { $params[] = $id_periodo; $types .= "i"; }
+        if ($id_periodo) {
+            $params[] = $id_periodo;
+            $types   .= "i";
+        }
 
         return $this->ejecutar(
             "SELECT
                 COUNT(*) AS total,
-                SUM(CASE WHEN espr.nombre = 'Por aprobar'        THEN 1 ELSE 0 END) AS pendientes_creacion,
-                SUM(CASE WHEN espr.nombre = 'Por cerrar'         THEN 1 ELSE 0 END) AS pendientes_cierre,
-                SUM(CASE WHEN espr.nombre IN ('Activo','Cierre') THEN 1 ELSE 0 END) AS aprobadas
+                SUM(CASE WHEN proy.id_estadoP = 3 THEN 1 ELSE 0 END) AS pendientes_creacion,
+                SUM(CASE WHEN proy.id_estadoP = 5 THEN 1 ELSE 0 END) AS pendientes_cierre,
+                SUM(CASE WHEN proy.id_estadoP IN (4, 7) THEN 1 ELSE 0 END) AS requieren_accion,
+                SUM(CASE WHEN proy.id_estadoP IN (2, 1) THEN 1 ELSE 0 END) AS aprobadas
              FROM proyectos proy
              JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
              WHERE proy.id_investigador = ?
                AND proy.id_estadoP IN (3, 4, 5, 7, 2, 1)
              $where_periodo",
             $types, $params, false
-        ) ?? ['total' => 0, 'pendientes_creacion' => 0, 'pendientes_cierre' => 0, 'aprobadas' => 0];
+        ) ?? ['total' => 0, 'pendientes_creacion' => 0, 'pendientes_cierre' => 0, 'requieren_accion' => 0, 'aprobadas' => 0];
     }
 
 
-    // ─
+    // 
     // LISTADO PAGINADO
-    // ─
+    // 
 
     public function contarSolicitudes(string $in_estados, string $where_base, string $bind_types, array $bind_params): int
     {
@@ -206,6 +267,11 @@ class SolicitudesProyectoRepositorio extends BaseModelo
         )['total'] ?? 0);
     }
 
+    /**
+     * Listado base (supervisor y investigador).
+     * La columna `comentario_preview` trae el último comentario de rechazo
+     * (útil para la sección "Requieren acción" del investigador).
+     */
     public function listarSolicitudes(string $where_base, string $types, array $params): array
     {
         return $this->ejecutar(
@@ -219,7 +285,14 @@ class SolicitudesProyectoRepositorio extends BaseModelo
                 CASE
                     WHEN proy.id_estadoP IN (3, 4) THEN 'creacion'
                     ELSE 'cierre'
-                END AS tipo_solicitud
+                END AS tipo_solicitud,
+                (
+                    SELECT LEFT(pc.comentario, 100)
+                    FROM proyectos_comentarios pc
+                    WHERE pc.id_proyectos = proy.id_proyectos
+                    ORDER BY pc.fecha DESC
+                    LIMIT 1
+                ) AS comentario_preview
              FROM proyectos proy
              JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
              JOIN periodos peri          ON proy.id_periodos = peri.id_periodos
@@ -232,9 +305,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     }
 
 
-    // ─
+    // 
     // CATÁLOGOS
-    // ─
+    // 
 
     public function obtenerTodosPeriodos(): array
     {
@@ -251,9 +324,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     }
 
 
-    // ─
+    // 
     // DETALLE DE SOLICITUD
-    // ─
+    // 
 
     public function obtenerProyecto(int $id_proyecto): ?array
     {
@@ -291,10 +364,10 @@ class SolicitudesProyectoRepositorio extends BaseModelo
             "SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno,
                     nisn.nombre AS nivel_sni, grac.nombre AS grado_academico
              FROM investigadores AS inve
-             JOIN usuarios AS usua         ON usua.id_usuarios    = inve.id_usuarios
-             JOIN niveles_sni AS nisn       ON nisn.id_nivel       = inve.id_nivel_sni
-             JOIN grados_academicos AS grac ON grac.id_grado       = inve.id_grado
-             JOIN proyectos AS proy         ON proy.id_investigador = inve.id_usuarios
+             JOIN usuarios AS usua          ON usua.id_usuarios   = inve.id_usuarios
+             JOIN niveles_sni AS nisn        ON nisn.id_nivel      = inve.id_nivel_sni
+             JOIN grados_academicos AS grac  ON grac.id_grado      = inve.id_grado
+             JOIN proyectos AS proy          ON proy.id_investigador = inve.id_usuarios
              WHERE proy.id_proyectos = ?",
             "i", [$id_proyecto], false
         );
@@ -306,9 +379,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
         return $this->ejecutar(
             "SELECT arco.nombre_area AS area_conocimiento, GROUP_CONCAT(subco.nombre_subarea) AS subarea
              FROM usuarios AS us
-             JOIN usuarios_subareas AS ussu      ON ussu.id_usuarios = us.id_usuarios
-             JOIN subareas_conocimiento AS subco  ON ussu.id_subarea  = subco.id_subarea
-             JOIN areas_conocimiento AS arco      ON arco.id_area     = subco.id_area
+             JOIN usuarios_subareas AS ussu       ON ussu.id_usuarios = us.id_usuarios
+             JOIN subareas_conocimiento AS subco   ON ussu.id_subarea  = subco.id_subarea
+             JOIN areas_conocimiento AS arco       ON arco.id_area     = subco.id_area
              WHERE us.id_usuarios = ?
              GROUP BY us.id_usuarios, subco.id_subarea, arco.id_area",
             "i", [$id_usuario], false

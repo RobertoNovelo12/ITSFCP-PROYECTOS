@@ -340,11 +340,12 @@ class TareaControlador extends BaseControlador
                     $boton .= ' ' . $this->obtenerbotones('Editar Tarea', $id, $id_proyectos);
                 } elseif ($estado === 'Concluido') {
                     $boton = $this->obtenerbotones('Ver lista', $id, $id_proyectos);
+                    $boton .= ' ' . $this->obtenerbotones('Detalles', $id, $id_proyectos);
                 }
                 break;
 
             case 'supervisor':
-                if (in_array($estado, ['Pendiente', 'Revisar', 'Corregir', 'Aprobado', 'Vencido', 'Sin activar', 'Concluido'], true)) {
+                if (in_array($estado, ['Pendiente', 'Revisar', 'Corregir', 'Aprobado', 'Vencido', 'Sin activar', 'Concluido', 'Borrador'], true)) {
                     $boton  = $this->obtenerbotones('Ver lista', $id, $id_proyectos);
                     $boton .= ' ' . $this->obtenerbotones('Detalles', $id, $id_proyectos);
                 }

@@ -4,23 +4,26 @@
 require_once __DIR__ . '/../Modelos/proyecto.php';
 require_once __DIR__ . '/../publico/config/conexion.php';
 require_once __DIR__ . '/BaseControlador.php';
-include __DIR__ . '../../publico/incluido/_iconos.php';
 include __DIR__ . '/../publico/incluido/_botones.php';
 
 class ProyectoControlador extends BaseControlador
 {
 
-    // Solo esto es específico de Proyectos
+    // 
+    // VALIDACIÓN DE ROL
+    // 
+
     private function rolValido(string $rol): bool
     {
         return in_array($rol, ['investigador', 'estudiante', 'supervisor', 'profesor'], true);
     }
 
+
     // 
     // MÉTODO BASE
     // 
 
-    private function obtenerDatos(int $id, string $rol, ?string $buscar, ?int $filtro = null, string $tipo = 'filtro'): array
+    private function obtenerDatos(int $id, string $rol, ?string $buscar, ?int $filtro = null, string $tipo = 'filtro', int $id_periodo = 0): array
     {
         global $conn;
         try {
@@ -30,12 +33,8 @@ class ProyectoControlador extends BaseControlador
             $modelo->actualizarProyectosVencidos();
             $modelo->actualizarEstadoEstudiantesVencidos();
 
-
-            // tipo === 'tabla'
-            $resultado = $modelo->obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar);
-            error_log("resultado tipo: " . gettype($resultado) . " | valor: " . var_export($resultado, true));
-
-            $decoded = is_string($resultado) ? json_decode($resultado, true) : $resultado;
+            $resultado = $modelo->obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar, $id_periodo);
+            $decoded   = is_string($resultado) ? json_decode($resultado, true) : $resultado;
             return is_array($decoded) ? $decoded : [];
         } catch (Exception $e) {
             error_log($e->getMessage());
@@ -48,54 +47,68 @@ class ProyectoControlador extends BaseControlador
     // ACCIONES DE TABLA (index.php de Proyectos)
     // 
 
-    public function index(int $id, string $rol, ?string $buscar = null): array
+    public function index(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 0, 'tabla');
+        return $this->obtenerDatos($id, $rol, $buscar, 0, 'tabla', $id_periodo);
     }
 
-    public function Total(int $id, string $rol, ?string $buscar = null): array
+    public function Total(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 0, 'tabla');
+        return $this->obtenerDatos($id, $rol, $buscar, 0, 'tabla', $id_periodo);
     }
 
-    public function Cierre(int $id, string $rol, ?string $buscar = null): array
+    public function Cierre(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 1, 'tabla');
+        return $this->obtenerDatos($id, $rol, $buscar, 1, 'tabla', $id_periodo);
     }
 
-    public function Activos(int $id, string $rol, ?string $buscar = null): array
+    public function Activos(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 2, 'tabla');
+        return $this->obtenerDatos($id, $rol, $buscar, 2, 'tabla', $id_periodo);
     }
 
-    public function PorAprobar(int $id, string $rol, ?string $buscar = null): array
+    // PorAprobar ya no existe en Módulo 1 para investigador,
+    // pero se conserva el método por si el supervisor o futuras rutas lo necesitan.
+    public function PorAprobar(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 3, 'tabla');
+        // Investigador/profesor no deben ver este filtro en Módulo 1.
+        if (in_array($rol, ['investigador', 'profesor'], true)) {
+            return ['proyectos' => [], 'paginacion' => ['total' => 0, 'por_pagina' => 6, 'pagina' => 1, 'total_paginas' => 1]];
+        }
+        return $this->obtenerDatos($id, $rol, $buscar, 3, 'tabla', $id_periodo);
     }
 
-    public function Rechazados(int $id, string $rol, ?string $buscar = null): array
+    // Rechazados ya no es visible para investigador en este Módulo.
+    public function Rechazados(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 4, 'tabla');
+        if (in_array($rol, ['investigador', 'profesor'], true)) {
+            return ['proyectos' => [], 'paginacion' => ['total' => 0, 'por_pagina' => 6, 'pagina' => 1, 'total_paginas' => 1]];
+        }
+        return $this->obtenerDatos($id, $rol, $buscar, 4, 'tabla', $id_periodo);
     }
 
-    public function PorCerrar(int $id, string $rol, ?string $buscar = null): array
+    public function PorCerrar(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 5, 'tabla');
+        return $this->obtenerDatos($id, $rol, $buscar, 5, 'tabla', $id_periodo);
     }
 
-    public function Vencido(int $id, string $rol, ?string $buscar = null): array
+    public function Vencido(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 6, 'tabla');
+        return $this->obtenerDatos($id, $rol, $buscar, 6, 'tabla', $id_periodo);
     }
 
-    public function Cierrerechazado(int $id, string $rol, ?string $buscar = null): array
+    // Cierrerechazado ya no es visible para investigador en este Módulo.
+    public function Cierrerechazado(int $id, string $rol, ?string $buscar = null, int $id_periodo = 0): array
     {
-        return $this->obtenerDatos($id, $rol, $buscar, 7, 'tabla');
+        if (in_array($rol, ['investigador', 'profesor'], true)) {
+            return ['proyectos' => [], 'paginacion' => ['total' => 0, 'por_pagina' => 6, 'pagina' => 1, 'total_paginas' => 1]];
+        }
+        return $this->obtenerDatos($id, $rol, $buscar, 7, 'tabla', $id_periodo);
     }
 
 
     // 
-    // CONVERSIÓN action → id_estadoP
+    // CONVERSIÓN action -> id_estadoP
     // 
 
     public function numerofiltro(string $action): int
@@ -145,37 +158,33 @@ class ProyectoControlador extends BaseControlador
 
     public function opcionesProyectos(string $rol): array
     {
-
         $base = [
-            'Total'   => "Total",
-            'Activos' => "Activos",
+            'Total'   => 'Total',
+            'Activos' => 'Activos',
         ];
 
         if ($rol === 'estudiante') {
-
             return $base + [
-                'Cierre'    => "Cierre",
-                'PorCerrar' => "Por Cerrar",
-                'Vencido'   => "Vencidos",
+                'Cierre'    => 'Cierre',
+                'PorCerrar' => 'Por Cerrar',
+                'Vencido'   => 'Vencidos',
             ];
         }
 
         if (in_array($rol, ['investigador', 'profesor'], true)) {
-
+            // Esos estados se gestionan exclusivamente en Módulo 2 (Solicitudes).
             return $base + [
-                'Rechazados' => "Rechazados",
-                'Cierre'     => "Cierre",
-                'PorCerrar'  => "Por Cerrar",
-                'Vencido'    => "Vencidos",
+                'Cierre'    => 'Cierre',
+                'PorCerrar' => 'Por Cerrar',
+                'Vencido'   => 'Vencidos',
             ];
         }
 
-
         if ($rol === 'supervisor') {
             return $base + [
-                'PorCerrar' => "Por Cerrar",
-                'Cierre'    => "Cierre",
-                'Vencido'   => "Vencidos",
+                'PorCerrar' => 'Por Cerrar',
+                'Cierre'    => 'Cierre',
+                'Vencido'   => 'Vencidos',
             ];
         }
 
@@ -206,7 +215,7 @@ class ProyectoControlador extends BaseControlador
 
     public function obtenerbotones(string $tipo, int $id_proyecto, ?int $id_usuario = null): string
     {
-        include __DIR__ . '../../publico/incluido/_iconos.php';
+        include __DIR__ . '/../publico/incluido/_iconos.php';
 
         return match ($tipo) {
 
@@ -231,32 +240,20 @@ class ProyectoControlador extends BaseControlador
                 'Ver Tareas'
             ),
 
+            // El investigador confirma/inicia el flujo de cierre desde Solicitudes.
             'Solicitar cerrar' => Botones::botonIcono(
-                'index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar',
+                '../Solicitudes_proyectos/index.php?action=solicitarCierre&id_proyectos=' . $id_proyecto,
                 'danger',
                 $iconos['tabla']['solicitar_cierre'],
-                'Solicitar cerrar proyecto'
+                'Solicitar cierre del proyecto'
             ),
 
-            'Volver a enviar cierre' => Botones::botonIcono(
-                'index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorCerrar',
+            // "Ver solicitud" para Cierre rechazado -> redirige a Módulo 2.
+            'Ver solicitud cierre' => Botones::botonIcono(
+                '../Solicitudes_proyectos/index.php?id_proyectos=' . $id_proyecto,
                 'warning',
-                $iconos['tabla']['volver_enviar'],
-                'Volver a enviar cierre'
-            ),
-
-            'Volver a enviar proyecto' => Botones::botonIcono(
-                'index.php?action=actualizarestado&id_proyectos=' . $id_proyecto . '&tipo=PorAprobar',
-                'warning',
-                $iconos['tabla']['volver_enviar'],
-                'Volver a enviar proyecto'
-            ),
-
-            'Editar' => Botones::botonIcono(
-                'editar.php?id_proyectos=' . $id_proyecto,
-                'info',
-                $iconos['tabla']['editar'],
-                'Editar proyecto'
+                $iconos['tabla']['ver'],
+                'Ver solicitud de cierre en Módulo 2'
             ),
 
             'Comentarios' => Botones::botonIcono(
@@ -266,14 +263,36 @@ class ProyectoControlador extends BaseControlador
                 'Ver comentarios'
             ),
 
+            // Los siguientes botones se conservan para usos en editar.php / detalles.php.
+            'Volver a enviar cierre' => Botones::botonIcono(
+                '../Solicitudes_proyectos/index.php?action=reenviarCierre&id_proyectos=' . $id_proyecto,
+                'warning',
+                $iconos['tabla']['volver_enviar'],
+                'Reenviar cierre al supervisor'
+            ),
+
+            'Volver a enviar proyecto' => Botones::botonIcono(
+                'editar.php?id_proyectos=' . $id_proyecto . '&desde=solicitudes',
+                'warning',
+                $iconos['tabla']['volver_enviar'],
+                'Corregir y reenviar proyecto'
+            ),
+
+            'Editar' => Botones::botonIcono(
+                'editar.php?id_proyectos=' . $id_proyecto,
+                'info',
+                $iconos['tabla']['editar'],
+                'Editar proyecto'
+            ),
+
             default => '',
         };
     }
 
 
-
     // 
     // BOTONES DE ACCIÓN — tabla de proyectos (Proyectos/index.php)
+
     // 
 
     public function botonesAccion(
@@ -285,11 +304,8 @@ class ProyectoControlador extends BaseControlador
         ?string $estado_estudiante = 'activo',
         bool $estado_editar = false
     ): string {
+        // $estado_completados_estudiantes == 1 -> puede solicitar cierre
         $solicitar = ($estado_completados_estudiantes == 1) ? 'Solicitar cerrar' : '';
-        $editar    = $estado_editar ? 'Editar' : '';
-        // Recibe el valor de la vista donde calcula a partir del rango de fecha del que el
-        // investigador puede registrar su proyecto y mandar correcciones.
-        $volver_enviar_rechazo = $estado_editar ? 'Volver a enviar proyecto' : '';
 
         // Estudiante dado de baja: solo detalles
         if ($rol === 'estudiante' && strtolower($estado_estudiante ?? '') === 'baja') {
@@ -303,22 +319,27 @@ class ProyectoControlador extends BaseControlador
                 'Vencido'    => ['Detalles', 'Ver Tareas Alumnos'],
                 'Cierre'     => ['Detalles', 'Ver Tareas Alumnos'],
             ],
+
+            //   • Rechazado y Cierre rechazado: NO aparecen en Módulo 1 (la query ya los excluye).
+            //   • Activo con puede_cerrar=1: "Solicitar cerrar" redirige a Módulo 2.
+            //   • Por cerrar: solo lectura — en revisión en Módulo 2.
+            //   • Cierre rechazado: "Ver solicitud" redirige a Módulo 2 (redundante aquí,
+            //     pero se define por si la query del supervisor los devuelve con ese rol).
             'investigador' => [
                 'Activo'           => ['Detalles', 'Tareas', 'Comentarios', $solicitar],
                 'Por cerrar'       => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'           => ['Detalles', 'Tareas', 'Comentarios'],
-                'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
-                'Rechazado'        => [$volver_enviar_rechazo, 'Detalles', $editar, 'Comentarios'],
                 'Vencido'          => ['Detalles', 'Tareas', 'Comentarios'],
             ],
+
             'profesor' => [
                 'Activo'           => ['Detalles', 'Tareas', 'Comentarios', $solicitar],
                 'Por cerrar'       => ['Detalles', 'Tareas', 'Comentarios'],
                 'Cierre'           => ['Detalles', 'Tareas', 'Comentarios'],
-                'Cierre rechazado' => ['Volver a enviar cierre', 'Detalles', $editar, 'Tareas', 'Comentarios'],
-                'Rechazado'        => [$volver_enviar_rechazo, 'Detalles', $editar, 'Comentarios'],
                 'Vencido'          => ['Detalles', 'Tareas', 'Comentarios'],
             ],
+
+            // Supervisor: solo lectura en Módulo 1 (aprobación/rechazo en Módulo 2).
             'supervisor' => [
                 'Activo'           => ['Detalles', 'Tareas', 'Comentarios'],
                 'Por cerrar'       => ['Detalles', 'Tareas', 'Comentarios'],
@@ -434,7 +455,7 @@ class ProyectoControlador extends BaseControlador
         }
     }
 
-    /** Periodo activo para registrar proyecto (Solicitudes investigador → Supervisor). */
+    /** Periodo activo para registrar proyecto. */
     public function periodoactual()
     {
         global $conn;
@@ -446,6 +467,18 @@ class ProyectoControlador extends BaseControlador
         }
     }
 
+    /** Todos los periodos — usado por el supervisor para el filtro de periodo en Módulo 1. */
+    public function obtenerTodosPeriodos(): array
+    {
+        global $conn;
+        try {
+            return (new Proyectos($conn))->obtenerTodosPeriodos() ?? [];
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
 
     // 
     // CRUD DE PROYECTOS
@@ -453,7 +486,7 @@ class ProyectoControlador extends BaseControlador
 
     /**
      * Registra un proyecto nuevo con estado "Por aprobar".
-     * Acción de formulario → redirige con msg al index.
+     * Acción de formulario -> redirige con msg.
      */
     public function registrarProyecto(array $datos, int $id, string $rol): void
     {
@@ -463,29 +496,46 @@ class ProyectoControlador extends BaseControlador
             $this->validarMetodo('POST');
             $this->validarAcceso($rol, ['investigador', 'profesor']);
 
-            // 
-            // VALIDAR PERIODO DE CREACIÓN
-            // 
             $periodo = $this->obtenerperiodo();
 
-            if (empty($periodo) || empty($periodo[0])) {
+            if (empty($periodo)) {
                 $this->redirigir('periodo_vencido');
             }
 
-            $periodo = $periodo[0];
+            $hoy            = new DateTime(date('Y-m-d'));
+            $inicioRegistro = new DateTime($periodo['fecha_inicio_proyectos']);
+            $finRegistro    = new DateTime($periodo['fecha_fin_proyectos']);
 
-            $hoy = date('Y-m-d');
-
-            if (
-                $hoy < $periodo['fecha_inicio_proyectos'] ||
-                $hoy > $periodo['fecha_fin_proyectos']
-            ) {
+            if ($hoy < $inicioRegistro || $hoy > $finRegistro) {
                 $this->redirigir('periodo_vencido');
             }
 
-            // 
-            // VALIDAR DATOS OBLIGATORIOS
-            // 
+            $fechaInicio = $datos['FechaInicio'] ?? '';
+            $fechaFinal  = $datos['FechaFinal']  ?? '';
+
+            if (empty($fechaInicio) || empty($fechaFinal)) {
+                $this->redirigir('error_crear');
+            }
+
+            $inicio        = new DateTime($fechaInicio);
+            $fin           = new DateTime($fechaFinal);
+            $inicioPeriodo = new DateTime($periodo['FechaInicio']);
+
+            if ($fin < $inicio) {
+                $this->redirigir('error_crear');
+            }
+
+            if ($inicio < $inicioPeriodo) {
+                $this->redirigir('error_crear');
+            }
+
+            $limiteUnAnio = clone $inicio;
+            $limiteUnAnio->modify('+1 year');
+
+            if ($fin > $limiteUnAnio) {
+                $this->redirigir('error_crear');
+            }
+
             $subtematicas = $datos['subtematicas'] ?? [];
 
             if (
@@ -495,37 +545,10 @@ class ProyectoControlador extends BaseControlador
                 $this->redirigir('error_crear');
             }
 
-            // 
-            // VALIDAR FECHAS DEL PROYECTO
-            // 
-            $fechaInicio = $datos['FechaInicio'] ?? '';
-            $fechaFinal  = $datos['FechaFinal'] ?? '';
-
-            if (empty($fechaInicio) ||  empty($fechaFinal)) {
-                $this->redirigir('error_crear');
-            }
-
-            $inicio = new DateTime($fechaInicio);
-            $fin    = new DateTime($fechaFinal);
-
-            if ($fin < $inicio) {
-                $this->redirigir('error_crear');
-            }
-
-            // Máximo 1 año
-            $limite = clone $inicio;
-            $limite->modify('+1 year');
-
-            if ($fin > $limite) {
-                $this->redirigir('error_crear');
-            }
-
-            //Evitar que capturen antes de la fecha de inicio
             if ($inicio < new DateTime($periodo['fecha_inicio'])) {
                 $this->redirigir('error_crear');
             }
 
-            //Evitar que capturen después de un año de la fecha final
             $limiteMaximo = new DateTime($periodo['fecha_final']);
             $limiteMaximo->modify('+1 year');
 
@@ -533,22 +556,15 @@ class ProyectoControlador extends BaseControlador
                 $this->redirigir('error_crear');
             }
 
-            // 
-            // OBTENER INSTITUTO
-            // 
             $instituto = $this->obtenerInstituto()[0] ?? null;
 
             if (!$instituto) {
                 $this->redirigir('error_sin_registro');
             }
 
-            // 
-            // REGISTRAR PROYECTO
-            // 
             $conn->begin_transaction();
 
             $modelo = new Proyectos($conn);
-
             $modelo->actualizarProyectosVencidos();
 
             $proyectoId = $modelo->registrarProyecto(
@@ -569,22 +585,17 @@ class ProyectoControlador extends BaseControlador
             );
 
             foreach ($subtematicas as $idSub) {
-                $modelo->vincularSubtematica(
-                    $proyectoId,
-                    (int)$idSub
-                );
+                $modelo->vincularSubtematica($proyectoId, (int)$idSub);
             }
 
             $conn->commit();
 
-            $this->redirigir('exito_crear');
+            // Tras crear, redirigir a Módulo de solicitudes donde verá el estado "Por aprobar".
+            $this->redirigir('exito_crear', '../Solicitudes_proyectos/index.php');
         } catch (Exception $e) {
 
             if ($conn->errno === 0) {
-                try {
-                    $conn->rollback();
-                } catch (Exception $ex) {
-                }
+                try { $conn->rollback(); } catch (Exception $ex) {}
             }
 
             error_log('ProyectoControlador::registrarProyecto() - ' . $e->getMessage());
@@ -596,7 +607,6 @@ class ProyectoControlador extends BaseControlador
                 'periodo_vencido',
                 'error_sin_registro'
             ], true)) {
-
                 $this->redirigir($mensaje);
             }
 
@@ -606,7 +616,7 @@ class ProyectoControlador extends BaseControlador
 
     /**
      * Edita un proyecto existente.
-     * Acción de formulario → redirige con msg al index.
+     * Recibe parámetro opcional 'desde' para redirigir correctamente al terminar.
      */
     public function editarProyecto(array $datos, int $id_usuario, string $rol): void
     {
@@ -619,7 +629,7 @@ class ProyectoControlador extends BaseControlador
             $subtematicas = $datos['subtematicas'] ?? [];
 
             if (!$id_proyecto || empty($subtematicas)) {
-                throw new Exception("Datos incompletos");
+                throw new Exception('Datos incompletos');
             }
 
             $modelo = new Proyectos($conn);
@@ -642,7 +652,14 @@ class ProyectoControlador extends BaseControlador
                 $modelo->ActualizarvincularSubtematica($id_proyecto, (int)$idSub);
             }
 
-            $this->redirigir('exito_editar', 'index.php', "&id_proyectos={$id_proyecto}");
+            // Si la edición viene de Solicitudes (corrección de rechazo),
+            // redirigir de vuelta al Módulo de solicitudes con el id del proyecto.
+            $desde = $datos['desde'] ?? '';
+            if ($desde === 'solicitudes') {
+                $this->redirigir('exito_editar', '../Solicitudes_proyectos/index.php', "&id_proyectos={$id_proyecto}");
+            } else {
+                $this->redirigir('exito_editar', 'index.php', "&id_proyectos={$id_proyecto}");
+            }
         } catch (Exception $e) {
             error_log($e->getMessage());
             $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_editar';
@@ -656,22 +673,17 @@ class ProyectoControlador extends BaseControlador
     // 
 
     /**
-     * Cambia el estado de un proyecto vía enlace GET
-     * (supervisor / investigador / profesor).
+     * Cambia el estado de un proyecto vía enlace GET.
      *
-     * No es una llamada AJAX, por lo que responde con redirect + msg.
-     * En caso de error de permisos se usa 'accion_no_permitida' para que
-     * el mapa de alertas de la vista muestre el mensaje adecuado.
      */
     public function actualizarestado(int $id_proyecto, string $rol, string $tipo): void
     {
         global $conn;
         try {
-
             $this->validarMetodo('GET');
             $this->validarAcceso($rol, ['supervisor', 'investigador', 'profesor']);
 
-            $modelo     = new Proyectos($conn);
+            $modelo = new Proyectos($conn);
             $modelo->actualizarProyectosVencidos();
 
             $estado     = $this->numerofiltro($tipo);
@@ -683,8 +695,6 @@ class ProyectoControlador extends BaseControlador
         } catch (Exception $e) {
             error_log($e->getMessage());
             $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_estado';
-            // El error de estado conviene mostrarlo en la página de detalles
-            // para que el usuario no pierda el contexto del proyecto.
             $this->redirigir($msg, 'detalles.php', "&id_proyectos={$id_proyecto}");
         }
     }
@@ -714,7 +724,7 @@ class ProyectoControlador extends BaseControlador
         global $conn;
 
         $modelo       = new Proyectos($conn);
-        $investigador = $modelo->obtenerProyectoInvestigador($id_proyecto, $id_usuario, $rol);
+        $investigador = $modelo->obtenerProyectoInvestigador($id_proyecto);
 
         if (!$investigador) {
             $this->redirigir('sin_permiso');
@@ -735,7 +745,7 @@ class ProyectoControlador extends BaseControlador
 
         try {
             $modelo    = new Proyectos($conn);
-            $resultado = $modelo->obtenersubtematicasProyecto($id_proyecto, $id_usuario, $rol);
+            $resultado = $modelo->obtenersubtematicasProyecto($id_proyecto);
 
             if (!$resultado) {
                 $this->redirigir('sin_permiso');
@@ -782,7 +792,7 @@ class ProyectoControlador extends BaseControlador
         global $conn;
         try {
             $pagina = max(1, (int)($_GET['pagina'] ?? 1));
-            return (new Proyectos($conn))->lineaTiempoProyectoUsuarios($id_proyecto, $id_usuario, $pagina, 5, $id);
+            return (new Proyectos($conn))->lineaTiempoProyectoUsuarios($id_proyecto, $id_usuario, $pagina, 5);
         } catch (Exception $e) {
             error_log($e->getMessage());
             $this->redirigir('error_cargar', 'editar.php');
@@ -792,33 +802,16 @@ class ProyectoControlador extends BaseControlador
 
     // 
     // ACCIONES DE ESTUDIANTE (baja / reactivar) — Proyectos/detalles.php
-    //
-    // Esta acción se invoca vía fetch() / AJAX desde la vista, por lo que
-    // responde con JSON en lugar de redirect, igual que SeguimientoControlador.
     // 
 
-    /**
-     * Da de baja o reactiva a un estudiante dentro de un proyecto.
-     *
-     * Se invoca desde un <form method="POST"> en detalles.php,
-     * por lo que responde siempre con redirect + ?msg=, igual que
-     * las demás acciones POST del controlador.
-     *
-     * Espera POST con:
-     *   action        => 'baja' | 'reactivar'
-     *   id_proyecto   => int
-     *   id_estudiante => int
-     *   motivo        => string (solo para 'baja')
-
-     */
     public function accionEstudiante(array $datos): void
     {
         global $conn;
 
-        $action        = $datos['action']       ?? '';
+        $action        = $datos['action']        ?? '';
         $id_proyecto   = (int)($datos['id_proyecto']   ?? 0);
         $id_estudiante = (int)($datos['id_estudiante'] ?? 0);
-        $motivo        = $datos['motivo']        ?? null;
+        $motivo        = $datos['motivo']         ?? null;
 
         if (!$id_proyecto || !$id_estudiante || !in_array($action, ['baja', 'reactivar'], true)) {
             $this->redirigir('error_operacion', 'detalles.php', "&id_proyectos={$id_proyecto}");

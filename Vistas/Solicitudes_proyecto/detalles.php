@@ -15,9 +15,9 @@ if (!isset($_SESSION['id_usuario'])) {
 $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 
-// Solo supervisor
-if ($rol !== 'supervisor') {
-    header("Location: /Vistas/Principal/index.php");
+//  Solo accede el supervisor y el investigador/profesor que es el solicitante.
+if (!in_array($rol, ['supervisor', 'investigador', 'profesor'], true)) {
+    header('Location: /Vistas/Principal/index.php');
     exit;
 }
 

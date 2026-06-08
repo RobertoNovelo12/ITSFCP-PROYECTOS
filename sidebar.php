@@ -53,7 +53,7 @@ if ($rol === "estudiante" ||  $rol === "alumno") {
     $mainMenu = ["Principal", "Dashboard"];
     $submenuProyectos = ["Seguimiento"];
     $submenuMisAlumnos = ["Mis alumnos"];
-    $submenuSolicitudesProyecto = ["Integracion a proyecto"];
+    $submenuSolicitudesProyecto = ["Integracion a proyecto", "Proyecto"];
     $submenuConfiguracion = ["Grado académico", "Nivel SNI"];
     $middleMenu = ["Calendario"];
     $footerMenus = ["Soporte", "Ajustes"];

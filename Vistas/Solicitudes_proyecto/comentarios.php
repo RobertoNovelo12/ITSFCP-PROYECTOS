@@ -18,8 +18,9 @@ $id_proyectos = $_GET['id_proyectos'] ?? null;
 $motivo = $_GET['motivo']       ?? null;
 
 
-if ($rol !== 'supervisor') {
-    header("Location: /Vistas/Principal/index.php");
+//  Solo accede el supervisor y el investigador/profesor que es el solicitante.
+if (!in_array($rol, ['supervisor', 'investigador', 'profesor'], true)) {
+    header('Location: /Vistas/Principal/index.php');
     exit;
 }
 

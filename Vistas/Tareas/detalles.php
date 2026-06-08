@@ -38,7 +38,7 @@ include __DIR__ .  '../../../publico/incluido/_validar_id.php';
 require_once __DIR__ . '/../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
-$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id_usuario, $id_proyectos);
+$tarea    = $tareaControlador->mostrarEditarTarea($id_tarea, $rol, $id_usuario);
 $ediciones = $tareaControlador->obtenerEdicionesRecientes($id_tarea, 10);
 
 $campoNombres = [
@@ -58,18 +58,16 @@ ob_start();
     <div class="row mb-4 align-items-center">
 
         <?php
-        $titulo      = '<?= htmlspecialchars($tarea["titulo_tarea"] ?? "Detalles de Actividad") ?>';
+        $titulo      = 'Detalles de Actividad';
         $descripcion = 'Vista de solo lectura';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
 
         <div class="col-6 col-md-6 text-md-end">
-            <?php if ($rol == "supervisor"): ?>
                 <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tarea['estado'] ?? '') ?>">
                     <?= htmlspecialchars($tarea['estado'] ?? '') ?>
                 </span>
                 <a href="index.php?id_proyectos=<?= htmlspecialchars($id_proyectos) ?>" class="btn btn-secondary btn-sm px-3"><i class="bi bi-arrow-left"></i> Regresar</a>
-            <?php endif; ?>
         </div>
     </div>
     <!-- Alerta de edición reciente -->

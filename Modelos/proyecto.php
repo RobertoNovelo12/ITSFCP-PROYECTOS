@@ -63,12 +63,12 @@ class Proyectos
     // TABLA DE PROYECTOS (centralizado)
     // 
 
-    public function obtenerProyectosTablaFiltro(int $id, ?int $filtro, string $rol, ?string $buscar): array
+    public function obtenerProyectosTablaFiltro(int $id, ?int $filtro, string $rol, ?string $buscar, int $id_periodo = 0): array
     {
         return match (strtolower($rol)) {
             'estudiante'               => $this->obtenerProyectosTablaEstudiante($id, $filtro, $buscar),
             'investigador', 'profesor' => $this->obtenerProyectosTablaInvestigador($id, $filtro, $buscar),
-            'supervisor'               => $this->obtenerProyectosTablaSupervisor($filtro, $buscar),
+            'supervisor'               => $this->obtenerProyectosTablaSupervisor($filtro, $buscar, $id_periodo),
             default                    => [],
         };
     }
@@ -136,6 +136,8 @@ class Proyectos
         $total         = $this->contarInvestigador($id, $filtro, $buscar);
         $total_paginas = (int)ceil($total / $por_pagina);
 
+        // Excluir Por aprobar (3), Rechazado (4) y Cierre rechazado (7)
+        // El investigador solo ve: Activo(2), Por cerrar(5), Cierre(1), Vencido(6)
         $sql    = "
             SELECT
                 proy.id_proyectos, proy.titulo, proy.fecha_inicio, proy.fecha_fin,
@@ -185,8 +187,12 @@ class Proyectos
                            WHERE tu5.id_usuarios = pu.id_usuarios AND tu5.id_estadoT <> 5))
                 GROUP BY pu.id_proyectos
             ) activos_bloqueados ON activos_bloqueados.id_proyectos = proy.id_proyectos
-            WHERE proy.id_investigador = ? AND proy.id_estadoP <> 3
+            WHERE proy.id_investigador = ?
+              AND proy.id_estadoP NOT IN (3, 4, 7)
         ";
+        // ↑ FIX: antes era "<> 3"; ahora excluye también Rechazado(4) y Cierre rechazado(7)
+        //   para que solo Módulo 2 (Solicitudes) los gestione.
+
         $params = [$id];
         $types  = 'i';
 
@@ -212,7 +218,7 @@ class Proyectos
         ];
     }
 
-    private function obtenerProyectosTablaSupervisor(?int $filtro, ?string $buscar): array
+    private function obtenerProyectosTablaSupervisor(?int $filtro, ?string $buscar, int $id_periodo = 0): array
     {
         $por_pagina = 6;
         $pagina     = max(1, (int)($_GET['pagina'] ?? 1));
@@ -223,6 +229,11 @@ class Proyectos
         $types_total  = '';
         $sql_total    = "SELECT COUNT(*) AS total FROM proyectos proy $where_base";
 
+        if ($id_periodo) {
+            $sql_total     .= ' AND proy.id_periodos = ?';
+            $params_total[] = $id_periodo;
+            $types_total   .= 'i';
+        }
         if ($filtro) {
             $sql_total .= ' AND proy.id_estadoP = ?';
             $params_total[] = $filtro;
@@ -281,6 +292,11 @@ class Proyectos
         $params = [];
         $types  = '';
 
+        if ($id_periodo) {
+            $sql .= ' AND proy.id_periodos = ?';
+            $params[] = (int)$id_periodo;
+            $types .= 'i';
+        }
         if ($filtro) {
             $sql .= ' AND proy.id_estadoP = ?';
             $params[] = (int)$filtro;
@@ -329,7 +345,8 @@ class Proyectos
 
     private function contarInvestigador(int $id, ?int $filtro, ?string $buscar): int
     {
-        $sql    = 'SELECT COUNT(*) AS total FROM proyectos WHERE id_investigador = ? AND id_estadoP <> 3';
+        // Excluir Por aprobar(3), Rechazado(4) y Cierre rechazado(7)
+        $sql    = 'SELECT COUNT(*) AS total FROM proyectos WHERE id_investigador = ? AND id_estadoP NOT IN (3, 4, 7)';
         $params = [$id];
         $types  = 'i';
 
@@ -363,6 +380,10 @@ class Proyectos
     public function obtenerperiodo(): array
     {
         return $this->repo->listarPeriodoActual();
+    }
+    public function obtenerTodosPeriodos(): array
+    {
+        return $this->repo->listarTodosPeriodos();
     }
     public function obtenerinstituto(): array
     {
@@ -467,7 +488,7 @@ class Proyectos
         $this->repo->actualizarEstado($id_proyectos, $numeroEstado);
 
         if ($numeroEstado === 2) {
-            $plantillaRep  = $this->repo->buscarPlantillaReporte();
+            $plantillaRep   = $this->repo->buscarPlantillaReporte();
             $id_doc_reporte = $plantillaRep['id_documento'] ?? null;
 
             $id_avances  = $this->repo->insertarSeguimiento($id_proyectos);

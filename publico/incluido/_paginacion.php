@@ -1,6 +1,6 @@
 <?php
 /**
- * _paginacion.php — Código universal de paginación
+ * incluido/_paginacion.php — Código universal de paginación
  *
  * Variables requeridas:
  *   array  $paginacion     → claves: pagina, total_paginas, por_pagina, total

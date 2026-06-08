@@ -142,7 +142,24 @@ class ProyectosRepositorio extends BaseModelo
                         WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
                         ELSE 'Terminado'
                     END AS estado, fecha_inicio_proyectos, fecha_fin_proyectos
-             FROM periodos ORDER BY periodo DESC LIMIT 1"
+             FROM periodos ORDER BY periodo DESC LIMIT 1",
+            '',
+            [],
+            false
+        );
+    }
+
+    public function listarTodosPeriodos(): array
+    {
+        return $this->ejecutar(
+            "SELECT id_periodos, periodo,
+                    fecha_inicio AS FechaInicio, fecha_final AS FechaFinal,
+                    CASE
+                        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+                        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
+                        ELSE 'Terminado'
+                    END AS estado
+             FROM periodos ORDER BY periodo DESC"
         );
     }
 
