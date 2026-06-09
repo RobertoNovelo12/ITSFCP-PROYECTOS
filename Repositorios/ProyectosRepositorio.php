@@ -51,8 +51,9 @@ class ProyectosRepositorio extends BaseModelo
         return $this->ejecutar('
             UPDATE proyectos
             SET id_estadoP = 6
-            WHERE id_estadoP IN (2, 3, 4, 5, 7)
-              AND fecha_fin < CURDATE()
+            -- Solo vencen proyectos que estaban operativos
+            WHERE id_estadoP IN (2, 5) AND fecha_fin < CURDATE()
+            -- Activo(2) y Por cerrar(5) son los únicos estados "vivos" que pueden vencer por tiempo              AND fecha_fin < CURDATE()
         ');
     }
 
@@ -63,7 +64,7 @@ class ProyectosRepositorio extends BaseModelo
                 (id_proyectos, id_estudiante, accion, motivo, realizado_por, fecha)
             SELECT
                 pu.id_proyectos, pu.id_usuarios, 'vencido',
-                'Proyecto vencido — estudiante concluyó actividades, pendiente de carta de terminación',
+                'Proyecto vencido — estudiante se vencieron actividades no aprobadas',
                 0, NOW()
             FROM proyectos_usuarios pu
             JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
@@ -102,7 +103,8 @@ class ProyectosRepositorio extends BaseModelo
             UPDATE proyectos_usuarios pu
             JOIN proyectos p ON p.id_proyectos = pu.id_proyectos
             SET pu.estado = 'baja', pu.fecha_baja = NOW(),
-                pu.motivo_baja = 'Proyecto vencido sin concluir actividades'
+            pu.motivo_baja = 'Proyecto vencido sin concluir actividades',
+            pu.reincorporacion = 0
             WHERE p.fecha_fin < CURDATE() AND p.id_estadoP = 6 AND pu.estado = 'activo'
               AND NOT ({$condicionEtapa2})
         ");
@@ -251,7 +253,7 @@ class ProyectosRepositorio extends BaseModelo
                 cantidad_estudiante = ?, modalidad = ?, actualizado_en = NOW(),
                 presupuesto = ?, fecha_inicio = ?, fecha_fin = ?
              WHERE id_proyectos = ? AND id_investigador = ?',
-            'sssssiisisii',
+            'sssssissssii',
             [
                 $titulo,
                 $descripcion,
@@ -497,14 +499,14 @@ class ProyectosRepositorio extends BaseModelo
     public function listarEstudiantesProyecto(int $id_proyecto): array
     {
         return $this->ejecutar(
-            'SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno,
+            "SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno,
                     carr.nombre_carrera AS carrera
              FROM estudiantes AS estu
              JOIN usuarios AS usua         ON usua.id_usuarios  = estu.id_usuarios
              JOIN carreras AS carr          ON carr.id_carrera   = estu.id_carrera
              JOIN proyectos_usuarios AS prus ON prus.id_usuarios = estu.id_usuarios
              JOIN proyectos AS proy          ON proy.id_proyectos = prus.id_proyectos
-             WHERE proy.id_proyectos = ?',
+             WHERE proy.id_proyectos = ? AND prus.estado = 'activo'",
             'i',
             [$id_proyecto]
         );
@@ -624,6 +626,16 @@ class ProyectosRepositorio extends BaseModelo
             );
             if (($data['estado'] ?? '') !== 'activo') {
                 throw new Exception('El estudiante no está activo');
+            }
+
+            $proyecto = $this->ejecutar(
+                'SELECT id_estadoP FROM proyectos WHERE id_proyectos = ?',
+                'i',
+                [$id_proyecto],
+                false
+            );
+            if (!in_array($proyecto['id_estadoP'] ?? 0, [2, 5])) {
+                throw new Exception('Solo se puede dar de baja en proyectos activos o por cerrar');
             }
 
             $this->ejecutar(

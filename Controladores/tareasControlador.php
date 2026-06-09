@@ -287,10 +287,13 @@ class TareaControlador extends BaseControlador
                 </button>',
 
             'Activar' =>
-            '<a href="editar.php?action=actualizarestado&id_tarea=' . $id1 . '&id_proyectos=' . $id2 . '&tipo=Pendiente"
-                    class="btn btn-success btn-sm">
+            '<button type="submit" name="action" value="Activar" form="form-editar" class="btn btn-success btn-sm">
                     <i class="' . $iconos['tabla']['aprobar'] . ' me-1"></i>Activar tarea
-                </a>',
+                </button>',
+            'Editar Tarea' =>
+            '<button type="submit" name="action" value="Editar" form="form-editar" class="btn btn-warning btn-sm">
+                    <i class="' . $iconos['tabla']['editar'] . ' me-1"></i>Editar tarea
+                </button>',
 
             default => '',
         };
@@ -393,15 +396,21 @@ class TareaControlador extends BaseControlador
             case 'investigador':
             case 'profesor':
                 if (in_array($estado, ['Revisar', 'Corregir', 'Entregado tardío'], true)) {
+                    // Botones para aprobar o solicitar corrección, se muestran solo si el estado es "Revisar", "Corregir" o "Entregado tardío"
+                    // En la vista de tarea.php
                     $boton  = $this->obtenerbotonesTarea('Aprobar');
                     $boton .= ' ' . $this->obtenerbotonesTarea('Solicitar Corregir');
                 } elseif ($estado === 'Sin activar') {
+                    //Botón para activar la tarea en editar.php, se muestra solo si el estado es "Sin activar"
                     $boton = $this->obtenerbotonesTarea('Activar', $id_tarea, $id2);
                     $boton .= ' ' . $this->obtenerbotonesTarea('Guardar');
-                }
-                if (in_array($estado, ['Borrador'], true)) {
+                } elseif (in_array($estado, ['Borrador'], true)) {
+                    //Botón para guardar borrador en editar.php, se muestra solo si el estado es "Borrador"
                     $boton  = $this->obtenerbotonesTarea('Activar');
                     $boton .= ' ' . $this->obtenerbotonesTarea('Guardar');
+                } elseif (in_array($estado, ['Concluido', 'Pendiente'], true)) {
+                    // Botón para editar tarea en editar.php, se muestra solo si el estado es "Concluido" y "Pendiente"
+                    $boton = $this->obtenerbotonesTarea('Editar Tarea', $id_tarea, $id2);
                 }
                 break;
         }
@@ -540,12 +549,21 @@ class TareaControlador extends BaseControlador
                 }
             }
 
+            $hoy = date('Y-m-d');
+
             //Convertir a un formato apto para comparar
             if (
-                $fecha_entrega < $proyecto['fecha_inicio'] ||
-                $fecha_entrega > $proyecto['fecha_fin']
+                $fecha_entrega < $proyecto['fecha_inicio'] || // No se permiten fechas antes del inicio del proyecto
+                $fecha_entrega > $proyecto['fecha_fin'] // No se permiten fechas después del fin del proyecto
             ) {
                 $this->redirigir('fecha_invalida', 'editar.php', "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
+            }
+
+                        //Convertir a un formato apto para comparar
+            if (
+                    $fecha_entrega < $hoy  // No se permiten fechas pasadas
+            ) {
+                $this->redirigir('fecha_menor_invalida', 'editar.php', "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
             }
 
             $id_documento_recurso = null;
@@ -801,6 +819,37 @@ class TareaControlador extends BaseControlador
                 'error_borrador',
                 'editar.php',
                 "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}"
+            );
+        }
+    }
+
+    public function activarTarea(array $datos, string $rol, int $id_proyectos): void
+    {
+        global $conn;
+        $conn->begin_transaction();
+        try {
+            $tarea = new Tarea($conn);
+            $tarea->actualizarTareasVencidos();
+            $this->actualizarestado(
+                (int)$datos['id_tarea'],
+                $rol,
+                "Pendiente",
+                $id_proyectos
+            );
+            $conn->commit();
+
+            $this->redirigir(
+                'exito_activar',
+                'editar.php',
+                "&id_tarea={$datos['id_tarea']}&id_proyectos={$id_proyectos}"
+            );
+        } catch (\Exception $e) {
+            $conn->rollback();
+            error_log('TareaControlador::activarTarea() — ' . $e->getMessage());
+            $this->redirigir(
+                'error_activar',
+                'editar.php',
+                "&id_tarea={$datos['id_tarea']}&id_proyectos={$id_proyectos}"
             );
         }
     }

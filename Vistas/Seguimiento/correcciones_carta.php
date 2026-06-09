@@ -5,7 +5,7 @@
  *
  * Vista para el estudiante cuando su carta de terminación fue rechazada
  * por el supervisor. Muestra el hilo de comentarios y permite:
- *   1. Enviar un comentario de corrección (AJAX, sin reload).
+ *   1. Enviar un comentario de corrección (submit normal con PRG).
  *   2. Adjuntar un archivo de apoyo opcional.
  *   3. Reenviar una carta completamente nueva en PDF/DOCX.
  *
@@ -30,7 +30,6 @@ if ($rol !== 'estudiante') {
     exit;
 }
 
-
 $id_cierre_est = intval($_GET['id'] ?? 0);
 
 require_once __DIR__ . '/../../Controladores/seguimientoControlador.php';
@@ -38,20 +37,14 @@ require_once __DIR__ . '/../../publico/config/conexion.php';
 
 $ctrl = new SeguimientoControlador();
 
-// Usar el modelo directamente para obtener datos del cierre y comentarios
 require_once __DIR__ . '/../../Modelos/seguimiento.php';
 $modelo = new SeguimientoModelo($conn);
 
-$cierre = $modelo->CierrePorId($id_cierre_est);
-
-// Validación de registro encontrado
-$registro = $cierre;
-include __DIR__ . '/../../../publico/incluido/_validar_datos.php';
-
+$cierre      = $modelo->CierrePorId($id_cierre_est);
 $comentarios = $modelo->ComentariosCierre($id_cierre_est);
 
 // Verificar que el cierre pertenece al estudiante
-if ((int)$cierre['id_usuarios'] !== $id_usuario) {
+if (!$cierre || (int)$cierre['id_usuarios'] !== $id_usuario) {
     header('Location: index.php');
     exit;
 }
@@ -61,6 +54,20 @@ $id_proyecto = (int)$cierre['id_proyectos'];
 // El estudiante puede responder si está rechazado o en finalizacion_pendiente
 $estados_activos = ['rechazado', 'finalizacion_pendiente'];
 $puede_responder = in_array($cierre['estado'], $estados_activos, true);
+
+// Mapa de mensajes (viene por ?msg= tras redirigir)
+$_mapa_msg = [
+    'exito_correcciones_enviadas' => ['tipo' => 'exito',  'texto' => 'Correcciones enviadas. El supervisor será notificado.'],
+    'error_correcciones'          => ['tipo' => 'error',  'texto' => 'No fue posible enviar las correcciones. El comentario es obligatorio.'],
+    'error_archivo_invalido'      => ['tipo' => 'error',  'texto' => 'Solo se aceptan archivos PDF, DOCX, JPG o PNG de máximo 10 MB.'],
+    'error_interno'               => ['tipo' => 'error',  'texto' => 'Ocurrió un error al procesar tu solicitud. Intenta de nuevo.'],
+    'sin_permiso'                 => ['tipo' => 'alerta', 'texto' => 'No tienes permiso para realizar esta acción.'],
+    'accion_no_permitida'         => ['tipo' => 'alerta', 'texto' => 'La acción solicitada no está disponible en el estado actual.'],
+    'exito_carta_enviada'         => ['tipo' => 'exito',  'texto' => 'Tu carta fue reenviada. El supervisor la revisará pronto.'],
+];
+
+$msg_key  = $_GET['msg'] ?? '';
+$feedback = isset($_mapa_msg[$msg_key]) ? $_mapa_msg[$msg_key] : null;
 
 // Iconos reutilizables
 include __DIR__ . '../../../publico/incluido/_iconos.php';
@@ -91,12 +98,19 @@ ob_start();
                 <?= htmlspecialchars($estado_vis['texto']) ?>
             </span>
             <a href="index.php?id_proyectos=<?= $id_proyecto ?>" class="btn btn-secondary ms-2">
-                <i class="<?= $iconos['regresar'] ?>"></i> Regresar al seguimiento
+                <i class="<?= $iconos['tabla']['regresar'] ?>"></i> Regresar al seguimiento
             </a>
         </div>
     </div>
 
     <div class="hilo-wrap">
+
+        <!-- Mensaje de feedback (PRG) -->
+        <?php if ($feedback): ?>
+            <div class="alert <?= $feedback['tipo'] === 'exito' ? 'alert-success' : ($feedback['tipo'] === 'alerta' ? 'alert-warning' : 'alert-danger') ?> mb-3">
+                <?= htmlspecialchars($feedback['texto']) ?>
+            </div>
+        <?php endif; ?>
 
         <!-- Info del proyecto y documento enviado -->
         <div class="card border-0 mb-4 p-3">
@@ -124,7 +138,6 @@ ob_start();
         <!-- Hilo de comentarios -->
         <div class="mb-4" id="hiloComentarios">
             <?php if (empty($comentarios)): ?>
-                <!-- Sin comentarios en el hilo: mostrar comentario de rechazo directo del cierre -->
                 <?php if (!empty($cierre['comentarios'])): ?>
                     <div class="msg-burbuja msg-inv">
                         <div><?= nl2br(htmlspecialchars($cierre['comentarios'])) ?></div>
@@ -139,7 +152,6 @@ ob_start();
                     <p class="text-muted text-center py-3">Sin comentarios aún.</p>
                 <?php endif; ?>
             <?php else: ?>
-                <!-- Primero mostrar el comentario de rechazo si existe -->
                 <?php if (!empty($cierre['comentarios'])): ?>
                     <div class="msg-burbuja msg-inv">
                         <div><?= nl2br(htmlspecialchars($cierre['comentarios'])) ?></div>
@@ -151,7 +163,6 @@ ob_start();
                         </div>
                     </div>
                 <?php endif; ?>
-                <!-- Hilo de correcciones -->
                 <?php foreach ($comentarios as $c): ?>
                     <div class="msg-burbuja <?= $c['tipo'] === 'supervisor' ? 'msg-inv' : 'msg-est' ?>">
                         <div><?= nl2br(htmlspecialchars($c['comentario'])) ?></div>
@@ -176,50 +187,67 @@ ob_start();
         <!-- Formulario de respuesta (solo si puede responder) -->
         <?php if ($puede_responder): ?>
 
-            <!-- Sección 1: Enviar comentario de correcciones -->
+            <!-- Sección 1: Enviar comentario de correcciones (submit normal + PRG) -->
             <div class="card border shadow-sm mb-3">
                 <div class="card-header bg-white">
                     <h6 class="mb-0">
-                        <i class="<?= $iconos['volver_enviar'] ?>"></i>
+                        <i class="<?= $iconos['tabla']['volver_enviar'] ?>"></i>
                         Responder al supervisor
                     </h6>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">
-                            Explicación de correcciones <span class="text-danger">*</span>
-                        </label>
-                        <textarea id="txtComentario" class="form-control" rows="4"
-                            placeholder="Describe qué corregiste o ajustaste en tu carta de terminación…"></textarea>
-                        <div class="form-text">
-                            El supervisor recibirá este mensaje y revisará tu carta nuevamente.
+                    <form method="POST"
+                        action="index.php?action=enviarCorreccionesCarta&id_proyectos=<?= $id_proyecto ?>"
+                        enctype="multipart/form-data"
+                        id="formCorrecciones"
+                        onsubmit="prepararEnvioCorrecciones(this)">
+
+                        <input type="hidden" name="id_cierre_est" value="<?= $id_cierre_est ?>">
+                        <input type="hidden" name="id_proyecto"   value="<?= $id_proyecto ?>">
+
+                        <div class="mb-3">
+                            <label for="txtComentario" class="form-label fw-medium">
+                                Explicación de correcciones <span class="text-danger">*</span>
+                            </label>
+                            <textarea id="txtComentario" name="comentario" class="form-control" rows="4"
+                                required
+                                placeholder="Describe qué corregiste o ajustaste en tu carta de terminación…"></textarea>
+                            <div class="form-text">
+                                El supervisor recibirá este mensaje y revisará tu carta nuevamente.
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">
-                            Adjuntar documento de apoyo
-                            <span class="text-muted small">(opcional — PDF, DOCX, JPG, PNG)</span>
-                        </label>
-                        <input type="file" id="fileArchivo" class="form-control"
-                            accept=".pdf,.docx,.png,.jpg">
-                    </div>
-                    <div id="mensajeEnvio" class="alert d-none mb-3"></div>
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="index.php?id_proyectos=<?= $id_proyecto ?>"
-                            class="btn btn-outline-secondary btn-sm">Cancelar</a>
-                        <button type="button" class="btn btn-danger btn-sm" id="btnEnviarCorrecciones">
-                            <i class="bi bi-send-fill me-1"></i>Enviar correcciones
-                            <span class="spinner-border spinner-border-sm d-none ms-1" id="spinnerEnvio"></span>
-                        </button>
-                    </div>
+
+                        <div class="mb-3">
+                            <label for="fileArchivo" class="form-label fw-medium">
+                                Adjuntar documento de apoyo
+                                <span class="text-muted small">(opcional — PDF, DOCX, JPG, PNG)</span>
+                            </label>
+                            <input type="file" id="fileArchivo" name="archivo" class="form-control"
+                                accept=".pdf,.docx,.png,.jpg">
+                        </div>
+
+                        <div id="spinnerCorrecciones" class="d-none mb-3">
+                            <span class="spinner-border spinner-border-sm text-danger me-1"></span>
+                            <small>Enviando correcciones…</small>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="index.php?id_proyectos=<?= $id_proyecto ?>"
+                                class="btn btn-outline-secondary btn-sm">Cancelar</a>
+                            <button type="submit" class="btn btn-danger btn-sm" id="btnEnviarCorrecciones">
+                                <i class="bi bi-send-fill me-1"></i>Enviar correcciones
+                            </button>
+                        </div>
+
+                    </form>
                 </div>
             </div>
 
-            <!-- Sección 2: Reenviar carta completa corregida -->
+            <!-- Sección 2: Reenviar carta completa corregida (submit normal + PRG) -->
             <div class="card border shadow-sm">
                 <div class="card-header bg-white">
                     <h6 class="mb-0">
-                        <i class="<?= $iconos['subir'] ?>"></i>
+                        <i class="<?= $iconos['tabla']['subir'] ?>"></i>
                         Reenviar carta de terminación corregida
                     </h6>
                 </div>
@@ -228,31 +256,35 @@ ob_start();
                         Si necesitas reemplazar el archivo de tu carta, carga aquí la versión corregida
                         firmada en PDF o DOCX. Esto reemplazará la carta anterior.
                     </p>
+
                     <form method="POST"
                         action="index.php?action=subirCartaTerminacion&id_proyectos=<?= $id_proyecto ?>"
                         enctype="multipart/form-data"
-                        class="form-subida"
-                        data-etapa="3r">
+                        id="formReenvio"
+                        onsubmit="prepararReenvioCarta(this)">
+
                         <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
+
                         <div class="d-flex align-items-center gap-3 flex-wrap">
-                            <label class="btn btn-sm btn-warning mb-0">
-                                <i class="<?= $iconos['subir'] ?>"></i> Seleccionar carta corregida (PDF/DOCX)
+                            <label class="btn btn-sm btn-warning mb-0" id="btnCartaReenvio">
+                                <i class="<?= $iconos['tabla']['subir'] ?>"></i>
+                                <span id="labelCartaReenvio">Seleccionar carta corregida (PDF/DOCX)</span>
                                 <input type="file" name="documento" hidden accept=".pdf,.docx"
-                                    onchange="subirCartaCorregida(this)">
+                                    onchange="this.closest('form').submit(); prepararReenvioCarta(this.closest('form'))">
                             </label>
-                            <div class="spinner-etapa d-none" id="spinner-etapa-3r">
+                            <div class="spinner-etapa d-none" id="spinnerReenvio">
                                 <span class="spinner-border spinner-border-sm text-warning"></span>
                                 <small class="ms-1">Enviando carta…</small>
                             </div>
                         </div>
+
                     </form>
-                    <div class="msg-etapa d-none mt-2" id="msg-etapa-3r"></div>
                 </div>
             </div>
 
         <?php elseif ($cierre['estado'] === 'finalizacion_pendiente'): ?>
             <div class="alert alert-warning text-center">
-                <i class="<?= $iconos['espera'] ?>"></i>
+                <i class="<?= $iconos['detalles']['espera'] ?>"></i>
                 <strong>Terminación pendiente de validación.</strong><br>
                 Tu carta fue enviada y está esperando la revisión del supervisor.
                 Recibirás una notificación cuando sea procesada.
@@ -260,19 +292,19 @@ ob_start();
 
         <?php elseif ($cierre['estado'] === 'aprobado'): ?>
             <div class="alert alert-success text-center">
-                <i class="<?= $iconos['exito_verificado'] ?>"></i>
+                <i class="<?= $iconos['detalles']['exito_verificado'] ?>"></i>
                 Tu carta de terminación fue <strong>aprobada</strong>.
                 Tu participación en el proyecto ha concluido oficialmente.
                 <br>
                 <a href="index.php?id_proyectos=<?= $id_proyecto ?>"
                     class="btn btn-sm btn-success mt-2">
-                    <i class="<?= $iconos['ver'] ?>"></i> Ver mi seguimiento
+                    <i class="<?= $iconos['tabla']['ver'] ?>"></i> Ver mi seguimiento
                 </a>
             </div>
 
         <?php else: ?>
             <div class="alert alert-info text-center">
-                <i class="<?= $iconos['espera'] ?>"></i>
+                <i class="<?= $iconos['detalles']['espera'] ?>"></i>
                 Tu carta está siendo revisada. Recibirás una respuesta próximamente.
             </div>
         <?php endif; ?>
@@ -344,121 +376,36 @@ ob_start();
     }
 </style>
 
-<!-- JavaScript del hilo -->
 <script>
-    // Enviar comentario de correcciones (sin reload)
-    document.getElementById('btnEnviarCorrecciones')?.addEventListener('click', function() {
-        const comentario = document.getElementById('txtComentario').value.trim();
-        const archivo    = document.getElementById('fileArchivo').files[0] || null;
-        const mensajeEl  = document.getElementById('mensajeEnvio');
-        const spinner    = document.getElementById('spinnerEnvio');
-        const hilo       = document.getElementById('hiloComentarios');
+    /**
+     * Muestra spinner y deshabilita el botón de enviar correcciones
+     * antes del submit normal. El servidor redirige de vuelta con ?msg=.
+     */
+    function prepararEnvioCorrecciones(form) {
+        const comentario = form.querySelector('[name="comentario"]').value.trim();
+        if (!comentario) return false; // el atributo required lo atrapa, pero doble seguridad
 
-        if (!comentario) {
-            mensajeEl.textContent = 'Por favor escribe una explicación de las correcciones.';
-            mensajeEl.className   = 'alert alert-warning mb-3';
-            return;
-        }
+        const btn     = document.getElementById('btnEnviarCorrecciones');
+        const spinner = document.getElementById('spinnerCorrecciones');
 
-        this.disabled = true;
-        spinner.classList.remove('d-none');
-        mensajeEl.className = 'alert d-none mb-3';
+        if (btn)     { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enviando…'; }
+        if (spinner) { spinner.classList.remove('d-none'); }
 
-        const fd = new FormData();
-        fd.append('id_cierre_est', <?= $id_cierre_est ?>);
-        fd.append('comentario', comentario);
-        if (archivo) fd.append('archivo', archivo);
+        return true; // deja continuar el submit normal
+    }
 
-        fetch('index.php?action=enviarCorreccionesCarta&id_proyectos=<?= $id_proyecto ?>', {
-                method: 'POST',
-                body: fd
-            })
-            .then(r => r.json())
-            .then(data => {
-                spinner.classList.add('d-none');
-                if (data.ok) {
-                    const now  = new Date();
-                    const hora = now.toLocaleDateString('es-MX') + ' ' + now.toLocaleTimeString('es-MX', {
-                        hour: '2-digit', minute: '2-digit'
-                    });
-                    const burbuja = document.createElement('div');
-                    burbuja.className = 'msg-burbuja msg-est';
-                    burbuja.innerHTML = `
-                        <div>${comentario.replace(/\n/g,'<br>')}</div>
-                        ${archivo ? `<div class="mt-1"><i class="bi bi-paperclip me-1 text-primary"></i><span class="small text-primary">${archivo.name}</span></div>` : ''}
-                        <div class="msg-meta"><strong>Tú</strong> · Corrección · ${hora}</div>
-                    `;
-                    hilo.appendChild(burbuja);
+    /**
+     * Muestra spinner y deshabilita el label antes del submit normal
+     * de reenvío de carta.
+     */
+    function prepararReenvioCarta(form) {
+        const spinner = document.getElementById('spinnerReenvio');
+        const label   = document.getElementById('btnCartaReenvio');
+        const texto   = document.getElementById('labelCartaReenvio');
 
-                    document.getElementById('txtComentario').value = '';
-                    document.getElementById('fileArchivo').value   = '';
-
-                    mensajeEl.textContent = '✓ Correcciones enviadas. El supervisor será notificado.';
-                    mensajeEl.className   = 'alert alert-success mb-3';
-                    this.disabled = false;
-                } else {
-                    mensajeEl.textContent = data.msg || 'Error al enviar.';
-                    mensajeEl.className   = 'alert alert-danger mb-3';
-                    this.disabled = false;
-                }
-            })
-            .catch(e => {
-                spinner.classList.add('d-none');
-                mensajeEl.textContent = 'Error de conexión: ' + e.message;
-                mensajeEl.className   = 'alert alert-danger mb-3';
-                this.disabled = false;
-            });
-    });
-
-    // Reenviar carta corregida (sustituye el archivo)
-    function subirCartaCorregida(inputEl) {
-        const form    = inputEl.closest('form');
-        const spinner = document.getElementById('spinner-etapa-3r');
-        const msgEl   = document.getElementById('msg-etapa-3r');
-
-        if (!inputEl.files || !inputEl.files[0]) return;
-
-        spinner?.classList.remove('d-none');
-        if (msgEl) {
-            msgEl.className   = 'msg-etapa d-none';
-            msgEl.textContent = '';
-        }
-
-        const fd = new FormData(form);
-
-        fetch(form.action, { method: 'POST', body: fd })
-            .then(r => r.json())
-            .then(data => {
-                spinner?.classList.add('d-none');
-                if (data.ok) {
-                    if (msgEl) {
-                        msgEl.innerHTML = `
-                        <div class="alert alert-warning py-2 px-3 small">
-                            <i class="bi bi-hourglass-split me-1"></i>
-                            <strong>Carta reenviada.</strong>
-                            Terminación pendiente de validación. El supervisor será notificado.
-                        </div>`;
-                        msgEl.className = 'msg-etapa';
-                    }
-                    const lbl = form.querySelector('label');
-                    lbl?.classList.add('disabled');
-                    lbl?.setAttribute('style', 'pointer-events:none;opacity:.6');
-                } else {
-                    if (msgEl) {
-                        msgEl.textContent = data.msg || 'Error al enviar la carta.';
-                        msgEl.className   = 'msg-etapa alert alert-danger py-1 px-2 small';
-                    }
-                    inputEl.value = '';
-                }
-            })
-            .catch(err => {
-                spinner?.classList.add('d-none');
-                if (msgEl) {
-                    msgEl.textContent = 'Error de conexión: ' + err.message;
-                    msgEl.className   = 'msg-etapa alert alert-danger py-1 px-2 small';
-                }
-                inputEl.value = '';
-            });
+        if (spinner) spinner.classList.remove('d-none');
+        if (label)   { label.style.pointerEvents = 'none'; label.style.opacity = '0.65'; }
+        if (texto)   { texto.textContent = 'Enviando…'; }
     }
 </script>
 

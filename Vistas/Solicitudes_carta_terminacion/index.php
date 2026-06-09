@@ -28,11 +28,7 @@ $buscar      = $_GET['buscar']     ?? '';
 $pagina      = max(1, (int)($_GET['pagina']     ?? 1));
 $id_periodo  = (int)($_GET['id_periodo'] ?? 0);
 
-//  Acción: aprobar (GET desde botón tabla) ─
-if (isset($_GET['action']) && $_GET['action'] === 'aprobar' && isset($_GET['id'])) {
-    $ctrl->aprobarCarta((int)$_GET['id'], $id_usuario, $rol);
-    // aprobarCarta() redirige; no llega aquí
-}
+
 
 //  Cargar datos 
 $periodos  = $ctrl->obtenerTodosPeriodos();

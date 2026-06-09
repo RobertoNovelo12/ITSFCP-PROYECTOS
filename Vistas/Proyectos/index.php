@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'actualizarestado') {
 }
 
 
-$accionesBase = ['index', 'Total', 'Activos', 'Cierre', 'PorCerrar', 'Vencido', 'actualizarestado'];
+$accionesBase = ['index', 'Total', 'Activos', 'Cierre', 'PorCerrar', 'Vencido', 'actualizarestado', 'Concluidos'];
 
 // El supervisor conserva acceso de solo lectura a todos los estados operativos.
 $accionesPermitidas = $accionesBase;

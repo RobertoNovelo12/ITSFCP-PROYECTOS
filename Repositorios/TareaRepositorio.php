@@ -247,20 +247,39 @@ class TareaRepositorio extends BaseModelo
     {
         return $this->ejecutar(
             "SELECT
-                t.id_tarea, tt.descripcion_tipo AS tipo,
-                ds_rec.nombre AS archivo_nombre, ds_rec.ruta AS archivo_ruta,
-                t.fecha_entrega, t.fecha_modificacion,
-                est.nombre AS estado_plantilla,
-                (SELECT COUNT(*) FROM tareas_usuarios tu WHERE tu.id_tarea = t.id_tarea) AS total_asignados,
-                (SELECT COUNT(*) FROM tareas_usuarios tu WHERE tu.id_tarea = t.id_tarea AND tu.id_documento_entrega IS NOT NULL) AS total_entregados
-             FROM tareas t
-             INNER JOIN tbl_seguimiento s ON t.id_avances     = s.id_avances
-             INNER JOIN proyectos proy    ON proy.id_proyectos = s.id_proyectos
-             INNER JOIN tipo_tarea tt     ON t.id_tareatipo   = tt.id_tareatipo
-             LEFT  JOIN estados_tarea est ON t.id_estadoT     = est.id_estadoT
-             LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
-             WHERE s.id_proyectos = ? AND proy.id_investigador = ?
-             ORDER BY t.id_tarea ASC",
+            t.id_tarea,
+            tt.descripcion_tipo                         AS tipo,
+            t.descripcion,
+            t.fecha_entrega,
+            t.fecha_modificacion,
+            est.nombre                                  AS estado_plantilla,
+            ds_rec.nombre                               AS archivo_nombre,
+            ds_rec.ruta                                 AS archivo_ruta,
+
+            COUNT(tu.id_asignacion)                     AS total_asignados,
+            SUM(tu.id_estadoT = 1)                      AS total_pendientes,
+            SUM(tu.id_estadoT = 2)                      AS total_por_revisar,
+            SUM(tu.id_estadoT = 3)                      AS total_corregir,
+            SUM(tu.id_estadoT = 5)                      AS total_aprobados,
+            SUM(tu.id_estadoT = 6)                      AS total_vencidos,
+            SUM(tu.id_estadoT = 7)                      AS total_entregados,
+            SUM(tu.id_estadoT IN (2, 7))                AS total_requieren_revision
+
+        FROM tareas t
+        INNER JOIN tbl_seguimiento s     ON t.id_avances      = s.id_avances
+        INNER JOIN proyectos proy        ON proy.id_proyectos  = s.id_proyectos
+        INNER JOIN tipo_tarea tt         ON t.id_tareatipo     = tt.id_tareatipo
+        LEFT  JOIN estados_tarea est     ON t.id_estadoT       = est.id_estadoT
+        LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
+        LEFT  JOIN tareas_usuarios tu    ON tu.id_tarea        = t.id_tarea
+        WHERE s.id_proyectos     = ?
+          AND proy.id_investigador = ?
+          AND t.id_estadoT != 4
+        GROUP BY
+            t.id_tarea, tt.descripcion_tipo, t.descripcion,
+            t.fecha_entrega, t.fecha_modificacion,
+            est.nombre, ds_rec.nombre, ds_rec.ruta
+        ORDER BY t.id_tarea ASC",
             'ii',
             [$id_proyecto, $id_usuario]
         );
@@ -270,19 +289,37 @@ class TareaRepositorio extends BaseModelo
     {
         return $this->ejecutar(
             "SELECT
-                t.id_tarea, tt.descripcion_tipo AS tipo,
-                ds_rec.nombre AS archivo_nombre, ds_rec.ruta AS archivo_ruta,
-                t.fecha_entrega, t.fecha_modificacion,
-                est.nombre AS estado_plantilla,
-                (SELECT COUNT(*) FROM tareas_usuarios tu WHERE tu.id_tarea = t.id_tarea) AS total_asignados,
-                (SELECT COUNT(*) FROM tareas_usuarios tu WHERE tu.id_tarea = t.id_tarea AND tu.id_documento_entrega IS NOT NULL) AS total_entregados
-             FROM tareas t
-             INNER JOIN tbl_seguimiento s ON t.id_avances   = s.id_avances
-             INNER JOIN tipo_tarea tt     ON t.id_tareatipo = tt.id_tareatipo
-             LEFT  JOIN estados_tarea est ON t.id_estadoT   = est.id_estadoT
-             LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
-             WHERE s.id_proyectos = ?
-             ORDER BY t.id_tarea ASC",
+            t.id_tarea,
+            tt.descripcion_tipo                         AS tipo,
+            t.descripcion,
+            t.fecha_entrega,
+            t.fecha_modificacion,
+            est.nombre                                  AS estado_plantilla,
+            ds_rec.nombre                               AS archivo_nombre,
+            ds_rec.ruta                                 AS archivo_ruta,
+
+            COUNT(tu.id_asignacion)                     AS total_asignados,
+            SUM(tu.id_estadoT = 1)                      AS total_pendientes,
+            SUM(tu.id_estadoT = 2)                      AS total_por_revisar,
+            SUM(tu.id_estadoT = 3)                      AS total_corregir,
+            SUM(tu.id_estadoT = 5)                      AS total_aprobados,
+            SUM(tu.id_estadoT = 6)                      AS total_vencidos,
+            SUM(tu.id_estadoT = 7)                      AS total_entregados,
+            SUM(tu.id_estadoT IN (2, 7))                AS total_requieren_revision
+
+        FROM tareas t
+        INNER JOIN tbl_seguimiento s     ON t.id_avances   = s.id_avances
+        INNER JOIN tipo_tarea tt         ON t.id_tareatipo = tt.id_tareatipo
+        LEFT  JOIN estados_tarea est     ON t.id_estadoT   = est.id_estadoT
+        LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
+        LEFT  JOIN tareas_usuarios tu    ON tu.id_tarea    = t.id_tarea
+        WHERE s.id_proyectos = ?
+          AND t.id_estadoT  != 4
+        GROUP BY
+            t.id_tarea, tt.descripcion_tipo, t.descripcion,
+            t.fecha_entrega, t.fecha_modificacion,
+            est.nombre, ds_rec.nombre, ds_rec.ruta
+        ORDER BY t.id_tarea ASC",
             'i',
             [$id_proyecto]
         );

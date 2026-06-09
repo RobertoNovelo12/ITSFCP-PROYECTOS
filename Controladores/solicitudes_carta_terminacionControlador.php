@@ -99,8 +99,8 @@ class solicitudes_carta_terminacionControlador extends BaseControlador
 
             if ($resultado['success']) {
                 $this->redirigir('exito_aprobar');
-            } else {
-                $this->redirigir('error_aprobar', 'detalles.php', "&id={$id_cierre_est}");
+            } elseif($resultado['msg'] === 'Esta solicitud ya fue procesada.') {
+                $this->redirigir('error_procesada', 'index.php', "&id={$id_cierre_est}");
             }
         } catch (\Exception $e) {
             error_log('CartaTerminacionControlador::aprobarCarta() — ' . $e->getMessage());
@@ -135,6 +135,7 @@ class solicitudes_carta_terminacionControlador extends BaseControlador
                 $id_supervisor,
                 $comentario
             );
+
 
             if ($resultado['success']) {
                 $this->redirigir('exito_rechazar');

@@ -96,7 +96,7 @@ class Principal
     ): array {
         $desde = ($pagina - 1) * $por_pagina;
 
-        [$sql, $tipos, $params] = $this->buildSqlEstudiante(
+        [$sql, $tipos, $params] = $this->SqlEstudiante(
             $id_estudiante, $buscar, $modalidad, $id_tematica, $id_subtematica
         );
 
@@ -269,7 +269,7 @@ class Principal
         return [$sql, $tipos, $params];
     }
 
-    private function buildSqlEstudiante(
+    private function SqlEstudiante(
         int $id_estudiante,
         string $buscar, string $modalidad, int $id_tematica, int $id_subtematica
     ): array {
@@ -318,15 +318,19 @@ class Principal
                 p.id_estadoP = 2
                 AND per.estado = 1
                 AND per.fecha_inicio <= ? AND per.fecha_final >= ?
-                AND (per.fecha_inicio_solicitud IS NULL OR per.fecha_inicio_solicitud <= ?)
-                AND (per.fecha_fin_solicitud    IS NULL OR per.fecha_fin_solicitud    >= ?)
+                -- AND (per.fecha_inicio_solicitud IS NULL OR per.fecha_inicio_solicitud <= ?)
+                -- AND (per.fecha_fin_solicitud    IS NULL OR per.fecha_fin_solicitud    >= ?)
                 AND (SELECT COUNT(*) FROM proyectos_usuarios pu
                      WHERE pu.id_proyectos = p.id_proyectos AND pu.estado = 'activo') < p.cantidad_estudiante
                 {$filtroBuscar} {$filtroModalidad} {$filtroTematica} {$filtroSubt}
         ";
-
-        $tipos  = 'iissss';
-        $params = [$id_estudiante, $id_estudiante, $hoy, $hoy, $hoy, $hoy];
+        // Versión anterior con validación de ventana de solicitud:
+        //$tipos  = 'iissss';
+        //$params = [$id_estudiante, $id_estudiante, $hoy, $hoy, $hoy, $hoy];
+        //Versión actual sin validación de ventana de solicitud (se asume que la vista ya la validó):
+        //Así se muestran los proyectos aunque la ventana de solicitud esté cerrada, pero el botón de "Solicitar" se oculta en la vista.
+        $tipos  = 'iiss';
+        $params = [$id_estudiante, $id_estudiante, $hoy, $hoy];
 
         if ($buscar)    { $like = "%{$buscar}%"; $tipos .= 'ss'; $params[] = $like; $params[] = $like; }
         if ($modalidad) { $tipos .= 's'; $params[] = $modalidad; }

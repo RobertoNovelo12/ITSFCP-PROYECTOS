@@ -21,7 +21,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // PROYECTO
+    //  PROYECTO
     // 
 
     /**
@@ -67,7 +67,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // ETAPAS
+    //  ETAPAS
     // 
 
     /**
@@ -134,8 +134,7 @@ class SeguimientoRepositorio extends BaseModelo
     }
 
     /**
-     * Filas base de etapas para modo baja (sin seg_estado ni observaciones extras
-     * que no se muestran en el modo cerrado).
+     * Filas base de etapas para modo baja.
      *
      * @return array[]
      */
@@ -185,12 +184,11 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // DOCUMENTOS
+    //  DOCUMENTOS
     // 
 
     /**
      * Documento activo de Etapa 1 (carta compromiso firmada) del estudiante.
-     * Busca en documentos_subidos vinculado al seguimiento_documento de tipo 1.
      *
      * @return array|null
      */
@@ -293,7 +291,7 @@ class SeguimientoRepositorio extends BaseModelo
                  tipo, visibilidad, id_usuarios, id_proyectos, id_etapa,
                  version, activo, id_seguimiento, id_plantilla)
              VALUES (?, ?, ?, ?, ?, ?, 'etapa', 'privado', ?, ?, ?, 1, 1, ?, ?)",
-            'sssssiiiiii',
+            'ssssiiiiii',
             [
                 $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
                 $tamano_bytes, $id_usuario, $id_proyecto, $id_etapa,
@@ -324,13 +322,13 @@ class SeguimientoRepositorio extends BaseModelo
                 (nombre, nombre_archivo, ruta, tipo_mime, extension, tamano_bytes,
                  tipo, visibilidad, id_usuarios, id_proyectos, id_etapa, version, activo)
              VALUES (?, ?, ?, ?, ?, ?, 'etapa', 'privado', ?, ?, ?, 1, 1)",
-            'sssssiiiii',
+            'ssssiiiii',
             [
                 $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
                 $tamano_bytes, $id_usuario, $id_proyecto, $id_etapa,
             ]
         );
-        return $this->conn->insert_id;
+        return (int)$this->conn->insert_id;
     }
 
     /**
@@ -350,16 +348,28 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // COMENTARIOS DE CORRECCIONES — Etapa 3
+    //  COMENTARIOS DE CORRECCIONES — Etapa 3
+    //
+    //  Esquema real de solicitud_comentarios:
+    //    id_comentario        INT  PK AI
+    //    id_solicitud         INT  NOT NULL  (FK → solicitud_proyecto)
+    //    id_usuario           BIGINT UNSIGNED NOT NULL
+    //    tipo                 ENUM('investigador','estudiante')
+    //    comentario           TEXT NOT NULL
+    //    id_documento_adjunto INT NULL       (FK → documentos_subidos)
+    //    fecha                DATETIME DEFAULT current_timestamp()
     // 
 
     /**
-     * Hilo de comentarios de correcciones de la carta de terminación.
-     * Usa solicitud_comentarios con tipo_referencia = 'cierre'.
+     * Hilo de comentarios asociados a una solicitud de cierre.
+     *
+     * La tabla solicitud_comentarios referencia solicitud_proyecto mediante
+     * id_solicitud. Para el flujo de carta de terminación se usa el
+     * id_solicitud_proyecto del estudiante como clave de agrupación.
      *
      * @return array[]
      */
-    public function comentariosCierre(int $id_cierre_est): array
+    public function comentariosCierre(int $id_solicitud): array
     {
         return $this->ejecutar(
             "SELECT
@@ -367,37 +377,43 @@ class SeguimientoRepositorio extends BaseModelo
                 sc.comentario,
                 sc.tipo,
                 sc.fecha,
-                sc.archivo_nombre,
-                sc.archivo_ruta,
-                CONCAT(u.nombre,' ',u.apellido_paterno,' ',u.apellido_materno) AS autor_nombre
+                sc.id_documento_adjunto,
+                ds.nombre       AS archivo_nombre,
+                ds.ruta         AS archivo_ruta,
+                ds.extension    AS archivo_extension,
+                CONCAT(u.nombre, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS autor_nombre
             FROM solicitud_comentarios sc
-            JOIN usuarios u ON u.id_usuarios = sc.id_usuarios
-            WHERE sc.id_referencia   = ?
-              AND sc.tipo_referencia = 'cierre'
+            JOIN usuarios u
+                   ON u.id_usuarios = sc.id_usuario
+            LEFT JOIN documentos_subidos ds
+                   ON ds.id_documento = sc.id_documento_adjunto
+            WHERE sc.id_solicitud = ?
             ORDER BY sc.fecha ASC",
             'i',
-            [$id_cierre_est]
+            [$id_solicitud]
         );
     }
 
     /**
-     * Inserta un comentario de corrección del estudiante en el hilo del cierre.
+     * Inserta un comentario del estudiante en el hilo de la solicitud.
+     *
+     * El archivo adjunto, si existe, debe registrarse primero en
+     * documentos_subidos y pasarse su id como $id_documento_adjunto.
      *
      * @return bool
      */
     public function insertarComentarioCierre(
-        int     $id_cierre_est,
-        int     $id_usuario,
-        string  $comentario,
-        ?string $archivo_nombre,
-        ?string $archivo_ruta
+        int  $id_solicitud,
+        int  $id_usuario,
+        string $comentario,
+        ?int $id_documento_adjunto
     ): bool {
         $this->ejecutar(
             "INSERT INTO solicitud_comentarios
-                (id_referencia, tipo_referencia, id_usuarios, comentario, tipo, archivo_nombre, archivo_ruta)
-             VALUES (?, 'cierre', ?, ?, 'estudiante', ?, ?)",
-            'iisss',
-            [$id_cierre_est, $id_usuario, $comentario, $archivo_nombre, $archivo_ruta]
+                (id_solicitud, id_usuario, comentario, tipo, id_documento_adjunto)
+             VALUES (?, ?, ?, 'estudiante', ?)",
+            'iisi',
+            [$id_solicitud, $id_usuario, $comentario, $id_documento_adjunto]
         );
         return $this->conn->affected_rows > 0;
     }
@@ -421,7 +437,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // CIERRES_ESTUDIANTE (Etapa 3)
+    //  CIERRES_ESTUDIANTE (Etapa 3)
     // 
 
     /**
@@ -537,7 +553,7 @@ class SeguimientoRepositorio extends BaseModelo
             'iii',
             [$id_integrante, $id_documento, $id_supervisor]
         );
-        return $this->conn->insert_id;
+        return (int)$this->conn->insert_id;
     }
 
     /**
@@ -582,7 +598,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // SEGUIMIENTO_DOCUMENTO
+    //  SEGUIMIENTO_DOCUMENTO
     // 
 
     /**
@@ -639,7 +655,7 @@ class SeguimientoRepositorio extends BaseModelo
             'iii',
             [$id_proyecto, $id_tipo_documento, $id_usuario]
         );
-        return $this->conn->insert_id;
+        return (int)$this->conn->insert_id;
     }
 
     /**
@@ -703,7 +719,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // SOLICITUDES DE INTEGRACIÓN
+    //  SOLICITUDES DE INTEGRACIÓN
     // 
 
     /**
@@ -729,7 +745,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // TIPO_DOCUMENTO — utilidades
+    //  TIPO_DOCUMENTO — utilidades
     // 
 
     /**
@@ -754,7 +770,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // TAREAS — Etapa 2
+    //  TAREAS — Etapa 2
     // 
 
     /**
@@ -802,7 +818,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // PROYECTOS_USUARIOS + HISTORIAL
+    //  PROYECTOS_USUARIOS + HISTORIAL
     // 
 
     /**
@@ -889,7 +905,7 @@ class SeguimientoRepositorio extends BaseModelo
 
 
     // 
-    // NOTIFICACIONES
+    //  NOTIFICACIONES
     // 
 
     /**

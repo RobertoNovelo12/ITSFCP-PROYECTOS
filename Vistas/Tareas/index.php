@@ -45,7 +45,7 @@ if (!is_array($tarea)) {
     exit;
 }
 $encabezados = $tareaControlador->encabezadosPrincipal($rol);
-
+include __DIR__ . '../../../publico/incluido/_iconos.php';
 ob_start();
 ?>
 
@@ -62,7 +62,7 @@ ob_start();
 
         <div class="col-6 col-md-6 text-md-end">
             <a href="../Proyectos/index.php" class="btn btn-secondary btn-sm px-4">
-                <i class="bi bi-arrow-left"></i> Regresar</a>
+                <i class="<?= $iconos['tabla']['regresar'] ?>"></i> Regresar</a>
         </div>
     </div>
 
@@ -92,7 +92,7 @@ ob_start();
                                         <td class="px-3">
                                             <?php if (!empty($tar['archivo_nombre'])): ?>
                                                 <a href="descargar_guia.php?id=<?= $tar['id_tarea'] ?>" class="text-danger" title="Descargar guía">
-                                                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                                                    <i class="<?= $iconos['tabla']['guia_pdf'] ?>"></i>
                                                 </a>
                                             <?php else: ?>
                                                 <span class="text-muted small">—</span>
@@ -108,34 +108,54 @@ ob_start();
                             <?php elseif (in_array($rol, ["investigador", "supervisor"])): ?>
                                 <?php foreach ($tarea as $tar): ?>
                                     <tr>
+                                        <!-- Actividad -->
                                         <td class="px-3">
                                             <span class="fw-semibold"><?= htmlspecialchars($tar['tipo']) ?></span>
                                             <?php if (!empty($tar['fecha_modificacion'])): ?>
                                                 <br><small class="text-warning">
-                                                    <i class="bi bi-pencil-fill"></i>
+                                                    <i class="<?= $iconos['tabla']['editada'] ?>"></i>
                                                     Editada <?= date('d/m/Y', strtotime($tar['fecha_modificacion'])) ?>
                                                 </small>
                                             <?php endif; ?>
                                         </td>
+
+                                        <!-- Entregas -->
                                         <td class="px-3 text-center">
-                                            <span class="fw-semibold"><?= $tar['total_entregados'] ?></span>
-                                            <span class="text-muted">/<?= $tar['total_asignados'] ?></span>
+                                            <span class="fw-semibold"><?= (int)$tar['total_aprobados'] ?></span>
+                                            <span class="text-muted">/<?= (int)$tar['total_asignados'] ?></span>
+                                            <span class="text-muted small ms-1">aprobados</span>
+
+                                            <?php if ((int)$tar['total_requieren_revision'] > 0): ?>
+                                                <br>
+                                                <span class="badge text-bg-warning mt-1" title="Entregas pendientes de revisión">
+                                                    <i class="<?= $iconos['detalles']['espera'] ?>"></i>
+                                                    <?= (int)$tar['total_requieren_revision'] ?> por revisar
+                                                </span>
+                                            <?php endif; ?>
                                         </td>
+
+                                        <!-- Estado plantilla -->
                                         <td class="px-3">
                                             <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tar['estado_plantilla']) ?>">
                                                 <?= htmlspecialchars($tar['estado_plantilla'] ?? '-') ?>
                                             </span>
                                         </td>
+
+                                        <!-- Guía -->
                                         <td class="px-3">
                                             <?php if (!empty($tar['archivo_nombre'])): ?>
                                                 <a href="descargar_guia.php?id=<?= $tar['id_tarea'] ?>" class="text-danger" title="Descargar guía">
-                                                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                                                    <i class="<?= $iconos['tabla']['guia_pdf'] ?>"></i>
                                                 </a>
                                             <?php else: ?>
                                                 <span class="text-muted small">—</span>
                                             <?php endif; ?>
                                         </td>
+
+                                        <!-- Fecha entrega -->
                                         <td class="px-3 small text-muted"><?= $tar['fecha_entrega'] ?: "Sin fecha" ?></td>
+
+                                        <!-- Acciones -->
                                         <td class="px-3">
                                             <?= $tareaControlador->botonesAccionPrincipal($tar['id_tarea'], $rol, $tar['estado_plantilla'], $id_proyecto) ?>
                                         </td>
@@ -175,8 +195,15 @@ ob_start();
                         <div class="row g-2 small text-muted mb-2">
                             <?php if (in_array($rol, ['investigador', 'supervisor'])): ?>
                                 <div class="col-6">
-                                    <span class="d-block text-uppercase fw-semibold" style="font-size:.7rem">Entregas</span>
-                                    <?= ($tar['total_entregados'] ?? 0) ?>/<?= ($tar['total_asignados'] ?? 0) ?>
+                                    <span class="d-block text-uppercase fw-semibold" style="font-size:.7rem">Aprobados</span>
+                                    <i class="<?= $iconos['detalles']['exito_todos'] ?> text-success me-1"></i>
+                                    <?= (int)$tar['total_aprobados'] ?>/<?= (int)$tar['total_asignados'] ?>
+                                    <?php if ((int)$tar['total_requieren_revision'] > 0): ?>
+                                        <span class="badge text-bg-warning ms-1" title="Por revisar">
+                                            <i class="<?= $iconos['detalles']['espera'] ?>"></i>
+                                            <?= (int)$tar['total_requieren_revision'] ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                             <div class="col-6">
@@ -186,7 +213,9 @@ ob_start();
                             <div class="col-6">
                                 <span class="d-block text-uppercase fw-semibold" style="font-size:.7rem">Guía</span>
                                 <?php if (!empty($tar['archivo_nombre'])): ?>
-                                    <a href="descargar_guia.php?id=<?= $tar['id_tarea'] ?>" class="text-danger">PDF</a>
+                                    <a href="descargar_guia.php?id=<?= $tar['id_tarea'] ?>" class="text-danger">
+                                        <i class="<?= $iconos['tabla']['guia_pdf'] ?>"></i> PDF
+                                    </a>
                                 <?php else: ?>
                                     <span>—</span>
                                 <?php endif; ?>

@@ -40,6 +40,10 @@ $iconos = [
 
         // Guardar
         'guardar'          => 'bi bi-floppy',
+
+        // En 'tabla':
+        'guia_pdf'         => 'bi bi-file-earmark-pdf-fill',
+        'editada'          => 'bi bi-pencil-fill',
     ],
 
     /*
@@ -64,6 +68,12 @@ $iconos = [
 
         // Entidades
         'proyecto'         => 'bi bi-folder2',
+
+        // En 'detalles':
+        'por_revisar'      => 'bi bi-hourglass-split',   // ya existe como 'espera', puedes reutilizarlo
+        'aprobados'        => 'bi bi-check2-all',         // ya existe como 'exito_todos'
+        'subir'            => 'bi bi-upload',
+
     ],
 
     /*

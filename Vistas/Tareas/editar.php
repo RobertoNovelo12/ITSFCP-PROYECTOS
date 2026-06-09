@@ -19,12 +19,21 @@ if (!in_array($rol, ['investigador', 'profesor'])) {
     header("Location: /Vistas/Principal/index.php");
     exit;
 }
+include __DIR__ . '../../../publico/incluido/_validar_tareas.php';
 
-$id_tarea = $_GET['id_tarea'] ?? null;
+$id_tarea = $_GET['id_tarea'] ?? $_POST['id_tarea'] ?? 0;
 
+if ($id_tarea <= 0) {
+    header("Location: ../../Vistas/Proyectos/index.php?msg=error_cargar");
+    exit;
+}
 
-$id_proyectos = $_GET['id_proyectos'] ?? $_POST['id_proyectos'] ?? null;
+$id_proyectos = $_GET['id_proyectos'] ?? $_POST['id_proyectos'] ?? 0;
 
+if ($id_proyectos <= 0) {
+    header("Location: ../../Vistas/Proyectos/index.php?msg=error_cargar");
+    exit;
+}
 
 $action = $_POST['action'] ?? $_GET['action'] ?? null;
 
@@ -36,13 +45,9 @@ const MAX_INSTRUCCIONES = 1500;
 require_once __DIR__ . '/../../Controladores/tareasControlador.php';
 $tareaControlador = new TareaControlador();
 
-if ($action === 'editarTarea') {
-    $_POST['id_usuario'] = $id;
-    $tareaControlador->editarTarea($_POST, $rol, $id_proyectos);
-}
-if ($action === 'actualizarestado' && isset($_GET['id_tarea'])) {
-    $tareaControlador->actualizarestado($_GET['id_tarea'], $rol, $_GET['tipo'], $id_proyectos);
-}
+
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'Guardar') {
         $tareaControlador->guardar_borrador_Investigador(
@@ -51,6 +56,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST
         );
         // guardar_borrador() redirige internamente
+    }
+
+    if ($action === 'Activar') {
+        $tareaControlador->activarTarea($_POST, $rol, $id_proyectos);
+    }
+
+    if ($action === 'Editar') {
+        $_POST['id_usuario'] = $id;
+        $tareaControlador->editarTarea($_POST, $rol, $id_proyectos);
     }
 }
 
@@ -69,10 +83,13 @@ $campoNombres = [
 // Longitud actual del contenido ya guardado (sin HTML)
 $lenDescripcion   = mb_strlen(strip_tags($tarea['descripcion']   ?? ''), 'UTF-8');
 $lenInstrucciones = mb_strlen(strip_tags($tarea['instrucciones'] ?? ''), 'UTF-8');
+
 $msg = $_GET['msg'] ?? '';
 
 $_mapa = [
     'fecha_invalida'     => ['tipo' => 'error',  'titulo_msg' => 'Fecha de entrega excedida',   'mensaje' => 'La fecha de entrega de la actividad se excede la fecha límite del propio proyecto. Intente con una fecha acorde al proyecto.'],
+        'fecha_menor_invalida'     => ['tipo' => 'error',  'titulo_msg' => 'Fecha de entrega inválida',   'mensaje' => 'La fecha de entrega no puede ser menor a la fecha actual. Intente con una fecha válida.'],
+    'exito_activar'       => ['tipo' => 'exito',  'titulo_msg' => 'Tarea activada',   'mensaje' => 'La tarea fue activada correctamente.'],
     'exito_editar'       => ['tipo' => 'exito',  'titulo_msg' => 'Tarea actualizado',   'mensaje' => 'La tarea fue editado correctamente.'],
     'exito_estado'       => ['tipo' => 'exito',  'titulo_msg' => 'Estado actualizado',     'mensaje' => 'El estado de la tarea fue actualizado correctamente.'],
     'exito_operacion'    => ['tipo' => 'exito',  'titulo_msg' => 'Operación completada',   'mensaje' => 'La operación sobre el estudiante fue realizada correctamente.'],
@@ -116,13 +133,10 @@ ob_start();
     </div>
 
     <!-- ALERTAS -->
-    <?php
-
-    if (isset($_mapa[$msg])) {
+    <?php if (isset($_mapa[$msg])):
         extract($_mapa[$msg]);
         include __DIR__ . '../../../publico/incluido/_mensaje.php';
-    }
-    ?>
+    endif; ?>
 
     <!--  Última edición ─ -->
     <?php if (!empty($tarea['fecha_modificacion'])): ?>

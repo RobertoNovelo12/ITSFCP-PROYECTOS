@@ -91,7 +91,7 @@ ob_start();
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
 
-        <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
+        <div class="col-6 col-md-6 text-md-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>

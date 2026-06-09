@@ -6,9 +6,7 @@
  * Panel de seguimiento de documentación del estudiante.
  */
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
+ob_start();
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
@@ -20,7 +18,6 @@ $rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = intval($_SESSION['id_usuario']);
 $action     = $_GET['action'] ?? 'index';
 
-// Solo estudiante accede
 if ($rol !== 'estudiante') {
     header("Location: /Vistas/Principal/index.php");
     exit;
@@ -31,29 +28,68 @@ $id_proyecto = isset($_GET['id_proyectos']) ? intval($_GET['id_proyectos']) : 0;
 require_once __DIR__ . '/../../Controladores/seguimientoControlador.php';
 $seguimientoControlador = new SeguimientoControlador();
 
-/* Procesar acciones POST (AJAX) antes de cargar la vista */
+// 
+// PASO 2 — Interceptar acciones POST
+// subirDocumento  → sigue siendo AJAX (responde JSON desde el controlador)
+// subirCartaTerminacion / enviarCorreccionesCarta → redirigir (PRG)
+// 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'subirDocumento') {
+        // El controlador responde JSON → exit interno
         $seguimientoControlador->subirDocumento();
-        exit;
     }
     if ($action === 'subirCartaTerminacion') {
+        // El controlador redirige → exit interno
         $seguimientoControlador->subirCartaTerminacion();
-        exit;
     }
     if ($action === 'enviarCorreccionesCarta') {
+        // El controlador redirige → exit interno
         $seguimientoControlador->enviarCorreccionesCarta();
-        exit;
     }
+}
+
+// 
+// PASO 3 — Construcción de la vista HTML (solo GET)
+// 
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+/* Mapa de mensajes (patrón PRG — viene por ?msg=) */
+$_mapa = [
+    // Subir documento (Etapa 1)
+    'exito_documento_subido'       => ['tipo' => 'exito',  'titulo_msg' => 'Documento enviado',         'mensaje' => 'Tu documento fue subido correctamente. El investigador lo revisará pronto.'],
+    'error_archivo_invalido'       => ['tipo' => 'error',  'titulo_msg' => 'Archivo no válido',         'mensaje' => 'Solo se aceptan archivos PDF o DOCX de máximo 10 MB.'],
+    'error_datos_incompletos'      => ['tipo' => 'error',  'titulo_msg' => 'Datos incompletos',         'mensaje' => 'Faltan datos requeridos para procesar la solicitud.'],
+    // Subir carta de terminación (Etapa 3)
+    'exito_carta_enviada'          => ['tipo' => 'exito',  'titulo_msg' => 'Carta enviada',             'mensaje' => 'Tu Carta de Terminación fue enviada. El supervisor la revisará pronto.'],
+    'error_actividades_pendientes' => ['tipo' => 'alerta', 'titulo_msg' => 'Actividades pendientes',    'mensaje' => 'Debes completar todas tus actividades antes de enviar la Carta de Terminación.'],
+    'error_no_supervisor'          => ['tipo' => 'error',  'titulo_msg' => 'Sin supervisor asignado',   'mensaje' => 'No hay supervisor asignado al proyecto. Contacta al administrador.'],
+    // Correcciones (Etapa 3)
+    'exito_correcciones_enviadas'  => ['tipo' => 'exito',  'titulo_msg' => 'Correcciones enviadas',     'mensaje' => 'Tus correcciones fueron enviadas. El supervisor será notificado.'],
+    'error_correcciones'           => ['tipo' => 'error',  'titulo_msg' => 'Error al enviar',           'mensaje' => 'No fue posible enviar las correcciones. El comentario es obligatorio.'],
+    // Comunes
+    'error_interno'                => ['tipo' => 'error',  'titulo_msg' => 'Error interno',             'mensaje' => 'Ocurrió un error al procesar tu solicitud. Intenta de nuevo.'],
+    'sin_permiso'                  => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',        'mensaje' => 'No tienes permiso para realizar esta acción.'],
+    'accion_no_permitida'          => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',       'mensaje' => 'La acción solicitada no está disponible en el estado actual.'],
+];
+
+$msg_key    = $_GET['msg'] ?? '';
+$tipo       = null;
+$mensaje    = null;
+$titulo_msg = null;
+if ($msg_key && isset($_mapa[$msg_key])) {
+    $tipo       = $_mapa[$msg_key]['tipo'];
+    $mensaje    = $_mapa[$msg_key]['mensaje'];
+    $titulo_msg = $_mapa[$msg_key]['titulo_msg'];
 }
 
 /* Cargar datos para la vista */
 $resultado = $seguimientoControlador->index($id_usuario, $rol, $id_proyecto);
 
-$etapas   = $resultado['etapas']   ?? [];
-$proyecto = $resultado['proyecto'] ?? null;
-$progreso = $resultado['progreso'] ?? ['completadas' => 0, 'total' => 0, 'pct' => 0];
-$mensaje  = $resultado['mensaje']  ?? null;
+$etapas        = $resultado['etapas']   ?? [];
+$proyecto      = $resultado['proyecto'] ?? null;
+$progreso      = $resultado['progreso'] ?? ['completadas' => 0, 'total' => 0, 'pct' => 0];
+$mensaje_vista = $resultado['mensaje']  ?? null;
 
 $id_estudiante = $id_usuario;
 
@@ -68,7 +104,7 @@ $fase3_ok = $proyecto
     : false;
 
 /* Iconos reutilizables */
-include __DIR__ . '../../../publico/incluido/_iconos.php';
+include __DIR__ . '/../../publico/incluido/_iconos.php';
 
 /* Mapa de estados → clases CSS y textos */
 $estados = [
@@ -78,12 +114,12 @@ $estados = [
     'rechazado'              => ['clase' => 'rechazado',  'badge' => 'badge-rech',     'texto' => 'Correcciones requeridas'],
     'correcciones'           => ['clase' => 'rechazado',  'badge' => 'badge-rech',     'texto' => 'Correcciones requeridas'],
     'finalizacion_pendiente' => ['clase' => 'proceso',    'badge' => 'badge-pend-val', 'texto' => 'Terminación pendiente de validación'],
-    // estados de baja
     'baja_incompleta'        => ['clase' => 'rechazado',  'badge' => 'badge-baja',     'texto' => 'No completada'],
     'bloqueado'              => ['clase' => 'pendiente',  'badge' => 'badge-pend',     'texto' => 'Bloqueada'],
     'esperando_cierre'       => ['clase' => 'proceso',    'badge' => 'badge-proc',     'texto' => 'Esperando cierre'],
 ];
 
+ob_end_clean();
 ob_start();
 ?>
 
@@ -94,7 +130,7 @@ ob_start();
         <?php
         $titulo      = 'Seguimiento';
         $descripcion = 'Control de avance de estudiantes por etapa';
-        include __DIR__ . '../../../publico/incluido/_encabezado.php';
+        include __DIR__ . '/../../publico/incluido/_encabezado.php';
         ?>
         <div class="col-md-6 text-md-end">
             <a href="../Proyectos/index.php" class="btn btn-secondary">
@@ -102,6 +138,15 @@ ob_start();
             </a>
         </div>
     </div>
+
+    <!-- MENSAJE DE FEEDBACK (viene por ?msg= tras redirigir) -->
+    <?php if ($tipo && $mensaje): ?>
+        <div class="row mb-2">
+            <div class="col-12">
+                <?php include __DIR__ . '/../../publico/incluido/_mensaje.php'; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <div class="portal">
 
@@ -118,7 +163,7 @@ ob_start();
                         <?= htmlspecialchars($proyecto['titulo']) ?>
                     </p>
                 <?php else: ?>
-                    <p><?= htmlspecialchars($mensaje ?? 'Sin proyecto asignado.') ?></p>
+                    <p><?= htmlspecialchars($mensaje_vista ?? 'Sin proyecto asignado.') ?></p>
                 <?php endif; ?>
             </div>
         </div>
@@ -180,13 +225,9 @@ ob_start();
 
                         <!-- ACCIONES POR ETAPA -->
                         <div class="docs-adjuntos">
-                            <?php
-                            // Detectar si esta etapa viene del flujo de baja
-                            $es_baja = isset($etapa['estado_baja']);
-                            ?>
+                            <?php $es_baja = isset($etapa['estado_baja']); ?>
 
                             <?php if ($es_baja && $orden === 2 && $estado === 'baja_incompleta'): ?>
-                                <!-- ETAPA 2 — Estudiante dado de baja sin completar -->
                                 <div class="alert-etapa alert-etapa-danger">
                                     <i class="<?= $iconos['tabla']['solicitar_cierre'] ?>"></i>
                                     <span>
@@ -220,7 +261,6 @@ ob_start();
                                 <?php endif; ?>
 
                             <?php elseif ($es_baja && $orden === 3 && $estado === 'baja_incompleta'): ?>
-                                <!-- ETAPA 3 — Nunca alcanzada -->
                                 <div class="alert-etapa alert-etapa-danger">
                                     <i class="<?= $iconos['tabla']['solicitar_cierre'] ?>"></i>
                                     <span>
@@ -249,7 +289,6 @@ ob_start();
                                     <i class="<?= $iconos['detalles']['exito'] ?>"></i>
                                     <span><strong>¡Solicitud aceptada!</strong> Tu carta compromiso fue recibida y aceptada. Formas parte del proyecto.</span>
                                 </div>
-
                                 <?php if (!empty($etapa['documento_subido'])): ?>
                                     <a href="/<?= htmlspecialchars($etapa['documento_subido']['ruta']) ?>"
                                         target="_blank"
@@ -271,7 +310,6 @@ ob_start();
                                 $total_t     = $etapa['tareas_total']     ?? 0;
                                 $aprobadas_t = $etapa['tareas_aprobadas'] ?? 0;
                                 ?>
-
                                 <?php if ($estado === 'completado'): ?>
                                     <div class="alert-etapa alert-etapa-success">
                                         <i class="<?= $iconos['detalles']['exito_todos'] ?>"></i>
@@ -358,25 +396,26 @@ ob_start();
                                         </a>
                                     <?php endif; ?>
 
+                                    <!-- Reenvío con spinner (submit normal + JS para UX) -->
                                     <form method="POST"
                                         action="?action=subirCartaTerminacion&id_proyectos=<?= $id_proyecto ?>"
                                         enctype="multipart/form-data"
-                                        class="form-subida d-inline-block mt-2"
-                                        data-etapa="3">
+                                        class="form-carta-terminacion d-inline-block mt-2">
                                         <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
-                                        <label class="btn btn-sm btn-warning">
-                                            <i class="<?= $iconos['detalles']['subir'] ?>"></i> Reenviar carta corregida
+                                        <label class="btn btn-sm btn-warning" id="btn-carta-reenvio">
+                                            <i class="<?= $iconos['detalles']['subir'] ?>"></i>
+                                            <span class="btn-label">Reenviar carta corregida</span>
                                             <input type="file" name="documento" hidden accept=".pdf,.docx"
-                                                onchange="subirDocumentoEtapa(this, 3)">
+                                                onchange="prepararSubidaCarta(this)">
                                         </label>
                                     </form>
-                                    <div class="spinner-etapa d-none" id="spinner-etapa-3">
+                                    <div class="spinner-carta d-none mt-2" id="spinner-carta">
                                         <span class="spinner-border spinner-border-sm text-warning"></span>
-                                        <small class="ms-1">Enviando…</small>
+                                        <small class="ms-1">Enviando carta…</small>
                                     </div>
-                                    <div class="msg-etapa d-none" id="msg-etapa-3"></div>
 
                                 <?php else: ?>
+                                    <!-- Estado pendiente: primera subida -->
                                     <?php if ($etapa['plantilla'] == 1 && !empty($etapa['id_plantilla'])): ?>
                                         <a href="descargar_plantilla.php?id_plantilla=<?= $etapa['id_plantilla'] ?>"
                                             class="doc-descargar">
@@ -389,23 +428,24 @@ ob_start();
                                     <div class="mt-2 small text-muted mb-2">
                                         Descarga la plantilla, fírmala y súbela aquí en formato PDF o DOCX.
                                     </div>
+
                                     <form method="POST"
                                         action="?action=subirCartaTerminacion&id_proyectos=<?= $id_proyecto ?>"
                                         enctype="multipart/form-data"
-                                        class="form-subida"
-                                        data-etapa="3">
+                                        class="form-carta-terminacion">
                                         <input type="hidden" name="id_proyecto" value="<?= $id_proyecto ?>">
-                                        <label class="btn btn-sm btn-success">
-                                            <i class="<?= $iconos['detalles']['subir'] ?>"></i> Subir carta de terminación firmada
+                                        <label class="btn btn-sm btn-success" id="btn-carta-subir">
+                                            <i class="<?= $iconos['detalles']['subir'] ?>"></i>
+                                            <span class="btn-label">Subir carta de terminación firmada</span>
                                             <input type="file" name="documento" hidden accept=".pdf,.docx"
-                                                onchange="subirDocumentoEtapa(this, 3)">
+                                                onchange="prepararSubidaCarta(this)">
                                         </label>
                                     </form>
-                                    <div class="spinner-etapa d-none" id="spinner-etapa-3">
+                                    <div class="spinner-carta d-none mt-2" id="spinner-carta">
                                         <span class="spinner-border spinner-border-sm text-success"></span>
-                                        <small class="ms-1">Enviando…</small>
+                                        <small class="ms-1">Enviando carta…</small>
                                     </div>
-                                    <div class="msg-etapa d-none" id="msg-etapa-3"></div>
+
                                 <?php endif; ?>
 
                             <?php endif; ?>
@@ -420,7 +460,7 @@ ob_start();
         <?php else: ?>
             <div class="alert alert-info m-4">
                 <i class="<?= $iconos['detalles']['informacion'] ?>"></i>
-                <?= htmlspecialchars($mensaje ?? 'No se encontró información del proyecto.') ?>
+                <?= htmlspecialchars($mensaje_vista ?? 'No se encontró información del proyecto.') ?>
             </div>
         <?php endif; ?>
 
@@ -428,60 +468,106 @@ ob_start();
 </div>
 
 
-<!-- JavaScript para subida AJAX sin reload -->
 <script>
-    function subirDocumentoEtapa(inputEl, numEtapa) {
-        const form    = inputEl.closest('form');
-        const spinner = document.getElementById('spinner-etapa-' + numEtapa);
-        const msgEl   = document.getElementById('msg-etapa-' + numEtapa);
-        const card    = form.closest('.etapa-card');
+/**
+ * prepararSubidaCarta()
+ *
+ * Para subirCartaTerminacion: el controlador usa redirigir() (PRG),
+ * por lo que NO se usa fetch. En su lugar se muestra el spinner
+ * y se hace submit normal del formulario. La respuesta llega como
+ * una redirección con ?msg= que muestra el mensaje en la vista.
+ */
+function prepararSubidaCarta(inputEl) {
+    if (!inputEl.files || !inputEl.files[0]) return;
 
-        if (!inputEl.files || !inputEl.files[0]) return;
+    const form    = inputEl.closest('form');
+    const spinner = document.getElementById('spinner-carta');
 
-        spinner?.classList.remove('d-none');
-        if (msgEl) {
-            msgEl.className  = 'msg-etapa d-none';
-            msgEl.textContent = '';
-        }
-
-        const fd = new FormData(form);
-
-        fetch(form.action, { method: 'POST', body: fd })
-            .then(r => r.json())
-            .then(data => {
-                spinner?.classList.add('d-none');
-                if (data.ok) {
-                    const zona = card.querySelector('.docs-adjuntos');
-                    if (zona) {
-                        zona.innerHTML = `
-                        <div class="alert-etapa alert-etapa-warning mt-2">
-                            <i class="bi bi-hourglass-split me-2"></i>
-                            <span><strong>Terminación pendiente de validación.</strong>
-                            Tu carta fue enviada y está esperando la revisión del supervisor.</span>
-                        </div>`;
-                        const badge = card.querySelector('.etapa-badge');
-                        if (badge) {
-                            badge.className   = 'etapa-badge badge-pend-val';
-                            badge.textContent = 'Terminación pendiente de validación';
-                        }
-                    }
-                } else {
-                    if (msgEl) {
-                        msgEl.textContent = data.msg || 'Error al enviar.';
-                        msgEl.className   = 'msg-etapa alert alert-danger py-1 px-2 mt-2 small';
-                    }
-                    inputEl.value = '';
-                }
-            })
-            .catch(err => {
-                spinner?.classList.add('d-none');
-                if (msgEl) {
-                    msgEl.textContent = 'Error de conexión: ' + err.message;
-                    msgEl.className   = 'msg-etapa alert alert-danger py-1 px-2 mt-2 small';
-                }
-                inputEl.value = '';
-            });
+    // Mostrar spinner y deshabilitar el botón para evitar doble envío
+    if (spinner) spinner.classList.remove('d-none');
+    const btn = form.querySelector('label.btn');
+    if (btn) {
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity       = '0.65';
+        const label = btn.querySelector('.btn-label');
+        if (label) label.textContent = 'Enviando…';
     }
+
+    // Submit normal — el servidor redirige de vuelta con ?msg=
+    form.submit();
+}
+
+/**
+ * subirDocumentoEtapa()
+ *
+ * Solo se usa para Etapa 1 (Carta Compromiso), cuyo controlador
+ * aún responde JSON. Maneja la respuesta de forma defensiva.
+ */
+function subirDocumentoEtapa(inputEl, numEtapa) {
+    const form    = inputEl.closest('form');
+    const spinner = document.getElementById('spinner-etapa-' + numEtapa);
+    const msgEl   = document.getElementById('msg-etapa-' + numEtapa);
+    const card    = form.closest('.etapa-card');
+
+    if (!inputEl.files || !inputEl.files[0]) return;
+
+    if (spinner) spinner.classList.remove('d-none');
+    if (msgEl) {
+        msgEl.className   = 'msg-etapa d-none';
+        msgEl.textContent = '';
+    }
+
+    const fd = new FormData(form);
+
+    fetch(form.action, { method: 'POST', body: fd })
+        .then(r => r.text().then(text => ({ status: r.status, text })))
+        .then(({ status, text }) => {
+            if (spinner) spinner.classList.add('d-none');
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (_) {
+                mostrarMsgEtapa(msgEl, 'Error del servidor. Intenta de nuevo o recarga la página.', false);
+                inputEl.value = '';
+                return;
+            }
+
+            if (data.ok) {
+                const zona = card ? card.querySelector('.docs-adjuntos') : null;
+                if (zona) {
+                    zona.innerHTML = `
+                        <div class="alert-etapa alert-etapa-success mt-2">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span>
+                                <strong>Documento enviado.</strong>
+                                El investigador lo revisará pronto.
+                            </span>
+                        </div>`;
+                }
+                const badge = card ? card.querySelector('.etapa-badge') : null;
+                if (badge) {
+                    badge.className   = 'etapa-badge badge-proc';
+                    badge.textContent = 'En revisión';
+                }
+            } else {
+                mostrarMsgEtapa(msgEl, data.msg || 'Error al enviar.', false);
+                inputEl.value = '';
+            }
+        })
+        .catch(err => {
+            if (spinner) spinner.classList.add('d-none');
+            mostrarMsgEtapa(msgEl, 'Error de conexión. Verifica tu internet e intenta de nuevo.', false);
+            inputEl.value = '';
+            console.error('[subirDocumentoEtapa]', err);
+        });
+}
+
+function mostrarMsgEtapa(el, msg, ok) {
+    if (!el) return;
+    el.textContent = msg;
+    el.className   = 'msg-etapa alert py-1 px-2 mt-2 small ' + (ok ? 'alert-success' : 'alert-danger');
+}
 </script>
 
 <?php

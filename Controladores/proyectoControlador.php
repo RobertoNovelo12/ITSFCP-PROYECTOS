@@ -19,12 +19,22 @@ class ProyectoControlador extends BaseControlador
     }
 
 
-    // 
-    // MÉTODO BASE
-    // 
-
-    private function obtenerDatos(int $id, string $rol, ?string $buscar, ?int $filtro = null, string $tipo = 'filtro', int $id_periodo = 0): array
-    {
+    /**
+     * MÉTODO BASE
+     * Centraliza la obtención de datos para todos los roles.
+     * Se añadió el parámetro $estado para poder filtrar por
+     * estado del estudiante dentro de proyectos_usuarios
+     * (ej. 'concluido').
+     */
+    private function obtenerDatos(
+        int     $id,
+        string  $rol,
+        ?string $buscar,
+        ?int    $filtro    = null,
+        string  $tipo      = 'filtro',
+        int     $id_periodo = 0,
+        ?string $estado    = null   // <-- NUEVO parámetro
+    ): array {
         global $conn;
         try {
             if (!$this->rolValido($rol)) return [];
@@ -33,14 +43,23 @@ class ProyectoControlador extends BaseControlador
             $modelo->actualizarProyectosVencidos();
             $modelo->actualizarEstadoEstudiantesVencidos();
 
-            $resultado = $modelo->obtenerProyectosTablaFiltro($id, $filtro, $rol, $buscar, $id_periodo);
-            $decoded   = is_string($resultado) ? json_decode($resultado, true) : $resultado;
+            // Se pasa $estado al modelo
+            $resultado = $modelo->obtenerProyectosTablaFiltro(
+                $id,
+                $filtro,
+                $rol,
+                $buscar,
+                $id_periodo,
+                $estado
+            );
+            $decoded = is_string($resultado) ? json_decode($resultado, true) : $resultado;
             return is_array($decoded) ? $decoded : [];
         } catch (Exception $e) {
             error_log($e->getMessage());
             return [];
         }
     }
+
 
 
     // 
@@ -66,6 +85,26 @@ class ProyectoControlador extends BaseControlador
     {
         return $this->obtenerDatos($id, $rol, $buscar, 2, 'tabla', $id_periodo);
     }
+
+
+    /**
+     * Devuelve los proyectos donde el estudiante/usuario
+     * tiene estado = 'concluido' en proyectos_usuarios.
+     * $filtro = 2 acota además el estado del proyecto (Activo).
+     * Puedes quitar $filtro si quieres ver concluidos sin importar
+     * el estado del proyecto.
+     */
+    public function Concluidos(
+        int     $id,
+        string  $rol,
+        ?string $buscar     = null,
+        int     $id_periodo = 0
+    ): array {
+        // $filtro = null  → muestra proyectos de cualquier estado
+        // $estado = 'concluido' → filtra por estado del usuario en proyectos_usuarios
+        return $this->obtenerDatos($id, $rol, $buscar, null, 'tabla', $id_periodo, 'concluido');
+    }
+
 
     // PorAprobar ya no existe en Módulo 1 para investigador,
     // pero se conserva el método por si el supervisor o futuras rutas lo necesitan.
@@ -168,6 +207,7 @@ class ProyectoControlador extends BaseControlador
                 'Cierre'    => 'Cierre',
                 'PorCerrar' => 'Por Cerrar',
                 'Vencido'   => 'Vencidos',
+                'Concluidos' => 'Concluidos',
             ];
         }
 
@@ -177,6 +217,7 @@ class ProyectoControlador extends BaseControlador
                 'Cierre'    => 'Cierre',
                 'PorCerrar' => 'Por Cerrar',
                 'Vencido'   => 'Vencidos',
+                'Concluidos' => 'Concluidos',
             ];
         }
 
@@ -185,6 +226,7 @@ class ProyectoControlador extends BaseControlador
                 'PorCerrar' => 'Por Cerrar',
                 'Cierre'    => 'Cierre',
                 'Vencido'   => 'Vencidos',
+                'Concluidos' => 'Concluidos',
             ];
         }
 
@@ -318,6 +360,7 @@ class ProyectoControlador extends BaseControlador
                 'Por cerrar' => ['Detalles', 'Ver Tareas Alumnos'],
                 'Vencido'    => ['Detalles', 'Ver Tareas Alumnos'],
                 'Cierre'     => ['Detalles', 'Ver Tareas Alumnos'],
+                'Cierre rechazado'     => ['Detalles', 'Ver Tareas Alumnos'],
             ],
 
             //   • Rechazado y Cierre rechazado: NO aparecen en Módulo 1 (la query ya los excluye).
@@ -595,7 +638,10 @@ class ProyectoControlador extends BaseControlador
         } catch (Exception $e) {
 
             if ($conn->errno === 0) {
-                try { $conn->rollback(); } catch (Exception $ex) {}
+                try {
+                    $conn->rollback();
+                } catch (Exception $ex) {
+                }
             }
 
             error_log('ProyectoControlador::registrarProyecto() - ' . $e->getMessage());

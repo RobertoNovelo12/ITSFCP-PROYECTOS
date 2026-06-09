@@ -25,7 +25,7 @@ if ($rol !== 'supervisor') {
 
 $id_cierre_est = intval($_GET['id'] ?? 0);
 
-include __DIR__ . '../../Controladores/solicitudes_carta_terminacionControlador.php';
+require_once __DIR__ . '/../../Controladores/solicitudes_carta_terminacionControlador.php';
 $ctrl  = new solicitudes_carta_terminacionControlador();
 
 // Procesar POST — rechazo enviado
@@ -37,13 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'recha
 // Cargar datos mínimos para mostrar contexto en el formulario
 $carta = $ctrl->detalleCarta($id_cierre_est);
 
-// Validación
-$registro = $carta;
-require_once '../../../publico/incluido/_validar_datos.php';
-
 
 // Solo se puede rechazar si está pendiente
-if ($carta['estado_carta'] !== 'pendiente') {
+if ($carta['estado_carta'] !== 'finalizacion_pendiente') {
     header("Location: detalles.php?id=" . $id_cierre_est . "&error=Esta+solicitud+ya+fue+procesada");
     exit;
 }

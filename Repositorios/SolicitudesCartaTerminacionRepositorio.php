@@ -17,7 +17,12 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
  * El $base_where con el filtro de estado (enum controlado por el modelo) se
  * recibe como string ya construido junto con sus parámetros bind. Periodo y
  * búsqueda siempre viajan como parámetros bound para evitar inyección SQL.
- * 
+ *
+ * estados_proceso reales en BD:
+ *   id=1  en_proceso
+ *   id=2  carta_subida
+ *   id=3  en_correccion
+ *   id=5  liberado_supervisor
  */
 class SolicitudesCartaTerminacionRepositorio extends BaseModelo
 {
@@ -28,7 +33,7 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
 
 
     // 
-    // CATÁLOGOS
+    //  CATÁLOGOS
     // 
 
     public function obtenerTodosPeriodos(): array
@@ -40,7 +45,7 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
 
 
     // 
-    // RESUMEN (tarjetas dashboard)
+    //  RESUMEN (tarjetas dashboard)
     // 
 
     /**
@@ -52,9 +57,9 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
         $fila = $this->ejecutar(
             "SELECT
                 COUNT(*) AS total,
-                SUM(CASE WHEN ce.estado = 'pendiente'  THEN 1 ELSE 0 END) AS pendientes,
-                SUM(CASE WHEN ce.estado = 'aprobado'   THEN 1 ELSE 0 END) AS aprobadas,
-                SUM(CASE WHEN ce.estado = 'rechazado'  THEN 1 ELSE 0 END) AS rechazadas
+                SUM(CASE WHEN ce.estado = 'finalizacion_pendiente' THEN 1 ELSE 0 END) AS pendientes,
+                SUM(CASE WHEN ce.estado = 'aprobado'               THEN 1 ELSE 0 END) AS aprobadas,
+                SUM(CASE WHEN ce.estado = 'rechazado'              THEN 1 ELSE 0 END) AS rechazadas
              FROM cierres_estudiante ce
              JOIN proyectos_usuarios pu ON pu.id_integrante = ce.id_integrante
              JOIN proyectos p           ON p.id_proyectos   = pu.id_proyectos
@@ -69,7 +74,7 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
 
 
     // 
-    // LISTADO PAGINADO
+    //  LISTADO PAGINADO
     // 
 
     public function contarCartas(string $base_where, array $params, string $types): int
@@ -122,7 +127,7 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
              JOIN documentos_subidos ds  ON ds.id_documento       = ce.id_documento
              {$base_where}
              ORDER BY
-                FIELD(ce.estado, 'pendiente', 'rechazado', 'aprobado'),
+                FIELD(ce.estado, 'finalizacion_pendiente', 'rechazado', 'aprobado'),
                 ce.fecha_solicitud DESC
              LIMIT ?, ?",
             $types,
@@ -132,7 +137,7 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
 
 
     // 
-    // DETALLE
+    //  DETALLE
     // 
 
     public function detalleCarta(int $id_cierre_est): ?array
@@ -184,12 +189,12 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
             'i',
             [$id_cierre_est],
             false
-        ) ?: null;
+        );
     }
 
 
     // 
-    // HISTORIAL
+    //  HISTORIAL
     // 
 
     public function historialProceso(int $id_proyectos, int $id_usuarios): array
@@ -265,7 +270,7 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
 
 
     // 
-    // APROBAR (transaccional)
+    //  APROBAR
     // 
 
     public function aprobarCarta(int $id_cierre_est, int $id_supervisor): array
@@ -276,19 +281,25 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
                 'SELECT ce.id_cierre_est, ce.estado, pu.id_integrante, pu.id_proyectos, pu.id_usuarios
                  FROM cierres_estudiante ce
                  JOIN proyectos_usuarios pu ON pu.id_integrante = ce.id_integrante
-                 WHERE ce.id_cierre_est = ? AND ce.id_supervisor = ?',
+                 WHERE ce.id_cierre_est = ? AND ce.id_supervisor = ?
+                 LIMIT 1',
                 'ii',
                 [$id_cierre_est, $id_supervisor],
                 false
             );
 
-            if (!$check)                          throw new \Exception('Solicitud no encontrada o sin acceso.');
-            if ($check['estado'] !== 'pendiente') throw new \Exception('Esta solicitud ya fue procesada.');
+            if (!$check) {
+                throw new \Exception('Solicitud no encontrada o sin acceso.');
+            }
+            if ($check['estado'] !== 'finalizacion_pendiente') {
+                throw new \Exception('Esta solicitud ya fue procesada.');
+            }
 
             $id_integrante = $check['id_integrante'];
             $id_proyectos  = $check['id_proyectos'];
             $id_usuarios   = $check['id_usuarios'];
 
+            // Marcar cierre como aprobado
             $this->ejecutar(
                 "UPDATE cierres_estudiante
                  SET estado = 'aprobado', fecha_respuesta = CURDATE()
@@ -297,11 +308,14 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
                 [$id_cierre_est]
             );
 
+            // Marcar integrante como concluido.
+            // id_estados_proceso se deja en 'liberado_supervisor' (id=5) que es el
+            // estado final disponible en la tabla; no existe 'concluido' en estados_proceso.
             $this->ejecutar(
                 "UPDATE proyectos_usuarios
-                 SET estado = 'concluido',
-                     fecha_terminacion  = CURDATE(),
-                     id_estados_proceso = (SELECT id_estados_proceso FROM estados_proceso WHERE estado = 'concluido' LIMIT 1)
+                 SET estado            = 'concluido',
+                     fecha_terminacion = CURDATE(),
+                     id_estados_proceso = 5
                  WHERE id_integrante = ?",
                 'i',
                 [$id_integrante]
@@ -335,7 +349,7 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
 
 
     // 
-    // RECHAZAR (transaccional)
+    //  RECHAZAR
     // 
 
     public function rechazarCarta(int $id_cierre_est, int $id_supervisor, string $comentario): array
@@ -346,19 +360,25 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
                 'SELECT ce.id_cierre_est, ce.estado, pu.id_integrante, pu.id_proyectos, pu.id_usuarios
                  FROM cierres_estudiante ce
                  JOIN proyectos_usuarios pu ON pu.id_integrante = ce.id_integrante
-                 WHERE ce.id_cierre_est = ? AND ce.id_supervisor = ?',
+                 WHERE ce.id_cierre_est = ? AND ce.id_supervisor = ?
+                 LIMIT 1',
                 'ii',
                 [$id_cierre_est, $id_supervisor],
                 false
             );
 
-            if (!$check)                          throw new \Exception('Solicitud no encontrada o sin acceso.');
-            if ($check['estado'] !== 'pendiente') throw new \Exception('Esta solicitud ya fue procesada.');
+            if (!$check) {
+                throw new \Exception('Solicitud no encontrada o sin acceso.');
+            }
+            if ($check['estado'] !== 'finalizacion_pendiente') {
+                throw new \Exception('Esta solicitud ya fue procesada.');
+            }
 
             $id_integrante = $check['id_integrante'];
             $id_proyectos  = $check['id_proyectos'];
             $id_usuarios   = $check['id_usuarios'];
 
+            // Marcar cierre como rechazado
             $this->ejecutar(
                 "UPDATE cierres_estudiante
                  SET estado = 'rechazado', fecha_respuesta = CURDATE(), comentarios = ?
@@ -367,9 +387,11 @@ class SolicitudesCartaTerminacionRepositorio extends BaseModelo
                 [$comentario, $id_cierre_est]
             );
 
+            // Regresar integrante a 'en_correccion' (id=3) para que
+            // pueda corregir y reenviar su carta
             $this->ejecutar(
                 "UPDATE proyectos_usuarios
-                 SET id_estados_proceso = (SELECT id_estados_proceso FROM estados_proceso WHERE estado = 'carta_subida' LIMIT 1)
+                 SET id_estados_proceso = 3
                  WHERE id_integrante = ?",
                 'i',
                 [$id_integrante]

@@ -70,6 +70,7 @@ class SeguimientoModelo
             if ($orden === 1) {
                 $etapa['estado']           = 'completado';
                 $etapa['documento_subido'] = $this->repo->datosSeguimientoEstudiante($id_proyecto, $id_usuario);
+
             } elseif ($orden === 2) {
                 $total     = $this->repo->contarTareasTotales($id_proyecto, $id_usuario);
                 $aprobadas = $this->repo->contarTareasAprobadas($id_proyecto, $id_usuario);
@@ -80,6 +81,7 @@ class SeguimientoModelo
                 $etapa['id_seguimiento']   = null;
                 $etapa['id_plantilla']     = null;
                 $etapa['documento_subido'] = null;
+
             } elseif ($orden === 3) {
                 $cierre                    = $this->repo->cierreEstudiante($id_proyecto, $id_usuario);
                 $etapa['documento_subido'] = null;
@@ -120,8 +122,7 @@ class SeguimientoModelo
 
     /**
      * Construye las etapas en modo "baja/cancelado".
-     * Muestra hasta dónde llegó el estudiante con estado visual de cierre,
-     * y en cada etapa no completada indica que ya no puede continuar.
+     * Muestra hasta dónde llegó el estudiante con estado visual de cierre.
      *
      * @return array[]
      */
@@ -178,41 +179,25 @@ class SeguimientoModelo
     // DOCUMENTOS
     // 
 
-    /**
-     * Documento activo de Etapa 1 (carta compromiso firmada) del estudiante.
-     *
-     * @return array|null
-     */
+    /** @return array|null */
     public function DatosSeguimientoEstudiante(int $id_proyecto, int $id_usuario): ?array
     {
         return $this->repo->datosSeguimientoEstudiante($id_proyecto, $id_usuario);
     }
 
-    /**
-     * Devuelve un documento por su id.
-     *
-     * @return array|null
-     */
+    /** @return array|null */
     public function getDocumentoPorId(int $id_documento): ?array
     {
         return $this->repo->documentoPorId($id_documento);
     }
 
-    /**
-     * Documentos activos de tipo 'etapa' del estudiante en un proyecto.
-     *
-     * @return array[]
-     */
+    /** @return array[] */
     public function getDocumentosEtapaEstudiante(int $id_proyecto, int $id_usuario): array
     {
         return $this->repo->documentosEtapaEstudiante($id_proyecto, $id_usuario);
     }
 
-    /**
-     * Registra documento en documentos_subidos (Etapa 1 / otros).
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function registrarDocumentoCentralizado(
         int     $id_seguimiento,
         ?int    $id_plantilla,
@@ -227,23 +212,14 @@ class SeguimientoModelo
         ?int    $id_etapa
     ): bool {
         return $this->repo->registrarDocumentoCentralizado(
-            $id_seguimiento,
-            $id_plantilla,
-            $nombre,
-            $nombre_archivo,
-            $ruta,
-            $tipo_mime,
-            $extension,
-            $tamano_bytes,
-            $id_usuario,
-            $id_proyecto,
-            $id_etapa
+            $id_seguimiento, $id_plantilla, $nombre, $nombre_archivo,
+            $ruta, $tipo_mime, $extension, $tamano_bytes,
+            $id_usuario, $id_proyecto, $id_etapa
         );
     }
 
     /**
-     * Registra Carta de Terminación en documentos_subidos (Etapa 3).
-     * Devuelve id_documento generado.
+     * Registra Carta de Terminación. Devuelve id_documento generado (0 si falló).
      *
      * @return int
      */
@@ -259,23 +235,12 @@ class SeguimientoModelo
         int     $id_etapa
     ): int {
         return $this->repo->registrarDocumentoCarta(
-            $nombre,
-            $nombre_archivo,
-            $ruta,
-            $tipo_mime,
-            $extension,
-            $tamano_bytes,
-            $id_usuario,
-            $id_proyecto,
-            $id_etapa
+            $nombre, $nombre_archivo, $ruta, $tipo_mime, $extension,
+            $tamano_bytes, $id_usuario, $id_proyecto, $id_etapa
         );
     }
 
-    /**
-     * Desactiva el documento previo de carta de terminación al reenviar.
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function desactivarDocumentoCarta(int $id_documento): bool
     {
         return $this->repo->desactivarDocumentoCarta($id_documento);
@@ -286,19 +251,15 @@ class SeguimientoModelo
     // COMENTARIOS DE CORRECCIONES — Etapa 3
     // 
 
-    /**
-     * Obtiene el hilo de comentarios de correcciones de la carta de terminación.
-     *
-     * @return array[]
-     */
+    /** @return array[] */
     public function ComentariosCierre(int $id_cierre_est): array
     {
         return $this->repo->comentariosCierre($id_cierre_est);
     }
 
     /**
-     * Agrega un comentario de corrección del estudiante en el hilo del cierre.
-     * Actualiza el estado del cierre a 'finalizacion_pendiente' para re-revisión.
+     * Agrega un comentario del estudiante y reinicia el estado del cierre
+     * a 'finalizacion_pendiente' para re-revisión del supervisor.
      *
      * @return bool
      */
@@ -306,16 +267,12 @@ class SeguimientoModelo
         int     $id_cierre_est,
         int     $id_usuario,
         string  $comentario,
-        ?string $archivo_nombre = null,
-        ?string $archivo_ruta   = null
+        ?int $id_documento_adjunto = null
     ): bool {
         try {
             $this->repo->insertarComentarioCierre(
-                $id_cierre_est,
-                $id_usuario,
-                $comentario,
-                $archivo_nombre,
-                $archivo_ruta
+                $id_cierre_est, $id_usuario, $comentario,
+                $id_documento_adjunto
             );
             $this->repo->reiniciarEstadoCierre($id_cierre_est);
             return true;
@@ -330,41 +287,25 @@ class SeguimientoModelo
     // CIERRES_ESTUDIANTE (Etapa 3)
     // 
 
-    /**
-     * Registro de cierres_estudiante del estudiante en el proyecto.
-     *
-     * @return array|null
-     */
+    /** @return array|null */
     public function CierreEstudiante(int $id_proyecto, int $id_usuario): ?array
     {
         return $this->repo->cierreEstudiante($id_proyecto, $id_usuario);
     }
 
-    /**
-     * Obtiene un cierre por su id (para la vista de correcciones).
-     *
-     * @return array|null
-     */
+    /** @return array|null */
     public function CierrePorId(int $id_cierre_est): ?array
     {
         return $this->repo->cierrePorId($id_cierre_est);
     }
 
-    /**
-     * id_integrante del estudiante en el proyecto.
-     *
-     * @return int|null
-     */
+    /** @return int|null */
     public function getIdIntegrante(int $id_proyecto, int $id_usuario): ?int
     {
         return $this->repo->idIntegrante($id_proyecto, $id_usuario);
     }
 
-    /**
-     * Primer supervisor activo asignado al proyecto.
-     *
-     * @return int|null
-     */
+    /** @return int|null */
     public function getIdSupervisorDelProyecto(int $id_proyecto): ?int
     {
         return $this->repo->idSupervisorDelProyecto($id_proyecto);
@@ -375,29 +316,18 @@ class SeguimientoModelo
      *
      * @return int  id_cierre_est generado.
      */
-    public function crearCierreEstudiante(
-        int $id_integrante,
-        int $id_documento,
-        int $id_supervisor
-    ): int {
+    public function crearCierreEstudiante(int $id_integrante, int $id_documento, int $id_supervisor): int
+    {
         return $this->repo->crearCierreEstudiante($id_integrante, $id_documento, $id_supervisor);
     }
 
-    /**
-     * Reenvío de carta corregida.
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function reenviarCierreEstudiante(int $id_cierre_est, int $id_documento): bool
     {
         return $this->repo->reenviarCierreEstudiante($id_cierre_est, $id_documento);
     }
 
-    /**
-     * Actualiza proyectos_usuarios.id_estados_proceso a 'carta_subida'.
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function actualizarEstadoProcesoCarta(int $id_integrante): bool
     {
         return $this->repo->actualizarEstadoProcesoCarta($id_integrante);
@@ -408,21 +338,13 @@ class SeguimientoModelo
     // SEGUIMIENTO_DOCUMENTO
     // 
 
-    /**
-     * Reporte Final del estudiante en el proyecto.
-     *
-     * @return array|null
-     */
+    /** @return array|null */
     public function getSegimientoReporteFinal(int $id_proyecto, int $id_usuario): ?array
     {
         return $this->repo->seguimientoReporteFinal($id_proyecto, $id_usuario);
     }
 
-    /**
-     * Seguimiento por id.
-     *
-     * @return array|null
-     */
+    /** @return array|null */
     public function getSegimientoPorId(int $id_seguimiento): ?array
     {
         return $this->repo->seguimientoPorId($id_seguimiento);
@@ -438,21 +360,13 @@ class SeguimientoModelo
         return $this->repo->crearSeguimiento($id_proyecto, $id_tipo_documento, $id_usuario);
     }
 
-    /**
-     * Actualiza estado de seguimiento (acción del estudiante).
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function actualizarEstadoEstudiante(int $id, string $estado): bool
     {
         return $this->repo->actualizarEstadoEstudiante($id, $estado);
     }
 
-    /**
-     * Actualiza estado + comentario + revisor (acción del investigador).
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function actualizarEstadoSeguimiento(
         int    $id_seg,
         string $estado,
@@ -462,11 +376,7 @@ class SeguimientoModelo
         return $this->repo->actualizarEstadoSeguimiento($id_seg, $estado, $comentario, $id_rev);
     }
 
-    /**
-     * Verifica que un seguimiento pertenezca a proyecto del investigador.
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function verificarPermisoInvestigador(int $id_seg, int $id_inv): bool
     {
         return $this->repo->verificarPermisoInvestigador($id_seg, $id_inv);
@@ -477,11 +387,7 @@ class SeguimientoModelo
     // SOLICITUDES DE INTEGRACIÓN
     // 
 
-    /**
-     * Solicitud más reciente del estudiante en el proyecto.
-     *
-     * @return array|null
-     */
+    /** @return array|null */
     public function getSolicitudPorEstudianteProyecto(int $id_estudiante, int $id_proyecto): ?array
     {
         return $this->repo->solicitudPorEstudianteProyecto($id_estudiante, $id_proyecto);
@@ -492,11 +398,7 @@ class SeguimientoModelo
     // TIPO_DOCUMENTO — utilidades
     // 
 
-    /**
-     * id_etapa correspondiente al tipo_documento.
-     *
-     * @return int|null
-     */
+    /** @return int|null */
     public function IdEtapaPorTipoDocumento(int $id_tipo_documento): ?int
     {
         return $this->repo->idEtapaPorTipoDocumento($id_tipo_documento);
@@ -507,21 +409,13 @@ class SeguimientoModelo
     // TAREAS — Etapa 2
     // 
 
-    /**
-     * Total de tareas asignadas al estudiante en el proyecto.
-     *
-     * @return int
-     */
+    /** @return int */
     public function contarTareasTotales(int $id_proyecto, int $id_estudiante): int
     {
         return $this->repo->contarTareasTotales($id_proyecto, $id_estudiante);
     }
 
-    /**
-     * Tareas aprobadas (id_estadoT = 5) del estudiante en el proyecto.
-     *
-     * @return int
-     */
+    /** @return int */
     public function contarTareasAprobadas(int $id_proyecto, int $id_estudiante): int
     {
         return $this->repo->contarTareasAprobadas($id_proyecto, $id_estudiante);
@@ -544,11 +438,7 @@ class SeguimientoModelo
     // PROYECTOS_USUARIOS + HISTORIAL
     // 
 
-    /**
-     * Verifica que el estudiante pertenezca al proyecto (activo o concluido).
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function verificarProyectoUsuario(int $id_proyecto, int $id_usuario): bool
     {
         return $this->repo->verificarProyectoUsuario($id_proyecto, $id_usuario);
@@ -571,11 +461,7 @@ class SeguimientoModelo
         return true;
     }
 
-    /**
-     * Registra carta rechazada en historial.
-     *
-     * @return bool
-     */
+    /** @return bool */
     public function registrarHistorialCartaRechazada(
         int    $id_proyecto,
         int    $id_estudiante,
@@ -583,11 +469,7 @@ class SeguimientoModelo
         int    $realizado_por
     ): bool {
         return $this->repo->insertarHistorial(
-            $id_proyecto,
-            $id_estudiante,
-            'carta_rechazada',
-            $motivo,
-            $realizado_por
+            $id_proyecto, $id_estudiante, 'carta_rechazada', $motivo, $realizado_por
         );
     }
 
@@ -596,9 +478,6 @@ class SeguimientoModelo
     // NOTIFICACIONES
     // 
 
-    /**
-     * Inserta una notificación para el usuario indicado.
-     */
     public function notificar(int $id_usuario, string $titulo, string $contenido, string $enlace = ''): void
     {
         $this->repo->notificar($id_usuario, $titulo, $contenido, $enlace);

@@ -24,6 +24,8 @@ if ($rol !== 'supervisor') {
 include __DIR__ . '../../../publico/incluido/_validar_get.php';
 
 $id_cierre_est = intval($_GET['id'] ?? 0);
+$action     = $_GET['action'] ?? 'index';
+
 //Validación de argumentos en url
 $id_validar = $id_cierre_est;
 include __DIR__ . '../../../publico/incluido/_validar_id.php';
@@ -37,8 +39,23 @@ $carta  = $ctrl->detalleCarta($id_cierre_est);
 $registro = $carta;
 include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
+//  Acción: aprobar (GET desde botón tabla) ─
+if (isset($_GET['action']) && $_GET['action'] === 'aprobar' && isset($_GET['id'])) {
+    $ctrl->aprobarCarta((int)$_GET['id'], $id_usuario, $rol);
+    // aprobarCarta() redirige; no llega aquí
+}
 
 $historial = $ctrl->historialProceso($carta['id_proyectos'], $carta['id_usuarios']);
+
+$msg = $_GET['msg'] ?? '';
+
+/* Mapa de mensajes (patrón PRG — viene por ?msg=) */
+$_mapa = [
+    'error_procesada' => ['tipo' => 'alerta', 'titulo_msg' => 'Solicitud ya procesada',    'mensaje' => 'Esta solicitud ya fue procesada Intente con otra solicitud.'],
+    'error_interno'                => ['tipo' => 'error',  'titulo_msg' => 'Error interno',             'mensaje' => 'Ocurrió un error al procesar tu solicitud. Intenta de nuevo.'],
+    'sin_permiso'                  => ['tipo' => 'alerta', 'titulo_msg' => 'Acceso restringido',        'mensaje' => 'No tienes permiso para realizar esta acción.'],
+    'accion_no_permitida'          => ['tipo' => 'alerta', 'titulo_msg' => 'Acción no permitida',       'mensaje' => 'La acción solicitada no está disponible en el estado actual.'],
+];
 
 ob_start();
 include __DIR__ . '/../../mensaje.php';
@@ -59,12 +76,18 @@ if (!empty($_GET['error'])) {
         $descripcion = 'Información de la solicitud seleccionada';
         include __DIR__ . '../../../publico/incluido/_encabezado.php';
         ?>
-        <div class="col-4 text-end">
+        <div class="col-6 text-end">
             <a href="index.php" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Regresar
             </a>
         </div>
     </div>
+
+    <!-- ALERTAS -->
+    <?php if (isset($_mapa[$msg])):
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
 
     <?php if ($error_msg): ?>
         <div class="alert alert-danger alert-dismissible fade show">
@@ -270,7 +293,7 @@ if (!empty($_GET['error'])) {
     <?php endif; ?>
 
     <!-- ACCIONES DEL SUPERVISOR -->
-    <?php if ($carta['estado_carta'] === 'pendiente'): ?>
+    <?php if ($carta['estado_carta'] === 'finalizacion_pendiente'): ?>
         <div class="card mb-4 shadow-sm border-primary">
             <div class="card-header fw-semibold">
                 <i class="bi bi-shield-check me-2"></i>Acciones sobre la solicitud
@@ -283,7 +306,7 @@ if (!empty($_GET['error'])) {
                 <div class="d-flex gap-3 flex-wrap">
 
                     <!-- APROBAR -->
-                    <a href="index.php?action=aprobar&id=<?= $carta['id_cierre_est'] ?>"
+                    <a href="detalles.php?action=aprobar&id=<?= $carta['id_cierre_est'] ?>"
                         class="btn btn-success btn-lg"
                         onclick="return confirm('¿Confirma que desea APROBAR la carta de terminación de <?= htmlspecialchars($carta['nombre_estudiante']) ?>? Esta acción concluirá su participación en el proyecto.')">
                         <i class="bi bi-check-circle-fill me-1"></i> Aprobar carta
