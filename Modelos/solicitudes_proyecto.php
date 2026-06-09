@@ -48,9 +48,10 @@ class SolicitudesProyecto
         ?float $porcentaje     = null,
         ?int   $id_investigador = null
     ): void {
-        $this->repo->actualizarEstado($id_proyectos, $numeroEstado);
+
 
         if ($numeroEstado === 2) {
+
             $plantillaRep   = $this->repo->obtenerPlantillaReporte();
             $id_doc_reporte = $plantillaRep['id_documento'] ?? null;
 
@@ -66,19 +67,19 @@ class SolicitudesProyecto
                     $this->repo->insertarTarea($id_avances, $id_tipo, $estadoSinActivar);
                 }
             }
-
         } elseif ($numeroEstado === 5) {
+            $this->repo->actualizarEstado($id_proyectos, $numeroEstado);
             // Insertar registro de cierre. Se usa el id_investigador recibido;
             // si no viene, se busca en la tabla de proyectos (compatibilidad).
-            if ($id_investigador === null) {
+            if ($id_investigador == null) {
                 $row = $this->repo->obtenerInvestigadorDeProyecto($id_proyectos);
                 $id_investigador = $row['id_investigador'] ?? null;
             }
-            if ($id_investigador !== null) {
-                $this->repo->insertarCierre($id_proyectos, $id_investigador, $porcentaje);
+            if ($id_investigador != null) {
+                $this->repo->insertarCierre($id_proyectos, $porcentaje);
             }
-
         } elseif ($numeroEstado === 1) {
+            $this->repo->actualizarEstado($id_proyectos, $numeroEstado);
             $row = $this->repo->obtenerInvestigadorDeProyecto($id_proyectos);
             if ($row) {
                 $this->repo->aprobarCierre($id_proyectos);
@@ -103,9 +104,9 @@ class SolicitudesProyecto
      * Solo el investigador dueño del proyecto puede ejecutarla.
      * Retorna true si el cambio se realizó, false si no procede.
      */
-    public function reenviarCierre(int $id_proyectos, int $id_investigador): bool
+    public function reenviarCierre(int $id_proyectos, int $id_investigador): void
     {
-        return $this->repo->reenviarCierre($id_proyectos, $id_investigador);
+         $this->repo->reenviarCierre($id_proyectos, $id_investigador);
     }
 
 

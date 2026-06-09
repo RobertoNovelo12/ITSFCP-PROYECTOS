@@ -40,7 +40,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     public function actualizarEstado(int $id_proyectos, int $numeroEstado): void
     {
         $this->ejecutar(
-            "UPDATE proyectos SET id_estadoP = ?, actualizado_en = NOW() WHERE id_proyectos = ?",
+            "UPDATE proyectos
+             SET id_estadoP = ?, actualizado_en = NOW()
+             WHERE id_proyectos = ?",
             "ii",
             [$numeroEstado, $id_proyectos]
         );
@@ -52,7 +54,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
             "SELECT pd.id_plantilla, pd.id_documento
              FROM plantillas_documentos pd
              INNER JOIN tipo_documento td ON td.id_tipo_documento = pd.id_tipo_documento
-             WHERE pd.activo = 1 AND LOWER(td.nombre) LIKE 'reporte%' LIMIT 1",
+             WHERE pd.activo = 1
+               AND LOWER(td.nombre) LIKE 'reporte%'
+             LIMIT 1",
             "", [], false
         ) ?: null;
     }
@@ -60,126 +64,193 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     public function insertarSeguimiento(int $id_proyectos): int
     {
         $this->ejecutar(
-            "INSERT INTO tbl_seguimiento (id_proyectos, fecha_activacion) VALUES (?, CURDATE())",
-            "i", [$id_proyectos]
+            "INSERT INTO tbl_seguimiento (id_proyectos, fecha_activacion)
+             VALUES (?, CURDATE())",
+            "i",
+            [$id_proyectos]
         );
         return (int)$this->conn->insert_id;
     }
 
     public function obtenerTiposTarea(): array
     {
-        return $this->ejecutar("SELECT id_tareatipo FROM tipo_tarea ORDER BY id_tareatipo ASC");
-    }
-
-    public function insertarTareaConDocumento(int $id_avances, int $id_tipo, int $estado, int $id_doc): void
-    {
-        $this->ejecutar(
-            "INSERT INTO tareas (id_avances, id_tareatipo, id_estadoT, id_documento_recurso) VALUES (?, ?, ?, ?)",
-            "iiii", [$id_avances, $id_tipo, $estado, $id_doc]
+        return $this->ejecutar(
+            "SELECT id_tareatipo
+             FROM tipo_tarea
+             ORDER BY id_tareatipo ASC"
         );
     }
 
+    /**
+     * Inserta una tarea con documento de recurso adjunto.
+     * Campos reales de `tareas`: id_avances, id_tareatipo, id_estadoT, id_documento_recurso.
+     */
+    public function insertarTareaConDocumento(int $id_avances, int $id_tipo, int $estado, int $id_doc): void
+    {
+        $this->ejecutar(
+            "INSERT INTO tareas (id_avances, id_tareatipo, id_estadoT, id_documento_recurso)
+             VALUES (?, ?, ?, ?)",
+            "iiii",
+            [$id_avances, $id_tipo, $estado, $id_doc]
+        );
+    }
+
+    /**
+     * Inserta una tarea sin documento de recurso.
+     * id_documento_recurso es nullable, se omite para que quede NULL.
+     */
     public function insertarTarea(int $id_avances, int $id_tipo, int $estado): void
     {
         $this->ejecutar(
-            "INSERT INTO tareas (id_avances, id_tareatipo, id_estadoT) VALUES (?, ?, ?)",
-            "iii", [$id_avances, $id_tipo, $estado]
+            "INSERT INTO tareas (id_avances, id_tareatipo, id_estadoT)
+             VALUES (?, ?, ?)",
+            "iii",
+            [$id_avances, $id_tipo, $estado]
         );
     }
 
     public function obtenerInvestigadorDeProyecto(int $id_proyectos): ?array
     {
         return $this->ejecutar(
-            "SELECT id_investigador FROM proyectos WHERE id_proyectos = ?",
-            "i", [$id_proyectos], false
+            "SELECT id_investigador
+             FROM proyectos
+             WHERE id_proyectos = ?",
+            "i",
+            [$id_proyectos],
+            false
         ) ?: null;
     }
 
+    /**
+     * Aprueba el cierre del proyecto:
+     *   1. Marca tbl_cierres como aprobado.
+     *   2. Actualiza todos los integrantes activos a 'concluido' en proyectos_usuarios.
+     */
     public function aprobarCierre(int $id_proyectos): void
     {
         $this->ejecutar(
-            "UPDATE tbl_cierres SET fecha_resultado = CURDATE(), estado = 'aprobado' WHERE id_proyectos = ?",
-            "i", [$id_proyectos]
+            "UPDATE tbl_cierres
+             SET fecha_resultado = CURDATE(), estado = 'aprobado'
+             WHERE id_proyectos = ?",
+            "i",
+            [$id_proyectos]
         );
         $this->ejecutar(
-            "UPDATE proyectos_usuarios SET fecha_terminacion = CURDATE(), estado = 'concluido' WHERE id_proyectos = ?",
-            "i", [$id_proyectos]
+            "UPDATE proyectos_usuarios
+             SET fecha_terminacion = CURDATE(), estado = 'concluido'
+             WHERE id_proyectos = ?
+               AND estado = 'activo'",
+            "i",
+            [$id_proyectos]
         );
     }
 
     /**
-     * Inserta la solicitud de cierre en tbl_cierres cuando el investigador
-     * solicita el cierre de su proyecto (estado 5 → Por cerrar).
-     * Equivalente al método en ProyectosRepositorio.
+     * Inserta la solicitud de cierre en tbl_cierres.
+     *
      */
-    public function insertarCierre(int $id_proyectos, int $id_investigador, ?float $porcentaje): void
+    public function insertarCierre(int $id_proyectos, ?float $porcentaje): void
     {
         $this->ejecutar(
-            "INSERT INTO tbl_cierres (id_proyectos, id_investigador, porcentaje_avance, fecha_solicitud, estado)
-             VALUES (?, ?, ?, CURDATE(), 'espera')
-             ON DUPLICATE KEY UPDATE
-                porcentaje_avance = VALUES(porcentaje_avance),
-                fecha_solicitud   = CURDATE(),
-                estado            = 'espera',
-                fecha_resultado   = NULL",
-            "iid",
-            [$id_proyectos, $id_investigador, $porcentaje ?? 0.0]
+            "INSERT INTO tbl_cierres
+                (id_proyectos, porcentaje, fecha_solicitud, estado)
+             VALUES (?, ?, CURDATE(), 'espera')",
+            "id",
+            [$id_proyectos, $porcentaje ?? 0.0]
         );
     }
 
+    /**
+     * Reactiva un cierre rechazado: restablece estado a 'espera',
+     * actualiza el porcentaje y limpia fecha_resultado.
+     * Se usa al reenviar la solicitud (en lugar de ON DUPLICATE KEY).
+     */
+    public function actualizarCierreParaReenvio(int $id_proyectos, ?float $porcentaje): void
+    {
+        $this->ejecutar(
+            "UPDATE tbl_cierres
+             SET estado           = 'espera',
+                 porcentaje       = ?,
+                 fecha_solicitud  = CURDATE(),
+                 fecha_resultado  = NULL
+             WHERE id_proyectos   = ?
+               AND estado         = 'rechazado'",
+            "di",
+            [$porcentaje ?? 0.0, $id_proyectos]
+        );
+    }
+
+    /**
+     * Rechaza una solicitud e inserta el comentario de rechazo.
+     *
+     */
     public function rechazarConComentario(int $id_usuario, int $id_proyectos, string $tipo, string $comentario): void
     {
+        // $tipo debe ser 'creacion_rechazada' (→ estado 4) o 'cierre_rechazado' (→ estado 7)
         $num_motivo = ($tipo === 'cierre_rechazado') ? 7 : 4;
 
         $this->ejecutar(
-            "UPDATE proyectos SET id_estadoP = ?, actualizado_en = NOW() WHERE id_proyectos = ?",
-            "ii", [$num_motivo, $id_proyectos]
+            "UPDATE proyectos
+             SET id_estadoP = ?, actualizado_en = NOW()
+             WHERE id_proyectos = ?",
+            "ii",
+            [$num_motivo, $id_proyectos]
         );
+
+        // El ENUM del campo tipo solo acepta: 'creacion_rechazada' | 'cierre_rechazado'
         $this->ejecutar(
-            "INSERT INTO proyectos_comentarios (id_proyectos, id_usuarios, tipo, comentario, fecha)
+            "INSERT INTO proyectos_comentarios
+                (id_proyectos, id_usuarios, tipo, comentario, fecha)
              VALUES (?, ?, ?, ?, CURDATE())",
-            "iiss", [$id_proyectos, $id_usuario, $tipo, $comentario]
+            "iiss",
+            [$id_proyectos, $id_usuario, $tipo, $comentario]
         );
 
         if ($tipo === 'cierre_rechazado') {
             $this->ejecutar(
-                "UPDATE tbl_cierres SET fecha_resultado = CURDATE(), estado = 'rechazado' WHERE id_proyectos = ?",
-                "i", [$id_proyectos]
+                "UPDATE tbl_cierres
+                 SET fecha_resultado = CURDATE(), estado = 'rechazado'
+                 WHERE id_proyectos = ?
+                   AND estado = 'espera'",
+                "i",
+                [$id_proyectos]
             );
         }
     }
 
     /**
-     * Reenviar cierre rechazado (7) → Por cerrar (5).
+     * Reenviar cierre rechazado (estado 7) → Por cerrar (estado 5).
      * Solo el investigador dueño del proyecto puede ejecutarla.
+     *
      */
-    public function reenviarCierre(int $id_proyectos, int $id_investigador): bool
+    public function reenviarCierre(int $id_proyectos, int $id_investigador): void
     {
-        // Verificar que el proyecto pertenezca al investigador y esté en estado 7.
         $row = $this->ejecutar(
             "SELECT id_proyectos
              FROM proyectos
-             WHERE id_proyectos = ?
+             WHERE id_proyectos    = ?
                AND id_investigador = ?
-               AND id_estadoP = 7
+               AND id_estadoP      = 7
              LIMIT 1",
-            "ii", [$id_proyectos, $id_investigador], false
+            "ii",
+            [$id_proyectos, $id_investigador],
+            false
         );
 
         if (empty($row)) {
-            return false;
+            exit; // No se encontró el proyecto en estado 7 para este investigador, no se hace nada.
         }
 
         $this->ejecutar(
             "UPDATE proyectos
              SET id_estadoP = 5, actualizado_en = NOW()
-             WHERE id_proyectos = ?
+             WHERE id_proyectos    = ?
                AND id_investigador = ?
-               AND id_estadoP = 7",
-            "ii", [$id_proyectos, $id_investigador]
+               AND id_estadoP      = 7",
+            "ii",
+            [$id_proyectos, $id_investigador]
         );
 
-        return $this->conn->affected_rows > 0;
     }
 
 
@@ -187,15 +258,23 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     // AVANCE / TAREAS
     // 
 
+    /**
+     * Devuelve las tareas con estado aprobado (id_estadoT = 5) del proyecto.
+     *
+     * CORRECCIÓN: la columna de estado en tareas_usuarios se llama id_estadoT
+     * (verificado en la estructura real de la tabla).
+     */
     public function obtenerTareasAprobadas(int $id_proyecto): array
     {
         return $this->ejecutar(
             "SELECT taus.id_estadoT
              FROM tareas_usuarios AS taus
-             JOIN tareas AS tare ON tare.id_tarea = taus.id_tarea
-             JOIN tbl_seguimiento AS tbse ON tare.id_avances = tbse.id_avances
-             WHERE tbse.id_proyectos = ? AND taus.id_estadoT = 5",
-            "i", [$id_proyecto]
+             JOIN tareas           AS tare ON tare.id_tarea   = taus.id_tarea
+             JOIN tbl_seguimiento  AS tbse ON tare.id_avances = tbse.id_avances
+             WHERE tbse.id_proyectos = ?
+               AND taus.id_estadoT   = 5",
+            "i",
+            [$id_proyecto]
         );
     }
 
@@ -220,7 +299,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
              JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
              WHERE proy.id_estadoP IN (3, 5, 2, 1)
              $where_periodo",
-            $types, $params, false
+            $types,
+            $params,
+            false
         ) ?? ['total' => 0, 'pendientes_creacion' => 0, 'pendientes_cierre' => 0, 'aprobadas' => 0];
     }
 
@@ -241,16 +322,18 @@ class SolicitudesProyectoRepositorio extends BaseModelo
         return $this->ejecutar(
             "SELECT
                 COUNT(*) AS total,
-                SUM(CASE WHEN proy.id_estadoP = 3 THEN 1 ELSE 0 END) AS pendientes_creacion,
-                SUM(CASE WHEN proy.id_estadoP = 5 THEN 1 ELSE 0 END) AS pendientes_cierre,
-                SUM(CASE WHEN proy.id_estadoP IN (4, 7) THEN 1 ELSE 0 END) AS requieren_accion,
-                SUM(CASE WHEN proy.id_estadoP IN (2, 1) THEN 1 ELSE 0 END) AS aprobadas
+                SUM(CASE WHEN proy.id_estadoP = 3          THEN 1 ELSE 0 END) AS pendientes_creacion,
+                SUM(CASE WHEN proy.id_estadoP = 5          THEN 1 ELSE 0 END) AS pendientes_cierre,
+                SUM(CASE WHEN proy.id_estadoP IN (4, 7)    THEN 1 ELSE 0 END) AS requieren_accion,
+                SUM(CASE WHEN proy.id_estadoP IN (2, 1)    THEN 1 ELSE 0 END) AS aprobadas
              FROM proyectos proy
              JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-             WHERE proy.id_investigador = ?
+             WHERE proy.id_investigador  = ?
                AND proy.id_estadoP IN (3, 4, 5, 7, 2, 1)
              $where_periodo",
-            $types, $params, false
+            $types,
+            $params,
+            false
         ) ?? ['total' => 0, 'pendientes_creacion' => 0, 'pendientes_cierre' => 0, 'requieren_accion' => 0, 'aprobadas' => 0];
     }
 
@@ -262,15 +345,18 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     public function contarSolicitudes(string $in_estados, string $where_base, string $bind_types, array $bind_params): int
     {
         return (int)($this->ejecutar(
-            "SELECT COUNT(*) AS total FROM proyectos proy WHERE $where_base",
-            $bind_types, $bind_params, false
+            "SELECT COUNT(*) AS total
+             FROM proyectos proy
+             WHERE $where_base",
+            $bind_types,
+            $bind_params,
+            false
         )['total'] ?? 0);
     }
 
     /**
-     * Listado base (supervisor y investigador).
-     * La columna `comentario_preview` trae el último comentario de rechazo
-     * (útil para la sección "Requieren acción" del investigador).
+     * Listado base (supervisor e investigador).
+     * `comentario_preview`: último comentario de rechazo (útil para "Requieren acción").
      */
     public function listarSolicitudes(string $where_base, string $types, array $params): array
     {
@@ -294,13 +380,14 @@ class SolicitudesProyectoRepositorio extends BaseModelo
                     LIMIT 1
                 ) AS comentario_preview
              FROM proyectos proy
-             JOIN estados_proyectos espr ON proy.id_estadoP = espr.id_estadoP
-             JOIN periodos peri          ON proy.id_periodos = peri.id_periodos
-             JOIN usuarios u             ON u.id_usuarios   = proy.id_investigador
+             JOIN estados_proyectos espr ON proy.id_estadoP  = espr.id_estadoP
+             JOIN periodos peri          ON proy.id_periodos  = peri.id_periodos
+             JOIN usuarios u             ON u.id_usuarios     = proy.id_investigador
              WHERE $where_base
              ORDER BY proy.id_proyectos DESC
              LIMIT ?, ?",
-            $types, $params
+            $types,
+            $params
         );
     }
 
@@ -312,14 +399,18 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     public function obtenerTodosPeriodos(): array
     {
         return $this->ejecutar(
-            "SELECT id_periodos, periodo,
-                    fecha_inicio AS FechaInicio, fecha_final AS FechaFinal,
-                    CASE
-                        WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
-                        WHEN CURDATE() < fecha_inicio THEN 'Pendiente'
-                        ELSE 'Terminado'
-                    END AS estado
-             FROM periodos ORDER BY periodo DESC"
+            "SELECT
+                id_periodos,
+                periodo,
+                fecha_inicio AS FechaInicio,
+                fecha_final  AS FechaFinal,
+                CASE
+                    WHEN CURDATE() BETWEEN fecha_inicio AND fecha_final THEN 'Activo'
+                    WHEN CURDATE() < fecha_inicio                       THEN 'Pendiente'
+                    ELSE 'Terminado'
+                END AS estado
+             FROM periodos
+             ORDER BY periodo DESC"
         );
     }
 
@@ -338,7 +429,7 @@ class SolicitudesProyectoRepositorio extends BaseModelo
                 peri.periodo,
                 CASE
                     WHEN CURDATE() BETWEEN peri.fecha_inicio AND peri.fecha_final THEN 'Activo'
-                    WHEN CURDATE() < peri.fecha_inicio THEN 'Pendiente'
+                    WHEN CURDATE() < peri.fecha_inicio                            THEN 'Pendiente'
                     ELSE 'Terminado'
                 END AS estado_periodo,
                 proy.titulo, proy.descripcion, proy.objetivo,
@@ -346,30 +437,37 @@ class SolicitudesProyectoRepositorio extends BaseModelo
                 proy.creado_en, proy.requisitos, proy.pre_requisitos,
                 proy.modalidad, proy.cantidad_estudiante
              FROM proyectos AS proy
-             JOIN estados_proyectos AS espr          ON proy.id_estadoP  = espr.id_estadoP
-             JOIN proyectos_subtematica AS proy_sub   ON proy.id_proyectos = proy_sub.id_proyectos
-             JOIN subtematica AS subt                 ON proy_sub.id_subtematica = subt.id_subtematica
-             JOIN tematica AS tema                    ON tema.id_tematica = subt.id_tematica
-             JOIN periodos peri                       ON proy.id_periodos = peri.id_periodos
+             JOIN estados_proyectos AS espr         ON proy.id_estadoP   = espr.id_estadoP
+             JOIN proyectos_subtematica AS proy_sub  ON proy.id_proyectos = proy_sub.id_proyectos
+             JOIN subtematica AS subt                ON proy_sub.id_subtematica = subt.id_subtematica
+             JOIN tematica AS tema                   ON tema.id_tematica  = subt.id_tematica
+             JOIN periodos peri                      ON proy.id_periodos  = peri.id_periodos
              WHERE proy.id_proyectos = ?
              GROUP BY proy.id_proyectos, espr.nombre, tema.nombre_tematica
              ORDER BY proy.id_proyectos DESC",
-            "i", [$id_proyecto], false
+            "i",
+            [$id_proyecto],
+            false
         );
     }
 
     public function obtenerProyectoInvestigador(int $id_proyecto): ?array
     {
         return $this->ejecutar(
-            "SELECT usua.id_usuarios, usua.nombre, usua.apellido_paterno, usua.apellido_materno,
-                    nisn.nombre AS nivel_sni, grac.nombre AS grado_academico
+            "SELECT
+                usua.id_usuarios,
+                usua.nombre, usua.apellido_paterno, usua.apellido_materno,
+                nisn.nombre AS nivel_sni,
+                grac.nombre AS grado_academico
              FROM investigadores AS inve
-             JOIN usuarios AS usua          ON usua.id_usuarios   = inve.id_usuarios
-             JOIN niveles_sni AS nisn        ON nisn.id_nivel      = inve.id_nivel_sni
-             JOIN grados_academicos AS grac  ON grac.id_grado      = inve.id_grado
-             JOIN proyectos AS proy          ON proy.id_investigador = inve.id_usuarios
+             JOIN usuarios AS usua         ON usua.id_usuarios    = inve.id_usuarios
+             JOIN niveles_sni AS nisn       ON nisn.id_nivel       = inve.id_nivel_sni
+             JOIN grados_academicos AS grac ON grac.id_grado       = inve.id_grado
+             JOIN proyectos AS proy         ON proy.id_investigador = inve.id_usuarios
              WHERE proy.id_proyectos = ?",
-            "i", [$id_proyecto], false
+            "i",
+            [$id_proyecto],
+            false
         );
     }
 
@@ -377,14 +475,18 @@ class SolicitudesProyectoRepositorio extends BaseModelo
     {
         if (!$id_usuario) return null;
         return $this->ejecutar(
-            "SELECT arco.nombre_area AS area_conocimiento, GROUP_CONCAT(subco.nombre_subarea) AS subarea
+            "SELECT
+                arco.nombre_area AS area_conocimiento,
+                GROUP_CONCAT(subco.nombre_subarea) AS subarea
              FROM usuarios AS us
-             JOIN usuarios_subareas AS ussu       ON ussu.id_usuarios = us.id_usuarios
-             JOIN subareas_conocimiento AS subco   ON ussu.id_subarea  = subco.id_subarea
-             JOIN areas_conocimiento AS arco       ON arco.id_area     = subco.id_area
+             JOIN usuarios_subareas AS ussu      ON ussu.id_usuarios = us.id_usuarios
+             JOIN subareas_conocimiento AS subco  ON ussu.id_subarea  = subco.id_subarea
+             JOIN areas_conocimiento AS arco      ON arco.id_area     = subco.id_area
              WHERE us.id_usuarios = ?
              GROUP BY us.id_usuarios, subco.id_subarea, arco.id_area",
-            "i", [$id_usuario], false
+            "i",
+            [$id_usuario],
+            false
         );
     }
 
@@ -397,7 +499,9 @@ class SolicitudesProyectoRepositorio extends BaseModelo
              JOIN lineas_investigacion AS liin                ON liin.id_linea      = inliin.id_linea
              JOIN proyectos AS proy                           ON proy.id_investigador = inve.id_usuarios
              WHERE proy.id_proyectos = ?",
-            "i", [$id_proyecto], false
+            "i",
+            [$id_proyecto],
+            false
         );
     }
 
@@ -407,19 +511,24 @@ class SolicitudesProyectoRepositorio extends BaseModelo
             "SELECT sub.id_subtematica, sub2.nombre_subtematica AS nombre
              FROM proyectos_subtematica AS sub
              JOIN subtematica AS sub2 ON sub.id_subtematica = sub2.id_subtematica
-             WHERE sub.id_proyectos = ? AND sub2.estado = 1",
-            "i", [$id_proyecto]
+             WHERE sub.id_proyectos = ?
+               AND sub2.estado = 1",
+            "i",
+            [$id_proyecto]
         );
     }
 
+    /**
+     * Comentarios de rechazo del proyecto.
+     *
+     */
     public function obtenerProyectoComentarios(int $id_proyecto): array
     {
         return $this->ejecutar(
             "SELECT
-                CASE
-                    WHEN prco.tipo = 'creacion_rechazada' THEN 'Creación rechazada'
-                    WHEN prco.tipo = 'cierre_rechazado'   THEN 'Cierre rechazado'
-                    ELSE 'Rechazo'
+                CASE prco.tipo
+                    WHEN 'creacion_rechazada' THEN 'Creación rechazada'
+                    WHEN 'cierre_rechazado'   THEN 'Cierre rechazado'
                 END AS tipo,
                 CONCAT(usua.nombre, ' ', usua.apellido_paterno, ' ', usua.apellido_materno) AS nombre_completo,
                 prco.comentario,
@@ -428,23 +537,31 @@ class SolicitudesProyectoRepositorio extends BaseModelo
              JOIN proyectos AS proy ON proy.id_proyectos = prco.id_proyectos
              JOIN usuarios AS usua  ON usua.id_usuarios  = prco.id_usuarios
              WHERE proy.id_proyectos = ?
-             ORDER BY fecha DESC",
-            "i", [$id_proyecto]
+             ORDER BY prco.fecha DESC",
+            "i",
+            [$id_proyecto]
         );
     }
 
+    /**
+     * Estudiantes del proyecto con su estado actual.
+     *
+     */
     public function obtenerEstudiantes(int $id_proyecto): array
     {
         return $this->ejecutar(
             "SELECT
-                u.id_usuarios, u.nombre, u.apellido_paterno, u.apellido_materno,
-                c.nombre_carrera AS carrera, pu.estado
+                u.id_usuarios,
+                u.nombre, u.apellido_paterno, u.apellido_materno,
+                c.nombre_carrera AS carrera,
+                pu.estado
              FROM proyectos_usuarios pu
-             JOIN usuarios u    ON u.id_usuarios = pu.id_usuarios
+             JOIN usuarios    u ON u.id_usuarios = pu.id_usuarios
              JOIN estudiantes e ON e.id_usuarios = u.id_usuarios
-             JOIN carreras c    ON e.id_carrera  = c.id_carrera
+             JOIN carreras    c ON e.id_carrera  = c.id_carrera
              WHERE pu.id_proyectos = ?",
-            "i", [$id_proyecto]
+            "i",
+            [$id_proyecto]
         );
     }
 }

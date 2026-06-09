@@ -34,17 +34,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action !== '') {
     // Supervisor: aprobar proyecto/cierre
     if ($action === 'actualizarestado' && $rol === 'supervisor') {
         $ctrl->actualizarestado($id_proyecto, $rol, $_GET['tipo'] ?? '');
-        // actualizarestado() siempre llama redirigir() → exit, nunca llega aquí.
+        // actualizarestado() siempre llama redirigir() -> exit, nunca llega aquí.
 
         // Investigador / Profesor: solicitar cierre desde Módulo 2
     } elseif ($action === 'solicitarCierre' && in_array($rol, ['investigador', 'profesor'], true)) {
         $ctrl->solicitarCierre($id_proyecto, $rol, $id_usuario);
-        // solicitarCierre() siempre llama redirigir() → exit.
+        // solicitarCierre() siempre llama redirigir() -> exit.
 
         // Investigador / Profesor: reenviar cierre rechazado
     } elseif ($action === 'reenviarCierre' && in_array($rol, ['investigador', 'profesor'], true)) {
         $ctrl->reenviarCierre($id_proyecto, $rol, $id_usuario);
-        // reenviarCierre() siempre llama redirigir() → exit.
+        // reenviarCierre() siempre llama redirigir() -> exit.
 
     } else {
         // Acción desconocida o no permitida para este rol.

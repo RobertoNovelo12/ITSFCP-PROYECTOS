@@ -76,6 +76,12 @@ class SolicitudesProyectoControlador extends BaseControlador
                     'Reenviar cierre',
                     '¿Reenviar la solicitud de cierre al supervisor?'
                 );
+                $botones .= Botones::botonIcono(
+                    '../Proyectos/editar.php?id_proyectos=' . $id_proyecto . '&desde=solicitudes',
+                    'warning',
+                    $iconos['tabla']['editar'],
+                    'Corregir y reenviar proyecto'
+                );
                 return $botones;
             }
 
@@ -162,7 +168,12 @@ class SolicitudesProyectoControlador extends BaseControlador
         global $conn;
         try {
             $resultado = (new SolicitudesProyecto($conn))->listarSolicitudes(
-                $rol, $id_usuario, $tipo_filtro, $buscar, $pagina, $id_periodo
+                $rol,
+                $id_usuario,
+                $tipo_filtro,
+                $buscar,
+                $pagina,
+                $id_periodo
             );
             return is_string($resultado) ? json_decode($resultado, true) : $resultado;
         } catch (Exception $e) {
@@ -259,7 +270,6 @@ class SolicitudesProyectoControlador extends BaseControlador
 
             $desde = $data['desde'] ?? 'solicitudes';
             $this->redirigir('exito_rechazo', $desde === 'solicitudes' ? 'index.php' : '../Proyectos/index.php');
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_rechazo';
@@ -284,15 +294,17 @@ class SolicitudesProyectoControlador extends BaseControlador
             $this->validarAcceso($rol, ['supervisor']);
 
             $modelo = new SolicitudesProyecto($conn);
+
             $modelo->actualizarProyectosVencidos();
 
             $estado     = $this->numerofiltro($tipo);
+
             $porcentaje = $this->obtenerPorcentajeAvance($id_proyecto);
 
             $modelo->actualizarestado($id_proyecto, $estado, $porcentaje);
 
-            $this->redirigir('exito_estado');
 
+            $this->redirigir('exito_estado');
         } catch (Exception $e) {
             error_log($e->getMessage());
             $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_estado';
@@ -317,12 +329,13 @@ class SolicitudesProyectoControlador extends BaseControlador
             $modelo = new SolicitudesProyecto($conn);
             $modelo->actualizarProyectosVencidos();
 
+
             $porcentaje = $this->obtenerPorcentajeAvance($id_proyecto);
+
             // actualizarestado con estado 5 -> inserta en tbl_cierres (lógica ya existente en el modelo).
             $modelo->actualizarestado($id_proyecto, 5, $porcentaje, $id_usuario);
 
             $this->redirigir('exito_cierre_solicitado');
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_estado';
@@ -349,15 +362,9 @@ class SolicitudesProyectoControlador extends BaseControlador
             }
 
             $modelo = new SolicitudesProyecto($conn);
-            $ok     = $modelo->reenviarCierre($id_proyecto, $id_usuario);
-
-            if (!$ok) {
-                // El proyecto no pertenece a este usuario o no está en estado 7.
-                throw new Exception('sin_permiso');
-            }
+            $modelo->reenviarCierre($id_proyecto, $id_usuario);
 
             $this->redirigir('exito_reenvio');
-
         } catch (Exception $e) {
             error_log($e->getMessage());
             $msg = in_array($e->getMessage(), [

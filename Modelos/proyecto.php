@@ -634,7 +634,10 @@ class Proyectos
                     ($id_tipo === 12 && $id_doc_reporte !== null) ? $id_doc_reporte : null
                 );
             }
-        } elseif ($numeroEstado === 5) { //Por cerrar
+        }
+        /*
+        //Se pasa está lógica en el módulo de solicitudes_proyecto
+        elseif ($numeroEstado === 5) { //Por cerrar
             $row = $this->repo->buscarInvestigadorDeProyecto($id_proyectos);
             if ($row) {
                 $this->repo->insertarCierre($id_proyectos, $row['id_investigador'], $porcentaje);
@@ -646,7 +649,7 @@ class Proyectos
                 //$this->repo->concluirEstudiantesProyecto($id_proyectos);
                 //Ahora se concluyen los estudiantes al aprobar la carta de terminación por el supervisor, no al cambiar el estado a cierre.
             }
-        }
+        }*/
     }
 
 

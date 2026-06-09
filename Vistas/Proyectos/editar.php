@@ -30,19 +30,8 @@ require_once __DIR__ .  '/../../Controladores/proyectoControlador.php';
 
 $proyectoControlador = new ProyectoControlador();
 
-$periodoActualProyectos = $proyectoControlador->periodoactual();
-
-// Validación
-$registro = $periodoActualProyectos;
-include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
-
-$hoy = date('Y-m-d');
-$puedeEditar = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
-    && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
 
 //Validación del periodo
-$puede = $puedeEditar;
-include __DIR__ .  '../../../publico/incluido/_validar_periodo.php';
 
 // DATOS
 $tematica = $proyectoControlador->tematica();
@@ -55,6 +44,21 @@ $p = $proyectoControlador->datosproyecto($id_proyecto);
 if ($action == 'editarProyecto') {
     $proyectoControlador->editarProyecto($_POST, $id, $rol);
 }
+$periodoActualProyectos = $proyectoControlador->periodoactual();
+
+// 1. Definir el estado actual del proyecto inmediatamente
+$estado_Actual = $p['estado_proyecto'] ?? '';
+// 2. Calcular los permisos de edición usando paréntesis explícitos
+$hoy = date('Y-m-d');
+$dentroDePeriodo = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos'] && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
+$estadoPermitido = in_array($estado_Actual, ['Cierre rechazado', 'Rechazado'], true);
+
+$puedeEditar = ($dentroDePeriodo || $estadoPermitido);
+$puede = $puedeEditar; 
+
+$registro = $periodoActualProyectos;
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_periodo.php';
 
 // CONTENIDO
 ob_start();
@@ -81,7 +85,7 @@ ob_start();
         <input type="hidden" name="action" value="editarProyecto">
         <input type="hidden" name="id_proyectos" value="<?= $p['id_proyectos']; ?>">
 
-        <h5><i class="bi-folder2-open me-2"></i>Información del proyecto <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($p['estado_proyecto']); ?>"><?= htmlspecialchars($proyecto['estado_proyecto'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></h5>
+        <h5><i class="bi-folder2-open me-2"></i>Información del proyecto <span class="badge text-bg-<?php echo $proyectoControlador->EstiloEstado($p['estado_proyecto']); ?>"><?= htmlspecialchars($p['estado_proyecto'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></h5>
 
         <div class="mb-3">
             <label>Nombre del proyecto</label>

@@ -440,7 +440,8 @@ class ProyectosRepositorio extends BaseModelo
              JOIN niveles_sni AS nisn        ON nisn.id_nivel    = inve.id_nivel_sni
              JOIN grados_academicos AS grac  ON grac.id_grado    = inve.id_grado
              JOIN proyectos AS proy          ON proy.id_investigador = inve.id_usuarios
-             WHERE proy.id_proyectos = ?',
+             JOIN estados_proyectos AS estproy ON estproy.id_estadoP = proy.id_estadoP
+             WHERE proy.id_proyectos = ? LIMIT 1',
             'i',
             [$id_proyecto],
             false

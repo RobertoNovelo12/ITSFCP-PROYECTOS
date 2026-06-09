@@ -284,7 +284,7 @@ class ProyectoControlador extends BaseControlador
 
             // El investigador confirma/inicia el flujo de cierre desde Solicitudes.
             'Solicitar cerrar' => Botones::botonIcono(
-                '../Solicitudes_proyectos/index.php?action=solicitarCierre&id_proyectos=' . $id_proyecto,
+                '../Solicitudes_proyecto/index.php?action=solicitarCierre&id_proyectos=' . $id_proyecto,
                 'danger',
                 $iconos['tabla']['solicitar_cierre'],
                 'Solicitar cierre del proyecto'
@@ -292,7 +292,7 @@ class ProyectoControlador extends BaseControlador
 
             // "Ver solicitud" para Cierre rechazado -> redirige a Módulo 2.
             'Ver solicitud cierre' => Botones::botonIcono(
-                '../Solicitudes_proyectos/index.php?id_proyectos=' . $id_proyecto,
+                '../Solicitudes_proyecto/index.php?id_proyectos=' . $id_proyecto,
                 'warning',
                 $iconos['tabla']['ver'],
                 'Ver solicitud de cierre en Módulo 2'
@@ -307,7 +307,7 @@ class ProyectoControlador extends BaseControlador
 
             // Los siguientes botones se conservan para usos en editar.php / detalles.php.
             'Volver a enviar cierre' => Botones::botonIcono(
-                '../Solicitudes_proyectos/index.php?action=reenviarCierre&id_proyectos=' . $id_proyecto,
+                '../Solicitudes_proyecto/index.php?action=reenviarCierre&id_proyectos=' . $id_proyecto,
                 'warning',
                 $iconos['tabla']['volver_enviar'],
                 'Reenviar cierre al supervisor'
