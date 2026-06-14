@@ -49,12 +49,15 @@ class ProyectosRepositorio extends BaseModelo
     public function marcarProyectosVencidos(): bool
     {
         return $this->ejecutar('
-            UPDATE proyectos
-            SET id_estadoP = 6
-            -- Solo vencen proyectos que estaban operativos
-            WHERE id_estadoP IN (2, 5) AND fecha_fin < CURDATE()
-            -- Activo(2) y Por cerrar(5) son los únicos estados "vivos" que pueden vencer por tiempo              AND fecha_fin < CURDATE()
-        ');
+        UPDATE proyectos p
+        JOIN periodos pe ON pe.id_periodos = p.id_periodos
+        SET p.id_estadoP = 6
+        /* Solo vencen proyectos que estaban operativos */
+        WHERE p.id_proyectos > 0
+          AND pe.estado = 1
+          AND p.id_estadoP IN (2, 5)
+          AND p.fecha_fin < CURDATE()
+    ');
     }
 
     public function insertarHistorialVencidoCompleto(string $condicionEtapa2): bool
@@ -168,7 +171,10 @@ class ProyectosRepositorio extends BaseModelo
     public function listarInstituto(): array
     {
         return $this->ejecutar(
-            'SELECT id_instituto FROM gestion_proyectos.instituto ORDER BY id_instituto DESC LIMIT 1'
+            'SELECT id_instituto FROM gestion_proyectos.instituto ORDER BY id_instituto DESC LIMIT 1',
+            '',
+            [],
+            false
         );
     }
 

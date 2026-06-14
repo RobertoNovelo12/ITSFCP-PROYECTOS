@@ -34,6 +34,8 @@ class principalControlador extends BaseControlador
         global $conn;
         try {
             $modelo  = new principal($conn);
+
+            $modelo->marcarSolicitudesProyectosVencidos(); // Mantenimiento automático de estados basado en fechas
             $filtros = $this->leerFiltros();
             $pagina  = $filtros['pagina'];
 
@@ -45,15 +47,22 @@ class principalControlador extends BaseControlador
                 case 'investigador':
                 case 'profesor':
                     $total = $modelo->contarProyectosInvestigador(
-                        $id_usuario, $rol,
-                        $filtros['buscar'], $filtros['modalidad'],
-                        $filtros['id_tematica'], $filtros['id_subtematica']
+                        $id_usuario,
+                        $rol,
+                        $filtros['buscar'],
+                        $filtros['modalidad'],
+                        $filtros['id_tematica'],
+                        $filtros['id_subtematica']
                     );
                     $proyectos = $modelo->obtenerProyectosInvestigador(
-                        $id_usuario, $rol,
-                        $filtros['buscar'], $filtros['modalidad'],
-                        $filtros['id_tematica'], $filtros['id_subtematica'],
-                        $pagina, $this->POR_PAGINA
+                        $id_usuario,
+                        $rol,
+                        $filtros['buscar'],
+                        $filtros['modalidad'],
+                        $filtros['id_tematica'],
+                        $filtros['id_subtematica'],
+                        $pagina,
+                        $this->POR_PAGINA
                     );
                     return [
                         'proyectos'       => $proyectos,
@@ -67,15 +76,22 @@ class principalControlador extends BaseControlador
 
                 case 'supervisor':
                     $total = $modelo->contarProyectosInvestigador(
-                        0, 'supervisor',
-                        $filtros['buscar'], $filtros['modalidad'],
-                        $filtros['id_tematica'], $filtros['id_subtematica']
+                        0,
+                        'supervisor',
+                        $filtros['buscar'],
+                        $filtros['modalidad'],
+                        $filtros['id_tematica'],
+                        $filtros['id_subtematica']
                     );
                     $proyectos = $modelo->obtenerProyectosInvestigador(
-                        0, 'supervisor',
-                        $filtros['buscar'], $filtros['modalidad'],
-                        $filtros['id_tematica'], $filtros['id_subtematica'],
-                        $pagina, $this->POR_PAGINA
+                        0,
+                        'supervisor',
+                        $filtros['buscar'],
+                        $filtros['modalidad'],
+                        $filtros['id_tematica'],
+                        $filtros['id_subtematica'],
+                        $pagina,
+                        $this->POR_PAGINA
                     );
                     return [
                         'proyectos'       => $proyectos,
@@ -91,14 +107,19 @@ class principalControlador extends BaseControlador
                     $ventana = $modelo->ventanaSolicitudAbierta();
                     $total   = $modelo->contarProyectosEstudiante(
                         $id_usuario,
-                        $filtros['buscar'], $filtros['modalidad'],
-                        $filtros['id_tematica'], $filtros['id_subtematica']
+                        $filtros['buscar'],
+                        $filtros['modalidad'],
+                        $filtros['id_tematica'],
+                        $filtros['id_subtematica']
                     );
                     $proyectos = $modelo->obtenerProyectosEstudiante(
                         $id_usuario,
-                        $filtros['buscar'], $filtros['modalidad'],
-                        $filtros['id_tematica'], $filtros['id_subtematica'],
-                        $pagina, $this->POR_PAGINA
+                        $filtros['buscar'],
+                        $filtros['modalidad'],
+                        $filtros['id_tematica'],
+                        $filtros['id_subtematica'],
+                        $pagina,
+                        $this->POR_PAGINA
                     );
                     return [
                         'proyectos'       => $proyectos,
@@ -113,10 +134,28 @@ class principalControlador extends BaseControlador
                 default:
                     return $this->_vacio($tematicas, $subtematicas);
             }
-
         } catch (Exception $e) {
             error_log("listarProyectos(): " . $e->getMessage());
             return $this->_vacio();
+        }
+    }
+
+
+    /**
+     * Cancela una solicitud.
+     */
+    public function cancelar(int $id_usuario, int $id_proyectos): void
+    {
+        global $conn;
+        try {
+            $this->validarMetodo('POST');
+
+            (new principal($conn))->cancelarSolicitud($id_usuario, $id_proyectos);
+
+            $this->redirigir('exito_cancelar', 'detalles_proyecto.php', "&id_proyectos={$id_proyectos}");
+        } catch (Exception $e) {
+            error_log('principalControlador::cancelar() — ' . $e->getMessage());
+            $this->redirigir('error_cancelar', 'detalles_proyecto.php', "&id_proyectos={$id_proyectos}");
         }
     }
 
@@ -139,7 +178,7 @@ class principalControlador extends BaseControlador
     {
         global $conn;
 
-        $modelo   = new principal($conn);
+        $modelo  = new principal($conn);
         $proyecto = $modelo->obtenerDetalle($id_proyecto);
 
         if ($proyecto === null) {
@@ -160,18 +199,27 @@ class principalControlador extends BaseControlador
             $ventana_abierta = $modelo->ventanaSolicitudAbiertaParaProyecto($id_proyecto);
         }
 
-        $puede_solicitar  = false;
-        $cupo_disponible  = (int)($proyecto['lugares_disponibles'] ?? 0) > 0;
-        $limite_alcanzado = false;
-        $carga            = ['activos' => 0, 'en_espera' => 0];
+        $puede_solicitar     = false;
+        $solicitud_bloqueante = false;   // ← nueva variable
+        $cupo_disponible     = (int)($proyecto['lugares_disponibles'] ?? 0) > 0;
+        $limite_alcanzado    = false;
+        $carga               = ['activos' => 0, 'en_espera' => 0];
 
         if ($rol === 'estudiante' && $ventana_abierta && !$es_integrante && $cupo_disponible) {
             $estado_sol = $solicitud['estado'] ?? null;
 
-            if ($estado_sol === null || $estado_sol === 'rechazado') {
-                $carga            = $modelo->obtenerCargaProyectosEstudiante($id_usuario);
-                $limite_alcanzado = ($carga['activos'] + $carga['en_espera']) >= 3;
-                $puede_solicitar  = !$limite_alcanzado;
+            if ($estado_sol === null || $estado_sol === 'cancelado') {
+                // Verificar si existe una solicitud bloqueante (rechazado / vencido)
+                $solicitud_bloqueante = $modelo->tieneSolicitudBloqueante($id_usuario, $id_proyecto);
+
+                if (!$solicitud_bloqueante) {
+                    $carga            = $modelo->obtenerCargaProyectosEstudiante($id_usuario);
+                    $limite_alcanzado = ($carga['activos'] + $carga['en_espera']) >= 3;
+                    $puede_solicitar  = !$limite_alcanzado;
+                }
+            } elseif ($estado_sol === 'rechazado' || $estado_sol === 'vencido') {
+                // La última solicitud ya indica el estado bloqueante directamente
+                $solicitud_bloqueante = true;
             }
         } elseif ($rol === 'estudiante') {
             $carga = $modelo->obtenerCargaProyectosEstudiante($id_usuario);
@@ -186,15 +234,17 @@ class principalControlador extends BaseControlador
         }
 
         return [
-            'proyecto'        => $proyecto,
-            'es_integrante'   => $es_integrante,
-            'solicitud'       => $solicitud,
-            'ventana_abierta' => $ventana_abierta,
-            'puede_solicitar' => $puede_solicitar,
-            'puede_cancelar'  => $puede_cancelar,
-            'carga'           => $carga,
+            'proyecto'             => $proyecto,
+            'es_integrante'        => $es_integrante,
+            'solicitud'            => $solicitud,
+            'ventana_abierta'      => $ventana_abierta,
+            'puede_solicitar'      => $puede_solicitar,
+            'puede_cancelar'       => $puede_cancelar,
+            'solicitud_bloqueante' => $solicitud_bloqueante,  // ← nueva clave
+            'carga'                => $carga,
         ];
     }
+
 
     // 
     //  MENSAJE SOLICITUD (desde QueryString)

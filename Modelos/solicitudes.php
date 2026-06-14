@@ -73,6 +73,13 @@ class Solicitud
         return $id;
     }
 
+    // Mantenimiento automatico de estados de solicitudes basado en fechas de periodos. Se llama al cargar el index del investigador.
+
+    public function marcarSolicitudesProyectosVencidos(): void
+    {
+        $this->repo->marcarSolicitudesProyectosVencidos();
+    }
+
     public function periodosDelInvestigador(int $id): array
     {
         return $this->repo->listarPeriodosInvestigador($id);
@@ -251,6 +258,11 @@ class Solicitud
     public function obtenerPlantillaPorId(int $id_plantilla): ?array
     {
         return $this->repo->buscarPlantillaPorId($id_plantilla);
+    }
+
+    public function puedeSolicitarIntegracion(int $id_proyectos, int $id_estudiante): bool
+    {
+        return $this->repo->verificarPuedeSolicitarIntegracion($id_proyectos, $id_estudiante);
     }
 
     public function crearSolicitud(

@@ -1102,10 +1102,10 @@ html.sidebar-collapsed-initial .sidebar {
   padding-right: 10px;
 }
 
-html.sidebar-collapsed-initial .main-content {
+/*html.sidebar-collapsed-initial .main-content {
   margin-left: 84px;
   width: calc(100% - 84px);
-}
+}*/
 
 html.sidebar-collapsed-initial .menu-item > span:not(.menu-icon) {
   opacity: 0;
@@ -4333,7 +4333,7 @@ select:focus {
   }
 
   .sidebar-collapsed .main-content {
-    margin-left: 60px;
+    margin-left: 84px;
   }
 
   .sidebar-overlay {

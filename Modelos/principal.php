@@ -36,6 +36,13 @@ class Principal
         return $this->repo->listarSubtematicas($id_tematica);
     }
 
+    // Mantenimiento automático de estados de proyectos basado en fechas de periodos.
+    // Se llama al cargar el index del investigador.
+    public function marcarSolicitudesProyectosVencidos(): void
+    {
+        $this->repo->marcarSolicitudesProyectosVencidos();
+    }
+
 
     // 
     // ROL: INVESTIGADOR / SUPERVISOR
@@ -54,7 +61,12 @@ class Principal
         $desde = ($pagina - 1) * $por_pagina;
 
         [$sql, $tipos, $params] = $this->buildSqlInvestigador(
-            $id_investigador, $rol, $buscar, $modalidad, $id_tematica, $id_subtematica
+            $id_investigador,
+            $rol,
+            $buscar,
+            $modalidad,
+            $id_tematica,
+            $id_subtematica
         );
 
         $sql     .= ' GROUP BY p.id_proyectos ORDER BY FIELD(p.id_estadoP, 2, 5, 3, 1, 6) ASC, p.creado_en DESC LIMIT ?, ?';
@@ -74,7 +86,12 @@ class Principal
         int    $id_subtematica = 0
     ): int {
         [$sql, $tipos, $params] = $this->buildSqlConteoInvestigador(
-            $id_investigador, $rol, $buscar, $modalidad, $id_tematica, $id_subtematica
+            $id_investigador,
+            $rol,
+            $buscar,
+            $modalidad,
+            $id_tematica,
+            $id_subtematica
         );
 
         return $this->repo->ejecutarConteo($sql, $tipos, $params);
@@ -97,7 +114,11 @@ class Principal
         $desde = ($pagina - 1) * $por_pagina;
 
         [$sql, $tipos, $params] = $this->SqlEstudiante(
-            $id_estudiante, $buscar, $modalidad, $id_tematica, $id_subtematica
+            $id_estudiante,
+            $buscar,
+            $modalidad,
+            $id_tematica,
+            $id_subtematica
         );
 
         $sql     .= ' GROUP BY p.id_proyectos ORDER BY p.creado_en DESC LIMIT ?, ?';
@@ -116,7 +137,11 @@ class Principal
         int    $id_subtematica = 0
     ): int {
         [$sql, $tipos, $params] = $this->buildSqlConteoEstudiante(
-            $id_estudiante, $buscar, $modalidad, $id_tematica, $id_subtematica
+            $id_estudiante,
+            $buscar,
+            $modalidad,
+            $id_tematica,
+            $id_subtematica
         );
 
         return $this->repo->ejecutarConteo($sql, $tipos, $params);
@@ -175,14 +200,32 @@ class Principal
         return $this->repo->buscarUltimaSolicitud($id_proyecto, $id_estudiante);
     }
 
+    // 
+    // VALIDACIÓN DE SOLICITUD BLOQUEANTE
+    // 
+
+    /**
+     * Delega al repositorio la comprobación de si existe una solicitud bloqueante
+     * (estado 'rechazado' o 'vencido') en el período activo para este proyecto.
+     * Un 'cancelado' NO bloquea.
+     */
+    public function tieneSolicitudBloqueante(int $id_estudiante, int $id_proyectos): bool
+    {
+        return $this->repo->tieneSolicitudBloqueante($id_estudiante, $id_proyectos);
+    }
+
 
     // 
     // BUILDERS DE SQL DINÁMICO (lógica de dominio)
     // 
 
     private function buildSqlInvestigador(
-        int $id_investigador, string $rol,
-        string $buscar, string $modalidad, int $id_tematica, int $id_subtematica
+        int $id_investigador,
+        string $rol,
+        string $buscar,
+        string $modalidad,
+        int $id_tematica,
+        int $id_subtematica
     ): array {
         $filtroInvestigador = ($rol === 'supervisor') ? '' : 'AND p.id_investigador = ?';
         $filtroBuscar       = $buscar         ? 'AND (p.titulo LIKE ? OR p.descripcion LIKE ?)' : '';
@@ -227,18 +270,39 @@ class Principal
         $tipos  = '';
         $params = [];
 
-        if ($rol !== 'supervisor') { $tipos .= 'i'; $params[] = $id_investigador; }
-        if ($buscar)    { $like = "%{$buscar}%"; $tipos .= 'ss'; $params[] = $like; $params[] = $like; }
-        if ($modalidad) { $tipos .= 's'; $params[] = $modalidad; }
-        if ($id_tematica)    { $tipos .= 'i'; $params[] = $id_tematica; }
-        if ($id_subtematica) { $tipos .= 'i'; $params[] = $id_subtematica; }
+        if ($rol !== 'supervisor') {
+            $tipos .= 'i';
+            $params[] = $id_investigador;
+        }
+        if ($buscar) {
+            $like = "%{$buscar}%";
+            $tipos .= 'ss';
+            $params[] = $like;
+            $params[] = $like;
+        }
+        if ($modalidad) {
+            $tipos .= 's';
+            $params[] = $modalidad;
+        }
+        if ($id_tematica) {
+            $tipos .= 'i';
+            $params[] = $id_tematica;
+        }
+        if ($id_subtematica) {
+            $tipos .= 'i';
+            $params[] = $id_subtematica;
+        }
 
         return [$sql, $tipos, $params];
     }
 
     private function buildSqlConteoInvestigador(
-        int $id_investigador, string $rol,
-        string $buscar, string $modalidad, int $id_tematica, int $id_subtematica
+        int $id_investigador,
+        string $rol,
+        string $buscar,
+        string $modalidad,
+        int $id_tematica,
+        int $id_subtematica
     ): array {
         $filtroInvestigador = ($rol === 'supervisor') ? '' : 'AND p.id_investigador = ?';
         $filtroBuscar       = $buscar         ? 'AND (p.titulo LIKE ? OR p.descripcion LIKE ?)' : '';
@@ -260,18 +324,38 @@ class Principal
         $tipos  = '';
         $params = [];
 
-        if ($rol !== 'supervisor') { $tipos .= 'i'; $params[] = $id_investigador; }
-        if ($buscar)    { $like = "%{$buscar}%"; $tipos .= 'ss'; $params[] = $like; $params[] = $like; }
-        if ($modalidad) { $tipos .= 's'; $params[] = $modalidad; }
-        if ($id_tematica)    { $tipos .= 'i'; $params[] = $id_tematica; }
-        if ($id_subtematica) { $tipos .= 'i'; $params[] = $id_subtematica; }
+        if ($rol !== 'supervisor') {
+            $tipos .= 'i';
+            $params[] = $id_investigador;
+        }
+        if ($buscar) {
+            $like = "%{$buscar}%";
+            $tipos .= 'ss';
+            $params[] = $like;
+            $params[] = $like;
+        }
+        if ($modalidad) {
+            $tipos .= 's';
+            $params[] = $modalidad;
+        }
+        if ($id_tematica) {
+            $tipos .= 'i';
+            $params[] = $id_tematica;
+        }
+        if ($id_subtematica) {
+            $tipos .= 'i';
+            $params[] = $id_subtematica;
+        }
 
         return [$sql, $tipos, $params];
     }
 
     private function SqlEstudiante(
         int $id_estudiante,
-        string $buscar, string $modalidad, int $id_tematica, int $id_subtematica
+        string $buscar,
+        string $modalidad,
+        int $id_tematica,
+        int $id_subtematica
     ): array {
         $hoy = date('Y-m-d');
 
@@ -327,22 +411,38 @@ class Principal
         // Versión anterior con validación de ventana de solicitud:
         //$tipos  = 'iissss';
         //$params = [$id_estudiante, $id_estudiante, $hoy, $hoy, $hoy, $hoy];
-        //Versión actual sin validación de ventana de solicitud (se asume que la vista ya la validó):
-        //Así se muestran los proyectos aunque la ventana de solicitud esté cerrada, pero el botón de "Solicitar" se oculta en la vista.
+        // Versión actual sin validación de ventana (el botón se oculta en la vista si está cerrada):
         $tipos  = 'iiss';
         $params = [$id_estudiante, $id_estudiante, $hoy, $hoy];
 
-        if ($buscar)    { $like = "%{$buscar}%"; $tipos .= 'ss'; $params[] = $like; $params[] = $like; }
-        if ($modalidad) { $tipos .= 's'; $params[] = $modalidad; }
-        if ($id_tematica)    { $tipos .= 'i'; $params[] = $id_tematica; }
-        if ($id_subtematica) { $tipos .= 'i'; $params[] = $id_subtematica; }
+        if ($buscar) {
+            $like = "%{$buscar}%";
+            $tipos .= 'ss';
+            $params[] = $like;
+            $params[] = $like;
+        }
+        if ($modalidad) {
+            $tipos .= 's';
+            $params[] = $modalidad;
+        }
+        if ($id_tematica) {
+            $tipos .= 'i';
+            $params[] = $id_tematica;
+        }
+        if ($id_subtematica) {
+            $tipos .= 'i';
+            $params[] = $id_subtematica;
+        }
 
         return [$sql, $tipos, $params];
     }
 
     private function buildSqlConteoEstudiante(
         int $id_estudiante,
-        string $buscar, string $modalidad, int $id_tematica, int $id_subtematica
+        string $buscar,
+        string $modalidad,
+        int $id_tematica,
+        int $id_subtematica
     ): array {
         $hoy = date('Y-m-d');
 
@@ -372,11 +472,35 @@ class Principal
         $tipos  = 'ssss';
         $params = [$hoy, $hoy, $hoy, $hoy];
 
-        if ($buscar)    { $like = "%{$buscar}%"; $tipos .= 'ss'; $params[] = $like; $params[] = $like; }
-        if ($modalidad) { $tipos .= 's'; $params[] = $modalidad; }
-        if ($id_tematica)    { $tipos .= 'i'; $params[] = $id_tematica; }
-        if ($id_subtematica) { $tipos .= 'i'; $params[] = $id_subtematica; }
+        if ($buscar) {
+            $like = "%{$buscar}%";
+            $tipos .= 'ss';
+            $params[] = $like;
+            $params[] = $like;
+        }
+        if ($modalidad) {
+            $tipos .= 's';
+            $params[] = $modalidad;
+        }
+        if ($id_tematica) {
+            $tipos .= 'i';
+            $params[] = $id_tematica;
+        }
+        if ($id_subtematica) {
+            $tipos .= 'i';
+            $params[] = $id_subtematica;
+        }
 
         return [$sql, $tipos, $params];
+    }
+
+
+    // 
+    // CANCELAR
+    // 
+
+    public function cancelarSolicitud(int $id_estudiante, int $id_proyectos): void
+    {
+        $this->repo->cancelarSolicitud($id_estudiante, $id_proyectos);
     }
 }

@@ -84,6 +84,7 @@ class solicitudesControlador extends BaseControlador
         );
     }
 
+
     /**
      * Procesa la carta compromiso firmada del estudiante.
      * Acepta: pdf, docx, png. Máx. 10 MB.
@@ -244,6 +245,8 @@ class solicitudesControlador extends BaseControlador
             $S = new Solicitud($conn);
             $this->vencido($id_usuario, $rol);
 
+            $S->marcarSolicitudesProyectosVencidos();
+
             $por_pagina = 6;
             $pagina     = max(1, (int)($_GET['pagina'] ?? 1));
             $desde      = ($pagina - 1) * $por_pagina;
@@ -298,6 +301,9 @@ class solicitudesControlador extends BaseControlador
             }
 
             $S = new Solicitud($conn);
+
+            $S->marcarSolicitudesProyectosVencidos();
+
             if (!$S->verificarPermiso($id_solicitud, $id_usuario)) {
                 $this->redirigir('sin_permiso', "detalles_solicitud.php?id={$id_solicitud}");
             }
@@ -375,6 +381,9 @@ class solicitudesControlador extends BaseControlador
             }
 
             $S = new Solicitud($conn);
+
+            $S->marcarSolicitudesProyectosVencidos();
+
             if (!$S->verificarPermiso($id_solicitud, $id_usuario)) {
                 $this->redirigir('sin_permiso', "detalles_solicitud.php?id={$id_solicitud}");
             }
@@ -416,6 +425,9 @@ class solicitudesControlador extends BaseControlador
             }
 
             $S  = new Solicitud($conn);
+
+            $S->marcarSolicitudesProyectosVencidos();
+
             $ok = $S->actualizarEstadoCierre($id_seg, $estado, $id_usuario, $comentario);
 
             $msgs_exito = [
@@ -480,6 +492,9 @@ class solicitudesControlador extends BaseControlador
             }
 
             $S = new Solicitud($conn);
+
+            $S->marcarSolicitudesProyectosVencidos();
+
             if (!$S->verificarPermiso($id_solicitud, $id_usuario)) {
                 $this->redirigir('sin_permiso');
             }
@@ -579,6 +594,7 @@ class solicitudesControlador extends BaseControlador
             'estudiante' => $modelo->obtenerEstudiante($id_usuario),
             'carreras'   => $modelo->obtenerCarreras(),
             'plantilla'  => $modelo->obtenerPlantillaCartaCompromiso(),
+            'puede_solicitar' => $modelo->puedeSolicitarIntegracion($id_proyectos, $id_usuario),
         ];
     }
 
@@ -620,6 +636,9 @@ class solicitudesControlador extends BaseControlador
             $this->soloEstudiante($rol);
 
             $S          = new Solicitud($conn);
+
+            $S->marcarSolicitudesProyectosVencidos();
+
             $comentario = trim($_POST['comentario'] ?? '');
             $datos      = $S->obtenerDatosSolicitud($id_solicitud);
 
@@ -735,6 +754,9 @@ class solicitudesControlador extends BaseControlador
             $this->soloEstudiante($rol);
 
             $S       = new Solicitud($conn);
+
+            $S->marcarSolicitudesProyectosVencidos();
+
             $periodo = $S->obtenerPeriodoActivoParaProyecto($id_proyectos);
 
             if (!$periodo) {
@@ -791,7 +813,7 @@ class solicitudesControlador extends BaseControlador
                 estado: 'proceso'
             );
 
-            //die(print_r("AVANCE 1"));
+
 
             $id_doc_carta = $this->procesarCartaCompromiso(
                 campo_file: 'carta_compromiso',
@@ -801,19 +823,19 @@ class solicitudesControlador extends BaseControlador
                 id_plantilla: $id_plantilla
             );
 
-            
+
 
             if (!$id_doc_carta) {
                 throw new Exception("No se pudo guardar la carta compromiso.");
             }
 
-            
-            
 
             $S->marcarSeguimientoEnProceso($id_seguimiento);
 
             $titulo_proyecto = $S->obtenerTituloProyecto($id_proyectos);
             $enlace          = "/Vistas/Proyectos/detalles.php?id_proyectos={$id_proyectos}";
+
+
 
             $S->insertarNotificacion(
                 id_usuario: $id_usuario,
@@ -821,6 +843,7 @@ class solicitudesControlador extends BaseControlador
                 contenido: "Has enviado una solicitud para el proyecto: <b>" . htmlspecialchars($titulo_proyecto) . "</b>. En espera de revisión.",
                 enlace: $enlace
             );
+
 
             foreach ($S->obtenerSupervisoresActivos() as $sup) {
                 $S->insertarNotificacion(

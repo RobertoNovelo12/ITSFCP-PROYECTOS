@@ -491,10 +491,10 @@ class ProyectoControlador extends BaseControlador
     {
         global $conn;
         try {
-            return (new Proyectos($conn))->obtenerinstituto() ?? [];
+            return (new Proyectos($conn))->obtenerinstituto() ?? ['id_instituto' => 0];
         } catch (Exception $e) {
             error_log($e->getMessage());
-            return [];
+            return ['id_instituto' => 0];
         }
     }
 
@@ -587,28 +587,34 @@ class ProyectoControlador extends BaseControlador
             ) {
                 $this->redirigir('error_crear');
             }
+    
 
-            if ($inicio < new DateTime($periodo['fecha_inicio'])) {
+            if ($inicio < new DateTime($periodo['FechaInicio'])) {
                 $this->redirigir('error_crear');
             }
 
-            $limiteMaximo = new DateTime($periodo['fecha_final']);
+
+            $limiteMaximo = new DateTime($periodo['FechaFinal']);
             $limiteMaximo->modify('+1 year');
 
             if ($fin > $limiteMaximo) {
                 $this->redirigir('error_crear');
             }
 
-            $instituto = $this->obtenerInstituto()[0] ?? null;
+
+            $instituto = $this->obtenerInstituto();
 
             if (!$instituto) {
                 $this->redirigir('error_sin_registro');
             }
 
+
+
             $conn->begin_transaction();
 
             $modelo = new Proyectos($conn);
             $modelo->actualizarProyectosVencidos();
+
 
             $proyectoId = $modelo->registrarProyecto(
                 $id,
@@ -634,7 +640,7 @@ class ProyectoControlador extends BaseControlador
             $conn->commit();
 
             // Tras crear, redirigir a Módulo de solicitudes donde verá el estado "Por aprobar".
-            $this->redirigir('exito_crear', '../Solicitudes_proyectos/index.php');
+            $this->redirigir('exito_crear', '../Solicitudes_proyecto/index.php');
         } catch (Exception $e) {
 
             if ($conn->errno === 0) {
@@ -702,7 +708,7 @@ class ProyectoControlador extends BaseControlador
             // redirigir de vuelta al Módulo de solicitudes con el id del proyecto.
             $desde = $datos['desde'] ?? '';
             if ($desde === 'solicitudes') {
-                $this->redirigir('exito_editar', '../Solicitudes_proyectos/index.php', "&id_proyectos={$id_proyecto}");
+                $this->redirigir('exito_editar', '../Solicitudes_proyecto/index.php', "&id_proyectos={$id_proyecto}");
             } else {
                 $this->redirigir('exito_editar', 'index.php', "&id_proyectos={$id_proyecto}");
             }
@@ -721,7 +727,9 @@ class ProyectoControlador extends BaseControlador
     /**
      * Cambia el estado de un proyecto vía enlace GET.
      *
-     */
+     *//*
+     // NOTA: este método se conserva por si el supervisor o futuras rutas lo necesitan,
+     // pero no se invoca desde ningún enlace en este módulo.
     public function actualizarestado(int $id_proyecto, string $rol, string $tipo): void
     {
         global $conn;
@@ -743,7 +751,7 @@ class ProyectoControlador extends BaseControlador
             $msg = ($e->getMessage() === 'accion_no_permitida') ? 'accion_no_permitida' : 'error_estado';
             $this->redirigir($msg, 'detalles.php', "&id_proyectos={$id_proyecto}");
         }
-    }
+    }*/
 
 
     // 

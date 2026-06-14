@@ -57,8 +57,10 @@ class SolicitudesProyectoRepositorio extends BaseModelo
              WHERE pd.activo = 1
                AND LOWER(td.nombre) LIKE 'reporte%'
              LIMIT 1",
-            "", [], false
-        ) ?: null;
+            "",
+            [],
+            false
+        );
     }
 
     public function insertarSeguimiento(int $id_proyectos): int
@@ -250,7 +252,6 @@ class SolicitudesProyectoRepositorio extends BaseModelo
             "ii",
             [$id_proyectos, $id_investigador]
         );
-
     }
 
 

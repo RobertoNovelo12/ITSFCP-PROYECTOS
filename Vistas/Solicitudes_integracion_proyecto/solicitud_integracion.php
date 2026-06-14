@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 
 session_start();
 
-//  Guard de sesión ─
+//  Guard de sesión 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: /index.php");
     exit;
@@ -22,10 +22,10 @@ if ($rol !== 'estudiante') {
     exit;
 }
 
-//  Parámetro de ruta ─
+//  Parámetro de ruta 
 $id_proyectos = isset($_GET['id_proyectos']) ? (int)$_GET['id_proyectos'] : 0;
 
-//  Controlador ─
+//  Controlador 
 require_once __DIR__ . '/../../Controladores/solicitudesControlador.php';
 
 $ctrl  = new solicitudesControlador();
@@ -55,13 +55,13 @@ if (!$datos['estudiante']) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $ctrl->enviarSolicitud($id_proyectos, $id_usuario, $rol);
-    // enviarSolicitud() hace su propio header() + exit() internamente (PRG)
 }
-//  Variables para la vista ─
+//  Variables para la vista 
 $proyecto   = $datos['proyecto'];
 $estudiante = $datos['estudiante'];
 $carreras   = $datos['carreras'];
 $plantilla  = $datos['plantilla'];   // null si no hay plantilla activa aún
+$puedeSolicitar = $datos['puede_solicitar'];
 
 $nombre_completo = trim(
     htmlspecialchars($estudiante['nombre'])
@@ -74,7 +74,7 @@ $titulo = "Solicitud de Integración — " . htmlspecialchars($proyecto['titulo'
 //  Inicio del buffer de salida 
 ob_start();
 
-//  Mensaje de éxito/error ─
+//  Mensaje de éxito/error 
 $msg = $_GET['msg'] ?? '';
 
 $_mapa = [
@@ -129,7 +129,7 @@ $_mapa = [
                     <input type="hidden" name="id_proyectos" value="<?= $id_proyectos ?>">
                     <input type="hidden" name="id_usuario" value="<?= $id_usuario ?>">
 
-                    <!--  1. Información del proyecto ─ -->
+                    <!--  1. Información del proyecto  -->
                     <div class="card-evento">
                         <div class="card-header">
                             <h2>Información del proyecto</h2>
@@ -140,7 +140,7 @@ $_mapa = [
                                 <input type="text"
                                     value="<?= htmlspecialchars($proyecto['titulo']) ?>"
                                     readonly
-                                    class="readonly-input">
+                                    class="readonly-input" disabled>
                             </div>
                             <?php if (!empty($proyecto['investigador'])): ?>
                                 <div class="form-group-evento mt-3">
@@ -148,13 +148,13 @@ $_mapa = [
                                     <input type="text"
                                         value="<?= htmlspecialchars($proyecto['investigador']) ?>"
                                         readonly
-                                        class="readonly-input">
+                                        class="readonly-input" disabled>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
 
-                    <!--  2. Información del estudiante ─ -->
+                    <!--  2. Información del estudiante  -->
                     <div class="card-evento">
                         <div class="card-header">
                             <h2>Información del estudiante</h2>
@@ -167,7 +167,7 @@ $_mapa = [
                                     <input type="text"
                                         value="<?= $nombre_completo ?>"
                                         readonly
-                                        class="readonly-input">
+                                        class="readonly-input" disabled>
                                 </div>
                                 <div class="form-group-evento">
                                     <label>Promedio general <span style="font-weight:400;color:var(--color-texto-secundario);">(opcional)</span></label>
@@ -350,9 +350,17 @@ $_mapa = [
                                     onclick="window.history.back()">
                                     Cancelar
                                 </button>
-                                <button type="submit" class="btn-enviar-solicitud-form">
-                                    <i class="bi bi-send-fill me-1"></i>Enviar solicitud
-                                </button>
+                                <?php if ($puedeSolicitar): ?>
+                                    <button type="submit" class="btn-enviar-solicitud-form">
+                                        <i class="bi bi-send-fill me-1"></i>Enviar solicitud
+                                    </button>
+                                <?php else: ?>
+                                    <div class="nota-solicitud nota-warn mt-3">
+                                        <i class="bi bi-info-circle"></i>
+                                        <span>Ya tienes una solicitud de integración para este proyecto o el periodo de solicitudes ha vencido.</span>
+                                    </div>
+                                <?php endif; ?>
+
                             </div>
 
                         </div>

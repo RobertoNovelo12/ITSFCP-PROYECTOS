@@ -15,36 +15,45 @@ if (!isset($_SESSION['id_usuario'])) {
 $id_usuario = (int)$_SESSION['id_usuario'];
 $rol = strtolower($_SESSION['rol'] ?? '');
 
-//Todos los roles pueden acceder
+// Todos los roles pueden acceder
 if (!in_array($rol, ['investigador', 'profesor', 'estudiante', 'supervisor'], true)) {
     header("Location: /Vistas/Principal/index.php");
     exit;
 }
 
-
 // Validar parámetro de ruta
 $id_proyectos = isset($_GET['id_proyectos']) ? (int)$_GET['id_proyectos'] : 0;
 
-
-
-//  Controlador 
-require_once __DIR__ .  '/../../Controladores/principalControlador.php';
-
+// Controlador
+require_once __DIR__ . '/../../Controladores/principalControlador.php';
 $controlador = new principalControlador();
-$datos       = $controlador->obtenerDatos($id_proyectos, $id_usuario, $rol);
+
+//  Acciones POST (antes de cualquier salida o consulta) 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $accion = $_POST['accion'] ?? '';
+
+    if ($accion === 'cancelar_solicitud' && $rol === 'estudiante') {
+        $id_proy_post = (int)($_POST['id_proyectos'] ?? 0);
+        $controlador->cancelar($id_usuario, $id_proy_post);
+        // cancelar() redirige, nunca llega aquí
+    }
+}
+
+$datos = $controlador->obtenerDatos($id_proyectos, $id_usuario, $rol);
 
 // Si el proyecto no existe, redirigir
 $registro = $datos;
-include __DIR__ .  '../../../publico/incluido/_validar_datos.php';
+include __DIR__ . '../../../publico/incluido/_validar_datos.php';
 
 
-// Extraer variables para la vista (evitar $datos['x'] en el HTML)
-$proyecto        = $datos['proyecto'];
-$es_integrante   = $datos['es_integrante'];
-$solicitud       = $datos['solicitud'];       // null | ['id_solicitud_proyecto','estado']
-$ventana_abierta = $datos['ventana_abierta'];
-$puede_solicitar = $datos['puede_solicitar'];
-$puede_cancelar  = $datos['puede_cancelar'];
+// Extraer variables para la vista
+$proyecto             = $datos['proyecto'];
+$es_integrante        = $datos['es_integrante'];
+$solicitud            = $datos['solicitud'];       // null | ['id_solicitud_proyecto','estado']
+$ventana_abierta      = $datos['ventana_abierta'];
+$puede_solicitar      = $datos['puede_solicitar'];
+$puede_cancelar       = $datos['puede_cancelar'];
+$solicitud_bloqueante = $datos['solicitud_bloqueante']; 
 
 // Mensaje de solicitud (tras redireccionamiento con ?solicitud=...)
 $mensaje_solicitud = $controlador->leerMensajeSolicitud();
@@ -68,6 +77,14 @@ function mostrarValor($valor, string $tipo = 'texto'): string
 
 $titulo = "Detalles del Proyecto - " . htmlspecialchars($proyecto['titulo']);
 
+//  Mapa de mensajes 
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_cancelar'     => ['tipo' => 'exito',  'titulo_msg' => 'Solicitud cancelada',       'mensaje' => 'Tu solicitud ha sido cancelada exitosamente.'],
+    'error_cancelar'     => ['tipo' => 'error',  'titulo_msg' => 'Error al cancelar',         'mensaje' => 'La acción solicitada no fue posible realizarse. Intentelo más tarde.'],
+    'sin_argumentos_url' => ['tipo' => 'alerta', 'titulo_msg' => 'No se han proporcionado parámetros en la URL.', 'mensaje' => 'La acción solicitada no está disponible por falta de parámetros en la URL.'],
+];
+
 //  Construcción del HTML del contenido 
 ob_start();
 ?>
@@ -84,6 +101,13 @@ ob_start();
         <div class="col-6">
         </div>
     </div>
+
+    <!-- ALERTAS -->
+    <?php if (isset($_mapa[$msg])):
+        extract($_mapa[$msg]);
+        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+    endif; ?>
+
 
     <div class="row">
 
@@ -146,9 +170,9 @@ ob_start();
                         </div>
                     </div>
 
-                </div><!-- /card-body -->
-            </div><!-- /card -->
-        </div><!-- /col-lg-8 -->
+                </div>
+            </div>
+        </div>
 
         <!--  Columna lateral: ficha del proyecto  -->
         <div class="col-lg-4">
@@ -244,11 +268,11 @@ ob_start();
                         <span><?= mostrarValor($proyecto['fecha_creacion']) ?></span>
                     </div>
 
-                </div><!-- /card-body -->
-            </div><!-- /card -->
-        </div><!-- /col-lg-4 -->
+                </div>
+            </div>
+        </div>
 
-    </div><!-- /row -->
+    </div>
 
     <!--  Botones de acción  -->
     <div class="row mt-4">
@@ -269,18 +293,56 @@ ob_start();
                         </span>
 
                     <?php elseif ($puede_solicitar): ?>
-                        <!-- Ventana abierta y sin solicitud activa -> puede enviar -->
+                        <!-- Ventana abierta y sin solicitud activa → puede enviar -->
                         <a href="/Vistas/Solicitudes_integracion_proyecto/solicitud_integracion.php?id_proyectos=<?= $id_proyectos ?>"
                             class="btn-enviar-solicitud">
                             <i class="bi bi-send"></i> Solicitud
                         </a>
 
                     <?php elseif ($puede_cancelar): ?>
-                        <!-- Tiene solicitud activa → puede cancelar -->
-                        <button class="btn-enviar-solicitud" style="background:#d9534f;"
-                            onclick="abrirModalCancelar()">
-                            <i class="bi bi-x-circle"></i> Cancelar solicitud
-                        </button>
+                        <!-- Solicitud activa que puede cancelarse -->
+                        <form method="POST" action="detalles_proyecto.php?id_proyectos=<?= $id_proyectos ?>"
+                            onsubmit="return confirm('¿Deseas cancelar tu solicitud? Esta acción no se puede deshacer.');">
+                            <input type="hidden" name="accion" value="cancelar_solicitud">
+                            <input type="hidden" name="id_proyectos" value="<?= $id_proyectos ?>">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-x-circle"></i> Cancelar solicitud
+                            </button>
+                        </form>
+
+                    <?php elseif ($solicitud_bloqueante): ?>
+                        <!-- Solicitud rechazada o vencida en el período activo: no puede volver a solicitar -->
+                        <?php
+                            $estado_bloqueo = $solicitud['estado'] ?? '';
+                            if ($estado_bloqueo === 'rechazado'):
+                        ?>
+                            <div class="alert alert-danger d-flex align-items-center gap-2 mb-0 py-2 px-3" role="alert">
+                                <i class="bi bi-x-octagon-fill fs-5"></i>
+                                <div>
+                                    <strong>Solicitud rechazada.</strong>
+                                    Tu solicitud para este proyecto fue rechazada en el período actual
+                                    y no puedes volver a solicitarlo.
+                                </div>
+                            </div>
+                        <?php elseif ($estado_bloqueo === 'vencido'): ?>
+                            <div class="alert alert-warning d-flex align-items-center gap-2 mb-0 py-2 px-3" role="alert">
+                                <i class="bi bi-hourglass-bottom fs-5"></i>
+                                <div>
+                                    <strong>Solicitud vencida.</strong>
+                                    El período de revisión de tu solicitud anterior venció
+                                    y no puedes volver a solicitarlo en este período.
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <!-- Estado bloqueante detectado vía BD (p.ej. la última solicitud visible era cancelado pero hay una rechazada/vencida anterior) -->
+                            <div class="alert alert-secondary d-flex align-items-center gap-2 mb-0 py-2 px-3" role="alert">
+                                <i class="bi bi-slash-circle fs-5"></i>
+                                <div>
+                                    <strong>No disponible.</strong>
+                                    Ya no puedes enviar una solicitud para este proyecto en el período actual.
+                                </div>
+                            </div>
+                        <?php endif; ?>
 
                     <?php elseif (!$ventana_abierta): ?>
                         <!-- Fuera de la ventana de solicitud -->
@@ -297,28 +359,22 @@ ob_start();
         </div>
     </div>
 
-</div><!-- /container-fluid -->
+</div>
 
-<!--  Sección de acordeón: JS  -->
+<!--  Acordeón: JS  -->
 <script>
     function toggleSection(sectionId) {
         const content = document.getElementById('content-' + sectionId);
-        const icon = document.getElementById('icon-' + sectionId);
+        const icon    = document.getElementById('icon-'    + sectionId);
         content.classList.toggle('collapsed');
         icon.classList.toggle('rotated');
     }
 </script>
 
 <?php
-//  Modales (se incluyen siempre; cada uno decide si renderiza) 
-include __DIR__ . '/modales/modal_cancelar_solicitud.php';
-include __DIR__ . '/modales/modal_mensaje_solicitud.php';
-?>
-
-<?php
 //  Ensamblado final con layout 
-$contenido  = ob_get_clean();
-$bodyClass  = 'proyectos-page';
+$contenido = ob_get_clean();
+$bodyClass = 'proyectos-page';
 
 include __DIR__ . '/../../layout.php';
 ?>

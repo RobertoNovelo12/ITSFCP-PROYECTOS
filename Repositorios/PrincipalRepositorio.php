@@ -54,6 +54,23 @@ class PrincipalRepositorio extends BaseModelo
         );
     }
 
+    // 
+    // MANTENIMIENTO AUTOMÁTICO DE ESTADOS
+    // 
+
+    public function marcarSolicitudesProyectosVencidos(): void
+    {
+        $this->ejecutar("
+        UPDATE solicitud_proyecto sp
+        JOIN periodos pe ON pe.id_periodos = sp.id_periodos
+        SET sp.estado = 'vencido', sp.fecha_respuesta = CURDATE()
+        WHERE sp.id_solicitud_proyecto > 0
+          AND pe.estado = 1
+          AND pe.fecha_fin_solicitud IS NOT NULL
+          AND CURDATE() > pe.fecha_fin_solicitud
+          AND sp.estado NOT IN ('vencido','rechazado','aceptado','cancelado')
+    ");
+    }
 
     // 
     // PROYECTOS — consultas con SQL dinámico
@@ -211,8 +228,14 @@ class PrincipalRepositorio extends BaseModelo
     public function contarProyectosActivos(int $id_estudiante): int
     {
         $fila = $this->ejecutar(
-            "SELECT COUNT(*) AS total FROM proyectos_usuarios
-             WHERE id_usuarios = ? AND estado = 'activo'",
+            "SELECT COUNT(*) AS total
+             FROM proyectos_usuarios pu
+             JOIN proyectos p         ON p.id_proyectos  = pu.id_proyectos
+             JOIN periodos  pe        ON pe.id_periodos   = p.id_periodos
+             WHERE pu.id_usuarios = ?
+               AND pu.estado = 'activo'
+               AND pe.estado = 1
+               AND CURDATE() BETWEEN pe.fecha_inicio_solicitud AND pe.fecha_fin_solicitud",
             'i',
             [$id_estudiante],
             false
@@ -224,9 +247,13 @@ class PrincipalRepositorio extends BaseModelo
     public function contarSolicitudesEnEspera(int $id_estudiante): int
     {
         $fila = $this->ejecutar(
-            "SELECT COUNT(*) AS total FROM solicitud_proyecto
-             WHERE id_estudiante = ?
-               AND estado IN ('pendiente', 'en_revision', 'correcciones', 'aceptado')",
+            "SELECT COUNT(*) AS total
+         FROM solicitud_proyecto sp
+         JOIN periodos pe ON pe.id_periodos = sp.id_periodos
+         WHERE sp.id_estudiante = ?
+           AND sp.estado IN ('pendiente', 'en_revision', 'correcciones', 'aceptado')
+           AND pe.estado = 1
+           AND CURDATE() BETWEEN pe.fecha_inicio_solicitud AND pe.fecha_fin_solicitud",
             'i',
             [$id_estudiante],
             false
@@ -263,5 +290,53 @@ class PrincipalRepositorio extends BaseModelo
         );
 
         return $fila ?: null;
+    }
+
+    // 
+    // VALIDACIÓN DE SOLICITUD BLOQUEANTE (rechazado / vencido en el período activo)
+    // 
+
+    /**
+     * Devuelve true si el estudiante ya tiene una solicitud en estado 'rechazado'
+     * o 'vencido' para este proyecto dentro de un período activo.
+     * Un estado 'cancelado' NO bloquea: el estudiante puede volver a solicitar.
+     */
+    public function tieneSolicitudBloqueante(int $id_estudiante, int $id_proyectos): bool
+    {
+        $fila = $this->ejecutar(
+            "SELECT COUNT(*) AS total
+             FROM solicitud_proyecto sp
+             JOIN periodos pe ON pe.id_periodos = sp.id_periodos
+             WHERE sp.id_estudiante = ?
+               AND sp.id_proyectos  = ?
+               AND pe.estado = 1
+               AND sp.estado IN ('rechazado', 'vencido')",
+            'ii',
+            [$id_estudiante, $id_proyectos],
+            false
+        );
+
+        return (int)($fila['total'] ?? 0) > 0;
+    }
+
+
+    // 
+    // CANCELAR
+    // 
+
+    /**
+     * Cancela todas las solicitudes activas (pendiente / en_revision / correcciones)
+     * del estudiante para el proyecto indicado.
+     */
+    public function cancelarSolicitud(int $id_usuario, int $id_proyectos): void
+    {
+        $this->ejecutar(
+            "UPDATE solicitud_proyecto
+             SET    estado = 'cancelado', fecha_respuesta = CURDATE()
+             WHERE  id_estudiante = ? AND id_proyectos = ?
+               AND  estado IN ('pendiente', 'en_revision', 'correcciones')",
+            'ii',
+            [$id_usuario, $id_proyectos]
+        );
     }
 }

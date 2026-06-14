@@ -1,7 +1,5 @@
 <?php
 // Vistas/Mis_solicitudes/index.php
-// Vista exclusiva para el rol estudiante.
-// Muestra todas sus solicitudes con filtros, resumen, tabla paginada y cards en móvil.
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -13,7 +11,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
-$rol = strtolower($_SESSION['rol'] ?? '');
+$rol        = strtolower($_SESSION['rol'] ?? '');
 $id_usuario = (int)$_SESSION['id_usuario'];
 
 if ($rol !== 'estudiante') {
@@ -24,48 +22,35 @@ if ($rol !== 'estudiante') {
 require_once __DIR__ . '/../../Controladores/MisSolicitudesControlador.php';
 $ctrl = new MisSolicitudesControlador();
 
-//  Acciones POST 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $accion = $_POST['accion'] ?? '';
-
-    if ($accion === 'cancelar') {
-
-        $id_sol = (int)($_POST['id_solicitud'] ?? 0);
-
-        $resultado = $ctrl->cancelar($id_sol, $id_usuario);
-
-        $ok = is_array($resultado) && ($resultado['ok'] ?? false);
-
-        $param = $ok ? 'cancelado' : 'error';
-
-        $detalle = (!$ok && !empty($resultado['mensaje']))
-            ? '&detalle=' . urlencode($resultado['mensaje'])
-            : '';
-
-        header("Location: index.php?msg={$param}{$detalle}");
-        exit;
-    }
+// Acciones GET (botonConfirmacion genera <a href>, no <form>)
+if (($_GET['accion'] ?? '') === 'cancelar') {
+    $id_sol = (int)($_GET['id_solicitud'] ?? 0);
+    $ctrl->cancelar($id_sol, $id_usuario);
+    // cancelar() redirige, nunca llega aquí
 }
 
-//  Datos para la vista 
+// Datos para la vista
 $data        = $ctrl->index($id_usuario);
 $solicitudes = $data['solicitudes'];
 $resumen     = $data['resumen'];
 $periodos    = $data['periodos'];
 $filtros     = $data['filtros'];
 $paginacion  = $data['paginacion'];
-$mensaje     = $ctrl->leerMensaje();
+
+// Mapa de mensajes
+$msg   = $_GET['msg'] ?? '';
+$_mapa = [
+    'exito_cancelar' => ['tipo' => 'exito', 'titulo_msg' => 'Solicitud cancelada',  'mensaje' => 'La solicitud fue cancelada correctamente.'],
+    'error_cancelar' => ['tipo' => 'error', 'titulo_msg' => 'Error al cancelar',    'mensaje' => 'No fue posible cancelar la solicitud. Intenta de nuevo.'],
+];
 
 $titulo    = 'Mis Solicitudes';
 $bodyClass = 'proyectos-page';
 
 ob_start();
-include __DIR__ . '/../../mensaje.php';
 ?>
 
-<!-- ═
-     CONTENIDO
- -->
+<!-- ═ CONTENIDO ═ -->
 <div class="container-fluid py-4 ancho_container">
 
     <div class="ms-page">
@@ -78,7 +63,6 @@ include __DIR__ . '/../../mensaje.php';
             include __DIR__ . '../../../publico/incluido/_encabezado.php';
             ?>
             <div class="col-md-6 text-md-end mt-2 mt-md-0">
-                <!-- Filtro independiente de periodo -->
                 <form class="d-inline-flex align-items-center gap-2" method="GET" id="formPeriodo">
                     <input type="hidden" name="estado" value="<?= htmlspecialchars($filtros['estado'] ?? '') ?>">
                     <input type="hidden" name="buscar" value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
@@ -98,30 +82,20 @@ include __DIR__ . '/../../mensaje.php';
         </div>
 
         <!-- FLASH -->
-        <?php if ($mensaje): ?>
-            <?php
-            $tipo_flash = $mensaje['tipo'] ?: 'info';
-            $clases_alerta = ['exito' => 'alert-success', 'peligro' => 'alert-danger', 'info' => 'alert-info'];
-            $iconos = ['exito' => 'bi-check-circle-fill', 'peligro' => 'bi-x-circle-fill', 'info' => 'bi-info-circle-fill'];
-            $clase_alerta = $clases_alerta[$tipo_flash] ?? 'alert-secondary';
-            $icono = $iconos[$tipo_flash] ?? 'bi-bell-fill';
-            ?>
-            <div class="alert <?= $clase_alerta ?> alert-dismissible fade show">
-                <i class="bi <?= $icono ?> me-2"></i><?= htmlspecialchars($mensaje['texto']) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
+        <?php if (isset($_mapa[$msg])): extract($_mapa[$msg]);
+            include __DIR__ . '../../../publico/incluido/_mensaje.php';
+        endif; ?>
 
         <!-- TARJETAS RESUMEN -->
         <div class="row mb-4 g-3">
             <?php
             $cards_resumen = [
                 ['clase' => 'c-total', 'borde' => 'border-primary',   'color' => 'text-primary',   'num' => $resumen['total']        ?? 0, 'lbl' => 'Total'],
-                ['clase' => 'c-pend',  'borde' => 'border-secondary', 'color' => 'text-secondary',  'num' => $resumen['pendientes']   ?? 0, 'lbl' => 'Pendientes'],
-                ['clase' => 'c-rev',   'borde' => 'border-info',      'color' => 'text-info',       'num' => $resumen['en_revision']  ?? 0, 'lbl' => 'En revisión'],
-                ['clase' => 'c-corr',  'borde' => 'border-warning',   'color' => 'text-warning',    'num' => $resumen['correcciones'] ?? 0, 'lbl' => 'Correcciones'],
-                ['clase' => 'c-acep',  'borde' => 'border-success',   'color' => 'text-success',    'num' => $resumen['aceptadas']    ?? 0, 'lbl' => 'Aceptadas'],
-                ['clase' => 'c-rech',  'borde' => 'border-danger',    'color' => 'text-danger',     'num' => $resumen['rechazadas']   ?? 0, 'lbl' => 'Rechazadas'],
+                ['clase' => 'c-pend',  'borde' => 'border-secondary', 'color' => 'text-secondary', 'num' => $resumen['pendientes']   ?? 0, 'lbl' => 'Pendientes'],
+                ['clase' => 'c-rev',   'borde' => 'border-info',      'color' => 'text-info',      'num' => $resumen['en_revision']  ?? 0, 'lbl' => 'En revisión'],
+                ['clase' => 'c-corr',  'borde' => 'border-warning',   'color' => 'text-warning',   'num' => $resumen['correcciones'] ?? 0, 'lbl' => 'Correcciones'],
+                ['clase' => 'c-acep',  'borde' => 'border-success',   'color' => 'text-success',   'num' => $resumen['aceptadas']    ?? 0, 'lbl' => 'Aceptadas'],
+                ['clase' => 'c-rech',  'borde' => 'border-danger',    'color' => 'text-danger',    'num' => $resumen['rechazadas']   ?? 0, 'lbl' => 'Rechazadas'],
             ];
             foreach ($cards_resumen as $c): ?>
                 <div class="col-6 col-md-4 col-xl-2">
@@ -140,10 +114,8 @@ include __DIR__ . '/../../mensaje.php';
             <div class="card-body py-2">
                 <div class="row g-2 align-items-end">
                     <form method="GET" class="row g-2 align-items-end">
-                        <!-- Mantener periodo activo -->
                         <input type="hidden" name="periodo" value="<?= htmlspecialchars($filtros['periodo'] ?? '') ?>">
 
-                        <!-- Buscar -->
                         <div class="col-md-5 mb-1">
                             <label class="form-label mb-1 small fw-semibold">Buscar</label>
                             <input type="text" name="buscar" class="form-control form-control-sm"
@@ -151,7 +123,6 @@ include __DIR__ . '/../../mensaje.php';
                                 value="<?= htmlspecialchars($filtros['buscar'] ?? '') ?>">
                         </div>
 
-                        <!-- Estado -->
                         <div class="col-md-6 mb-1">
                             <label class="form-label mb-1 small fw-semibold">Estado</label>
                             <select name="estado" class="form-select form-select-sm">
@@ -173,7 +144,6 @@ include __DIR__ . '/../../mensaje.php';
                             </select>
                         </div>
 
-                        <!-- Botones -->
                         <div class="col-auto d-flex gap-1 align-items-end">
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="bi bi-funnel-fill me-1"></i>Filtrar
@@ -188,7 +158,7 @@ include __DIR__ . '/../../mensaje.php';
             </div>
         </div>
 
-        <!--  TABLA ESCRITORIO  -->
+        <!-- TABLA ESCRITORIO -->
         <?php if (!empty($solicitudes)): ?>
 
             <div class="ms-tabla-wrap">
@@ -203,9 +173,7 @@ include __DIR__ . '/../../mensaje.php';
                         </thead>
                         <tbody>
                             <?php foreach ($solicitudes as $i => $sol): ?>
-                                <?php
-                                $offset = ($paginacion['pagina'] - 1) * $paginacion['por_pagina'];
-                                ?>
+                                <?php $offset = ($paginacion['pagina'] - 1) * $paginacion['por_pagina']; ?>
                                 <tr>
                                     <td class="text-muted" style="font-size:.78rem;">
                                         <?= $offset + $i + 1 ?>
@@ -238,7 +206,7 @@ include __DIR__ . '/../../mensaje.php';
                 </div>
             </div>
 
-            <!--  CARDS MÓVIL ═ -->
+            <!-- CARDS MÓVIL -->
             <div class="ms-cards-movil-wrap">
                 <?php foreach ($solicitudes as $sol): ?>
                     <div class="ms-card-movil">
@@ -283,16 +251,16 @@ include __DIR__ . '/../../mensaje.php';
                 <?php endforeach; ?>
             </div>
 
-            <!--  PAGINACIÓN  -->
-            <?php 
-                $qBase = http_build_query(array_filter([
-                    'periodo' => $filtros['periodo'] ?? '',
-                    'buscar'  => $filtros['buscar']  ?? '',
-                    'estado'  => $filtros['estado']  ?? '',
-                ]));
-                $entidad = 'resultados';
-                include __DIR__ . '../../../publico/incluido/_paginacion.php';
-             ?>
+            <!-- PAGINACIÓN -->
+            <?php
+            $qBase = http_build_query(array_filter([
+                'periodo' => $filtros['periodo'] ?? '',
+                'buscar'  => $filtros['buscar']  ?? '',
+                'estado'  => $filtros['estado']  ?? '',
+            ]));
+            $entidad = 'resultados';
+            include __DIR__ . '../../../publico/incluido/_paginacion.php';
+            ?>
 
         <?php else: ?>
             <!-- ESTADO VACÍO -->
@@ -316,42 +284,7 @@ include __DIR__ . '/../../mensaje.php';
 
     </div>
 
-    <!--  MODAL CANCELAR ═ -->
-    <div class="ms-modal-overlay" id="modalCancelar">
-        <div class="ms-modal">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <h4>Cancelar solicitud</h4>
-            <p id="modalCancelarTexto">¿Estás seguro de que deseas cancelar esta solicitud?</p>
-            <form method="POST" action="index.php">
-                <input type="hidden" name="accion" value="cancelar">
-                <input type="hidden" name="id_solicitud" id="modalCancelarId">
-                <div class="ms-modal-btns">
-                    <button type="submit" class="ms-btn-confirmar">
-                        <i class="bi bi-check-lg me-1"></i> Sí, cancelar
-                    </button>
-                    <button type="button" class="ms-btn-cerrar" onclick="cerrarModal()">
-                        Cerrar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
-<script>
-    function abrirModalCancelar(id, titulo) {
-        document.getElementById('modalCancelarId').value = id;
-        document.getElementById('modalCancelarTexto').textContent =
-            '¿Cancelar la solicitud para "' + titulo + '"? Esta acción no se puede deshacer.';
-        document.getElementById('modalCancelar').classList.add('abierto');
-    }
-
-    function cerrarModal() {
-        document.getElementById('modalCancelar').classList.remove('abierto');
-    }
-    document.getElementById('modalCancelar').addEventListener('click', function(e) {
-        if (e.target === this) cerrarModal();
-    });
-</script>
 
 <?php
 $contenido = ob_get_clean();

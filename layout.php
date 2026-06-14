@@ -11,25 +11,20 @@
         <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <?php endif; ?>
 
-    <!-- AGREGAR ESTO ANTES DEL CSS -->
     <script>
-        // Aplicar estado del sidebar INMEDIATAMENTE antes de que se renderice
         (() => {
             try {
-                const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
-
-                if (sidebarCollapsed === "true") {
-                    // Agregar clase al HTML antes de que se renderice
-                    document.documentElement.classList.add("sidebar-collapsed-initial");
+                if (localStorage.getItem("sidebar-collapsed") === "true") {
+                    document.body ?
+                        document.body.classList.add("sidebar-collapsed") :
+                        document.addEventListener("DOMContentLoaded", () => {
+                            document.body.classList.add("sidebar-collapsed");
+                        });
                 }
-
-                const isDark = localStorage.getItem("darkModeEnabled") === "true";
-                if (isDark) {
+                if (localStorage.getItem("darkModeEnabled") === "true") {
                     document.documentElement.classList.add("dark-mode");
                 }
-            } catch (e) {
-                console.warn("Error al acceder a localStorage", e);
-            }
+            } catch (e) {}
         })();
     </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">

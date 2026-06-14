@@ -1,7 +1,7 @@
 <?php
 $servidor = "localhost";
 $usuario = "root";
-$clave = "1234";
+$clave = "";
 $base_datos = "gestion_proyectos";
 $puerto = 3306;
 

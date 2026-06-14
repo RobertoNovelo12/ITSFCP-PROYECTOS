@@ -14,14 +14,16 @@ class MisSolicitudesControlador extends BaseControlador
     private const POR_PAGINA             = 8;
     private const BASE_URL               = '/Vistas/Mis_solicitudes';
 
-    // ─
+    // 
     //  INDEX
-    // ─
+    // 
 
     public function index(int $id_estudiante): array
     {
         global $conn;
         $modelo = new MisSolicitudes($conn);
+
+        $modelo->marcarVencidos(); // Mantenimiento automático de estados
 
         $pagina  = max(1, (int)($_GET['pagina'] ?? 1));
         $filtros = [
@@ -52,9 +54,9 @@ class MisSolicitudesControlador extends BaseControlador
         ];
     }
 
-    // ─
+    // 
     //  DETALLE
-    // ─
+    // 
 
     public function detallePagina(int $id_solicitud, int $id_estudiante): array
     {
@@ -66,9 +68,9 @@ class MisSolicitudesControlador extends BaseControlador
         return ['solicitud' => $solicitud, 'hilo' => $hilo];
     }
 
-    // ─
+    // 
     //  PROCESAR RESPUESTA A CORRECCIONES
-    // ─
+    // 
 
     public function procesarRespuesta(array $post, array $files, int $id_estudiante): array
     {
@@ -78,23 +80,23 @@ class MisSolicitudesControlador extends BaseControlador
         $comentario   = trim($post['comentario']    ?? '');
 
         if ($id_solicitud <= 0 || $comentario === '') {
-            return ['ok' => false, 'mensaje' => 'El comentario no puede estar vacío.'];
+            return ['ok' => false, 'msg' => 'error_comentario_vacio'];
         }
 
         $modelo    = new MisSolicitudes($conn);
         $solicitud = $modelo->obtenerSolicitud($id_solicitud, $id_estudiante);
 
         if ($solicitud === null) {
-            return ['ok' => false, 'mensaje' => 'Solicitud no encontrada.'];
+            return ['ok' => false, 'msg' => 'error_no_encontrada'];
         }
         if ($solicitud['estado'] !== 'correcciones') {
-            return ['ok' => false, 'mensaje' => 'Solo puedes responder cuando la solicitud está en correcciones.'];
+            return ['ok' => false, 'msg' => 'error_estado_invalido'];
         }
 
         $archivo = null;
         if (!empty($files['adjunto']['name'])) {
             $resultado = $this->_procesarArchivo($files['adjunto'], $id_estudiante);
-            if (!$resultado['ok']) return $resultado;
+            if (!$resultado['ok']) return ['ok' => false, 'msg' => $resultado['msg']];
             $archivo = $resultado['datos'];
         }
 
@@ -107,22 +109,19 @@ class MisSolicitudesControlador extends BaseControlador
         );
 
         return $ok
-            ? ['ok' => true,  'mensaje' => 'Tu respuesta fue enviada. El investigador la revisará.']
-            : ['ok' => false, 'mensaje' => 'Ocurrió un error al guardar. Intenta de nuevo.'];
+            ? ['ok' => true,  'msg' => 'exito_respuesta']
+            : ['ok' => false, 'msg' => 'error_guardar'];
     }
 
-    // ─
+    // 
     //  CANCELAR
-    // ─
+    // 
 
-    /**
-     * Cancela una solicitud y redirige con msg al index.
-     */
     public function cancelar(int $id_solicitud, int $id_estudiante): void
     {
         global $conn;
         try {
-            $this->validarMetodo('POST');
+            $this->validarMetodo('GET');
 
             $ok = (new MisSolicitudes($conn))->cancelarSolicitud($id_solicitud, $id_estudiante);
 
@@ -133,9 +132,9 @@ class MisSolicitudesControlador extends BaseControlador
         }
     }
 
-    // ─
+    // 
     //  PRESENTACIÓN
-    // ─
+    // 
 
     public function encabezados(): array
     {
@@ -190,7 +189,6 @@ class MisSolicitudesControlador extends BaseControlador
 
         $base = self::BASE_URL;
 
-        // Botón "Ver detalle" siempre presente
         $btns = Botones::botonIcono(
             $base . '/detalles_mi_solicitud.php?id=' . $id_solicitud,
             'primary',
@@ -198,7 +196,6 @@ class MisSolicitudesControlador extends BaseControlador
             'Ver detalle'
         );
 
-        // Botón "Responder correcciones" — solo si estado = correcciones
         if ($estado === 'correcciones') {
             $btns .= Botones::botonTexto(
                 $base . '/detalles_mi_solicitud.php?id=' . $id_solicitud . '#form-responder',
@@ -208,39 +205,35 @@ class MisSolicitudesControlador extends BaseControlador
             );
         }
 
-        // Botón "Cancelar solicitud" — pendiente, en_revision o correcciones
         if (in_array($estado, ['pendiente', 'en_revision', 'correcciones'], true)) {
-            $btns .= Botones::botonData(
+            $btns .= Botones::botonConfirmacion(
+                'index.php?accion=cancelar&id_solicitud=' . $id_solicitud,
                 'danger',
                 $iconos['tabla']['solicitar_cierre'],
                 'Cancelar solicitud',
-                [
-                    'onclick' => "abrirModalCancelar({$id_solicitud}, 'esta solicitud')",
-                ],
-                'sm'
+                '¿Estás seguro de que deseas cancelar esta solicitud? Esta acción no se puede deshacer.'
             );
         }
 
         return $btns;
     }
 
-
-    // ─
+    // 
     //  HELPER PRIVADO: archivo adjunto
-    // ─
+    // 
 
     private function _procesarArchivo(array $file, int $id_estudiante): array
     {
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            return ['ok' => false, 'mensaje' => 'Error al subir el archivo.'];
+            return ['ok' => false, 'msg' => 'error_subida_archivo'];
         }
         if ($file['size'] > self::TAMANO_MAXIMO_BYTES) {
-            return ['ok' => false, 'mensaje' => 'El archivo supera el límite de 5 MB.'];
+            return ['ok' => false, 'msg' => 'error_archivo_grande'];
         }
 
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, self::EXTENSIONES_PERMITIDAS, true)) {
-            return ['ok' => false, 'mensaje' => 'Tipo de archivo no permitido. Usa PDF, DOCX o imágenes.'];
+            return ['ok' => false, 'msg' => 'error_tipo_archivo'];
         }
 
         $nombre_display = pathinfo($file['name'], PATHINFO_FILENAME);
@@ -251,7 +244,7 @@ class MisSolicitudesControlador extends BaseControlador
         if (!is_dir($directorio)) mkdir($directorio, 0755, true);
 
         if (!move_uploaded_file($file['tmp_name'], $directorio . $nombre_fisico)) {
-            return ['ok' => false, 'mensaje' => 'No se pudo guardar el archivo en el servidor.'];
+            return ['ok' => false, 'msg' => 'error_guardar_archivo'];
         }
 
         return [
@@ -265,16 +258,5 @@ class MisSolicitudesControlador extends BaseControlador
                 'tamano'         => $file['size'],
             ],
         ];
-    }
-    public function leerMensaje(): ?array
-    {
-        if (!isset($_GET['msg'])) return null;
-
-        return match ($_GET['msg']) {
-            'enviado'   => ['tipo' => 'exito',   'texto' => 'Tu respuesta fue enviada al investigador.'],
-            'cancelado' => ['tipo' => '',        'texto' => 'Solicitud cancelada correctamente.'],
-            'error'     => ['tipo' => 'peligro', 'texto' => $_GET['detalle'] ?? 'Ocurrió un error. Intenta de nuevo.'],
-            default     => null,
-        };
     }
 }

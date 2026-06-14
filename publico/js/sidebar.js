@@ -6,21 +6,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const body = document.body;
   const html = document.documentElement;
 
-  // ============================
+  // 
   // DETECTAR SI ES MÓVIL
-  // ============================
+  // 
   function isMobile() {
     return window.innerWidth <= 768;
   }
 
-  // ============================
+  // 
   // RESTAURAR ESTADO DEL SIDEBAR (SOLO DESKTOP)
-  // ============================
+  // 
   const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
 
-  setTimeout(() => {
+  /*setTimeout(() => {
     html.classList.remove("sidebar-collapsed-initial");
-  }, 10);
+  }, 10);*/
 
   if (!isMobile() && sidebarCollapsed === "true") {
     sidebar.classList.add("collapsed");
@@ -38,9 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
     body.classList.remove("sidebar-collapsed");
   }
 
-  // ============================
+  // 
   // BOTÓN COLAPSAR/EXPANDIR (DESKTOP)
-  // ============================
+  // 
   if (toggleBtn && sidebar) {
     toggleBtn.addEventListener("click", () => {
       // Solo funciona en desktop
@@ -66,9 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ============================
+  // 
   // MENÚ HAMBURGUESA (MÓVIL)
-  // ============================
+  // 
   if (mobileMenuToggle) {
     mobileMenuToggle.addEventListener("click", function () {
       if (isMobile()) {
@@ -82,9 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ============================
+  // 
   // CERRAR SIDEBAR MÓVIL
-  // ============================
+  // 
   function closeMobileSidebar() {
     if (mobileMenuToggle) {
       mobileMenuToggle.classList.remove("active");
@@ -122,9 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ============================
+  // 
   // MANEJAR CAMBIOS DE TAMAÑO
-  // ============================
+  // 
   let resizeTimer;
   window.addEventListener("resize", function () {
     clearTimeout(resizeTimer);
@@ -147,9 +147,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 250);
   });
 
-  // ============================
+  // 
   // RESTAURAR SUBMENÚS GUARDADOS
-  // ============================
+  // 
   function restaurarSubmenus() {
     if (body.classList.contains("sidebar-collapsed") || isMobile()) {
       return;
@@ -183,9 +183,9 @@ document.addEventListener("DOMContentLoaded", () => {
     restaurarSubmenus();
   }
 
-  // ============================
+  // 
   // FUNCIÓN PARA GUARDAR SUBMENÚS
-  // ============================
+  // 
   function guardarSubmenus() {
     if (body.classList.contains("sidebar-collapsed") || isMobile()) {
       localStorage.removeItem("sidebar-open-submenus");
@@ -204,9 +204,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ============================
+  // 
   // SUBMENÚS DESPLEGABLES
-  // ============================
+  // 
   const dropdownButtons = document.querySelectorAll(".dropdown-btn");
 
   dropdownButtons.forEach((button) => {

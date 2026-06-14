@@ -274,7 +274,6 @@ class TareaRepositorio extends BaseModelo
         LEFT  JOIN tareas_usuarios tu    ON tu.id_tarea        = t.id_tarea
         WHERE s.id_proyectos     = ?
           AND proy.id_investigador = ?
-          AND t.id_estadoT != 4
         GROUP BY
             t.id_tarea, tt.descripcion_tipo, t.descripcion,
             t.fecha_entrega, t.fecha_modificacion,
@@ -314,7 +313,6 @@ class TareaRepositorio extends BaseModelo
         LEFT  JOIN documentos_subidos ds_rec ON ds_rec.id_documento = t.id_documento_recurso
         LEFT  JOIN tareas_usuarios tu    ON tu.id_tarea    = t.id_tarea
         WHERE s.id_proyectos = ?
-          AND t.id_estadoT  != 4
         GROUP BY
             t.id_tarea, tt.descripcion_tipo, t.descripcion,
             t.fecha_entrega, t.fecha_modificacion,

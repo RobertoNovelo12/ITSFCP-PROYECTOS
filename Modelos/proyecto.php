@@ -94,7 +94,7 @@ class Proyectos
         int     $id,
         ?int    $filtro,
         ?string $buscar,
-        ?string $estado = null   // <-- NUEVO parámetro
+        ?string $estado = null
     ): array {
         $por_pagina    = 6;
         $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
@@ -104,6 +104,7 @@ class Proyectos
 
         // Si viene un estado explícito (ej. 'concluido') se usa ese valor;
         // de lo contrario se usa 'activo' (comportamiento original).
+        // No se muestran registros del estado "baja" porque el método contarEstudiante ya los excluye al no contarlos, así que no es necesario excluirlos aquí.
         $estado_pu = $estado ?? 'activo';
 
         $sql = '
@@ -173,7 +174,7 @@ class Proyectos
         int     $id,
         ?int    $filtro,
         ?string $buscar,
-        ?string $estado = null   // <-- NUEVO parámetro
+        ?string $estado = null
     ): array {
         $por_pagina    = 6;
         $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
@@ -291,7 +292,7 @@ class Proyectos
         ?int    $filtro,
         ?string $buscar,
         int     $id_periodo = 0,
-        ?string $estado     = null   // <-- NUEVO parámetro
+        ?string $estado     = null
     ): array {
         $por_pagina    = 6;
         $pagina        = max(1, (int)($_GET['pagina'] ?? 1));
@@ -598,7 +599,7 @@ class Proyectos
     // 
     // ACTUALIZAR ESTADO
     // 
-
+    /*
     public function actualizarEstadoProyectoRechazo(
         int $id_usuario,
         int $id_proyectos,
@@ -612,13 +613,14 @@ class Proyectos
         if ($tipo === 'cierre_rechazado') {
             $this->repo->actualizarCierreCancelado($id_proyectos);
         }
-    }
-
+    }*/
+    //Ya no actualiza estados automáticamente al cambiar el estado del proyecto, ahora se hace desde el módulo de solicitudes_proyecto para tener más control sobre la lógica de cada caso.
+    /*
     public function actualizarestado(int $id_proyectos, int $numeroEstado, ?float $porcentaje = null): void
     {
-        $this->repo->actualizarEstado($id_proyectos, $numeroEstado);
 
         if ($numeroEstado === 2) { //Activo
+        
             $plantillaRep   = $this->repo->buscarPlantillaReporte();
             $id_doc_reporte = $plantillaRep['id_documento'] ?? null;
 
@@ -634,8 +636,8 @@ class Proyectos
                     ($id_tipo === 12 && $id_doc_reporte !== null) ? $id_doc_reporte : null
                 );
             }
-        }
-        /*
+        }*/
+    /*
         //Se pasa está lógica en el módulo de solicitudes_proyecto
         elseif ($numeroEstado === 5) { //Por cerrar
             $row = $this->repo->buscarInvestigadorDeProyecto($id_proyectos);
@@ -649,8 +651,8 @@ class Proyectos
                 //$this->repo->concluirEstudiantesProyecto($id_proyectos);
                 //Ahora se concluyen los estudiantes al aprobar la carta de terminación por el supervisor, no al cambiar el estado a cierre.
             }
-        }*/
-    }
+        }
+    }*/
 
 
     // 

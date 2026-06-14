@@ -15,7 +15,7 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
  * siguiendo el mismo patrón de MisAlumnos y MisSolicitudes de la Parte 1-2.
  * actualizarEstadoCierre() expone affected_rows a través de su valor bool.
  * 
- */class SolicitudRepositorio extends BaseModelo
+ */ class SolicitudRepositorio extends BaseModelo
 {
     public function __construct(mysqli $conn)
     {
@@ -48,7 +48,7 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
                  tipo, visibilidad, id_usuarios, id_proyectos, id_etapa, version,
                  activo, fecha_subida, id_plantilla, id_seguimiento)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), ?, ?)',
-            'sssssissiiiiii', 
+            'sssssissiiiiii',
             [
                 $nombre,
                 $nombre_archivo,
@@ -68,6 +68,23 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
         );
 
         return (int)$this->conn->insert_id;
+    }
+
+    // 
+    // MANTENIMIENTO AUTOMÁTICO DE ESTADOS
+    // 
+    public function marcarSolicitudesProyectosVencidos(): void
+    {
+        $this->ejecutar("
+        UPDATE solicitud_proyecto sp
+        JOIN periodos pe ON pe.id_periodos = sp.id_periodos
+        SET sp.estado = 'vencido', sp.fecha_respuesta = CURDATE()
+        WHERE sp.id_solicitud_proyecto > 0
+          AND pe.estado = 1
+          AND pe.fecha_fin_solicitud IS NOT NULL
+          AND CURDATE() > pe.fecha_fin_solicitud
+          AND sp.estado NOT IN ('vencido','rechazado','aceptado','cancelado')
+    ");
     }
 
     // 
@@ -618,6 +635,21 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
         return $fila ?: null;
     }
 
+    public function verificarPuedeSolicitarIntegracion(int $id_proyecto, int $id_estudiante): bool
+    {
+        $fila = $this->ejecutar(
+            "SELECT COUNT(*) AS puede_solicitar
+             FROM solicitud_proyecto
+             WHERE id_proyectos = ? AND id_estudiante = ?
+               AND estado IN ('pendiente','en_revision','correcciones')",
+            'ii',
+            [$id_proyecto, $id_estudiante],
+            false
+        );
+
+        return (int)($fila['puede_solicitar'] ?? 0) === 0;
+    }
+
     public function crearSolicitud(
         int     $id_proyecto,
         int     $id_estudiante,
@@ -632,8 +664,8 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
             "INSERT INTO solicitud_proyecto
                 (id_proyectos, id_estudiante, id_periodos, id_documento,
                  promedio, motivacion, experiencia, semestre,
-                 estado, fecha_envio)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', CURDATE())",
+                 estado)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendiente')",
             'iiiisssi',
             [
                 $id_proyecto,
@@ -836,12 +868,12 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
 
     public function insertarNotificacion(int $id_usuario, string $titulo, string $contenido, string $enlace = ''): void
     {
-            $this->ejecutar(
-                'INSERT INTO notificaciones (usuario_id, titulo, contenido, enlace, leido, creado_en)
+        $this->ejecutar(
+            'INSERT INTO notificaciones (id_usuarios, titulo, contenido, enlace, leido, creado_en)
                  VALUES (?, ?, ?, ?, 0, NOW())',
-                'isss',
-                [$id_usuario, $titulo, $contenido, $enlace]
-            );
+            'isss',
+            [$id_usuario, $titulo, $contenido, $enlace]
+        );
     }
 
     public function buscarPeriodoActualSolicitud(): ?array

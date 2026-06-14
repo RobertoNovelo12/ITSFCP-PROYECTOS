@@ -301,7 +301,7 @@ class SolicitudesProyectoControlador extends BaseControlador
 
             $porcentaje = $this->obtenerPorcentajeAvance($id_proyecto);
 
-            $modelo->actualizarestado($id_proyecto, $estado, $porcentaje);
+            $modelo->actualizarestado($id_proyecto, (int)$estado, $porcentaje);
 
 
             $this->redirigir('exito_estado');

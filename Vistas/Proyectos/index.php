@@ -33,20 +33,21 @@ $periodo             = $proyectoControlador->periodoactual();
 $periodos = ($rol === 'supervisor') ? $proyectoControlador->obtenerTodosPeriodos() : [];
 
 //  Acción: actualizarestado (GET) 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'actualizarestado') {
-    if (in_array($rol, ['supervisor'], true)
-        && isset($_GET['id_proyectos'], $_GET['tipo'])
-    ) {
-        $proyectoControlador->actualizarestado(
-            (int)$_GET['id_proyectos'],
-            $rol,
-            $_GET['tipo']
-        );
-        // actualizarestado() siempre llama redirigir() → exit, nunca llega aquí.
-    }
+//Ya no se actualizan estados directamente desde este módulo, ahora se hace desde el módulo de solicitudes_proyecto para tener más control sobre la lógica de cada caso.
+//if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'actualizarestado') {
+  //  if (in_array($rol, ['supervisor'], true)
+    //    && isset($_GET['id_proyectos'], $_GET['tipo'])
+    //) {
+      //  $proyectoControlador->actualizarestado(
+        //    (int)$_GET['id_proyectos'],
+          //  $rol,
+            //$_GET['tipo']
+        //);
+        // actualizarestado() siempre llama redirigir()
+    //}
     // Rol no autorizado o parámetros faltantes → ignorar y seguir mostrando la tabla.
-    $action = 'index';
-}
+    //$action = 'index';
+//}
 
 
 $accionesBase = ['index', 'Total', 'Activos', 'Cierre', 'PorCerrar', 'Vencido', 'actualizarestado', 'Concluidos'];

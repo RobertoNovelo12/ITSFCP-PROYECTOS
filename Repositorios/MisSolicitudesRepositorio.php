@@ -9,7 +9,6 @@ require_once __DIR__ . '/../Modelos/BaseModelo.php';
  * Responsabilidad exclusiva: ejecutar consultas SQL del módulo "Mis Solicitudes".
  * No contiene lógica de negocio.
  *
- *  Adaptación especial 
  * El método guardarRespuesta() maneja una transacción internamente porque
  * agrupa inserciones y un UPDATE atómicamente. La transacción pertenece al
  * repositorio al ser una operación de persistencia compuesta; el modelo
@@ -43,6 +42,23 @@ class MisSolicitudesRepositorio extends BaseModelo
             'i',
             [$id_estudiante]
         );
+    }
+
+    // 
+    // MANTENIMIENTO AUTOMÁTICO DE ESTADOS
+    // 
+    public function marcarSolicitudesProyectosVencidos(): void
+    {
+        $this->ejecutar("
+        UPDATE solicitud_proyecto sp
+        JOIN periodos pe ON pe.id_periodos = sp.id_periodos
+        SET sp.estado = 'vencido', sp.fecha_respuesta = CURDATE()
+        WHERE sp.id_solicitud_proyecto > 0
+          AND pe.estado = 1
+          AND pe.fecha_fin_solicitud IS NOT NULL
+          AND CURDATE() > pe.fecha_fin_solicitud
+          AND sp.estado NOT IN ('vencido','rechazado','aceptado','cancelado')
+    ");
     }
 
 
@@ -139,8 +155,6 @@ class MisSolicitudesRepositorio extends BaseModelo
              JOIN periodos  per ON per.id_periodos = p.id_periodos
              $where
              ORDER BY
-                FIELD(sp.estado, 'correcciones', 'en_revision', 'pendiente',
-                                 'aceptado', 'rechazado', 'vencido', 'cancelado'),
                 sp.fecha_envio DESC
              LIMIT ?, ?",
             $types,
@@ -304,10 +318,14 @@ class MisSolicitudesRepositorio extends BaseModelo
                      VALUES (?, ?, ?, ?, ?, ?, 'academico', 'privado', ?, ?, 1)",
                     'sssssiii',
                     [
-                        $archivo['nombre_display'], $archivo['nombre_fisico'],
-                        $archivo['ruta'],           $archivo['mime'],
-                        $archivo['extension'],      $archivo['tamano'],
-                        $id_estudiante,             $id_proyecto,
+                        $archivo['nombre_display'],
+                        $archivo['nombre_fisico'],
+                        $archivo['ruta'],
+                        $archivo['mime'],
+                        $archivo['extension'],
+                        $archivo['tamano'],
+                        $id_estudiante,
+                        $id_proyecto,
                     ]
                 );
                 $id_documento = (int)$this->conn->insert_id;
@@ -330,7 +348,6 @@ class MisSolicitudesRepositorio extends BaseModelo
 
             $this->conn->commit();
             return true;
-
         } catch (Exception $e) {
             $this->conn->rollback();
             error_log('MisSolicitudesRepositorio::guardarRespuesta() — ' . $e->getMessage());

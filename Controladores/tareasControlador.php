@@ -341,6 +341,7 @@ class TareaControlador extends BaseControlador
                 if (in_array($estado, ['Pendiente', 'Revisar', 'Corregir', 'Aprobado', 'Vencido', 'Sin activar', 'Borrador'], true)) {
                     $boton  = $this->obtenerbotones('Ver lista',    $id, $id_proyectos);
                     $boton .= ' ' . $this->obtenerbotones('Editar Tarea', $id, $id_proyectos);
+                    $boton .= ' ' . $this->obtenerbotones('Detalles', $id, $id_proyectos);
                 } elseif ($estado === 'Concluido') {
                     $boton = $this->obtenerbotones('Ver lista', $id, $id_proyectos);
                     $boton .= ' ' . $this->obtenerbotones('Detalles', $id, $id_proyectos);
@@ -385,7 +386,7 @@ class TareaControlador extends BaseControlador
                     /*
                     * Actualmente no se permiten entregas tardías.
                     *
-                    * Mejora futura:
+                    * Posible mejora futura:
                     * Mostrar un botón "Entregar tardíamente" que cambie
                     * el estado a 10 (Entregado tardío).
                     */
@@ -559,9 +560,9 @@ class TareaControlador extends BaseControlador
                 $this->redirigir('fecha_invalida', 'editar.php', "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
             }
 
-                        //Convertir a un formato apto para comparar
+            //Convertir a un formato apto para comparar
             if (
-                    $fecha_entrega < $hoy  // No se permiten fechas pasadas
+                $fecha_entrega < $hoy  // No se permiten fechas pasadas
             ) {
                 $this->redirigir('fecha_menor_invalida', 'editar.php', "&id_tarea={$id_tarea}&id_proyectos={$id_proyectos}");
             }

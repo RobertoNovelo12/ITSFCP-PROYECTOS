@@ -199,8 +199,8 @@ class plantilladocumentoControlador extends BaseControlador
     public function obtenerPlantillas(int $id_tipo_documento): array
     {
         try {
-            $obj     = $this->modelo();
-            $info    = $obj->obtenerInfoTipos($id_tipo_documento);
+            $modelo     = $this->modelo();
+            $info    = $modelo->obtenerInfoTipos($id_tipo_documento);
             $version = ($info['ultima_version'] !== null)
                 ? (int)$info['ultima_version'] + 1
                 : 1;
@@ -263,14 +263,14 @@ class plantilladocumentoControlador extends BaseControlador
             $this->validarAcceso($rol, ['supervisor']);
 
             $conn->begin_transaction();
-            $obj = $this->modelo();
-            $obj->bloquearTabla($id_tipo_documento);
+            $modelo = $this->modelo();
+            $modelo->bloquearTabla($id_tipo_documento);
 
-            $info    = $obj->obtenerInfoTipos($id_tipo_documento);
-            $obj->desactivarPorTipo($id_tipo_documento);
-            $version = $obj->obtenerSiguienteVersion($id_tipo_documento);
+            $info    = $modelo->obtenerInfoTipos($id_tipo_documento);
+            $modelo->desactivarPorTipo($id_tipo_documento);
+            $version = $modelo->obtenerSiguienteVersion($id_tipo_documento);
 
-            $id_documento = $obj->registrarDocumento(
+            $id_documento = $modelo->registrarDocumento(
                 nombre: $nombre,
                 nombre_archivo: $nombre_archivo,
                 ruta: $ruta,
@@ -283,11 +283,11 @@ class plantilladocumentoControlador extends BaseControlador
                 version: $version
             );
 
-            $id_plantilla = $obj->registrar($id_tipo_documento, $nombre, $version, $id_documento);
+            $id_plantilla = $modelo->registrar($id_tipo_documento, $nombre, $version, $id_documento);
 
             $accion      = $info['ultima_version'] === null ? 'CREACION' : 'NUEVA_VERSION';
             $descripcion = $this->generarDescripcion($accion, $version, $info['nombre']);
-            $obj->registrarHistorial($id_plantilla, $id_usuario, $accion, $descripcion);
+            $modelo->registrarHistorial($id_plantilla, $id_usuario, $accion, $descripcion);
 
             $conn->commit();
             $this->redirigir('exito_crear');
@@ -326,8 +326,8 @@ class plantilladocumentoControlador extends BaseControlador
             }
 
             $conn->begin_transaction();
-            $obj      = $this->modelo();
-            $registro = $obj->obtenerPorId($id_plantilla);
+            $modelo      = $this->modelo();
+            $registro = $modelo->obtenerPorId($id_plantilla);
 
             if (!$registro) {
                 throw new Exception("Plantilla no existe (ID: {$id_plantilla})");
@@ -336,16 +336,16 @@ class plantilladocumentoControlador extends BaseControlador
                 throw new Exception("La plantilla ya está desactivada");
             }
 
-            $datos = $obj->obtenerInfoPlantilla($id_plantilla);
-            $obj->bloquearTabla($datos['id_tipo_documento']);
+            $datos = $modelo->obtenerInfoPlantilla($id_plantilla);
+            $modelo->bloquearTabla($datos['id_tipo_documento']);
 
-            $filas = $obj->desactivarPorTipo($datos['id_tipo_documento']);
+            $filas = $modelo->desactivarPorTipo($datos['id_tipo_documento']);
             if ($filas === 0) {
                 throw new Exception("No había plantillas activas para desactivar");
             }
 
             $descripcion = $this->generarDescripcion('DESACTIVACION', null, $datos['nombre']);
-            $obj->registrarHistorial($id_plantilla, $id_usuario, 'DESACTIVACION', $descripcion);
+            $modelo->registrarHistorial($id_plantilla, $id_usuario, 'DESACTIVACION', $descripcion);
 
             $conn->commit();
             $this->redirigir('exito_desactivar');
@@ -375,8 +375,8 @@ class plantilladocumentoControlador extends BaseControlador
             $this->validarAcceso($rol, ['supervisor']);
 
             $conn->begin_transaction();
-            $obj      = $this->modelo();
-            $registro = $obj->obtenerPorId($id_plantilla);
+            $modelo      = $this->modelo();
+            $registro = $modelo->obtenerPorId($id_plantilla);
 
             if (!$registro) {
                 throw new Exception("Plantilla no existe (ID: {$id_plantilla})");
@@ -385,11 +385,11 @@ class plantilladocumentoControlador extends BaseControlador
                 throw new Exception("La plantilla ya está activa");
             }
 
-            $obj->activarVersion($id_plantilla);
+            $modelo->activarVersion($id_plantilla);
 
-            $datos       = $obj->obtenerInfoPlantilla($id_plantilla);
+            $datos       = $modelo->obtenerInfoPlantilla($id_plantilla);
             $descripcion = $this->generarDescripcion('REACTIVACION', $datos['version'], null);
-            $obj->registrarHistorial($id_plantilla, $id_usuario, 'REACTIVACION', $descripcion);
+            $modelo->registrarHistorial($id_plantilla, $id_usuario, 'REACTIVACION', $descripcion);
 
             $conn->commit();
             $this->redirigir('exito_reactivar');

@@ -45,6 +45,12 @@ class MisSolicitudes
         return $this->repo->resumen($id_estudiante, $wherePeriodo, $params, $types);
     }
 
+    //Mantenimiento automático de estados: marcar como vencidos las solicitudes a proyectos que hayan pasado su fecha límite
+    public function marcarVencidos(): void
+    {
+        $this->repo->marcarSolicitudesProyectosVencidos();
+    }
+
 
     // 
     // LISTADO PAGINADO
@@ -111,7 +117,11 @@ class MisSolicitudes
         ?array $archivo
     ): bool {
         return $this->repo->guardarRespuesta(
-            $id_solicitud, $id_estudiante, $id_proyecto, $comentario, $archivo
+            $id_solicitud,
+            $id_estudiante,
+            $id_proyecto,
+            $comentario,
+            $archivo
         );
     }
 
