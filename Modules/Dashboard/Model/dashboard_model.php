@@ -14,26 +14,27 @@ class DashboardModelo
             $sql = "SELECT p.id_proyectos, p.titulo, ep.nombre AS estado, p.descripcion
                     FROM proyectos p
                     INNER JOIN estados_proyectos ep ON p.id_estadoP = ep.id_estadoP
-                    WHERE p.id_estadoP = 2
+                    INNER JOIN periodos per ON p.id_periodos = per.id_periodos
+                    WHERE p.id_estadoP = 2 AND per.estado = 1 AND CURDATE() BETWEEN per.fecha_inicio AND per.fecha_final
                     ORDER BY p.creado_en DESC
                     LIMIT 3";
-
         } elseif ($rol === 'investigador' || $rol === 'profesor') {
             $sql = "SELECT p.id_proyectos, p.titulo, ep.nombre AS estado, p.descripcion
                     FROM proyectos p
                     INNER JOIN estados_proyectos ep ON p.id_estadoP = ep.id_estadoP
+                    INNER JOIN periodos per ON p.id_periodos = per.id_periodos
                     WHERE p.id_investigador = $id_usuario
-                    AND p.id_estadoP = 2
+                    AND p.id_estadoP = 2 AND per.estado = 1 AND CURDATE() BETWEEN per.fecha_inicio AND per.fecha_final
                     ORDER BY p.creado_en DESC
                     LIMIT 3";
-
         } else {
             $sql = "SELECT p.id_proyectos, p.titulo, ep.nombre AS estado, p.descripcion
                     FROM proyectos p
                     INNER JOIN proyectos_usuarios pu ON p.id_proyectos = pu.id_proyectos
                     INNER JOIN estados_proyectos ep ON p.id_estadoP = ep.id_estadoP
+                    INNER JOIN periodos per ON p.id_periodos = per.id_periodos
                     WHERE pu.id_usuarios = $id_usuario
-                    AND p.id_estadoP = 2
+                    AND p.id_estadoP = 2 AND per.estado = 1 AND CURDATE() BETWEEN per.fecha_inicio AND per.fecha_final
                     ORDER BY p.creado_en DESC
                     LIMIT 3";
         }
@@ -159,4 +160,165 @@ class DashboardModelo
         }
         return $mods;
     }
+
+    public function getProyecto(int $id_proyecto): ?array
+    {
+        $sql = "
+        SELECT
+            p.id_proyectos,
+            p.titulo,
+            p.descripcion,
+            ep.nombre AS estado
+        FROM proyectos p
+        INNER JOIN estados_proyectos ep
+            ON p.id_estadoP = ep.id_estadoP
+        WHERE p.id_proyectos = $id_proyecto
+        LIMIT 1
+    ";
+
+        $res = $this->conn->query($sql);
+
+        return $res->num_rows
+            ? $res->fetch_assoc()
+            : null;
+    }
+    public function getTareasProyecto(
+        int $id_usuario,
+        int $id_proyecto
+    ): array {
+
+        $sql = "
+        SELECT
+            tu.id_tarea,
+            tt.descripcion_tipo AS nombre_tarea,
+            t.descripcion,
+            t.fecha_entrega,
+            tu.id_estadoT,
+            et.nombre AS estado
+        FROM tareas_usuarios tu
+
+        INNER JOIN tareas t
+            ON tu.id_tarea = t.id_tarea
+
+        INNER JOIN tipo_tarea tt
+            ON t.id_tareatipo = tt.id_tareatipo
+
+        INNER JOIN estados_tarea et
+            ON tu.id_estadoT = et.id_estadoT
+
+        INNER JOIN tbl_seguimiento s
+            ON t.id_avances = s.id_avances
+
+        INNER JOIN proyectos p
+            ON s.id_proyectos = p.id_proyectos
+
+        WHERE
+        (
+            tu.id_usuarios = $id_usuario
+            OR (
+                p.id_investigador = $id_usuario
+                AND tu.id_usuarios != $id_usuario
+            )
+        )
+        AND p.id_proyectos = $id_proyecto
+
+        ORDER BY t.fecha_entrega DESC
+    ";
+
+        $result = $this->conn->query($sql);
+
+        $tareas = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $tareas[] = $row;
+        }
+
+        return $tareas;
+    }
+
+    public function getModificacionesProyecto(
+    string $rol,
+    int $id_usuario,
+    int $id_proyecto
+): array {
+
+    if ($rol === 'supervisor') {
+
+        $sql = "
+            SELECT
+                tu.contenido,
+                t.fecha_modificacion AS fecha,
+                u.nombre,
+                r.nombre AS rol
+
+            FROM tareas_usuarios tu
+
+            INNER JOIN tareas t
+                ON tu.id_tarea = t.id_tarea
+
+            INNER JOIN usuarios u
+                ON tu.id_usuarios = u.id_usuarios
+
+            INNER JOIN usuarios_roles ur
+                ON u.id_usuarios = ur.id_usuarios
+
+            INNER JOIN roles r
+                ON ur.id_rol = r.id_roles
+
+            INNER JOIN tbl_seguimiento s
+                ON t.id_avances = s.id_avances
+
+            WHERE
+                s.id_proyectos = $id_proyecto
+                AND t.fecha_modificacion IS NOT NULL
+
+            ORDER BY t.fecha_modificacion DESC
+            LIMIT 5
+        ";
+
+    } else {
+
+        $sql = "
+            SELECT
+                tu.contenido,
+                t.fecha_modificacion AS fecha,
+                u.nombre,
+                r.nombre AS rol
+
+            FROM tareas_usuarios tu
+
+            INNER JOIN tareas t
+                ON tu.id_tarea = t.id_tarea
+
+            INNER JOIN usuarios u
+                ON tu.id_usuarios = u.id_usuarios
+
+            INNER JOIN usuarios_roles ur
+                ON u.id_usuarios = ur.id_usuarios
+
+            INNER JOIN roles r
+                ON ur.id_rol = r.id_roles
+
+            INNER JOIN tbl_seguimiento s
+                ON t.id_avances = s.id_avances
+
+            WHERE
+                s.id_proyectos = $id_proyecto
+                AND t.fecha_modificacion IS NOT NULL
+
+            ORDER BY t.fecha_modificacion DESC
+            LIMIT 5
+        ";
+    }
+
+    $result = $this->conn->query($sql);
+
+    $mods = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $mods[] = $row;
+    }
+
+    return $mods;
+}
 }

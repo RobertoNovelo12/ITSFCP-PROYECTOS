@@ -26,8 +26,15 @@ class DashboardControlador
 
         // Tareas (no aplica a supervisor)
         $tareas = [];
-        if ($this->rol !== 'supervisor') {
-            $tareas = $this->modelo->getTareasUsuario($this->id_usuario);
+
+        if (
+            $this->rol !== 'supervisor'
+            && $primer_proyecto
+        ) {
+            $tareas = $this->modelo->getTareasProyecto(
+                $this->id_usuario,
+                $primer_proyecto['id_proyectos']
+            );
         }
 
         // Modificaciones
@@ -40,8 +47,22 @@ class DashboardControlador
             'porcentaje'      => $porcentaje,
             'tareas'          => $tareas,
             'modificaciones'  => $modificaciones,
-            'rol'             => $this->rol,
-            'mostrar_btn'     => in_array($this->rol, ['profesor', 'supervisor']),
+            'rol'             => $this->rol        ];
+    }
+
+    public function getDatosProyecto(int $id_proyecto): array
+    {
+        return [
+            'proyecto' => $this->modelo->getProyecto($id_proyecto),
+            'porcentaje' => $this->modelo->getProgresoProyecto($id_proyecto),
+            'tareas' => $this->rol !== 'supervisor'
+                ? $this->modelo->getTareasProyecto($this->id_usuario, $id_proyecto)
+                : [],
+            'modificaciones' => $this->modelo->getModificacionesProyecto(
+                $this->rol,
+                $this->id_usuario,
+                $id_proyecto
+            )
         ];
     }
 }
