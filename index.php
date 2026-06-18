@@ -92,7 +92,7 @@ if (isset($_SESSION['rol'])) {
         </div>
     </div>
 
-    <script src="/public/js/main.js"></script>
+    <script src="/public/js/javascript.js"></script>
     <script src="/public/js/sidebar.js"></script>
 </body>
 
