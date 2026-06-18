@@ -22,7 +22,7 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $rol          = strtolower($_SESSION['rol'] ?? '');
-$id_usuario   = $_SESSION['id_usuario'];
+$id_usuario = intval($_SESSION['id_usuario']);
 
 include __DIR__ .  '/../../../public/incluido/_validar_tareas.php';
 
@@ -39,7 +39,7 @@ $tareas          = $tareaControlador->listarTareasEstudiante($id_usuario, $id_pr
 $tareasActivas   = array_filter($tareas, fn($t) => (int)$t['id_estadoT'] !== 4);
 $tareasInactivas = array_filter($tareas, fn($t) => (int)$t['id_estadoT'] === 4);
 
-//  Helpers ─
+
 
 /**
  * Convierte id_estadoT al color Bootstrap del badge.

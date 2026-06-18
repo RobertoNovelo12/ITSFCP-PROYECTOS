@@ -212,7 +212,7 @@ class TareaRepositorio extends BaseModelo
     // OBTENER TAREAS (tabla principal)
     // ─
 
-    public function obtenerTareasEstudiante(int $id_proyecto, int $id_usuario): array
+    public function obtenerTareasEstudiante(int $id_usuario, int $id_proyecto): array
     {
         return $this->ejecutar(
             "SELECT

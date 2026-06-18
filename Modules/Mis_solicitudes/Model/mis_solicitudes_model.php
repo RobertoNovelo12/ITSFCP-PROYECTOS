@@ -1,7 +1,7 @@
 <?php
 // Modelos/MisSolicitudes.php
 
-require_once __DIR__ . '/../Repository/mis_solicitudes_repositorio.php';
+require_once __DIR__ . '/../Repository/mis_solicitudes_repository.php';
 
 /**
  * MisSolicitudes (Modelo)

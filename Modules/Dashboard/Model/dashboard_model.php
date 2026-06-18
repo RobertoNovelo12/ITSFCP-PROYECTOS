@@ -64,7 +64,7 @@ class DashboardModelo
             INNER JOIN tareas t ON tu.id_tarea = t.id_tarea
             INNER JOIN tbl_seguimiento s ON t.id_avances = s.id_avances
             WHERE s.id_proyectos = $id_proyecto
-            AND tu.id_estadoT = 4
+            AND tu.id_estadoT = 5
         ");
         $done = $done_q->fetch_assoc()['done'] ?? 0;
 

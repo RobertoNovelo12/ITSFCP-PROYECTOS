@@ -19,7 +19,7 @@ if (!in_array($rol, ['investigador', 'profesor'])) {
     header("Location: /Modules/Principal/Views/index.php");
     exit;
 }
-include __DIR__ . '../../../publico/incluido/_validar_tareas.php';
+include __DIR__ . '/../../../public/incluido/_validar_tareas.php';
 
 $id_tarea = $_GET['id_tarea'] ?? $_POST['id_tarea'] ?? 0;
 
@@ -114,7 +114,7 @@ ob_start();
     <div class="row mb-4 align-items-center">
 
         <?php
-        $titulo      = "Editar Actividad";
+        $titulo      = "Editar Actividad - " . $tarea['tipo'];
         $descripcion = 'Modificar instrucciones, descripción y archivo de guía';
         include __DIR__ . '/../../../public/incluido/_encabezado.php';
         ?>

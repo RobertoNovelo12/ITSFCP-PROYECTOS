@@ -42,7 +42,6 @@
 
     <?php include __DIR__ . '/public/incluido/header.php'; ?>
     <?php include __DIR__ . '/sidebar.php'; ?>
-    <?php include_once __DIR__ . '/public/incluido/view_helpers.php'; ?>
 
     <div class="main-content">
         <?php
