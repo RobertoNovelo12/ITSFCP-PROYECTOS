@@ -11,32 +11,38 @@
         <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <?php endif; ?>
 
+    <!-- AGREGAR ESTO ANTES DEL CSS -->
     <script>
+        // Aplicar estado del sidebar INMEDIATAMENTE antes de que se renderice
         (() => {
             try {
-                if (localStorage.getItem("sidebar-collapsed") === "true") {
-                    document.body ?
-                        document.body.classList.add("sidebar-collapsed") :
-                        document.addEventListener("DOMContentLoaded", () => {
-                            document.body.classList.add("sidebar-collapsed");
-                        });
+                const sidebarCollapsed = localStorage.getItem("sidebar-collapsed");
+
+                if (sidebarCollapsed === "true") {
+                    // Agregar clase al HTML antes de que se renderice
+                    document.documentElement.classList.add("sidebar-collapsed-initial");
                 }
-                if (localStorage.getItem("darkModeEnabled") === "true") {
+
+                const isDark = localStorage.getItem("darkModeEnabled") === "true";
+                if (isDark) {
                     document.documentElement.classList.add("dark-mode");
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn("Error al acceder a localStorage", e);
+            }
         })();
     </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="/publico/css/styles.css">
+    <link rel="stylesheet" href="/public/css/styles.css">
 
 </head>
 
 <body class="<?= $bodyClass ?? '' ?>">
 
-    <?php include __DIR__ . '/publico/incluido/header.php'; ?>
+    <?php include __DIR__ . '/public/incluido/header.php'; ?>
     <?php include __DIR__ . '/sidebar.php'; ?>
+    <?php include_once __DIR__ . '/public/incluido/view_helpers.php'; ?>
 
     <div class="main-content">
         <?php
@@ -47,8 +53,8 @@
         ?>
     </div>
 
-    <script src="/publico/js/javascript.js"></script>
-    <script src="/publico/js/sidebar.js"></script>
+    <script src="/public/js/javascript.js"></script>
+    <script src="/public/js/sidebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

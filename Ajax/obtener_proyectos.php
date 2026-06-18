@@ -1,8 +1,8 @@
 <?php
 if (!isset($_SESSION)) session_start();
 
-require __DIR__ . "/../publico/config/conexion.php";
-require __DIR__ . "/../Controladores/CalendarioControlador.php";
+require __DIR__ . "/../public/config/conexion.php";
+require_once __DIR__ . '/../Modules/Calendario/Controller/calendario_controller.php';
 
 $controlador = new CalendarioControlador(
     $conn,

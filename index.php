@@ -4,17 +4,17 @@ ini_set('display_errors', 1);
 
 if (isset($_SESSION['rol'])) {
     $base_url = "/";
-
+    // El rol 'alumno' se usa en el sidebar, pero el sistema parece usar 'estudiante' internamente.
     switch (strtolower($_SESSION['rol'])) {
-        case 'alumno':
-            header("Location: {$base_url}Vistas/usuarios/alumno.php");
+        case 'estudiante':
+            header("Location: {$base_url}Modules/Usuarios/Views/alumno.php");
             exit;
         case 'profesor':
         case 'investigador':
-            header("Location: {$base_url}Vistas/usuarios/profesor.php");
+            header("Location: {$base_url}Modules/Principal/Views/index.php");
             exit;
         case 'supervisor':
-            header("Location: {$base_url}Vistas/usuarios/supervisor.php");
+            header("Location: {$base_url}Modules/Principal/Views/index.php");
             exit;
     }
 }
@@ -47,13 +47,12 @@ if (isset($_SESSION['rol'])) {
         })();
     </script>
 
-    <link rel="stylesheet" href="/publico/css/styles.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/public/css/styles.css">
 </head>
 
 <body>
-    <?php include './publico/incluido/header.php'; ?>
-<?php include 'sidebar_publico.php'; ?>
+    <?php include './public/incluido/header.php'; ?>
+    <?php include 'sidebar_publico.php'; ?>
     <div class="container-main">
         
 
@@ -81,7 +80,7 @@ if (isset($_SESSION['rol'])) {
                 </div>
 
                 <div class="image-container">
-                    <img src="./publico/img/home-img.webp" alt="Ilustración del sistema">
+                    <img src="./public/img/home-img.webp" alt="Ilustración del sistema">
                 </div>
             </div>
 
@@ -93,8 +92,8 @@ if (isset($_SESSION['rol'])) {
         </div>
     </div>
 
-    <script src="/publico/js/javascript.js"></script>
-    <script src="/publico/js/sidebar.js"></script>
+    <script src="/public/js/main.js"></script>
+    <script src="/public/js/sidebar.js"></script>
 </body>
 
 </html>

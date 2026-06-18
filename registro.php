@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Cuenta</title>
-    <link rel="stylesheet" href="./publico/css/styles.css">
+    <link rel="stylesheet" href="/public/css/styles.css">
 </head>
 
 <body class="body-register">
@@ -13,14 +13,14 @@
         <a href="index.php" class="home-btn">
             Regresar al inicio
         </a>
-        <a href="login.php" class="toggle-btn">Ya tengo una cuenta</a>
+        <a href="/Modules/Login/Views/index.php" class="toggle-btn">Ya tengo una cuenta</a>
     </div>
 
     <div class="container-register container-register-extended">
         <div class="content">
             <div class="title-log-reg">Crear cuenta</div>
 
-            <form class="form" action="./publico/config/register_.php" method="POST">
+            <form class="form" action="/public/config/register_.php" method="POST">
                 <!-- nombre completo -->
                 <div class="input-group">
                     <input type="text" id="nombre" name="nombre" class="input-field" placeholder=" " required>
@@ -101,7 +101,7 @@
                     <input type="password" id="password" name="contraseña" class="input-field" placeholder=" " required>
                     <label for="password" class="floating-label">Contraseña</label>
                     <span class="toggle-password-wrapper">
-                        <img src="./publico/icons/solar_eye-closed-broken.webp" alt="Mostrar contraseña"
+                        <img src="/public/icons/solar_eye-closed-broken.webp" alt="Mostrar contraseña"
                             id="togglePassword" class="toggle-password">
                     </span>
                 </div>
@@ -110,7 +110,7 @@
                     <input type="password" id="confirmar" name="confirmar" class="input-field" placeholder=" " required>
                     <label for="confirmar" class="floating-label">Confirmar contraseña</label>
                     <span class="toggle-password-wrapper">
-                        <img src="./publico/icons/solar_eye-closed-broken.webp" alt="Mostrar contraseña"
+                        <img src="/public/icons/solar_eye-closed-broken.webp" alt="Mostrar contraseña"
                             id="toggleConfirm" class="toggle-password">
                     </span>
                 </div>
@@ -118,15 +118,15 @@
 
 
                 <div class="terms">
-                    Al crear una cuenta, aceptas los <a href="./politicas.html">Términos del servicio</a> y <a
-                        href="./politicas.html">Política de
+                    Al crear una cuenta, aceptas los <a href="/politicas.html">Términos del servicio</a> y <a
+                        href="/politicas.html">Política de
                         privacidad</a>
                 </div>
-                <button type="submit" class="submit-btn">Crear cuenta</button>
+                <button type="submit" class="submit-btn" name="register">Crear cuenta</button>
             </form>
         </div>
     </div>
-    <script src="/publico/js/javascript.js"></script>
+    <script src="/public/js/main.js"></script>
 </body>
 
 </html>

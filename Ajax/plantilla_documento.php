@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Controladores/plantilladocumentoControlador.php';
+require_once __DIR__ . '/../Modules/Plantillas_documentos/Controller/plantilla_documento_controller.php';
 
 if (!isset($_GET['tipo_documento'])) {
     echo json_encode([]);

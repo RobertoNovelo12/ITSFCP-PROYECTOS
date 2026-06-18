@@ -26,8 +26,8 @@ if ($rol !== 'supervisor') {
 
 $action = $_GET['action'] ?? '';
 
-require_once __DIR__ . '/../publico/config/conexion.php';
-require_once __DIR__ . '/../Modelos/SupervisorModelo.php';
+require_once __DIR__ . '/../public/config/conexion.php';
+require_once __DIR__ . '/../Modules/Supervisor/Model/supervisor_model.php';
 
 $modelo = new SupervisorModelo($conn);
 
@@ -45,7 +45,7 @@ switch ($action) {
             echo json_encode(['ok' => false, 'msg' => 'ID de etapa inválido.']);
             exit;
         }
-        $ok = $modelo->toggleEtapa($id_etapa, $estado ? 1 : 0);
+        $ok = $modelo->Etapa($id_etapa, $estado ? 1 : 0);
         echo json_encode([
             'ok'  => $ok,
             'msg' => $ok

@@ -23,8 +23,8 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $action = $_GET['action'] ?? '';
 
-require_once __DIR__ . '/../publico/config/conexion.php';
-require_once __DIR__ . '/../Controladores/seguimientoControlador.php';
+require_once __DIR__ . '/../public/config/conexion.php';
+require_once __DIR__ . '/../Modules/Seguimiento/Controller/seguimiento_controller.php';
 
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

@@ -5,8 +5,8 @@ error_reporting(E_ALL);
 if (!isset($_SESSION)) session_start();
 header("Content-Type: application/json");
 
-require __DIR__ . "/../publico/config/conexion.php";
-require __DIR__ . "/../Controladores/CalendarioControlador.php";
+require __DIR__ . "/../public/config/conexion.php";
+require_once __DIR__ . '/../Modules/Calendario/Controller/calendario_controller.php';
 
 if (!isset($_SESSION['id_usuario'])) {
     echo json_encode([]);

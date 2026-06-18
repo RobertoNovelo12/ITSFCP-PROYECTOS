@@ -1,0 +1,282 @@
+<?php
+/*Proyectos/crear.php - Página secundaria para crear proyecto */
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+session_start();
+
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: /index.php");
+    exit;
+}
+$rol = strtolower($_SESSION['rol'] ?? '');
+$id = $_SESSION['id_usuario'];
+$action = $_POST['action'] ?? null;
+
+//Solo el investigador puede acceder
+if (!in_array($rol, ['investigador', 'profesor'], true)) {
+    header("Location: /Modules/Principal/Views/index.php");
+
+    exit;
+}
+
+//Se llama al controlador
+
+require_once __DIR__ . '/../Controller/proyecto_controller.php';
+
+$proyectoControlador = new ProyectoControlador();
+$periodoActualProyectos = $proyectoControlador->periodoactual();
+$hoy = date('Y-m-d');
+$puedeCrear = ($hoy >= $periodoActualProyectos['fecha_inicio_proyectos']
+    && $hoy <= $periodoActualProyectos['fecha_fin_proyectos']);
+
+if (!$puedeCrear) {
+    header("Location: /Modules/Principal/Views/index.php");
+    exit;
+}
+
+$tematica = $proyectoControlador->tematica();
+$periodo = $proyectoControlador->obtenerperiodo();
+if ($action == 'registrarProyecto') {
+    $proyectoControlador->registrarProyecto($_POST, $id, $rol);
+}
+ob_start();
+?>
+<div class="container-fluid py-4 ancho_container">
+    <div class="row mb-3 align-items-center">
+        <!--Encabezado-->
+        <div class="row mb-1">
+            <?php
+            $titulo      = 'Nuevo Proyecto';
+            $descripcion = 'Registro de un nuevo proyecto de investigación';
+            include __DIR__ . '/../../../public/incluido/_encabezado.php';
+            ?>
+            <div class="col-6 col-md-6 text-md-end mb-2 mb-md-0 text-end">
+                <a href="/Modules/Proyectos/Views/index.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Regresar
+                </a>
+            </div>
+        </div>
+
+        <form method="POST" id="formProyecto" action="">
+            <input type="hidden" id="input_hidden" name="action" value="registrarProyecto">
+            <div class="row mb-1">
+                <h5>Información de proyectos</h5>
+                <div class="mb-3">
+                    <label for="exampleFormControlInput1" class="form-label">Nombre del proyecto</label>
+                    <input type="text" class="form-control" name="NombreProyecto" id="InputFormLimpiar1" required>
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Descripcion breve</label>
+                    <textarea class="form-control" name="Descripcion" id="InputFormLimpiar2" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Objetivos</label>
+                    <textarea class="form-control" name="Objetivos" id="InputFormLimpiar3" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Pre-requisitos</label>
+                    <textarea class="form-control" name="Pre_requisitos" id="InputFormLimpiar4" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Requisitos</label>
+                    <textarea class="form-control" name="Requisitos" id="InputFormLimpiar5" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="InputFormLimpiar6" class="form-label">Cantidad alumnos permitidos</label>
+                        <input type="number" class="form-control" name="AlumnosCantidad" id="InputFormLimpiar6" aria-describedby="Cantidad alumnos" min="0" max="3" required>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="select1" class="form-label">Temática</label>
+                        <select class="form-select" name="Tematica" id="select1" aria-label="Default select example">
+                            <?php foreach ($tematica as $tema): ?>
+                                <option value="<?php echo $tema['id_tematica'] ?>"><?php echo $tema['nombre_tematica'] ?></option>
+                            <?php endforeach ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label for="floatingSelectGrid" class="form-label">Modalidad</label>
+                        <select class="form-select" id="floatingSelectGrid" name="Modalidad" aria-label="Default select example">
+                            <option value="mixto">Mixta</option>
+                            <option value="virtual">Virtual</option>
+                            <option value="fisico">Físico</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Subtemáticas (selección múltiple) -->
+                <div class="col-md">
+                    <div class="mb-3">
+                        <label class="form-label" for="select2">Subtemáticas</label>
+                        <select name="subtematicas[]" id="select2" class="form-select" multiple required>
+
+                        </select>
+                        <small class="text-muted">
+                            Mantén presionada la tecla Ctrl (o Cmd) para seleccionar varias
+                        </small>
+                    </div>
+
+                </div>
+                <div class="row mb-1">
+                    <div class="col-md">
+                        <div class="mb-3">
+                            <label for="InputFormLimpiar7" class="form-label">Presupuesto</label>
+                            <input type="number" class="form-control" name="Presupuesto" id="InputFormLimpiar7" aria-describedby="Presupuesto" min="0" required>
+                        </div>
+                    </div>
+                    <div class="col-md">
+                        <div class="mb-3">
+                            <label for="InputFormLimpiar7" class="form-label">Periodo</label>
+                            <input type="text" disabled class="form-control" aria-describedby="Periodo" value="<?php echo ($periodo['periodo'] . " - " . $periodo['estado']) ?>">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-1">
+
+                    <div class="col-md">
+                        <div class="mb-3">
+                            <label for="InputFormLimpiar8" class="form-label">Fecha inicio</label>
+
+                            <input
+                                type="date"
+                                class="form-control"
+                                name="FechaInicio"
+                                id="InputFormLimpiar8"
+                                min="<?= $periodo['FechaInicio'] ?>"
+                                max="<?= $periodo['FechaFinal'] ?>"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="col-md">
+                        <div class="mb-3">
+                            <label for="InputFormLimpiar9" class="form-label">Fecha final</label>
+
+                            <input
+                                type="date"
+                                class="form-control"
+                                name="FechaFinal"
+                                id="InputFormLimpiar9"
+                                disabled
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="alert alert-warning" role="alert">
+                            Los proyectos pueden durar un máximo de 1 año a partir de la fecha de inicio.
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row mb-1">
+                    <div class="col-12 text-center">
+                        <?php if ($periodo['estado'] == "Activo") { ?>
+                            <button type="submit" class="btn btn-guardar"><i class="bi bi-send-fill me-1"></i> Enviar solicitud de proyecto</button>
+                        <?php } else {
+                        ?>
+                            <div class="alert alert-danger" role="alert">
+                                No hay periodo activo para crear un proyecto
+                            </div>
+
+                        <?php } ?>
+                    </div>
+                </div>
+        </form>
+    </div>
+</div>
+</div>
+<?php
+$contenido = ob_get_clean();
+$titulo = "Crear Proyecto";
+$bodyClass = "proyectos-page";
+
+include __DIR__ . '/../../layout.php';
+?>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const selectTematica = document.getElementById("select1");
+        const selectSub = document.getElementById("select2");
+
+        function cargarSubtematicas() {
+
+            const idTematica = selectTematica.value;
+            if (!idTematica) return;
+
+            fetch("/public/Ajax/subtematicas.php?tematica=" + idTematica)
+                .then(r => r.json())
+                .then(data => {
+
+                    selectSub.innerHTML = "";
+
+                    data.forEach(item => {
+
+                        const opt = document.createElement("option");
+                        opt.value = item.id_subtematica;
+                        opt.textContent = item.nombre_subtematica;
+
+                        selectSub.appendChild(opt);
+                    });
+                });
+        }
+
+        // Evento al cambiar temática
+        selectTematica.addEventListener("change", cargarSubtematicas);
+
+        // cargar automáticamente al abrir
+        if (selectTematica.value) {
+            cargarSubtematicas();
+        }
+    });
+    //Para añadir máximo 1 año a la fecha final del proyecto
+    document.addEventListener("DOMContentLoaded", function () {
+
+    const fechaInicio = document.getElementById("InputFormLimpiar8");
+    const fechaFinal  = document.getElementById("InputFormLimpiar9");
+
+    fechaInicio.addEventListener("change", function () {
+
+        if (!this.value) {
+            fechaFinal.value = '';
+            fechaFinal.disabled = true;
+            return;
+        }
+
+        const inicio = new Date(this.value);
+
+        const maximo = new Date(inicio);
+        maximo.setFullYear(maximo.getFullYear() + 1);
+
+        const maximoFormateado = maximo.toISOString().split('T')[0];
+
+        fechaFinal.disabled = false;
+
+        fechaFinal.min = this.value;
+        fechaFinal.max = maximoFormateado;
+
+        if (
+            fechaFinal.value &&
+            (
+                fechaFinal.value < fechaFinal.min ||
+                fechaFinal.value > fechaFinal.max
+            )
+        ) {
+            fechaFinal.value = '';
+        }
+    });
+
+});
+</script>
