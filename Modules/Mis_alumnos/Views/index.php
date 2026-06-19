@@ -1,10 +1,8 @@
 <?php
 
 /**
- * mis_alumnos/index.php
  * Vista principal del módulo "Mis Alumnos" para el investigador.
  * Solo lectura — sin acciones de baja/reactivación.
- * Ruta sugerida: /Vistas/mis_alumnos/index.php
  */
 
 ini_set('display_errors', 1);
@@ -263,7 +261,7 @@ ob_start();
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex gap-1 justify-content-center">
-                                            <a href="../proyectos/detalles.php?id_proyectos=<?= $a['id_proyectos'] ?>"
+                                            <a href="/Modules/Proyectos/Views/detalles.php?id_proyectos=<?= $a['id_proyectos'] ?>"
                                                 class="btn btn-sm btn-primary"
                                                 data-bs-toggle="tooltip" data-bs-title="Ir al proyecto">
                                                 <i class="bi bi-folder2-open"></i>
@@ -281,43 +279,55 @@ ob_start();
         <!-- TARJETAS MÓVIL -->
         <div class="d-block d-md-none">
             <?php foreach ($alumnos as $a): ?>
-                <div class="card shadow-sm mb-3 <?= $a['estado_participacion'] === 'baja' ? 'border-danger' : '' ?>">
-                    <div class="card-body pb-2">
-                        <h6 class="fw-bold mb-0"><?= htmlspecialchars($a['nombre_completo']) ?></h6>
-                        <div class="text-muted small">
+                <div class="mcard <?= $a['estado_participacion'] === 'baja' ? 'mcard--alerta' : '' ?>">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($a['nombre_completo']) ?></h3>
+                        </div>
+                        <div class="mcard__subtitle">
                             <?= htmlspecialchars($a['matricula']) ?>
                             &middot; <?= htmlspecialchars(mb_substr($a['carrera'], 0, 35)) ?>
                         </div>
-                        <div class="mt-1 d-flex gap-1 flex-wrap">
+                        <div class="mcard__badges mt-2">
                             <?= $ctrl->badgeEstadoParticipacion($a['estado_participacion']) ?>
                             <?= $ctrl->badgeEstadoProceso($a['estado_proceso']) ?>
                         </div>
                     </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item small">
-                            <strong>Proyecto:</strong><br>
+
+                    <div class="mcard__section">
+                        <span class="mcard__label">Proyecto</span>
+                        <div class="mcard__value">
                             <?= htmlspecialchars(mb_substr($a['titulo_proyecto'], 0, 65))
                                 . (mb_strlen($a['titulo_proyecto']) > 65 ? '…' : '') ?>
                             <span class="badge text-dark border ms-1"><?= htmlspecialchars($a['periodo']) ?></span>
-                        </li>
-                        <li class="list-group-item text-center">
-                            <strong class="small d-block mb-1">Avance de tareas</strong>
-                            <?= $ctrl->barraAvance((int)$a['tareas_aprobadas'], (int)$a['tareas_total']) ?>
-                        </li>
-                        <?php if ($a['fecha_terminacion']): ?>
-                            <li class="list-group-item small text-center text-muted">
-                                Terminado: <?= htmlspecialchars($a['fecha_terminacion']) ?>
-                            </li>
-                        <?php endif; ?>
-                    </ul>
-                    <div class="card-body pt-2 d-flex gap-2 justify-content-center">
-                        <a href="../proyectos/detalles.php?id_proyectos=<?= $a['id_proyectos'] ?>"
+                        </div>
+                    </div>
+
+                    <div class="mcard__section text-center">
+                        <span class="mcard__label">Avance de tareas</span>
+                        <?= $ctrl->barraAvance((int)$a['tareas_aprobadas'], (int)$a['tareas_total']) ?>
+                    </div>
+
+                    <?php if ($a['fecha_terminacion']): ?>
+                        <div class="mcard__section text-center">
+                            <span class="mcard__value--muted">Terminado: <?= htmlspecialchars($a['fecha_terminacion']) ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="mcard__actions">
+                        <a href="/Modules/Proyectos/Views/detalles.php?id_proyectos=<?= $a['id_proyectos'] ?>"
                             class="btn btn-primary btn-sm">
                             <i class="bi bi-folder2-open me-1"></i>Ir al proyecto
                         </a>
                     </div>
+
                 </div>
             <?php endforeach; ?>
+
+            <?php if (empty($alumnos)): ?>
+                <div class="mcard-empty">No tienes alumnos asignados.</div>
+            <?php endif; ?>
         </div>
 
         <!-- PAGINACIÓN -->

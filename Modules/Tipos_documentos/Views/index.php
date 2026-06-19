@@ -151,74 +151,70 @@ ob_start();
         </div>
     </div>
 
-    <!-- TARJETAS MOVIL -->
-
+    <!-- TARJETAS MÓVIL -->
     <div class="d-block d-md-none">
-        <?php foreach ($documentos as $doc_item): ?>
-            <div class="card shadow-sm mb-3">
-                <div class="card-body text-center">
-                    <h5 class="fw-bold">
-                        <?= $doc_item['nombre'] ?>
-                    </h5>
-                </div>
-                <div class="card-body text-center">
-                    <h5 class="fw-bold">
-                        <span class="badge rounded-pill text-bg-<?php echo $ajustesTiposDocumentoscontrolador->EstiloEstado($doc_item['estados']); ?>">
-                            <?= htmlspecialchars($doc_item['estados']) ?>
-                        </span>
-                    </h5>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <strong>Descripción</strong>
-                        <p class="mb-0" title="<?= htmlspecialchars($doc_item['descripcion']) ?>">
-                            <?= strlen($doc_item['descripcion']) > 60
-                                ? substr($doc_item['descripcion'], 0, 60) . '...'
-                                : $doc_item['descripcion']; ?>
-                        </p>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Categoria</strong>
-                                <p class="mb-0">
-                                    <?= ucfirst($doc_item['categoria']) ?>
-                                </p>
-                            </div>
-                            <div class="col-6">
-                                <strong>Orden</strong>
-                                <p class="mb-0">
-                                    <?= $doc_item['orden'] ?>
-                                </p>
-                            </div>
+        <?php if (!empty($documentos)): ?>
+            <?php foreach ($documentos as $doc_item): ?>
+                <div class="mcard">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($doc_item['nombre']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $ajustesTiposDocumentoscontrolador->EstiloEstado($doc_item['estados']) ?>">
+                                Estado: <?= htmlspecialchars($doc_item['estados']) ?>
+                            </span>
                         </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Fecha modificación</strong>
-                                <p class="mb-0">
-                                    <?= date("d/m/Y", strtotime($doc_item['modificar'])) ?>
-                                </p>
-                            </div>
-                            <div class="col-6">
-                                <strong>Hora modificación</strong>
-                                <p class="mb-0">
-                                    <?= date("H:i", strtotime($doc_item['modificar'])) ?>
-                                </p>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-                <div class="card-body">
-                    <div class="d-flex justify-content-center gap-2">
-                        <a href="editar.php?id_tipo_documento=<?= $doc['id_tipo_documento'] ?>" type="button" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-custom-class="custom-tooltip" data-bs-title="Editar Tipo de documento"><i class="bi bi-pencil-square"></i></a>
                     </div>
+
+                    <div class="mcard__section">
+                        <span class="mcard__label">Descripción</span>
+                        <p class="mcard__text-clamp mb-0" title="<?= htmlspecialchars($doc_item['descripcion']) ?>">
+                            <?= strlen($doc_item['descripcion']) > 60
+                                ? htmlspecialchars(substr($doc_item['descripcion'], 0, 60)) . '...'
+                                : htmlspecialchars($doc_item['descripcion']); ?>
+                        </p>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Categoría</span>
+                                <span class="mcard__value"><?= htmlspecialchars(ucfirst($doc_item['categoria'])) ?></span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Orden</span>
+                                <span class="mcard__value"><?= (int)$doc_item['orden'] ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid mcard__grid--full">
+                            <div>
+                                <span class="mcard__label">Última modificación</span>
+                                <span class="mcard__value">
+                                    <?= date("d/m/Y", strtotime($doc_item['modificar'])) ?>
+                                    <span class="mcard__value--muted"> · <?= date("H:i", strtotime($doc_item['modificar'])) ?></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mcard__actions">
+                        <a href="editar.php?id_tipo_documento=<?= (int)$doc_item['id_tipo_documento'] ?>" type="button"
+                            class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top"
+                            data-bs-custom-class="custom-tooltip" data-bs-title="Editar tipo de documento">
+                            <i class="bi bi-pencil-square me-1"></i>Editar
+                        </a>
+                    </div>
+
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="mcard-empty">No hay tipos de documento registrados.</div>
+        <?php endif; ?>
     </div>
+
 
 </div>
 <?php

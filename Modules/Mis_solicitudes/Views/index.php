@@ -1,6 +1,4 @@
 <?php
-// /Mis_solicitudes/index.php
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -206,49 +204,68 @@ ob_start();
                 </div>
             </div>
 
-            <!-- CARDS MÓVIL -->
-            <div class="ms-cards-movil-wrap">
+            <!-- TARJETAS MÓVIL -->
+            <div class="d-block d-md-none">
                 <?php foreach ($solicitudes as $sol): ?>
-                    <div class="ms-card-movil">
-                        <div class="ms-card-movil-header">
-                            <div class="ms-card-movil-titulo">
-                                <?= htmlspecialchars(mb_strimwidth($sol['proyecto_titulo'], 0, 50, '…')) ?>
+                    <div class="mcard">
+
+                        <!-- HEAD -->
+                        <div class="mcard__head">
+                            <div class="mcard__row-top">
+                                <h3 class="mcard__title">
+                                    <?= htmlspecialchars(mb_strimwidth($sol['proyecto_titulo'], 0, 50, '…')) ?>
+                                </h3>
+                                <?= $ctrl->badgeEstado($sol['estado']) ?>
                             </div>
-                            <?= $ctrl->badgeEstado($sol['estado']) ?>
                         </div>
-                        <div class="ms-card-movil-body">
-                            <dl style="margin:0;">
-                                <div class="ms-card-movil-fila">
-                                    <dt>Investigador</dt>
-                                    <dd><?= htmlspecialchars($sol['investigador']) ?></dd>
+
+                        <!-- DETALLES -->
+                        <div class="mcard__section">
+                            <div class="mcard__grid">
+                                <div>
+                                    <span class="mcard__label">Investigador</span>
+                                    <span class="mcard__value"><?= htmlspecialchars($sol['investigador']) ?></span>
                                 </div>
-                                <div class="ms-card-movil-fila">
-                                    <dt>Periodo</dt>
-                                    <dd><?= htmlspecialchars($sol['periodo']) ?></dd>
+                                <div>
+                                    <span class="mcard__label">Periodo</span>
+                                    <span class="mcard__value"><?= htmlspecialchars($sol['periodo']) ?></span>
                                 </div>
-                                <div class="ms-card-movil-fila">
-                                    <dt>Fecha</dt>
-                                    <dd><?= $sol['fecha_envio'] ?></dd>
+                                <div>
+                                    <span class="mcard__label">Fecha</span>
+                                    <span class="mcard__value"><?= $sol['fecha_envio'] ?></span>
                                 </div>
                                 <?php if ($sol['promedio']): ?>
-                                    <div class="ms-card-movil-fila">
-                                        <dt>Promedio</dt>
-                                        <dd><?= $sol['promedio'] ?></dd>
+                                    <div>
+                                        <span class="mcard__label">Promedio</span>
+                                        <span class="mcard__value"><?= $sol['promedio'] ?></span>
                                     </div>
                                 <?php endif; ?>
-                            </dl>
-                            <?php if ($sol['estado'] === 'correcciones' && $sol['ultimo_comentario_inv']): ?>
-                                <div class="ms-nota-corr mt-2" style="display:flex;">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                    <?= htmlspecialchars(mb_strimwidth($sol['ultimo_comentario_inv'], 0, 60, '…')) ?>
-                                </div>
-                            <?php endif; ?>
+                            </div>
                         </div>
-                        <div class="ms-card-movil-acciones">
+
+                        <!-- NOTA DE CORRECCIÓN (si aplica) -->
+                        <?php if ($sol['estado'] === 'correcciones' && $sol['ultimo_comentario_inv']): ?>
+                            <div class="mcard__section">
+                                <div class="d-flex align-items-start gap-2 text-warning-emphasis">
+                                    <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                                    <span class="small">
+                                        <?= htmlspecialchars(mb_strimwidth($sol['ultimo_comentario_inv'], 0, 60, '…')) ?>
+                                    </span>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- ACCIONES -->
+                        <div class="mcard__actions">
                             <?= $ctrl->botonesAccion($sol['id_solicitud_proyecto'], $sol['estado']) ?>
                         </div>
+
                     </div>
                 <?php endforeach; ?>
+
+                <?php if (empty($solicitudes)): ?>
+                    <div class="mcard-empty">No tienes solicitudes registradas.</div>
+                <?php endif; ?>
             </div>
 
             <!-- PAGINACIÓN -->

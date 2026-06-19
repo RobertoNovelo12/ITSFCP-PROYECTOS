@@ -211,35 +211,42 @@ ob_start();
     <div class="d-block d-md-none">
         <?php if (!empty($usuarios)): ?>
             <?php foreach ($usuarios as $u): ?>
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body text-center">
-                        <h6 class="fw-bold"><?= htmlspecialchars($u['nombre_completo']) ?></h6>
-                        <span class="badge rounded-pill text-bg-<?= $controlador->EstiloEstado($u['estado_usuario']) ?>">
-                            <?= htmlspecialchars(ucfirst($u['estado_usuario'])) ?>
-                        </span>
+                <div class="mcard">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($u['nombre_completo']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $controlador->EstiloEstado($u['estado_usuario']) ?>">
+                                Estado: <?= htmlspecialchars(ucfirst($u['estado_usuario'])) ?>
+                            </span>
+                        </div>
+                        <div class="mcard__subtitle"><?= htmlspecialchars($u['correo_institucional']) ?></div>
                     </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <strong>Correo:</strong> <?= htmlspecialchars($u['correo_institucional']) ?>
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Tipo:</strong> <?= htmlspecialchars(ucfirst($u['tipo_usuario'])) ?>
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Registro:</strong> <?= date("d/m/Y H:i", strtotime($u['fecha_registro'])) ?>
-                        </li>
-                    </ul>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-center gap-2">
-                            <?= $controlador->botonesAccion($u['id_usuarios'], $rol, $u['estado_usuario']) ?>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Tipo de usuario</span>
+                                <span class="mcard__value"><?= htmlspecialchars(ucfirst($u['tipo_usuario'])) ?></span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Registro</span>
+                                <span class="mcard__value"><?= date("d/m/Y H:i", strtotime($u['fecha_registro'])) ?></span>
+                            </div>
                         </div>
                     </div>
+
+                    <div class="mcard__actions">
+                        <?= $controlador->botonesAccion($u['id_usuarios'], $rol, $u['estado_usuario']) ?>
+                    </div>
+
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <div class="alert alert-info">No se encontraron usuarios.</div>
+            <div class="mcard-empty">No se encontraron usuarios.</div>
         <?php endif; ?>
     </div>
+
 
     <!-- PAGINACIÓN -->
     <?php

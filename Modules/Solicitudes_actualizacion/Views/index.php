@@ -1,6 +1,4 @@
 <?php
-// Vistas/Solicitudes_actualizacion/index.php
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -213,72 +211,75 @@ ob_start();
     <div class="d-block d-md-none">
         <?php if (!empty($solicitudes)): ?>
             <?php foreach ($solicitudes as $s): ?>
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body pb-2">
+                <div class="mcard">
 
-                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                            <div style="min-width:0;flex:1 1 0;">
-                                <h6 class="fw-bold mb-0" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                    <?= htmlspecialchars($s['investigador']) ?>
-                                </h6>
-                                <small class="text-muted d-block" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                    <?= htmlspecialchars($s['correo_institucional']) ?>
-                                </small>
-                            </div>
-                            <span class="badge rounded-pill bg-<?= $ctrl->estiloEstado($s['estado']) ?> flex-shrink-0">
-                                <?= ucfirst($s['estado']) ?>
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                <?= htmlspecialchars($s['investigador']) ?>
+                            </h3>
+                            <span class="mcard__badge badge rounded-pill bg-<?= $ctrl->estiloEstado($s['estado']) ?>">
+                                Estado: <?= ucfirst($s['estado']) ?>
                             </span>
                         </div>
+                        <div class="mcard__subtitle" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                            <?= htmlspecialchars($s['correo_institucional']) ?>
+                        </div>
+                    </div>
 
-                        <hr class="my-2">
-                        <div class="mb-2">
-                            <small class="text-muted fw-semibold d-block mb-1">Tipo</small>
-                            <span class="badge bg-<?= $s['tipo'] === 'sni' ? 'primary' : 'success' ?> rounded-pill">
-                                <?= $ctrl->etiquetaTipo($s['tipo']) ?>
+                    <div class="mcard__section">
+                        <span class="mcard__label">Tipo</span>
+                        <span class="mcard__badge badge bg-<?= $s['tipo'] === 'sni' ? 'primary' : 'success' ?> rounded-pill">
+                            <?= $ctrl->etiquetaTipo($s['tipo']) ?>
+                        </span>
+                    </div>
+
+                    <div class="mcard__section">
+                        <span class="mcard__label">Solicitud</span>
+                        <div class="d-flex align-items-center flex-wrap gap-1">
+                            <span class="badge bg-secondary-subtle text-secondary border">
+                                <?= htmlspecialchars($s['valor_actual_nombre'] ?? '—') ?>
+                            </span>
+                            <i class="bi bi-arrow-right text-muted"></i>
+                            <span class="badge bg-primary text-white">
+                                <?= htmlspecialchars($s['valor_nuevo_nombre'] ?? '—') ?>
                             </span>
                         </div>
-                        <div class="mb-2">
-                            <small class="text-muted fw-semibold d-block mb-1">Solicitud</small>
-                            <div class="d-flex align-items-center flex-wrap gap-1">
-                                <span class="badge bg-secondary-subtle text-secondary border">
-                                    <?= htmlspecialchars($s['valor_actual_nombre'] ?? '—') ?>
-                                </span>
-                                <i class="bi bi-arrow-right text-muted"></i>
-                                <span class="badge bg-primary text-white">
-                                    <?= htmlspecialchars($s['valor_nuevo_nombre'] ?? '—') ?>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
-                            <div>
-                                <small class="text-muted fw-semibold d-block mb-1">Fecha</small>
-                                <small><?= date('d/m/Y H:i', strtotime($s['fecha_solicitud'])) ?></small>
-                            </div>
-                            <div>
-                                <small class="text-muted fw-semibold d-block mb-1">Documento</small>
-                                <?php if (!empty($s['nombre_archivo'])): ?>
-                                    <a href="<?= htmlspecialchars($s['ruta']) ?>" target="_blank"
-                                        class="btn btn-sm btn-outline-danger py-0 px-2">
-                                        <i class="bi bi-file-earmark-pdf-fill"></i> PDF
-                                    </a>
-                                <?php else: ?>
-                                    <small class="text-muted">Sin doc.</small>
-                                <?php endif; ?>
-                            </div>
-                        </div>
+                    </div>
 
-                    </div>
-                    <div class="card-footer bg-white">
-                        <div class="d-flex justify-content-center">
-                            <?= $ctrl->botonesAccion($s['id_solicitudes_actualizacion'], $s['estado']) ?>
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Fecha</span>
+                                <span class="mcard__value"><?= date('d/m/Y H:i', strtotime($s['fecha_solicitud'])) ?></span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Documento</span>
+                                <span class="mcard__value">
+                                    <?php if (!empty($s['nombre_archivo'])): ?>
+                                        <a href="<?= htmlspecialchars($s['ruta']) ?>" target="_blank"
+                                            class="btn btn-sm btn-outline-danger py-0 px-2">
+                                            <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="mcard__value--muted">Sin documento</span>
+                                    <?php endif; ?>
+                                </span>
+                            </div>
                         </div>
                     </div>
+
+                    <div class="mcard__actions">
+                        <?= $ctrl->botonesAccion($s['id_solicitudes_actualizacion'], $s['estado']) ?>
+                    </div>
+
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <div class="alert alert-info">No se encontraron solicitudes.</div>
+            <div class="mcard-empty">No se encontraron solicitudes.</div>
         <?php endif; ?>
     </div>
+
 
     <!-- PAGINACIÓN -->
     <?php

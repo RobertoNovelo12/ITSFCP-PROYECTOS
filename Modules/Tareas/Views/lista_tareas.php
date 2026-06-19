@@ -164,41 +164,49 @@ $revision  = count(array_filter($tarea, fn($t) => $t['estados_tarea'] === 'Revis
         <!-- Tarjetas (móvil) -->
         <div class="d-md-none">
             <?php foreach ($tarea as $tar): ?>
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h6 class="fw-semibold mb-0"><?= htmlspecialchars($tar['estudiante']) ?></h6>
-                                <small class="text-muted">#<?= $tar['id_asignacion'] ?></small>
-                            </div>
-                            <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tar['estados_tarea']) ?>">
-                                <?= htmlspecialchars($tar['estados_tarea'] ?? '-') ?>
+                <div class="mcard">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($tar['estudiante']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($tar['estados_tarea']) ?>">
+                                Estado: <?= htmlspecialchars($tar['estados_tarea'] ?? '-') ?>
                             </span>
                         </div>
-                        <div class="row g-1 small text-muted mb-2">
-                            <div class="col-6">
-                                <span class="d-block fw-semibold" style="font-size:.7rem">ENVIADO</span>
-                                <?= !empty($tar['fecha_revision']) ? date('d/m/Y', strtotime($tar['fecha_revision'])) : '—' ?>
+                        <span class="mcard__id">#<?= $tar['id_asignacion'] ?></span>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Enviado</span>
+                                <span class="mcard__value"><?= !empty($tar['fecha_revision']) ? date('d/m/Y', strtotime($tar['fecha_revision'])) : '—' ?></span>
                             </div>
-                            <div class="col-6">
-                                <span class="d-block fw-semibold" style="font-size:.7rem">REVISADO</span>
-                                <?= !empty($tar['fecha_correccion']) ? date('d/m/Y', strtotime($tar['fecha_correccion'])) : '—' ?>
+                            <div>
+                                <span class="mcard__label">Revisado</span>
+                                <span class="mcard__value"><?= !empty($tar['fecha_correccion']) ? date('d/m/Y', strtotime($tar['fecha_correccion'])) : '—' ?></span>
                             </div>
-                            <div class="col-6">
-                                <span class="d-block fw-semibold" style="font-size:.7rem">APROBADO</span>
-                                <?= !empty($tar['fecha_aprobacion']) ? date('d/m/Y', strtotime($tar['fecha_aprobacion'])) : '—' ?>
+                            <div>
+                                <span class="mcard__label">Aprobado</span>
+                                <span class="mcard__value"><?= !empty($tar['fecha_aprobacion']) ? date('d/m/Y', strtotime($tar['fecha_aprobacion'])) : '—' ?></span>
                             </div>
-                            <div class="col-6">
-                                <span class="d-block fw-semibold" style="font-size:.7rem">ENTREGA</span>
-                                <?= !empty($tar['archivo_nombre']) ? '<span class="text-primary">Con archivo</span>' : '—' ?>
+                            <div>
+                                <span class="mcard__label">Entrega</span>
+                                <span class="mcard__value"><?= !empty($tar['archivo_nombre']) ? '<span class="text-primary">Con archivo</span>' : '—' ?></span>
                             </div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <?= $tareaControlador->botonesAccionLista($tar['id_asignacion'], $rol, $tar['estados_tarea'], $tar['tipo'] ?? null, $id_proyectos, $tar['id_tarea']) ?>
                         </div>
                     </div>
+
+                    <div class="mcard__actions">
+                        <?= $tareaControlador->botonesAccionLista($tar['id_asignacion'], $rol, $tar['estados_tarea'], $tar['tipo'] ?? null, $id_proyectos, $tar['id_tarea']) ?>
+                    </div>
+
                 </div>
             <?php endforeach; ?>
+
+            <?php if (empty($tarea)): ?>
+                <div class="mcard-empty">No hay entregas registradas.</div>
+            <?php endif; ?>
         </div>
 
     <?php endif; ?>

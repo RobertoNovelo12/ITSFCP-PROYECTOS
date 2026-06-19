@@ -215,64 +215,68 @@ ob_start();
     <div class="d-block d-md-none">
         <?php if (!empty($periodos)): ?>
             <?php foreach ($periodos as $per): ?>
-                <div class="card shadow-sm mb-3 <?= ($per['estados'] === 'Desactivado') ? 'border-secondary' : '' ?>">
-                    <div class="card-body text-center">
-                        <h5 class="fw-bold"><?= htmlspecialchars($per['periodo']) ?></h5>
-                        <span class="badge rounded-pill text-bg-<?= $periodoControlador->EstiloEstadoLista($per['estados']) ?>">
-                            <?= htmlspecialchars($per['estados']) ?>
-                        </span>
+                <div class="mcard <?= ($per['estados'] === 'Desactivado') ? 'mcard--apagada' : '' ?>">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($per['periodo']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $periodoControlador->EstiloEstadoLista($per['estados']) ?>">
+                                Estado: <?= htmlspecialchars($per['estados']) ?>
+                            </span>
+                        </div>
                         <?php if ($per['estados'] === 'Desactivado' && !$per['puede_reactivar']): ?>
-                            <br><small class="text-muted">Semestre pasado — no reactivable</small>
+                            <div class="mcard__subtitle">Semestre pasado — no reactivable</div>
                         <?php endif; ?>
                     </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <strong>Fecha inicio</strong>
-                                    <p class="mb-0"><?= date('d/m/Y', strtotime($per['inicio'])) ?></p>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Fecha final</strong>
-                                    <p class="mb-0"><?= date('d/m/Y', strtotime($per['final'])) ?></p>
-                                </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Fecha inicio</span>
+                                <span class="mcard__value"><?= date('d/m/Y', strtotime($per['inicio'])) ?></span>
                             </div>
-                            <div class="row text-center mt-2">
-                                <div class="col-6">
-                                    <strong>Fecha Creación</strong>
-                                    <p class="mb-0"><?= date('d/m/Y', strtotime($per['crear'])) ?></p>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Hora Creación</strong>
-                                    <p class="mb-0"><?= date('H:i', strtotime($per['crear'])) ?></p>
-                                </div>
+                            <div>
+                                <span class="mcard__label">Fecha final</span>
+                                <span class="mcard__value"><?= date('d/m/Y', strtotime($per['final'])) ?></span>
                             </div>
-                        </li>
-                    </ul>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-center gap-2">
-                            <?= $periodoControlador->botonesAccionPrincipal(
-                                (int)$per['id_periodos'],
-                                $rol,
-                                $per['estados'],
-                                (int)($per['puede_reactivar'] ?? 0)
-                            ) ?>
                         </div>
                     </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid mcard__grid--full">
+                            <div>
+                                <span class="mcard__label">Creado</span>
+                                <span class="mcard__value">
+                                    <?= date('d/m/Y', strtotime($per['crear'])) ?>
+                                    <span class="mcard__value--muted"> · <?= date('H:i', strtotime($per['crear'])) ?></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mcard__actions">
+                        <?= $periodoControlador->botonesAccionPrincipal(
+                            (int)$per['id_periodos'],
+                            $rol,
+                            $per['estados'],
+                            (int)($per['puede_reactivar'] ?? 0)
+                        ) ?>
+                    </div>
+
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <div class="alert alert-info">No hay periodos en esta categoría.</div>
+            <div class="mcard-empty">No hay periodos en esta categoría.</div>
         <?php endif; ?>
     </div>
 
     <!-- PAGINACIÓN -->
-    <?php 
-        $qBase  = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-        $entidad = 'periodos';
-        include __DIR__ . '/../../../public/incluido/_paginacion.php';
-     ?>
+    <?php
+    $qBase  = 'action=' . urlencode($action)
+        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+    $entidad = 'periodos';
+    include __DIR__ . '/../../../public/incluido/_paginacion.php';
+    ?>
 
 </div>
 

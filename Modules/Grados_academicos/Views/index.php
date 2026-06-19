@@ -201,35 +201,41 @@ ob_start();
 
     <!-- TARJETAS MÓVIL -->
     <div class="d-block d-md-none">
-        <?php foreach ($registros as $reg): ?>
-            <div class="card shadow-sm mb-3">
-                <div class="card-body text-center">
-                    <h5 class="fw-bold"><?= htmlspecialchars($reg['nombre']) ?></h5>
-                    <span class="badge rounded-pill text-bg-<?= $gradoacademicoControlador->EstiloEstadoLista($reg['estados']) ?>">
-                        <?= htmlspecialchars($reg['estados']) ?>
-                    </span>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Fecha creación</strong>
-                                <p class="mb-0"><?= date("d/m/Y", strtotime($reg['crear'])) ?></p>
+        <?php if (!empty($registros)): ?>
+            <?php foreach ($registros as $reg): ?>
+                <div class="mcard">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($reg['nombre']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $gradoacademicoControlador->EstiloEstadoLista($reg['estados']) ?>">
+                                Estado: <?= htmlspecialchars($reg['estados']) ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Fecha creación</span>
+                                <span class="mcard__value"><?= date("d/m/Y", strtotime($reg['crear'])) ?></span>
                             </div>
-                            <div class="col-6">
-                                <strong>Hora creación</strong>
-                                <p class="mb-0"><?= date("H:i", strtotime($reg['crear'])) ?></p>
+                            <div>
+                                <span class="mcard__label">Hora creación</span>
+                                <span class="mcard__value"><?= date("H:i", strtotime($reg['crear'])) ?></span>
                             </div>
                         </div>
-                    </li>
-                </ul>
-                <div class="card-body">
-                    <div class="d-flex justify-content-center gap-2">
+                    </div>
+
+                    <div class="mcard__actions">
                         <?= $gradoacademicoControlador->botonesAccionPrincipal($reg['id_grado'], $rol, $reg['estados']) ?>
                     </div>
+
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="mcard-empty">No hay grados académicos registrados.</div>
+        <?php endif; ?>
     </div>
 
     <!-- PAGINACIÓN -->

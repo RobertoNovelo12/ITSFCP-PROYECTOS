@@ -1,5 +1,4 @@
 <?php
-//Solicitudes_integracion_proyecto/index.php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -243,46 +242,54 @@ ob_start();
         <!-- MÓVIL -->
         <div class="d-md-none">
             <?php foreach ($solicitudes as $sol): ?>
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <div class="fw-semibold"><?= htmlspecialchars($sol['estudiante_nombre']) ?></div>
-                                <div class="text-muted small"><?= htmlspecialchars($sol['matricula'] ?? '') ?></div>
-                            </div>
+                <div class="mcard">
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($sol['estudiante_nombre']) ?></h3>
                             <?= $ctrl->badgeEstado($sol['estado']) ?>
                         </div>
-                        <p class="small mb-1">
-                            <strong>Proyecto:</strong>
-                            <?= htmlspecialchars(mb_strimwidth($sol['proyecto_titulo'], 0, 50, '…')) ?>
-                        </p>
-                        <p class="small mb-2"><strong>Fecha:</strong> <?= $sol['fecha_envio'] ?></p>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <?= $ctrl->botonesAccion(
-                                $sol['id_solicitud_proyecto'],
-                                $sol['estado'],
-                                $sol['id_proyectos'],
-                                $filtros
-                            ) ?>
-                        </div>
+                        <div class="mcard__subtitle"><?= htmlspecialchars($sol['matricula'] ?? '') ?></div>
+                    </div>
+
+                    <div class="mcard__section">
+                        <span class="mcard__label">Proyecto</span>
+                        <span class="mcard__value"><?= htmlspecialchars(mb_strimwidth($sol['proyecto_titulo'], 0, 50, '…')) ?></span>
+                    </div>
+
+                    <div class="mcard__section">
+                        <span class="mcard__label">Fecha</span>
+                        <span class="mcard__value"><?= $sol['fecha_envio'] ?></span>
+                    </div>
+
+                    <div class="mcard__actions">
+                        <?= $ctrl->botonesAccion(
+                            $sol['id_solicitud_proyecto'],
+                            $sol['estado'],
+                            $sol['id_proyectos'],
+                            $filtros
+                        ) ?>
                     </div>
                 </div>
             <?php endforeach; ?>
+
+            <?php if (empty($solicitudes)): ?>
+                <div class="mcard-empty">No se encontraron solicitudes.</div>
+            <?php endif; ?>
         </div>
 
         <!-- PAGINACIÓN -->
-        <?php 
-            $qBase = http_build_query(array_filter([
-                'periodo'     => $filtros['periodo'],
-                'buscar'      => $filtros['buscar'],
-                'estado'      => $filtros['estado'],
-                'proyecto'    => $filtros['proyecto'],
-                'fecha_desde' => $filtros['fecha_desde'],
-                'fecha_hasta' => $filtros['fecha_hasta'],
-            ]));
-            $entidad = 'solicitudes';
-            include __DIR__ . '/../../../public/incluido/_paginacion.php';
-         ?>
+        <?php
+        $qBase = http_build_query(array_filter([
+            'periodo'     => $filtros['periodo'],
+            'buscar'      => $filtros['buscar'],
+            'estado'      => $filtros['estado'],
+            'proyecto'    => $filtros['proyecto'],
+            'fecha_desde' => $filtros['fecha_desde'],
+            'fecha_hasta' => $filtros['fecha_hasta'],
+        ]));
+        $entidad = 'solicitudes';
+        include __DIR__ . '/../../../public/incluido/_paginacion.php';
+        ?>
 
     <?php else: ?>
         <div class="alert alert-info text-center">

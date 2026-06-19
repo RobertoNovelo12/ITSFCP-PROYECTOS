@@ -1,5 +1,5 @@
 <?php
-// Proyectos/index.php — Módulo 1: solo lectura operativa + redirección a Módulo 2
+// Módulo 1: solo lectura operativa + redirección a Módulo 2
 
 session_start();
 
@@ -35,18 +35,18 @@ $periodos = ($rol === 'supervisor') ? $proyectoControlador->obtenerTodosPeriodos
 //  Acción: actualizarestado (GET) 
 //Ya no se actualizan estados directamente desde este módulo, ahora se hace desde el módulo de solicitudes_proyecto para tener más control sobre la lógica de cada caso.
 //if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'actualizarestado') {
-  //  if (in_array($rol, ['supervisor'], true)
-    //    && isset($_GET['id_proyectos'], $_GET['tipo'])
-    //) {
-      //  $proyectoControlador->actualizarestado(
-        //    (int)$_GET['id_proyectos'],
-          //  $rol,
-            //$_GET['tipo']
-        //);
-        // actualizarestado() siempre llama redirigir()
-    //}
-    // Rol no autorizado o parámetros faltantes → ignorar y seguir mostrando la tabla.
-    //$action = 'index';
+//  if (in_array($rol, ['supervisor'], true)
+//    && isset($_GET['id_proyectos'], $_GET['tipo'])
+//) {
+//  $proyectoControlador->actualizarestado(
+//    (int)$_GET['id_proyectos'],
+//  $rol,
+//$_GET['tipo']
+//);
+// actualizarestado() siempre llama redirigir()
+//}
+// Rol no autorizado o parámetros faltantes → ignorar y seguir mostrando la tabla.
+//$action = 'index';
 //}
 
 
@@ -91,7 +91,7 @@ $paginacion = $resultado['paginacion'] ?? [
 ];
 
 $encabezados = $proyectoControlador->encabezadosProyectos($rol);
-$opciones    = $proyectoControlador->opcionesProyectos($rol);  
+$opciones    = $proyectoControlador->opcionesProyectos($rol);
 
 //  Ventana de registro de proyectos 
 $hoy               = date('Y-m-d');
@@ -210,14 +210,14 @@ ob_start();
                         <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                         <input type="hidden" name="id_periodo" value="<?= $id_periodo ?>">
                         <input type="text"
-                               name="buscar"
-                               class="form-control"
-                               placeholder="Por nombre..."
-                               value="<?= htmlspecialchars($buscar) ?>">
+                            name="buscar"
+                            class="form-control"
+                            placeholder="Por nombre..."
+                            value="<?= htmlspecialchars($buscar) ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
                         <?php if (!empty($buscar)): ?>
                             <a href="/Modules/Proyectos/Views/index.php?action=<?= urlencode($action) ?>&id_periodo=<?= $id_periodo ?>" class="btn btn-secondary"
-                               title="Limpiar búsqueda">
+                                title="Limpiar búsqueda">
                                 <i class="bi bi-x-lg"></i>
                             </a>
                         <?php endif; ?>
@@ -273,7 +273,7 @@ ob_start();
                                                     $estadoEst = $proyecto['estado_estudiante'] ?? 'sin_asignar';
                                                     $claseEst  = match ($estadoEst) {
                                                         'baja'     => 'danger',
-                                                        'concluido'=> 'success',
+                                                        'concluido' => 'success',
                                                         default    => 'primary',
                                                     };
                                                     ?>
@@ -283,7 +283,7 @@ ob_start();
                                                 </td>
                                                 <td>
                                                     <a href="/Modules/Seguimiento/Views/index.php?id_proyectos=<?= (int)$proyecto['id_proyectos'] ?>"
-                                                       class="btn btn-sm btn-primary">
+                                                        class="btn btn-sm btn-primary">
                                                         <i class="bi bi-folder2-open"></i>
                                                     </a>
                                                 </td>
@@ -313,73 +313,102 @@ ob_start();
 
                 <!-- MÓVIL -->
                 <div class="d-block d-md-none mt-4">
+
                     <?php foreach ($proyectos as $proyecto): ?>
-                        <div class="card shadow-sm mb-3">
-                            <div class="card-body text-center">
-                                <h5 class="fw-bold"><?= htmlspecialchars($proyecto['titulo']) ?></h5>
-                                <span class="badge rounded-pill text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
-                                    <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
-                                </span>
+
+                        <?php
+                        $estadoEst = $proyecto['estado_estudiante'] ?? 'sin_asignar';
+
+                        $claseEst = match ($estadoEst) {
+                            'baja'      => 'danger',
+                            'concluido' => 'success',
+                            default     => 'primary',
+                        };
+                        ?>
+
+                        <div class="mcard <?= $estadoEst === 'baja' ? 'mcard--alerta' : '' ?>">
+
+                            <!-- HEAD -->
+                            <div class="mcard__head">
+
+                                <div class="mcard__row-top">
+                                    <span class="mcard__id">Proyecto #<?= (int)$proyecto['id_proyectos'] ?></span>
+                                    <span class="mcard__badge badge rounded-pill text-bg-<?= $proyectoControlador->EstiloEstado($proyecto['estado_proyecto']) ?>">
+                                        Estado del proyecto: <?= htmlspecialchars($proyecto['estado_proyecto']) ?>
+                                    </span>
+                                </div>
+
+                                <h3 class="mcard__title"><?= htmlspecialchars($proyecto['titulo']) ?></h3>
+
+                                <?php if ($rol === 'estudiante'): ?>
+                                    <div class="mt-2">
+                                        <span class="mcard__context-label">Tu participación en este proyecto</span>
+                                        <span class="mcard__badge badge rounded-pill text-bg-<?= $claseEst ?>">
+                                            Tu estado: <?= htmlspecialchars(ucfirst($estadoEst)) ?>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
+
                             </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                    <div class="row text-center">
-                                        <div class="col-12">
-                                            <strong>Periodo</strong>
-                                            <p class="mb-0"><?= htmlspecialchars($proyecto['periodo']) ?></p>
-                                        </div>
+
+                            <!-- DETALLES -->
+                            <div class="mcard__section">
+                                <span class="mcard__label">Periodo del proyecto</span>
+                                <span class="mcard__value"><?= htmlspecialchars($proyecto['periodo']) ?></span>
+                            </div>
+
+                            <div class="mcard__section">
+                                <div class="mcard__grid">
+                                    <div>
+                                        <span class="mcard__label">Fecha inicio</span>
+                                        <span class="mcard__value"><?= htmlspecialchars($proyecto['fecha_inicio']) ?></span>
                                     </div>
-                                    <div class="row text-center mt-2">
-                                        <div class="col-6">
-                                            <strong>Inicio</strong>
-                                            <p class="mb-0"><?= htmlspecialchars($proyecto['fecha_inicio']) ?></p>
-                                        </div>
-                                        <div class="col-6">
-                                            <strong>Fin</strong>
-                                            <p class="mb-0"><?= htmlspecialchars($proyecto['fecha_fin']) ?></p>
-                                        </div>
+                                    <div>
+                                        <span class="mcard__label">Fecha fin</span>
+                                        <span class="mcard__value"><?= htmlspecialchars($proyecto['fecha_fin']) ?></span>
                                     </div>
-                                    <div class="row text-center mt-2">
-                                        <div class="col-6">
-                                            <strong>Pendientes</strong>
-                                            <p class="mb-0"><?= (int)($proyecto['total'] ?? 0) ?></p>
-                                        </div>
-                                        <?php if ($rol === 'estudiante'): ?>
-                                            <div class="col-6">
-                                                <?php
-                                                $estadoEst = $proyecto['estado_estudiante'] ?? 'activo';
-                                                $claseEst  = match ($estadoEst) {
-                                                    'baja'      => 'danger',
-                                                    'concluido' => 'success',
-                                                    default     => 'primary',
-                                                };
-                                                ?>
-                                                <strong>Estado</strong>
-                                                <p class="mb-0">
-                                                    <span class="badge rounded-pill text-bg-<?= $claseEst ?>">
-                                                        <?= strtoupper(htmlspecialchars($estadoEst)) ?>
-                                                    </span>
-                                                </p>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </li>
-                            </ul>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                </div>
+                            </div>
+
+                            <!-- MÉTRICA DE SOPORTE -->
+                            <div class="mcard__metric">
+                                <span class="mcard__label">Actividades pendientes</span>
+                                <div class="mcard__metric-value"><?= (int)($proyecto['total'] ?? 0) ?></div>
+                            </div>
+
+                            <!-- ACCIONES -->
+                            <div class="mcard__actions">
+
+                                <?php if ($rol === 'estudiante'): ?>
+                                    <a href="/Modules/Seguimiento/Views/index.php?id_proyectos=<?= (int)$proyecto['id_proyectos'] ?>"
+                                        class="btn btn-primary btn-sm">
+                                        <i class="bi bi-folder2-open me-1"></i>
+                                        Abrir documentación
+                                    </a>
+                                <?php endif; ?>
+
+                                <div class="mcard__actions-secondary">
                                     <?= $proyectoControlador->botonesAccion(
                                         (int)$proyecto['id_proyectos'],
                                         $rol,
                                         $proyecto['estado_proyecto'],
-                                        null,
+                                        $id_usuario,
                                         (int)($proyecto['puede_cerrar'] ?? 0),
                                         $proyecto['estado_estudiante'] ?? null,
                                         $puedeCrear_Editar
                                     ) ?>
                                 </div>
+
                             </div>
+
                         </div>
+
                     <?php endforeach; ?>
+
+                    <?php if (empty($proyectos)): ?>
+                        <div class="mcard-empty">No hay proyectos para mostrar.</div>
+                    <?php endif; ?>
+
                 </div>
 
                 <!-- PAGINACIÓN -->

@@ -649,23 +649,40 @@ ob_start();
         <!-- MÓVIL -->
         <div class="d-block d-md-none">
             <?php foreach ($solicitudes as $s): ?>
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <div class="fw-semibold small"><?= htmlspecialchars($s['estudiante_nombre']) ?></div>
-                                <div class="text-muted" style="font-size:.72rem"><?= htmlspecialchars($s['matricula']) ?></div>
-                            </div>
+                <div class="mcard">
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($s['estudiante_nombre']) ?></h3>
                             <?= $ctrl->badgeEstadoSolicitud($s['estado']) ?>
                         </div>
-                        <p class="small mb-1"><strong>Proyecto:</strong> <?= htmlspecialchars(mb_substr($s['proyecto_titulo'], 0, 50)) ?><?= strlen($s['proyecto_titulo']) > 50 ? '…' : '' ?></p>
-                        <p class="small mb-1"><strong>Investigador:</strong> <?= htmlspecialchars($s['investigador_nombre']) ?></p>
-                        <p class="small mb-0"><strong>Carrera:</strong> <?= htmlspecialchars(mb_substr($s['carrera'], 0, 35)) ?> &mdash; <strong>Sem. <?= $s['semestre'] ?? '—' ?>°</strong></p>
+                        <div class="mcard__subtitle"><?= htmlspecialchars($s['matricula']) ?></div>
+                    </div>
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Proyecto</span>
+                                <span class="mcard__value"><?= htmlspecialchars(mb_substr($s['proyecto_titulo'], 0, 50)) ?><?= strlen($s['proyecto_titulo']) > 50 ? '…' : '' ?></span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Investigador</span>
+                                <span class="mcard__value"><?= htmlspecialchars($s['investigador_nombre']) ?></span>
+                            </div>
+                        </div>
+                        <div class="mcard__grid mt-2">
+                            <div>
+                                <span class="mcard__label">Carrera</span>
+                                <span class="mcard__value"><?= htmlspecialchars(mb_substr($s['carrera'], 0, 35)) ?></span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Semestre</span>
+                                <span class="mcard__value"><?= $s['semestre'] ?? '—' ?>°</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
             <?php if (empty($solicitudes)): ?>
-                <div class="alert alert-info text-center small">No se encontraron solicitudes.</div>
+                <div class="mcard-empty">No se encontraron solicitudes.</div>
             <?php endif; ?>
         </div>
 
@@ -800,15 +817,17 @@ ob_start();
                     $pct_s = round(($sec['aprobadas'] / $tot_s) * 100);
                     $col_s = $pct_s >= 80 ? 'success' : ($pct_s >= 40 ? 'warning' : 'danger');
                 ?>
-                    <div class="card mb-2 border shadow-sm">
-                        <div class="card-body py-2 px-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span style="font-size:.8rem; font-weight:600"><?= $i + 1 ?>. <?= htmlspecialchars($sec['seccion']) ?></span>
-                                <span style="font-size:.75rem; color:var(--tecnm-muted)"><?= $pct_s ?>%</span>
+                    <div class="mcard">
+                        <div class="mcard__head pb-1">
+                            <div class="mcard__row-top mb-1">
+                                <h3 class="mcard__title" style="font-size:.85rem;"><?= $i + 1 ?>. <?= htmlspecialchars($sec['seccion']) ?></h3>
+                                <span class="mcard__id">Avance: <?= $pct_s ?>%</span>
                             </div>
-                            <div class="etapa-prog mb-2">
+                            <div class="etapa-prog">
                                 <div class="etapa-prog-inner bg-<?= $col_s ?>" style="width:<?= $pct_s ?>%"></div>
                             </div>
+                        </div>
+                        <div class="mcard__metric">
                             <div class="row text-center g-0" style="font-size:.72rem">
                                 <div class="col"><span class="text-success fw-bold"><?= $sec['aprobadas'] ?></span><br>Aprob.</div>
                                 <div class="col"><span style="color:#2563EB"><?= $sec['entregadas'] ?? 0 ?></span><br>Entregadas</div>
@@ -820,6 +839,9 @@ ob_start();
                         </div>
                     </div>
                 <?php endforeach; ?>
+                <?php if (empty($etapas_data['secciones'])): ?>
+                    <div class="mcard-empty">Sin datos de secciones.</div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -914,21 +936,38 @@ ob_start();
         </div>
 
         <!-- MÓVIL -->
+        <!-- MÓVIL -->
         <div class="d-block d-md-none">
             <?php foreach ($estudiantes as $est): ?>
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <div class="fw-semibold small"><?= htmlspecialchars($est['nombre_completo']) ?></div>
-                                <div class="text-muted" style="font-size:.72rem"><?= htmlspecialchars($est['correo_institucional']) ?></div>
-                            </div>
+                <div class="mcard">
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($est['nombre_completo']) ?></h3>
                             <?= $ctrl->badgeEstadoUsuario($est['estado_usuario']) ?>
                         </div>
-                        <p class="small mb-1"><strong>Matrícula:</strong> <?= htmlspecialchars($est['matricula']) ?></p>
-                        <p class="small mb-1"><strong>Carrera:</strong> <?= htmlspecialchars(mb_substr($est['carrera'], 0, 40)) ?></p>
-                        <p class="small mb-2"><strong>Proyectos:</strong> <?= $est['proyectos_activos'] ?> activos / <?= $est['proyectos_total'] ?> total</p>
-                        <div class="mb-2"><?= barraProgreso((int)$est['tareas_aprobadas'], (int)$est['tareas_total']) ?></div>
+                        <div class="mcard__subtitle"><?= htmlspecialchars($est['correo_institucional']) ?></div>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Matrícula</span>
+                                <span class="mcard__value"><?= htmlspecialchars($est['matricula']) ?></span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Carrera</span>
+                                <span class="mcard__value"><?= htmlspecialchars(mb_substr($est['carrera'], 0, 40)) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mcard__metric">
+                        <span class="mcard__label">Proyectos activos / total</span>
+                        <div class="mcard__metric-value"><?= $est['proyectos_activos'] ?> / <?= $est['proyectos_total'] ?></div>
+                        <div class="mt-2"><?= barraProgreso((int)$est['tareas_aprobadas'], (int)$est['tareas_total']) ?></div>
+                    </div>
+
+                    <div class="mcard__actions">
                         <a href="detalle_estudiante.php?id=<?= $est['id_usuarios'] ?>" class="btn btn-primary btn-sm">
                             <i class="bi bi-eye me-1"></i>Ver detalle
                         </a>
@@ -936,7 +975,7 @@ ob_start();
                 </div>
             <?php endforeach; ?>
             <?php if (empty($estudiantes)): ?>
-                <div class="alert alert-info text-center small">No se encontraron estudiantes.</div>
+                <div class="mcard-empty">No se encontraron estudiantes.</div>
             <?php endif; ?>
         </div>
 

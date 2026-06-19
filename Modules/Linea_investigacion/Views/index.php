@@ -197,56 +197,60 @@ ob_start();
     </div>
 
     <!-- TARJETAS MÓVIL -->
-    <!-- Corrección: se usaba $lin (de la tabla) en lugar de $linea_item -->
     <div class="d-block d-md-none">
-        <?php foreach ($lineas as $linea_item): ?>
-            <div class="card shadow-sm mb-3">
-                <div class="card-body text-center">
-                    <h5 class="fw-bold"><?= htmlspecialchars($linea_item['nombre']) ?></h5>
-                    <span class="badge rounded-pill text-bg-<?= $ctrl->EstiloEstadoLista($linea_item['estados']) ?>">
-                        <?= htmlspecialchars($linea_item['estados']) ?>
-                    </span>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <div class="row text-center">
-                            <div class="col-12 mb-2">
-                                <strong>Descripción</strong>
-                                <p class="mb-0" title="<?= htmlspecialchars($linea_item['descripcion']) ?>">
-                                    <?= strlen($linea_item['descripcion']) > 60
-                                        ? htmlspecialchars(substr($linea_item['descripcion'], 0, 60)) . '…'
-                                        : htmlspecialchars($linea_item['descripcion']) ?>
-                                </p>
+        <?php if (!empty($lineas)): ?>
+            <?php foreach ($lineas as $linea_item): ?>
+                <div class="mcard">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($linea_item['nombre']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $ctrl->EstiloEstadoLista($linea_item['estados']) ?>">
+                                Estado: <?= htmlspecialchars($linea_item['estados']) ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mcard__section">
+                        <span class="mcard__label">Descripción</span>
+                        <p class="mcard__text-clamp mb-0" title="<?= htmlspecialchars($linea_item['descripcion']) ?>">
+                            <?= strlen($linea_item['descripcion']) > 60
+                                ? htmlspecialchars(substr($linea_item['descripcion'], 0, 60)) . '…'
+                                : htmlspecialchars($linea_item['descripcion']) ?>
+                        </p>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Fecha creación</span>
+                                <span class="mcard__value"><?= date('d/m/Y', strtotime($linea_item['crear'])) ?></span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Hora creación</span>
+                                <span class="mcard__value"><?= date('H:i', strtotime($linea_item['crear'])) ?></span>
                             </div>
                         </div>
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Fecha creación</strong>
-                                <p class="mb-0"><?= date('d/m/Y', strtotime($linea_item['crear'])) ?></p>
-                            </div>
-                            <div class="col-6">
-                                <strong>Hora creación</strong>
-                                <p class="mb-0"><?= date('H:i', strtotime($linea_item['crear'])) ?></p>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-                <div class="card-body">
-                    <div class="d-flex justify-content-center gap-2">
+                    </div>
+
+                    <div class="mcard__actions">
                         <?= $ctrl->botonesAccionPrincipal((int)$linea_item['id_linea'], $rol, $linea_item['estados']) ?>
                     </div>
+
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="mcard-empty">No hay líneas de investigación registradas.</div>
+        <?php endif; ?>
     </div>
 
     <!-- PAGINACIÓN -->
-    <?php 
-        $qBase  = 'action=' . urlencode($action)
-            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-        $entidad = 'entradas';
-        include __DIR__ . '/../../../public/incluido/_paginacion.php';
-     ?>
+    <?php
+    $qBase  = 'action=' . urlencode($action)
+        . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+    $entidad = 'entradas';
+    include __DIR__ . '/../../../public/incluido/_paginacion.php';
+    ?>
 
 </div>
 

@@ -1,6 +1,4 @@
 <?php
-// Areas_conocimiento/index.php
-
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
@@ -215,77 +213,84 @@ endif; ?>
             </div>
 
             <!-- TARJETAS MÓVIL -->
+            <!-- TARJETAS MÓVIL -->
             <div class="d-block d-md-none">
-                <?php foreach ($area as $ar): ?>
-                    <div class="card shadow-sm mb-3">
-                        <div class="card-body text-center">
-                            <h5 class="fw-bold"><?= htmlspecialchars($ar['nombre']) ?></h5>
-                        </div>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
-                                <strong>Descripción</strong>
-                                <p class="mb-0" title="<?= htmlspecialchars($ar['descripcion']) ?>">
+                <?php if (!empty($area)): ?>
+                    <?php foreach ($area as $ar): ?>
+                        <div class="mcard">
+
+                            <!-- HEAD: título + estado -->
+                            <div class="mcard__head">
+                                <div class="mcard__row-top">
+                                    <h3 class="mcard__title"><?= htmlspecialchars($ar['nombre']) ?></h3>
+                                    <span class="mcard__badge badge rounded-pill text-bg-<?= $areaControlador->EstiloEstadoLista($ar['estado']) ?>">
+                                        Estado: <?= htmlspecialchars($ar['estado']) ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- DESCRIPCIÓN -->
+                            <div class="mcard__section">
+                                <span class="mcard__label">Descripción</span>
+                                <p class="mcard__text-clamp mb-0" title="<?= htmlspecialchars($ar['descripcion']) ?>">
                                     <?= strlen($ar['descripcion']) > 60
-                                        ? htmlspecialchars(substr($ar['descripcion'], 0, 60)) . '...'
+                                        ? htmlspecialchars(substr($ar['descripcion'], 0, 60)) . '…'
                                         : htmlspecialchars($ar['descripcion']); ?>
                                 </p>
-                            </li>
-                            <li class="list-group-item">
-                                <div class="row text-center">
-                                    <div class="col-6">
-                                        <strong>Creación</strong>
-                                        <p class="mb-0">
-                                            <?= date('d/m/Y', strtotime($ar['creacion'])) ?><br>
-                                            <?= date('H:i',   strtotime($ar['creacion'])) ?>
-                                        </p>
+                            </div>
+
+                            <!-- FECHAS -->
+                            <div class="mcard__section">
+                                <div class="mcard__grid">
+                                    <div>
+                                        <span class="mcard__label">Creación</span>
+                                        <span class="mcard__value">
+                                            <?= date('d/m/Y', strtotime($ar['creacion'])) ?>
+                                            <span class="mcard__value--muted"> · <?= date('H:i', strtotime($ar['creacion'])) ?></span>
+                                        </span>
                                     </div>
-                                    <div class="col-6">
-                                        <strong>Modificación</strong>
-                                        <p class="mb-0">
+                                    <div>
+                                        <span class="mcard__label">Modificación</span>
+                                        <span class="mcard__value">
                                             <?php if (!empty($ar['modificacion'])): ?>
-                                                <?= date('d/m/Y', strtotime($ar['modificacion'])) ?><br>
-                                                <?= date('H:i',   strtotime($ar['modificacion'])) ?>
+                                                <?= date('d/m/Y', strtotime($ar['modificacion'])) ?>
+                                                <span class="mcard__value--muted"> · <?= date('H:i', strtotime($ar['modificacion'])) ?></span>
                                             <?php else: ?>
-                                                No modificado
+                                                <span class="mcard__value--muted">Sin modificar</span>
                                             <?php endif; ?>
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="list-group-item">
-                                <div class="row text-center">
-                                    <div class="col-6">
-                                        <strong>Subáreas</strong>
-                                        <p class="mb-0"><?= (int)$ar['total'] ?></p>
-                                    </div>
-                                    <div class="col-6">
-                                        <strong>Estado</strong><br>
-                                        <span class="badge rounded-pill text-bg-<?= $areaControlador->EstiloEstadoLista($ar['estado']) ?>">
-                                            <?= htmlspecialchars($ar['estado']) ?>
                                         </span>
                                     </div>
                                 </div>
-                            </li>
-                        </ul>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-center gap-2">
+                            </div>
+
+                            <!-- MÉTRICA DE SOPORTE -->
+                            <div class="mcard__metric">
+                                <span class="mcard__label">Subáreas registradas</span>
+                                <div class="mcard__metric-value"><?= (int)$ar['total'] ?></div>
+                            </div>
+
+                            <!-- ACCIONES -->
+                            <div class="mcard__actions">
                                 <?= $areaControlador->botonesAccionPrincipal(
                                     (int)$ar['id_area'],
                                     $rol,
                                     $ar['estado']
                                 ) ?>
                             </div>
+
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="mcard-empty">No hay áreas de conocimiento registradas.</div>
+                <?php endif; ?>
             </div>
 
             <!-- PAGINACIÓN -->
-            <?php 
-                $qBase  = 'action=' . urlencode($action)
-                    . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-                $entidad = 'entradas';
-                include $_SERVER['DOCUMENT_ROOT'] . '/public/incluido/_paginacion.php';
+            <?php
+            $qBase  = 'action=' . urlencode($action)
+                . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+            $entidad = 'entradas';
+            include $_SERVER['DOCUMENT_ROOT'] . '/public/incluido/_paginacion.php';
             ?>
 
         </div>

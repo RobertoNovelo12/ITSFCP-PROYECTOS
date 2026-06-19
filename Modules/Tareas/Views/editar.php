@@ -281,118 +281,140 @@ ob_start();
 </div>
 
 <!-- TinyMCE -->
-<script src="https://cdn.tiny.cloud/1/0ro7u4jwmnmqkovrjmi7cc1w5kk7tzragurlph7foryy7xbv/tinymce/6/tinymce.min.js"></script>
+<script src="/../../../vendor/tinymce/tinymce/tinymce.min.js"></script>
 <script>
-    (function() {
+(function () {
 
-        // Límites en JS (deben coincidir con las constantes PHP)
-        const LIMITES = {
-            'editor-descripcion': <?= MAX_DESCRIPCION ?>,
-            'editor-instrucciones': <?= MAX_INSTRUCCIONES ?>,
-        };
+    // 
+    // LÍMITES PHP → JS
+    // 
+    const LIMITES = {
+        'editor-descripcion': <?= MAX_DESCRIPCION ?>,
+        'editor-instrucciones': <?= MAX_INSTRUCCIONES ?>,
+    };
 
-        //  Actualiza el contador de un editor concreto 
-        function actualizarContador(editorId) {
-            const max = LIMITES[editorId];
-            const counter = document.getElementById(editorId.replace('editor-', 'counter-'));
-            const valEl = document.getElementById(editorId.replace('editor-', 'counter-') + '-val');
-            if (!counter || !valEl) return;
+    // 
+    // OBTENER TEXTO PLANO
+    // 
+    function obtenerTexto(editorId) {
+        const editor = tinymce.get(editorId);
+        return editor
+            ? editor.getContent({ format: 'text' })
+            : (document.getElementById(editorId)?.value || '');
+    }
 
-            // Obtener texto plano del contenido TinyMCE
-            const editor = tinymce.get(editorId);
-            const texto = editor ? editor.getContent({
-                format: 'text'
-            }) : '';
-            const len = [...texto].length; // cuenta correctamente UTF-8
+    // 
+    // ACTUALIZAR CONTADOR
+    // 
+    function actualizarContador(editorId) {
 
-            valEl.textContent = len.toLocaleString('es-MX');
+        const max = LIMITES[editorId];
+        const counter = document.getElementById(editorId.replace('editor-', 'counter-'));
+        const valEl = document.getElementById(editorId.replace('editor-', 'counter-') + '-val');
 
-            counter.classList.remove('near-limit', 'over-limit');
-            if (len > max) {
-                counter.classList.add('over-limit');
-            } else if (len >= max * 0.9) { // aviso al 90 %
-                counter.classList.add('near-limit');
-            }
+        if (!counter || !valEl) return null;
 
-            return {
-                len,
-                max
-            };
+        const texto = obtenerTexto(editorId);
+        const len = [...texto].length; // UTF-8 safe
+
+        valEl.textContent = len.toLocaleString('es-MX');
+
+        counter.classList.remove('near-limit', 'over-limit');
+
+        if (len > max) {
+            counter.classList.add('over-limit');
+        } else if (len >= max * 0.9) {
+            counter.classList.add('near-limit');
         }
 
-        //  Valida todos los contadores antes del submit ─
-        function validarLimites() {
-            for (const editorId of Object.keys(LIMITES)) {
-                const result = actualizarContador(editorId);
-                if (result && result.len > result.max) {
-                    return false;
-                }
+        return { len, max };
+    }
+
+    // 
+    // VALIDAR LÍMITES
+    // 
+    function validarLimites() {
+
+        let valido = true;
+
+        for (const editorId of Object.keys(LIMITES)) {
+
+            const result = actualizarContador(editorId);
+            if (!result) continue;
+
+            if (result.len > result.max) {
+                valido = false;
+
+                const campo = editorId.replace('editor-', '');
+                const nombre = campo === 'descripcion' ? 'Descripción' : 'Instrucciones';
+                const exceso = result.len - result.max;
+
+                alert(
+                    `"${nombre}" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\n` +
+                    `Reduce el contenido antes de continuar.`
+                );
+
+                tinymce.get(editorId)?.focus();
+                break;
             }
-            return true;
         }
 
-        //  Inicializa TinyMCE ─
-        document.addEventListener('DOMContentLoaded', function() {
+        return valido;
+    }
 
-            tinymce.init({
-                selector: '.editor',
-                height: 350,
-                plugins: 'lists link table code wordcount charmap insertdatetime',
-                toolbar: `
-                undo redo |
-                bold italic underline |
-                alignleft aligncenter alignright |
-                bullist numlist |
-                link table |
-                charmap |
-                insertdatetime |
-                code
-            `,
-                toolbar_mode: 'sliding',
-                branding: false,
-                statusbar: true,
+    // 
+    // INIT TINYMCE
+    // 
+    document.addEventListener('DOMContentLoaded', function () {
 
-                setup(editor) {
-                    // Al cargar el editor, mostrar conteo inicial
-                    editor.on('init', function() {
-                        actualizarContador(editor.id);
-                    });
+        tinymce.init({
+            selector: '.editor',
+            license_key: 'gpl',
+            height: 350,
 
-                    // Actualizar en cada pulsación de tecla o cambio de contenido
-                    editor.on('input keyup change SetContent', function() {
-                        actualizarContador(editor.id);
-                    });
-                },
-            });
+            plugins: 'lists link table code wordcount charmap insertdatetime',
 
-            //  Interceptar submit ─
-            const form = document.getElementById('form-editar');
-            const btnSave = document.getElementById('btn-guardar');
+            toolbar:
+                'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link table | charmap | insertdatetime | code',
 
-            form?.addEventListener('submit', function(e) {
-                if (!validarLimites()) {
-                    e.preventDefault();
+            toolbar_mode: 'sliding',
+            branding: false,
+            statusbar: true,
 
-                    // Resaltar el campo que superó el límite
-                    for (const editorId of Object.keys(LIMITES)) {
-                        const result = actualizarContador(editorId);
-                        if (result && result.len > result.max) {
-                            const campo = editorId.replace('editor-', '');
-                            const exceso = result.len - result.max;
-                            const nombre = campo === 'descripcion' ? 'Descripción' : 'Instrucciones';
-                            alert(
-                                `"${nombre}" supera el límite permitido en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\n` +
-                                `Por favor reduce el contenido antes de guardar.`
-                            );
-                            tinymce.get(editorId)?.focus();
-                            break;
-                        }
-                    }
-                }
+            setup(editor) {
+
+                editor.on('init', () => {
+                    actualizarContador(editor.id);
+                });
+
+                editor.on('input keyup change SetContent', () => {
+                    actualizarContador(editor.id);
+                });
+            }
+        });
+
+        // 
+        // SUBMIT FORM
+        // 
+        const form = document.getElementById('form-editar');
+
+        form?.addEventListener('submit', function (e) {
+
+            if (!validarLimites()) {
+                e.preventDefault();
+                return;
+            }
+
+            // sincronizar TinyMCE → textarea
+            document.querySelectorAll('.editor').forEach(el => {
+                const inst = tinymce.get(el.id);
+                inst?.save();
             });
         });
 
-    })();
+    });
+
+})();
 </script>
 
 <?php

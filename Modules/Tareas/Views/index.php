@@ -1,5 +1,4 @@
 <?php
-// Vistas/Tareas/index.php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -172,65 +171,70 @@ ob_start();
         <!-- Tarjetas (móvil) -->
         <div class="d-md-none">
             <?php if (empty($tarea)): ?>
-                <div class="alert alert-info text-center mt-3">No hay actividades registradas.</div>
+                <div class="mcard-empty">No hay actividades registradas.</div>
             <?php endif; ?>
             <?php foreach ($tarea as $tar): ?>
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h6 class="fw-semibold mb-0"><?= htmlspecialchars($tar['tipo']) ?></h6>
-                                <?php if (!empty($tar['fecha_modificacion'])): ?>
-                                    <small class="text-warning">Editada <?= date('d/m/Y', strtotime($tar['fecha_modificacion'])) ?></small>
-                                <?php endif; ?>
-                            </div>
-                            <?php
-                            $estadoCard = $tar['estado_plantilla'] ?? $tar['estados_tarea'] ?? $tar['estado_entrega'] ?? '';
-                            ?>
-                            <span class="badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($estadoCard) ?>">
-                                <?= htmlspecialchars($estadoCard ?: '-') ?>
+                <?php $estadoCard = $tar['estado_plantilla'] ?? $tar['estados_tarea'] ?? $tar['estado_entrega'] ?? ''; ?>
+                <div class="mcard">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($tar['tipo']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $tareaControlador->EstiloEstadoLista($estadoCard) ?>">
+                                Estado: <?= htmlspecialchars($estadoCard ?: '-') ?>
                             </span>
                         </div>
+                        <?php if (!empty($tar['fecha_modificacion'])): ?>
+                            <div class="mcard__subtitle text-warning">
+                                Editada el <?= date('d/m/Y', strtotime($tar['fecha_modificacion'])) ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
 
-                        <div class="row g-2 small text-muted mb-2">
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
                             <?php if (in_array($rol, ['investigador', 'supervisor'])): ?>
-                                <div class="col-6">
-                                    <span class="d-block text-uppercase fw-semibold" style="font-size:.7rem">Aprobados</span>
-                                    <i class="<?= $iconos['detalles']['exito_todos'] ?> text-success me-1"></i>
-                                    <?= (int)$tar['total_aprobados'] ?>/<?= (int)$tar['total_asignados'] ?>
-                                    <?php if ((int)$tar['total_requieren_revision'] > 0): ?>
-                                        <span class="badge text-bg-warning ms-1" title="Por revisar">
-                                            <i class="<?= $iconos['detalles']['espera'] ?>"></i>
-                                            <?= (int)$tar['total_requieren_revision'] ?>
-                                        </span>
-                                    <?php endif; ?>
+                                <div>
+                                    <span class="mcard__label">Aprobados</span>
+                                    <span class="mcard__value">
+                                        <i class="<?= $iconos['detalles']['exito_todos'] ?> text-success me-1"></i>
+                                        <?= (int)$tar['total_aprobados'] ?>/<?= (int)$tar['total_asignados'] ?>
+                                        <?php if ((int)$tar['total_requieren_revision'] > 0): ?>
+                                            <span class="badge text-bg-warning ms-1" title="Por revisar">
+                                                <i class="<?= $iconos['detalles']['espera'] ?>"></i>
+                                                <?= (int)$tar['total_requieren_revision'] ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </span>
                                 </div>
                             <?php endif; ?>
-                            <div class="col-6">
-                                <span class="d-block text-uppercase fw-semibold" style="font-size:.7rem">Fecha entrega</span>
-                                <?= $tar['fecha_entrega'] ?: "Sin fecha" ?>
+                            <div>
+                                <span class="mcard__label">Fecha entrega</span>
+                                <span class="mcard__value"><?= $tar['fecha_entrega'] ?: "Sin fecha" ?></span>
                             </div>
-                            <div class="col-6">
-                                <span class="d-block text-uppercase fw-semibold" style="font-size:.7rem">Guía</span>
-                                <?php if (!empty($tar['archivo_nombre'])): ?>
-                                    <a href="/Modules/Tareas/Views/descargar_guia.php?id=<?= $tar['id_tarea'] ?>" class="text-danger">
-                                        <i class="<?= $iconos['tabla']['guia_pdf'] ?>"></i> PDF
-                                    </a>
-                                <?php else: ?>
-                                    <span>—</span>
-                                <?php endif; ?>
+                            <div>
+                                <span class="mcard__label">Guía</span>
+                                <span class="mcard__value">
+                                    <?php if (!empty($tar['archivo_nombre'])): ?>
+                                        <a href="/Modules/Tareas/Views/descargar_guia.php?id=<?= $tar['id_tarea'] ?>" class="text-danger">
+                                            <i class="<?= $iconos['tabla']['guia_pdf'] ?>"></i> PDF
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="mcard__value--muted">—</span>
+                                    <?php endif; ?>
+                                </span>
                             </div>
                         </div>
-
-                        <div class="d-flex gap-2">
-                            <?= $tareaControlador->botonesAccionPrincipal($tar['id_tarea'], $rol, $estadoCard, $id_proyecto) ?>
-                        </div>
-
                     </div>
-                </div>
 
+                    <div class="mcard__actions">
+                        <?= $tareaControlador->botonesAccionPrincipal($tar['id_tarea'], $rol, $estadoCard, $id_proyecto) ?>
+                    </div>
+
+                </div>
             <?php endforeach; ?>
         </div>
+
     <?php } else { ?>
         <div class="alert alert-info text-center">
             No hay tareas para mostrar

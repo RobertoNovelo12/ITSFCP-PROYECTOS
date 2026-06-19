@@ -1,6 +1,4 @@
 <?php
-// Carreras/index.php
-
 session_start();
 
 if (!isset($_SESSION['id_usuario'])) {
@@ -184,40 +182,47 @@ ob_start();
     </div>
 
     <!-- TARJETAS MÓVIL -->
+    <!-- TARJETAS MÓVIL -->
     <div class="d-block d-md-none">
-        <?php foreach ($carreras as $car): ?>
-            <div class="card shadow-sm mb-3">
-                <div class="card-body text-center">
-                    <h5 class="fw-bold"><?= htmlspecialchars($car['nombre_carrera']) ?></h5>
-                    <span class="badge rounded-pill text-bg-<?= $carreraControlador->EstiloEstadoLista($car['estados']) ?>">
-                        <?= htmlspecialchars($car['estados']) ?>
-                    </span>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <strong>Fecha creación</strong>
-                                <p class="mb-0"><?= date('d/m/Y', strtotime($car['crear'])) ?></p>
+        <?php if (!empty($carreras)): ?>
+            <?php foreach ($carreras as $car): ?>
+                <div class="mcard">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($car['nombre_carrera']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $carreraControlador->EstiloEstadoLista($car['estados']) ?>">
+                                Estado: <?= htmlspecialchars($car['estados']) ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Fecha creación</span>
+                                <span class="mcard__value"><?= date('d/m/Y', strtotime($car['crear'])) ?></span>
                             </div>
-                            <div class="col-6">
-                                <strong>Hora creación</strong>
-                                <p class="mb-0"><?= date('H:i', strtotime($car['crear'])) ?></p>
+                            <div>
+                                <span class="mcard__label">Hora creación</span>
+                                <span class="mcard__value"><?= date('H:i', strtotime($car['crear'])) ?></span>
                             </div>
                         </div>
-                    </li>
-                </ul>
-                <div class="card-body">
-                    <div class="d-flex justify-content-center gap-2">
+                    </div>
+
+                    <div class="mcard__actions">
                         <?= $carreraControlador->botonesAccionPrincipal(
                             (int)$car['id_carrera'],
                             $rol,
                             $car['estados']
                         ) ?>
                     </div>
+
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="mcard-empty">No hay carreras registradas.</div>
+        <?php endif; ?>
     </div>
 
     <!-- PAGINACIÓN -->

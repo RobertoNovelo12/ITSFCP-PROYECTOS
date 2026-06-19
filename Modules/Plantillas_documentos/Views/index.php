@@ -228,54 +228,59 @@ ob_start();
 
         <!-- TARJETAS MÓVIL -->
         <div class="d-block d-md-none">
-            <?php foreach ($registros as $reg): ?>
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body text-center">
-                        <h5 class="fw-bold"><?= htmlspecialchars($reg['nombre']) ?></h5>
-                        <span class="badge rounded-pill text-bg-<?= $ctrl->EstiloEstado($reg['estado_texto']) ?>">
-                            <?= htmlspecialchars($reg['estado_texto']) ?>
-                        </span>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <strong>Versión</strong>
-                                    <p class="mb-0"><?= (int)$reg['version'] ?></p>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Archivo</strong>
-                                    <p class="mb-0">
+            <?php if (!empty($registros)): ?>
+                <?php foreach ($registros as $reg): ?>
+                    <div class="mcard">
+
+                        <div class="mcard__head">
+                            <div class="mcard__row-top">
+                                <h3 class="mcard__title"><?= htmlspecialchars($reg['nombre']) ?></h3>
+                                <span class="mcard__badge badge rounded-pill text-bg-<?= $ctrl->EstiloEstado($reg['estado_texto']) ?>">
+                                    Estado: <?= htmlspecialchars($reg['estado_texto']) ?>
+                                </span>
+                            </div>
+                            <div class="mcard__subtitle">Versión <?= (int)$reg['version'] ?></div>
+                        </div>
+
+                        <div class="mcard__section">
+                            <div class="mcard__grid">
+                                <div>
+                                    <span class="mcard__label">Archivo</span>
+                                    <span class="mcard__value">
                                         <?php if (!empty($reg['nombre_archivo'])): ?>
                                             <a href="descargar_plantilla.php?id_plantilla=<?= (int)$reg['id_plantilla'] ?>">
-                                                Descargar
+                                                <i class="bi bi-file-earmark-arrow-down me-1"></i>Descargar
                                             </a>
                                         <?php else: ?>
-                                            <span class="text-muted">Sin archivo</span>
+                                            <span class="mcard__value--muted">Sin archivo</span>
                                         <?php endif; ?>
-                                    </p>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="mcard__label">Versión</span>
+                                    <span class="mcard__value"><?= (int)$reg['version'] ?></span>
                                 </div>
                             </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <strong>Creación</strong>
-                                    <p class="mb-0 small">
+                        </div>
+
+                        <div class="mcard__section">
+                            <div class="mcard__grid">
+                                <div>
+                                    <span class="mcard__label">Creación</span>
+                                    <span class="mcard__value">
                                         <?= !empty($reg['crear']) ? date('d/m/Y H:i', strtotime($reg['crear'])) : '—' ?>
-                                    </p>
+                                    </span>
                                 </div>
-                                <div class="col-6">
-                                    <strong>Modificación</strong>
-                                    <p class="mb-0 small">
+                                <div>
+                                    <span class="mcard__label">Modificación</span>
+                                    <span class="mcard__value">
                                         <?= !empty($reg['modificar']) ? date('d/m/Y H:i', strtotime($reg['modificar'])) : '—' ?>
-                                    </p>
+                                    </span>
                                 </div>
                             </div>
-                        </li>
-                    </ul>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-center gap-2">
+                        </div>
+
+                        <div class="mcard__actions">
                             <?= $ctrl->botonesAccionPrincipal(
                                 (int)$reg['id_plantilla'],
                                 $rol,
@@ -283,9 +288,12 @@ ob_start();
                                 (int)$reg['id_tipo_documento']
                             ) ?>
                         </div>
+
                     </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="mcard-empty">No hay plantillas de documentos registradas.</div>
+            <?php endif; ?>
         </div>
 
         <!-- PAGINACIÓN -->

@@ -218,69 +218,69 @@ ob_start();
     <div class="d-block d-md-none">
         <?php if (!empty($tematica)): ?>
             <?php foreach ($tematica as $tem): ?>
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body text-center">
-                        <h5 class="fw-bold"><?= htmlspecialchars($tem['tematica']) ?></h5>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <strong>Descripción</strong>
-                            <p class="mb-0" title="<?= htmlspecialchars($tem['descripcion']) ?>">
-                                <?= strlen($tem['descripcion']) > 60
-                                    ? htmlspecialchars(substr($tem['descripcion'], 0, 60)) . '...'
-                                    : htmlspecialchars($tem['descripcion']); ?>
-                            </p>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <strong>Creación</strong>
-                                    <p class="mb-0">
-                                        <?= date("d/m/Y", strtotime($tem['creacion'])) ?><br>
-                                        <?= date("H:i",   strtotime($tem['creacion'])) ?>
-                                    </p>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Modificación</strong><br>
-                                    <?php if (!empty($tem['modificacion'])): ?>
-                                        <?= date("d/m/Y", strtotime($tem['modificacion'])) ?><br>
-                                        <?= date("H:i",   strtotime($tem['modificacion'])) ?>
-                                    <?php else: ?>
-                                        No modificado
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <strong>Subtemáticas</strong>
-                                    <p class="mb-0"><?= (int)$tem['total'] ?></p>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Estado</strong><br>
-                                    <span class="badge rounded-pill text-bg-<?= $tematicaControlador->EstiloEstadoLista($tem['estado']) ?>">
-                                        <?= htmlspecialchars($tem['estado']) ?>
-                                    </span>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-center gap-2">
-                            <?= $tematicaControlador->botonesAccionPrincipal(
-                                $tem['id_tematica'],
-                                $rol,
-                                $tem['estado']
-                            ) ?>
+                <div class="mcard">
+
+                    <div class="mcard__head">
+                        <div class="mcard__row-top">
+                            <h3 class="mcard__title"><?= htmlspecialchars($tem['tematica']) ?></h3>
+                            <span class="mcard__badge badge rounded-pill text-bg-<?= $tematicaControlador->EstiloEstadoLista($tem['estado']) ?>">
+                                Estado: <?= htmlspecialchars($tem['estado']) ?>
+                            </span>
                         </div>
                     </div>
+
+                    <div class="mcard__section">
+                        <span class="mcard__label">Descripción</span>
+                        <p class="mcard__text-clamp mb-0" title="<?= htmlspecialchars($tem['descripcion']) ?>">
+                            <?= strlen($tem['descripcion']) > 60
+                                ? htmlspecialchars(substr($tem['descripcion'], 0, 60)) . '...'
+                                : htmlspecialchars($tem['descripcion']); ?>
+                        </p>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Creación</span>
+                                <span class="mcard__value">
+                                    <?= date("d/m/Y", strtotime($tem['creacion'])) ?>
+                                    <span class="mcard__value--muted"> · <?= date("H:i", strtotime($tem['creacion'])) ?></span>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Modificación</span>
+                                <span class="mcard__value">
+                                    <?php if (!empty($tem['modificacion'])): ?>
+                                        <?= date("d/m/Y", strtotime($tem['modificacion'])) ?>
+                                        <span class="mcard__value--muted"> · <?= date("H:i", strtotime($tem['modificacion'])) ?></span>
+                                    <?php else: ?>
+                                        <span class="mcard__value--muted">No modificado</span>
+                                    <?php endif; ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mcard__metric">
+                        <span class="mcard__label">Subtemáticas registradas</span>
+                        <div class="mcard__metric-value"><?= (int)$tem['total'] ?></div>
+                    </div>
+
+                    <div class="mcard__actions">
+                        <?= $tematicaControlador->botonesAccionPrincipal(
+                            $tem['id_tematica'],
+                            $rol,
+                            $tem['estado']
+                        ) ?>
+                    </div>
+
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <div class="text-center text-muted py-3">No hay temáticas registradas.</div>
+            <div class="mcard-empty">No hay temáticas registradas.</div>
         <?php endif; ?>
     </div>
+
 
     <!-- PAGINACIÓN -->
     <?php

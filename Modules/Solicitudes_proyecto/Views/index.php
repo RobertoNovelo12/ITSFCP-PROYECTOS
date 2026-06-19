@@ -1,5 +1,4 @@
 <?php
-// Solicitudes_proyectos/index.php
 // Accesible por supervisor, investigador y profesor.
 // Cada rol tiene dashboard y acciones distintas.
 
@@ -381,7 +380,6 @@ ob_start();
                     </div>
                 </div>
 
-                <!-- MÓVIL -->
                 <div class="d-block d-md-none mt-4">
                     <?php foreach ($solicitudes as $sol): ?>
                         <?php
@@ -389,91 +387,71 @@ ob_start();
                         $tipoBadge = ($sol['tipo_solicitud'] === 'creacion') ? 'primary' : 'dark';
                         ?>
 
-                        <div class="card shadow-sm mb-3">
+                        <div class="mcard">
 
-                            <!-- Encabezado -->
-                            <div class="card-body text-center">
-                                <h5 class="fw-bold"><?= htmlspecialchars($sol['titulo']) ?></h5>
-
-                                <span class="badge rounded-pill text-bg-<?= $ctrl->EstiloEstado($sol['estado_proyecto']) ?>">
-                                    <?= htmlspecialchars($sol['estado_proyecto']) ?>
+                            <!-- HEAD -->
+                            <div class="mcard__head">
+                                <div class="mcard__row-top">
+                                    <h3 class="mcard__title"><?= htmlspecialchars($sol['titulo']) ?></h3>
+                                    <span class="mcard__badge badge rounded-pill text-bg-<?= $ctrl->EstiloEstado($sol['estado_proyecto']) ?>">
+                                        Estado: <?= htmlspecialchars($sol['estado_proyecto']) ?>
+                                    </span>
+                                </div>
+                                <span class="mcard__badge badge text-bg-<?= $tipoBadge ?>">
+                                    Tipo de solicitud: <?= $tipoLabel ?>
                                 </span>
                             </div>
 
-                            <!-- Información -->
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-
-                                    <div class="row text-center">
-                                        <div class="col-12">
-                                            <strong>Tipo de solicitud</strong>
-                                            <p class="mb-0">
-                                                <span class="badge text-bg-<?= $tipoBadge ?>">
-                                                    <?= $tipoLabel ?>
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <?php if ($rol === 'supervisor'): ?>
-                                        <div class="row text-center mt-2">
-                                            <div class="col-12">
-                                                <strong>Investigador</strong>
-                                                <p class="mb-0">
-                                                    <?= htmlspecialchars($sol['investigador']) ?>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <div class="row text-center mt-2">
-                                        <div class="col-6">
-                                            <strong>Periodo</strong>
-                                            <p class="mb-0">
-                                                <?= htmlspecialchars($sol['periodo']) ?>
-                                            </p>
-                                        </div>
-
-                                        <div class="col-6">
-                                            <strong>Fecha</strong>
-                                            <p class="mb-0">
-                                                <?= htmlspecialchars($sol['fecha_solicitud']) ?>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <?php if (
-                                        in_array($rol, ['investigador', 'profesor'], true) &&
-                                        !empty($sol['comentario_preview'])
-                                    ): ?>
-                                        <div class="row text-center mt-2">
-                                            <div class="col-12">
-                                                <strong>Comentario</strong>
-                                                <p class="mb-0 small text-muted">
-                                                    <?= htmlspecialchars(mb_substr($sol['comentario_preview'], 0, 100)) ?>
-                                                    <?= mb_strlen($sol['comentario_preview']) > 100 ? '…' : '' ?>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    <?php endif; ?>
-
-                                </li>
-                            </ul>
-
-                            <!-- Botones -->
-                            <div class="card-body">
-                                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                                    <?= $ctrl->botonesAccionSolicitud(
-                                        (int)$sol['id_proyectos'],
-                                        $rol,
-                                        $sol['tipo_solicitud'],
-                                        $sol['estado_proyecto']
-                                    ) ?>
+                            <!-- DETALLES -->
+                            <?php if ($rol === 'supervisor'): ?>
+                                <div class="mcard__section">
+                                    <span class="mcard__label">Investigador</span>
+                                    <span class="mcard__value"><?= htmlspecialchars($sol['investigador']) ?></span>
                                 </div>
+                            <?php endif; ?>
+
+                            <div class="mcard__section">
+                                <div class="mcard__grid">
+                                    <div>
+                                        <span class="mcard__label">Periodo</span>
+                                        <span class="mcard__value"><?= htmlspecialchars($sol['periodo']) ?></span>
+                                    </div>
+                                    <div>
+                                        <span class="mcard__label">Fecha</span>
+                                        <span class="mcard__value"><?= htmlspecialchars($sol['fecha_solicitud']) ?></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <?php if (
+                                in_array($rol, ['investigador', 'profesor'], true) &&
+                                !empty($sol['comentario_preview'])
+                            ): ?>
+                                <div class="mcard__section">
+                                    <span class="mcard__label">Comentario</span>
+                                    <p class="mcard__text-clamp mb-0">
+                                        <?= htmlspecialchars(mb_substr($sol['comentario_preview'], 0, 100)) ?>
+                                        <?= mb_strlen($sol['comentario_preview']) > 100 ? '…' : '' ?>
+                                    </p>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- ACCIONES -->
+                            <div class="mcard__actions">
+                                <?= $ctrl->botonesAccionSolicitud(
+                                    (int)$sol['id_proyectos'],
+                                    $rol,
+                                    $sol['tipo_solicitud'],
+                                    $sol['estado_proyecto']
+                                ) ?>
                             </div>
 
                         </div>
                     <?php endforeach; ?>
+
+                    <?php if (empty($solicitudes)): ?>
+                        <div class="mcard-empty">No se encontraron solicitudes.</div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- PAGINACIÓN -->

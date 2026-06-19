@@ -1,5 +1,4 @@
 <?php
-// Vistas/Solicitudes_carta_terminacion/index.php
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -250,56 +249,82 @@ ob_start();
         <!-- MÓVIL -->
         <div class="d-block d-md-none mt-3">
             <?php foreach ($solicitudes as $sol): ?>
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-1">
+                <div class="mcard <?= $sol['estado_carta'] === 'pendiente' ? 'mcard--alerta' : '' ?>">
+
+                    <!-- HEAD -->
+                    <div class="mcard__head">
+                        <h3 class="mcard__title">
                             <?= strlen($sol['titulo_proyecto']) > 60
                                 ? substr(htmlspecialchars($sol['titulo_proyecto']), 0, 60) . '…'
                                 : htmlspecialchars($sol['titulo_proyecto']) ?>
-                        </h6>
-                        <p class="mb-1 small"><strong>Estudiante:</strong> <?= htmlspecialchars($sol['estudiante']) ?></p>
-                        <p class="mb-1 small"><strong>Investigador:</strong> <?= htmlspecialchars($sol['investigador']) ?></p>
-                        <p class="mb-1 small"><strong>Periodo:</strong> <?= htmlspecialchars($sol['periodo']) ?></p>
-                        <p class="mb-1 small"><strong>Solicitud:</strong> <?= htmlspecialchars($sol['fecha_solicitud']) ?></p>
-                        <p class="mb-2 small">
-                            <strong>Estado proceso:</strong>
-                            <span class="badge text-bg-<?= $ctrl->estiloEstadoProceso($sol['estado_proceso']) ?>">
-                                <?= $ctrl->etiquetaEstadoProceso($sol['estado_proceso']) ?>
+                        </h3>
+                        <div class="mcard__subtitle"><?= htmlspecialchars($sol['estudiante']) ?></div>
+
+                        <div class="mcard__badges mt-2">
+                            <span class="mcard__badge badge text-bg-<?= $ctrl->estiloEstadoProceso($sol['estado_proceso']) ?>">
+                                Estado del proceso: <?= $ctrl->etiquetaEstadoProceso($sol['estado_proceso']) ?>
                             </span>
-                            &nbsp;
-                            <strong>Carta:</strong>
-                            <span class="badge text-bg-<?= $ctrl->estiloCarta($sol['estado_carta']) ?>">
-                                <?= $ctrl->etiquetaCarta($sol['estado_carta']) ?>
+                            <span class="mcard__badge badge text-bg-<?= $ctrl->estiloCarta($sol['estado_carta']) ?>">
+                                Carta de terminación: <?= $ctrl->etiquetaCarta($sol['estado_carta']) ?>
                             </span>
-                        </p>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <a href="detalles.php?id=<?= $sol['id_cierre_est'] ?>" class="btn btn-primary btn-sm">
-                                <i class="bi bi-eye-fill"></i> Detalles
-                            </a>
-                            <?php if ($sol['estado_carta'] === 'pendiente'): ?>
+                        </div>
+                    </div>
+
+                    <!-- DETALLES -->
+                    <div class="mcard__section">
+                        <span class="mcard__label">Investigador</span>
+                        <span class="mcard__value"><?= htmlspecialchars($sol['investigador']) ?></span>
+                    </div>
+
+                    <div class="mcard__section">
+                        <div class="mcard__grid">
+                            <div>
+                                <span class="mcard__label">Periodo</span>
+                                <span class="mcard__value"><?= htmlspecialchars($sol['periodo']) ?></span>
+                            </div>
+                            <div>
+                                <span class="mcard__label">Fecha de solicitud</span>
+                                <span class="mcard__value"><?= htmlspecialchars($sol['fecha_solicitud']) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACCIONES -->
+                    <div class="mcard__actions">
+                        <a href="detalles.php?id=<?= $sol['id_cierre_est'] ?>" class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye-fill me-1"></i>Detalles
+                        </a>
+
+                        <?php if ($sol['estado_carta'] === 'pendiente'): ?>
+                            <div class="mcard__actions-secondary">
                                 <a href="index.php?action=aprobar&id=<?= $sol['id_cierre_est'] ?>"
                                     class="btn btn-success btn-sm"
                                     onclick="return confirm('¿Aprobar la carta de <?= htmlspecialchars($sol['estudiante']) ?>?')">
-                                    <i class="bi bi-check-circle-fill"></i> Aprobar
+                                    <i class="bi bi-check-circle-fill me-1"></i>Aprobar
                                 </a>
-                                <a href="motivo_rechazo.php?id=<?= $sol['id_cierre_est'] ?>" class="btn btn-danger btn-sm">
-                                    <i class="bi bi-x-circle-fill"></i> Rechazar
+                                <a href="motivo_rechazo.php?id=<?= $sol['id_cierre_est'] ?>" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Rechazar
                                 </a>
-                            <?php endif; ?>
-                        </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
+
                 </div>
             <?php endforeach; ?>
+
+            <?php if (empty($solicitudes)): ?>
+                <div class="mcard-empty">No hay solicitudes de carta de terminación.</div>
+            <?php endif; ?>
         </div>
 
         <!-- PAGINACIÓN -->
-        <?php 
-            $qBase = 'tipo='       . urlencode($tipo_filtro)
-                . '&id_periodo=' . urlencode($id_periodo)
-                . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
-            $entidad = 'solicitudes';
-            include __DIR__ . '/../../../public/incluido/_paginacion.php';
-         ?>
+        <?php
+        $qBase = 'tipo='       . urlencode($tipo_filtro)
+            . '&id_periodo=' . urlencode($id_periodo)
+            . (!empty($buscar) ? '&buscar=' . urlencode($buscar) : '');
+        $entidad = 'solicitudes';
+        include __DIR__ . '/../../../public/incluido/_paginacion.php';
+        ?>
 
     <?php else: ?>
         <div class="alert alert-info text-center">

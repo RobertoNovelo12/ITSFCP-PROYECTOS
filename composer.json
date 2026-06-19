@@ -1,6 +1,7 @@
 {
     "require": {
         "ezyang/htmlpurifier": "^4.19",
-        "phpmailer/phpmailer": "^7.0"
+        "phpmailer/phpmailer": "^7.0",
+        "tinymce/tinymce": "^8.6"
     }
 }

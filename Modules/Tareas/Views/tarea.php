@@ -402,7 +402,7 @@ ob_start();
 </div><!-- /.container-fluid -->
 
 <!-- TinyMCE -->
-<script src="https://cdn.tiny.cloud/1/0ro7u4jwmnmqkovrjmi7cc1w5kk7tzragurlph7foryy7xbv/tinymce/6/tinymce.min.js"></script>
+<script src="/../../../vendor/tinymce/tinymce/tinymce.min.js"></script>
 
 <style>
     .nota-explicacion {
@@ -442,185 +442,209 @@ ob_start();
 </style>
 
 <script>
-    (function() {
-        'use strict';
+(function () {
+    'use strict';
 
-        const esSoloLectura = <?= in_array($rol, ['investigador', 'supervisor'], true) ? 'true' : 'false' ?>;
-        const esEstudianteEdit = <?= ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3], true)) ? 'true' : 'false' ?>;
+    const esSoloLectura = <?= in_array($rol, ['investigador', 'supervisor'], true) ? 'true' : 'false' ?>;
+    const esEstudianteEdit = <?= ($rol === 'estudiante' && in_array($datos['id_estadoT'] ?? 0, [1, 8, 3], true)) ? 'true' : 'false' ?>;
 
-        const LIMITE_CONTENIDO = <?= MAX_CONTENIDO ?>;
-        const LIMITE_COMENTARIOS = <?= MAX_COMENTARIOS ?>;
+    const LIMITE_CONTENIDO = <?= MAX_CONTENIDO ?>;
+    const LIMITE_COMENTARIOS = <?= MAX_COMENTARIOS ?>;
 
-        function obtenerTextoPlano(editorId) {
-            const inst = tinymce.get(editorId);
-            if (inst) return inst.getContent({
-                format: 'text'
-            });
-            const el = document.getElementById(editorId);
-            return el ? el.value : '';
+    function obtenerTextoPlano(editorId) {
+        const inst = tinymce.get(editorId);
+        if (inst) return inst.getContent({ format: 'text' });
+
+        const el = document.getElementById(editorId);
+        return el ? el.value : '';
+    }
+
+    function actualizarContador(contadorId, valorId, len, max) {
+        const counter = document.getElementById(contadorId);
+        const valEl = document.getElementById(valorId);
+        if (!counter || !valEl) return;
+
+        valEl.textContent = len.toLocaleString('es-MX');
+
+        counter.classList.remove('near-limit', 'over-limit');
+
+        if (len > max) counter.classList.add('over-limit');
+        else if (len >= max * 0.9) counter.classList.add('near-limit');
+    }
+
+    function refrescarContadores() {
+        if (!esEstudianteEdit) return;
+
+        const formPpal = document.getElementById('form-principal');
+        if (!formPpal) return;
+
+        const editorContenido = formPpal.querySelector('.editor');
+        if (editorContenido) {
+            const len = obtenerTextoPlano(editorContenido.id).length;
+            actualizarContador('counter-contenido', 'counter-contenido-val', len, LIMITE_CONTENIDO);
         }
 
-        function actualizarContador(contadorId, valorId, len, max) {
-            const counter = document.getElementById(contadorId);
-            const valEl = document.getElementById(valorId);
-            if (!counter || !valEl) return;
-            valEl.textContent = len.toLocaleString('es-MX');
-            counter.classList.remove('near-limit', 'over-limit');
-            if (len > max) counter.classList.add('over-limit');
-            else if (len >= max * .9) counter.classList.add('near-limit');
+        const taComentarios = formPpal.querySelector('[name="comentarios"]');
+        if (taComentarios) {
+            const instCom = tinymce.get(taComentarios.id);
+            const texto = instCom
+                ? instCom.getContent({ format: 'text' })
+                : taComentarios.value;
+
+            actualizarContador(
+                'counter-comentarios',
+                'counter-comentarios-val',
+                texto.length,
+                LIMITE_COMENTARIOS
+            );
+        }
+    }
+
+    function validarLimites() {
+        if (!esEstudianteEdit) return true;
+
+        const formPpal = document.getElementById('form-principal');
+        if (!formPpal) return true;
+
+        const editorContenido = formPpal.querySelector('.editor');
+        if (editorContenido) {
+            const len = obtenerTextoPlano(editorContenido.id).length;
+
+            if (len > LIMITE_CONTENIDO) {
+                const exceso = len - LIMITE_CONTENIDO;
+                alert(`"Contenido de tu entrega" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.`);
+                tinymce.get(editorContenido.id)?.focus();
+                return false;
+            }
         }
 
-        function refrescarContadores() {
-            if (!esEstudianteEdit) return;
-            const formPpal = document.getElementById('form-principal');
-            if (!formPpal) return;
+        const taComentarios = formPpal.querySelector('[name="comentarios"]');
+        if (taComentarios) {
+            const instCom = tinymce.get(taComentarios.id);
+            const texto = instCom
+                ? instCom.getContent({ format: 'text' })
+                : taComentarios.value;
 
-            const editorContenido = formPpal.querySelector('.editor');
-            if (editorContenido) {
-                const len = [...obtenerTextoPlano(editorContenido.id)].length;
-                actualizarContador('counter-contenido', 'counter-contenido-val', len, LIMITE_CONTENIDO);
-            }
+            const len = texto.length;
 
-            const taComentarios = formPpal.querySelector('[name="comentarios"]');
-            if (taComentarios) {
-                const instCom = tinymce.get(taComentarios.id);
-                const texto = instCom ? instCom.getContent({
-                    format: 'text'
-                }) : taComentarios.value;
-                actualizarContador('counter-comentarios', 'counter-comentarios-val', [...texto].length, LIMITE_COMENTARIOS);
+            if (len > LIMITE_COMENTARIOS) {
+                const exceso = len - LIMITE_COMENTARIOS;
+                alert(`"Comentarios" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.`);
+                instCom?.focus();
+                return false;
             }
         }
 
-        function validarLimites() {
-            if (!esEstudianteEdit) return true;
-            const formPpal = document.getElementById('form-principal');
-            if (!formPpal) return true;
+        return true;
+    }
 
-            const editorContenido = formPpal.querySelector('.editor');
-            if (editorContenido) {
-                const len = [...obtenerTextoPlano(editorContenido.id)].length;
-                if (len > LIMITE_CONTENIDO) {
-                    const exceso = len - LIMITE_CONTENIDO;
-                    alert(`"Contenido de tu entrega" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\nPor favor reduce el texto antes de enviar.`);
-                    tinymce.get(editorContenido.id)?.focus();
-                    return false;
-                }
+    document.addEventListener('DOMContentLoaded', function () {
+
+        tinymce.init({
+            selector: '.editor',
+            license_key: 'gpl',
+
+            height: 350,
+            plugins: 'lists link table code wordcount charmap insertdatetime',
+
+            toolbar:
+                'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link table | charmap | insertdatetime | code',
+
+            toolbar_mode: 'sliding',
+            branding: false,
+            statusbar: true,
+
+            setup(editor) {
+                editor.on('init', () => refrescarContadores());
+                editor.on('input keyup change SetContent', () => refrescarContadores());
             }
+        });
 
-            const taComentarios = formPpal.querySelector('[name="comentarios"]');
-            if (taComentarios) {
-                const instCom = tinymce.get(taComentarios.id);
-                const texto = instCom ? instCom.getContent({
-                    format: 'text'
-                }) : taComentarios.value;
-                const len = [...texto].length;
-                if (len > LIMITE_COMENTARIOS) {
-                    const exceso = len - LIMITE_COMENTARIOS;
-                    alert(`"Comentarios" supera el límite en ${exceso.toLocaleString('es-MX')} carácter${exceso !== 1 ? 'es' : ''}.\nPor favor reduce el texto antes de enviar.`);
-                    if (instCom) instCom.focus();
-                    return false;
-                }
-            }
+        // 
+        // FORM PRINCIPAL
+        // 
+        const formPrincipal = document.getElementById('form-principal');
+        const campoTipo = document.getElementById('campo-tipo');
 
-            return true;
-        }
+        if (formPrincipal && campoTipo) {
 
-        document.addEventListener('DOMContentLoaded', function() {
-
-            tinymce.init({
-                selector: '.editor',
-                readonly: esSoloLectura,
-                height: 350,
-                menubar: !esSoloLectura,
-                plugins: 'lists link table code wordcount charmap insertdatetime',
-                toolbar: esSoloLectura ? false : `
-                    undo redo |
-                    bold italic underline |
-                    alignleft aligncenter alignright |
-                    bullist numlist |
-                    link table |
-                    charmap |
-                    insertdatetime |
-                    code
-                `,
-                toolbar_mode: 'sliding',
-                branding: false,
-                statusbar: true,
-                setup(editor) {
-                    editor.on('init', () => refrescarContadores());
-                    editor.on('input keyup change SetContent', () => refrescarContadores());
-                },
-            });
-
-            // include __DIR__ .  ' Form principal include __DIR__ .  '
-            const formPrincipal = document.getElementById('form-principal');
-            const campoTipo = document.getElementById('campo-tipo');
-
-            if (formPrincipal && campoTipo) {
-                formPrincipal.querySelectorAll('button[type="submit"][name="tipo"]').forEach(btn => {
-                    btn.addEventListener('click', function() {
+            formPrincipal.querySelectorAll('button[type="submit"][name="tipo"]')
+                .forEach(btn => {
+                    btn.addEventListener('click', function () {
                         campoTipo.value = this.value;
                     });
                 });
 
-                formPrincipal.addEventListener('submit', function(e) {
-                    if (!campoTipo.value) {
-                        const primerBoton = formPrincipal.querySelector('button[type="submit"][name="tipo"]');
-                        if (primerBoton) campoTipo.value = primerBoton.value;
+            formPrincipal.addEventListener('submit', function (e) {
+
+                if (!campoTipo.value) {
+                    const primerBoton = formPrincipal.querySelector('button[type="submit"][name="tipo"]');
+                    if (primerBoton) campoTipo.value = primerBoton.value;
+                }
+
+                if (!validarLimites()) {
+                    e.preventDefault();
+                    return;
+                }
+
+                const editorEl = formPrincipal.querySelector('.editor');
+                if (editorEl) {
+                    tinymce.get(editorEl.id)?.save();
+                }
+            });
+        }
+
+        // 
+        // FORM BORRADOR
+        // 
+        const formBorrador = document.getElementById('form-borrador');
+
+        if (formBorrador) {
+            formBorrador.addEventListener('submit', function (e) {
+
+                if (!validarLimites()) {
+                    e.preventDefault();
+                    return;
+                }
+
+                const formPpal = document.getElementById('form-principal');
+
+                const editorEl = formPpal
+                    ? formPpal.querySelector('.editor')
+                    : document.querySelector('.editor');
+
+                if (editorEl) {
+                    const inst = tinymce.get(editorEl.id);
+                    if (inst) {
+                        document.getElementById('borrador-contenido').value = inst.getContent();
                     }
-                    if (!validarLimites()) {
-                        e.preventDefault();
-                        return;
+                }
+
+                if (!document.getElementById('borrador-contenido').value) {
+                    const ta = formPpal
+                        ? formPpal.querySelector('textarea[name="contenido"]')
+                        : document.querySelector('textarea[name="contenido"]');
+
+                    if (ta) {
+                        document.getElementById('borrador-contenido').value = ta.value;
                     }
+                }
 
-                    const editorEl = formPrincipal.querySelector('.editor');
-                    if (editorEl) {
-                        const inst = tinymce.get(editorEl.id);
-                        if (inst) inst.save();
-                    }
-                });
-            }
+                const com = formPpal
+                    ? formPpal.querySelector('[name="comentarios"]')
+                    : document.querySelector('[name="comentarios"]');
 
-            // include __DIR__ .  ' Form borrador include __DIR__ .  '
-            const formBorrador = document.getElementById('form-borrador');
-            if (formBorrador) {
-                formBorrador.addEventListener('submit', function(e) {
-                    if (!validarLimites()) {
-                        e.preventDefault();
-                        return;
-                    }
+                if (com) {
+                    const instCom = tinymce.get(com.id);
+                    document.getElementById('borrador-comentarios').value =
+                        instCom ? instCom.getContent() : com.value;
+                }
+            });
+        }
 
-                    const editorEl = formPrincipal ?
-                        formPrincipal.querySelector('.editor') :
-                        document.querySelector('.editor');
+    });
 
-                    if (editorEl) {
-                        const inst = tinymce.get(editorEl.id);
-                        if (inst) document.getElementById('borrador-contenido').value = inst.getContent();
-                    }
-
-                    if (!document.getElementById('borrador-contenido').value) {
-                        const ta = formPrincipal ?
-                            formPrincipal.querySelector('textarea[name="contenido"]') :
-                            document.querySelector('textarea[name="contenido"]');
-                        if (ta) document.getElementById('borrador-contenido').value = ta.value;
-                    }
-
-                    const com = formPrincipal ?
-                        formPrincipal.querySelector('[name="comentarios"]') :
-                        document.querySelector('[name="comentarios"]');
-                    if (com) {
-                        const instCom = tinymce.get(com.id);
-                        document.getElementById('borrador-comentarios').value = instCom ?
-                            instCom.getContent() :
-                            com.value;
-                    }
-                });
-            }
-
-        }); // DOMContentLoaded
-
-    })();
+})();
 </script>
 
 <?php
