@@ -32,7 +32,6 @@ $msg   = $_GET['msg']   ?? '';
 $error = $_GET['error'] ?? '';
 
 ob_start();
-include __DIR__ . '/../../../mensaje.php';
 ?>
 
 <div class="container-fluid py-4" style="max-width:95%;">

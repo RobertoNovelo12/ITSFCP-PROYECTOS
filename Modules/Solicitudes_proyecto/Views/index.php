@@ -138,7 +138,7 @@ ob_start();
     <!-- ALERTAS -->
     <?php if (isset($_mapa[$msg])):
         extract($_mapa[$msg]);
-        include __DIR__ . '../../../publico/incluido/_mensaje.php';
+        include __DIR__ . '/../../../public/incluido/_mensaje.php';
     endif; ?>
 
     <!-- 
